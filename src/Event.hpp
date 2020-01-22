@@ -1,8 +1,6 @@
 #ifndef NEUVISYS_DV_EVENT_HPP
 #define NEUVISYS_DV_EVENT_HPP
 
-#endif //NEUVISYS_DV_EVENT_HPP
-
 class Event {
 private:
     long m_timestamp;
@@ -17,3 +15,5 @@ public:
     int y();
     bool polarity();
 };
+
+#endif //NEUVISYS_DV_EVENT_HPP

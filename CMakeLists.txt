@@ -45,7 +45,8 @@ SET(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 # Compile this module (standard C++ file, no additional dependencies)
 ADD_LIBRARY(neuvisys SHARED Neuvisys.cpp
         src/SpikingNetwork.cpp
-        src/SpikingNeuron.cpp
+        src/DelayedSpikingNeuron.cpp
+        src/OrientedSpikingNeuron.cpp
         src/Event.cpp
         src/Utils.cpp)
 TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
@@ -55,7 +56,8 @@ INSTALL(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 FIND_PACKAGE(OpenCV REQUIRED)
 ADD_EXECUTABLE(test MainTest.cpp
         src/SpikingNetwork.cpp
-        src/SpikingNeuron.cpp
+        src/DelayedSpikingNeuron.cpp
+        src/OrientedSpikingNeuron.cpp
         src/Event.cpp
         src/Utils.cpp)
 TARGET_LINK_LIBRARIES(test ${OpenCV_LIBS})

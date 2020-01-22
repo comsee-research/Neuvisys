@@ -14,7 +14,7 @@ public:
             displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
         }
 
-        slicer.doEveryTimeInterval(1000, [this](const dv::EventStore &data) {
+        slicer.doEveryTimeInterval(5000, [this](const dv::EventStore &data) {
             doEvery1ms(data);
         });
     }

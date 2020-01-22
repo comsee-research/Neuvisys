@@ -17,7 +17,7 @@ struct CompareEventsTimestamp {
     }
 };
 
-class SpikingNeuron {
+class DelayedSpikingNeuron {
     int m_x{}, m_y{};
 
     xt::xarray<double> m_weightsOn;
@@ -29,9 +29,9 @@ class SpikingNeuron {
     double m_threshold{};
     long m_timestampLastEvent{};
 public:
-    SpikingNeuron();
-    SpikingNeuron(int x, int y);
-    SpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold);
+    DelayedSpikingNeuron();
+    DelayedSpikingNeuron(int x, int y);
+    DelayedSpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold);
 
     int getX();
     int getY();
