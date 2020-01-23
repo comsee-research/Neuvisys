@@ -1,5 +1,6 @@
 #include <dv-sdk/module.hpp>
 #include <dv-sdk/processing/core.hpp>
+#include <thread>
 #include "src/SpikingNetwork.hpp"
 
 class Neuvisys : public dv::ModuleBase {
@@ -14,7 +15,7 @@ public:
             displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
         }
 
-        slicer.doEveryTimeInterval(5000, [this](const dv::EventStore &data) {
+        slicer.doEveryTimeInterval(1000, [this](const dv::EventStore &data) {
             doEvery1ms(data);
         });
     }
@@ -39,6 +40,9 @@ public:
 
 	void doEvery1ms(const dv::EventStore &events) {
         if (!events.isEmpty()) {
+//            for (unsigned int i = 0; i < NUMBER_THREADS; ++i) {
+//                std::thread(&Neuvisys::parallel_events, this, std::ref(events), i * events.getTotalLength() / NUMBER_THREADS, events.getTotalLength() / NUMBER_THREADS).join();
+//            }
             for (const dv::Event &event : events) {
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
@@ -47,6 +51,12 @@ public:
 
         for (size_t i = 0; i < ADJACENT_NEURONS; ++i) {
             outputs.getFrameOutput(std::to_string(i)) << displays[i];
+        }
+    }
+
+    void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {
+        for (const dv::Event &event : events.slice(start, length)) {
+            spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
         }
     }
 

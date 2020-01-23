@@ -1,20 +1,33 @@
 #include "src/SpikingNetwork.hpp"
 #include <chrono>
+#include <random>
 
 int main(int argc, char* argv[]) {
     SpikingNetwork spinet;
     std::vector<cv::Mat> displays;
 
+    std::random_device rd;
+    std::mt19937 mt(rd());
+    std::uniform_int_distribution<int> xs(0, 345);
+    std::uniform_int_distribution<int> ys(0, 259);
+
     for (int i = 0; i < ADJACENT_NEURONS; ++i) {
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
     }
 
+    auto start = std::chrono::system_clock::now();
     long count = 0;
-    while (count < 1000000) {
-        for (size_t i = 0; i < 3000; i++) {
-            spinet.addEvent(count, 0, 0, true);
+    while (count < 20000000) {
+        for (size_t i = 0; i < 20000; i++) {
+            spinet.addEvent(count, xs(mt), ys(mt), true);
             count++;
         }
         spinet.updateNeuronsInformation(count, displays);
     }
+    auto end = std::chrono::system_clock::now();
+
+    std::chrono::duration<double> elapsed_seconds = end - start;
+    std::time_t end_time = std::chrono::system_clock::to_time_t(end);
+
+    std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
 }

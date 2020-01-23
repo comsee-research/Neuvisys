@@ -2,13 +2,12 @@
 #define NEUVISYS_DV_EVENT_HPP
 
 class Event {
-private:
     long m_timestamp;
     int m_x;
     int m_y;
     bool m_polarity;
 public:
-    Event();
+    Event() = default;
     Event(long timestamp, int x, int y, bool polarity);
     long timestamp() const;
     int x();

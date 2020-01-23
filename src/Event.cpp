@@ -1,14 +1,6 @@
 #include "Event.hpp"
 
-Event::Event() {
-    m_timestamp = 0;
-    m_x = 0;
-    m_y = 0;
-    m_polarity = 0;
-}
-
-Event::Event(long timestamp, int x, int y, bool polarity) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity) {
-}
+Event::Event(long timestamp, int x, int y, bool polarity) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity) {}
 
 long Event::timestamp() const {
     return m_timestamp;
