@@ -1,7 +1,8 @@
 #include "DelayedSpikingNeuron2.hpp"
 
 DelayedSpikingNeuron2::DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold) {
-    m_events = std::vector<std::vector<Event>>(1000, std::vector<Event>(0));
+    m_events = std::vector<std::vector<Event>>(1000, std::vector<Event>());
+
     m_x = x;
     m_y = y;
     m_weightsOn = std::move(weightsOn);
@@ -22,7 +23,7 @@ double DelayedSpikingNeuron2::getPotential(const long time) {
 }
 
 void DelayedSpikingNeuron2::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    m_events[(m_updateCount + m_delays(y, x)) % SPEED].emplace_back(timestamp, x, y, polarity);
+    m_events[(m_updateCount + m_delays(y, x) - 1) % SPEED].emplace_back(timestamp, x, y, polarity);
 }
 
 bool DelayedSpikingNeuron2::update(long time) {

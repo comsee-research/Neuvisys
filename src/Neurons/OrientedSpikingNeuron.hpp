@@ -12,8 +12,6 @@
 #include "SpikingNeuron.hpp"
 
 class OrientedSpikingNeuron : public SpikingNeuron {
-protected:
-    //std::mutex g_potential;
 public:
     OrientedSpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, double threshold);
     double getPotential(long time) override;

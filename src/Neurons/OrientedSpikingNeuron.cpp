@@ -16,7 +16,6 @@ double OrientedSpikingNeuron::getPotential(const long time) {
 }
 
 void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    //std::lock_guard<std::mutex> guard(g_potential);
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
     m_timestampLastEvent = timestamp;

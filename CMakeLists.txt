@@ -1,6 +1,10 @@
 # Init CMake (require at least version 3.10.0)
 CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0)
 
+set(CMAKE_CXX_STANDARD 17)
+set(GCC_COVERAGE_COMPILE_FLAGS "-O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
+
 # General build settings
 IF (NOT CMAKE_BUILD_TYPE)
     SET(CMAKE_BUILD_TYPE "Release" CACHE STRING "Possible build types: None Debug Release RelWithDebInfo MinSizeRel")
@@ -64,4 +68,4 @@ ADD_EXECUTABLE(test MainTest.cpp
         src/Neurons/OrientedSpikingNeuron.cpp
         src/Event.cpp
         src/Utils.cpp)
-TARGET_LINK_LIBRARIES(test ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS})

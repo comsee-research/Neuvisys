@@ -9,14 +9,14 @@
 
 class SpikingNetwork {
     std::vector<DelayedSpikingNeuron> m_neurons;
-    std::array<std::vector<size_t>, WIDTH*HEIGHT> m_retina;
+    std::vector<std::vector<size_t>> m_retina;
     void generateNeuronConfiguration();
     void assignNeurons();
 public:
     SpikingNetwork();
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
-    void updateNeuronsInformation(long time, std::vector<cv::Mat> &displays);
+    void updateDisplay(long time, std::vector<cv::Mat> &displays);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP
