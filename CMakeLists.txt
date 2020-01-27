@@ -55,12 +55,12 @@ ADD_LIBRARY(neuvisys SHARED Neuvisys.cpp
         src/Neurons/OrientedSpikingNeuron.cpp
         src/Event.cpp
         src/Utils.cpp)
-TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
 INSTALL(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 
 FIND_PACKAGE(OpenCV REQUIRED)
-ADD_EXECUTABLE(test MainTest.cpp
+ADD_EXECUTABLE(neuvisys-test MainTest.cpp
         src/SpikingNetwork.cpp
         src/Neurons/SpikingNeuron.cpp
         src/Neurons/DelayedSpikingNeuron.cpp
@@ -68,4 +68,4 @@ ADD_EXECUTABLE(test MainTest.cpp
         src/Neurons/OrientedSpikingNeuron.cpp
         src/Event.cpp
         src/Utils.cpp)
-TARGET_LINK_LIBRARIES(test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS})
+TARGET_LINK_LIBRARIES(neuvisys-test ${DV_LIBRARIES} xtensor ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS})

@@ -1,36 +1,34 @@
-# DV Toolkit C++ Example Module
+# Neuvisys Project
 
-Example project for a Dynamic Vision Toolkit module written in C++.
-Use this as a starting point to develop your own DV Toolkit modules.
+The Neuvisys project stands for Neuromorphic Vision System. It is a library offering access to a SpikingNeuralNetwork with different possible kinds of neurons.
+The library is written in c++.
+It offers a direct link with Inivation DV software so that it can be used with one of their DVS cameras.
 
-### Getting started
+## Requirements
 
-**Documentation: [inivation.gitlab.io/dv/dv-docs](https://inivation.gitlab.io/dv/dv-docs)**
+### Neuvisys library:
+install **xtensor** -> https://xtensor.readthedocs.io/en/latest/installation.html
+install **xtensor-blas** -> https://github.com/xtensor-stack/xtensor-blas
+### DV software:
+install **dv-software**: https://inivation.gitlab.io/dv/dv-docs/docs/getting-started.html
 
-**Configure, build and install:**
-*(Make sure you have the newest dv-runtime installed)*
+**Documentation**: https://inivation.gitlab.io/dv/dv-docs
 
-```sh
- cmake .
- make
- sudo make install
-```
+## Launch
 
-**Open in an IDE**
+To compile the Neuvisys library:
+- Run ``cmake .`` in the directory folder
+or
+- Run ``mkdir cmake-build-release`` , ``cd cmake-build-release``, ``cmake ..``
+- Run ``make``
 
-Most IDEs will support importing a project from cmake directly.
-Just import the project's `CMakeLists.txt` file.
+You can test if the software is working properly by running ``./neuvisys-test``
+### To connect the neuvisys library with the dv-software:
+Run the dv graphical interface either in your application launcher or by running ``dv-gui``
+#### Set up DV
 
-**Change name**
+To test the neuvisys module, you will have to set up DV first. See the following documentation: https://inivation.gitlab.io/dv/dv-docs/docs/first-module/
 
-1. Edit the line `PROJECT(dv_example_module_cpp C CXX)` in `CMakeLists.txt` to the name of your module.
-2. Ensure the proper inputs and outputs are defined with the `addInputs()` and `addOutputs()` static
-functions in `ExampleModule.hpp`.
-3. Change the return value of the `getDescription` static function in `ExampleModule.hpp`.
-4. Rename the class in `ExampleModule.hpp`. Make sure to rename the argument at the `registerModuleClass`
-invocation at the bottom of the file too.
-5. Change the run() function in `ExampleModule.cpp` to implement your own algorithms.
+Once setup, you can launch the dv-software with:
+- Run ``/usr/bin/dv-runtime -b0``
 
-### More information
-
-Get the full documentation on how to write modules on [inivation.gitlab.io/dv/dv-docs](https://inivation.gitlab.io/dv/dv-docs).
