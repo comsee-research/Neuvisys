@@ -15,7 +15,7 @@ double OrientedSpikingNeuron::getPotential(const long time) {
     return m_potential;
 }
 
-void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+bool OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
     m_timestampLastEvent = timestamp;
@@ -25,13 +25,10 @@ void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const in
     } else {
         m_potential += m_weightsOff(y, x);
     }
+    std::cout << m_potential << std::endl;
 
     if (m_potential > m_threshold) {
-        //return fire();
+        return fire();
     }
-}
-
-bool OrientedSpikingNeuron::fire() {
-    m_potential = 0;
-    return true;
+    return false;
 }

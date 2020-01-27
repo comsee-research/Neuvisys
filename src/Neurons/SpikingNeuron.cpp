@@ -1,4 +1,5 @@
 #include "SpikingNeuron.hpp"
+#include "math.h"
 
 int SpikingNeuron::getX() {
     return m_x;
@@ -6,6 +7,10 @@ int SpikingNeuron::getX() {
 
 int SpikingNeuron::getY() {
     return m_y;
+}
+
+double getWeightOn(int i, int j) {
+    return m_weigthsOn
 }
 
 double SpikingNeuron::getThreshold() {
@@ -20,18 +25,15 @@ double SpikingNeuron::getPotential(long time) {
     return 0;
 }
 
-double SpikingNeuron::potentialDecay(const long time) {
-    double new_potential = m_potential - static_cast<double>(time) * DECAY;
-    if (new_potential > 0) {
-        return new_potential;
-    }
-    return 0;
+inline double SpikingNeuron::potentialDecay(const long time) {
+    return m_potential * exp(- static_cast<double>(time) / DECAY);
 }
 
-void SpikingNeuron::newEvent(long timestamp, int x, int y, bool polarity) {
+void SpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
 
 }
 
 bool SpikingNeuron::fire() {
-    return false;
+    m_potential = VRESET;
+    return true;
 }

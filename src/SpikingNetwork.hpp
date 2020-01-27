@@ -8,8 +8,10 @@
 #include <array>
 
 class SpikingNetwork {
-    std::vector<DelayedSpikingNeuron> m_neurons;
+    std::vector<OrientedSpikingNeuron> m_neurons;
     std::vector<std::vector<size_t>> m_retina;
+    std::vector<bool> m_firings;
+
     void generateNeuronConfiguration();
     void assignNeurons();
 public:

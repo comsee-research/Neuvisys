@@ -9,19 +9,22 @@
 
 const int WIDTH = 346;
 const int HEIGHT = 260;
-const int NEURON_WIDTH = 260;
-const int NEURON_HEIGHT = 260;
+const int NEURON_WIDTH = 16;
+const int NEURON_HEIGHT = 16;
 
-const int ADJACENT_NEURONS = 4;
-const unsigned int NUMBER_THREADS = 4;
+const int NUMBER_DISPLAY = 2;
+const int NUMBER_THREADS = 4;
 
-const double DECAY = 0.1f;
-const double GAIN = 1e4 * DECAY / (0.2 * NEURON_WIDTH * NEURON_HEIGHT);
-const int SPEED = 500000;
+const double DECAY = 10000; // μs
+const double VRESET = -20; // mV
+const double THRESHOLD = 20; // mV
+const double GAIN = 1e-2 * DECAY / (NEURON_WIDTH * NEURON_HEIGHT);
+const int SPEED = 500000; // μs
 
 const xt::xarray<double> NO_GABOR = GAIN * xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH});
 const xt::xarray<double> GABOR_H = opencvMatToXarray(GAIN * cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 60, 0, 1, 8, 0), NEURON_HEIGHT, NEURON_WIDTH); // horizontal gabor
 const xt::xarray<double> GABOR_V = opencvMatToXarray(GAIN * cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 60, M_PI/2, 1, 8, 0), NEURON_HEIGHT, NEURON_WIDTH); // vertical gabor
+const xt::xarray<double> UNIFORM_WEIGHTS = uniformMatrix(NEURON_HEIGHT, NEURON_WIDTH);
 
 const xt::xarray<long> NO_DELAYS = xt::zeros<long>({NEURON_HEIGHT, NEURON_WIDTH});
 const xt::xarray<long> DELAYS_LR = xt::linalg::outer(xt::ones<long>({NEURON_HEIGHT}), xt::linspace<long>(SPEED, 0, NEURON_WIDTH)); // left to right

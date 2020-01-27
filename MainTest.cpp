@@ -5,8 +5,8 @@
 void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     std::random_device rd;
     std::mt19937 mt(rd());
-    std::uniform_int_distribution<int> xs(0, 345);
-    std::uniform_int_distribution<int> ys(0, 259);
+    std::uniform_int_distribution<int16_t> xs(0, 345);
+    std::uniform_int_distribution<int16_t> ys(0, 259);
 
     long count = 0;
     while (count < 1000) {
@@ -21,7 +21,7 @@ int main(int argc, char* argv[]) {
     SpikingNetwork spinet;
     std::vector<cv::Mat> displays;
 
-    for (int i = 0; i < ADJACENT_NEURONS; ++i) {
+    for (size_t i = 0; i < ADJACENT_NEURONS; ++i) {
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
     }
 

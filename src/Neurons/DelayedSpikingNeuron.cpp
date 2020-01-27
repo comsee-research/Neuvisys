@@ -43,18 +43,10 @@ bool DelayedSpikingNeuron::update(long time) {
         }
 
         if (m_potential > m_threshold) {
-            //return fire();
+            return fire();
         }
     }
     return false;
-}
-
-double DelayedSpikingNeuron::potentialDecay(const long time) {
-    double new_potential = m_potential - static_cast<double>(time) * DECAY;
-    if (new_potential > 0) {
-        return new_potential;
-    }
-    return 0;
 }
 
 bool DelayedSpikingNeuron::fire() {

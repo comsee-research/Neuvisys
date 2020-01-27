@@ -15,8 +15,7 @@ class OrientedSpikingNeuron : public SpikingNeuron {
 public:
     OrientedSpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, double threshold);
     double getPotential(long time) override;
-    void newEvent(long timestamp, int x, int y, bool polarity) override;
-    bool fire() override;
+    bool update(long timestamp, int x, int y, bool polarity);
 };
 
 #endif //NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP

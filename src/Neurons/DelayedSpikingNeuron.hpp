@@ -26,7 +26,6 @@ public:
     bool update(long time);
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
-    double potentialDecay(long time) override;
     bool fire() override;
 };
 

@@ -1,6 +1,8 @@
 #ifndef NEUVISYS_DV_EVENT_HPP
 #define NEUVISYS_DV_EVENT_HPP
 
+#include <cstdint>
+
 class Event {
     long m_timestamp;
     int m_x;

@@ -15,9 +15,11 @@ public:
     SpikingNeuron() = default;
     virtual int getX();
     virtual int getY();
+    virtual double getWeightOn(int i, int j);
+    virtual double getWeightOFF(int i, int j);
     virtual double getThreshold();
     virtual double getPotential();
-    virtual double getPotential(long time);
+    inline virtual double getPotential(long time);
     virtual double potentialDecay(long time);
     virtual void newEvent(long timestamp, int x, int y, bool polarity);
     virtual bool fire();
