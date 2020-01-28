@@ -20,8 +20,15 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
 int main(int argc, char* argv[]) {
     SpikingNetwork spinet;
     std::vector<cv::Mat> displays;
+    GnuplotPipe gp;
+    gp.sendLine("set title \"hey\"");
+    std::string plot = "plot[0:5][0:5] '-' lc rgb 'blue' with lines";
+    plot += "\n 1 2";
+    plot += "\n 2.5 2.5";
+    plot += "\n 3 4";
+    gp.sendLine(plot);
 
-    for (size_t i = 0; i < ADJACENT_NEURONS; ++i) {
+    for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
     }
 

@@ -7,5 +7,6 @@
 
 xt::xarray<double> opencvMatToXarray(const cv::Mat mat, int row, int col);
 xt::xarray<double> uniformMatrix(int row, int col);
+void normalizeMatrix(xt::xarray<double> &xray);
 
 #endif //NEUVISYS_DV_UTILS_HPP

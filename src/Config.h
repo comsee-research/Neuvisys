@@ -21,6 +21,8 @@ const double THRESHOLD = 20; // mV
 const double GAIN = 1e-2 * DECAY / (NEURON_WIDTH * NEURON_HEIGHT);
 const int SPEED = 500000; // μs
 
+const int NORMALIZATION_THRESHOLD = 10;
+
 const xt::xarray<double> NO_GABOR = GAIN * xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH});
 const xt::xarray<double> GABOR_H = opencvMatToXarray(GAIN * cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 60, 0, 1, 8, 0), NEURON_HEIGHT, NEURON_WIDTH); // horizontal gabor
 const xt::xarray<double> GABOR_V = opencvMatToXarray(GAIN * cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 60, M_PI/2, 1, 8, 0), NEURON_HEIGHT, NEURON_WIDTH); // vertical gabor

@@ -15,8 +15,8 @@ public:
     SpikingNeuron() = default;
     virtual int getX();
     virtual int getY();
-    virtual double getWeightOn(int i, int j);
-    virtual double getWeightOFF(int i, int j);
+    virtual double getWeightsOn(int x, int y);
+    virtual double getWeightsOff(int x, int y);
     virtual double getThreshold();
     virtual double getPotential();
     inline virtual double getPotential(long time);
