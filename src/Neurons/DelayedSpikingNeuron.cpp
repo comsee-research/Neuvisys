@@ -1,10 +1,9 @@
 #include "DelayedSpikingNeuron.hpp"
 
-DelayedSpikingNeuron::DelayedSpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold) {
+DelayedSpikingNeuron::DelayedSpikingNeuron(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold) {
     m_x = x;
     m_y = y;
-    m_weightsOn = std::move(weightsOn);
-    m_weightsOff = std::move(weightsOff);
+    m_weights = std::move(weights);
     m_delays = std::move(delays);
     m_threshold = threshold;
     m_potential = 0.f;
@@ -36,11 +35,7 @@ bool DelayedSpikingNeuron::update(long time) {
         m_potential = potentialDecay(dt_event);
         m_timestampLastEvent = event.timestamp();
 
-        if (event.polarity()) {
-            m_potential += m_weightsOn(event.y(), event.x());
-        } else {
-            m_potential += m_weightsOff(event.y(), event.x());
-        }
+        m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
             return fire();

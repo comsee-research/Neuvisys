@@ -6,8 +6,7 @@
 class SpikingNeuron {
 protected:
     int m_x{}, m_y{};
-    xt::xarray<double> m_weightsOn;
-    xt::xarray<double> m_weightsOff;
+    xt::xarray<double> m_weights;
     double m_potential{};
     double m_threshold{};
     long m_timestampLastEvent{};
@@ -15,8 +14,7 @@ public:
     SpikingNeuron() = default;
     virtual int getX();
     virtual int getY();
-    virtual double getWeightsOn(int x, int y);
-    virtual double getWeightsOff(int x, int y);
+    virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
     virtual double getPotential();
     inline virtual double getPotential(long time);

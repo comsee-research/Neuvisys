@@ -9,12 +9,8 @@ inline int SpikingNeuron::getY() {
     return m_y;
 }
 
-inline double SpikingNeuron::getWeightsOn(const int x, const int y) {
-    return m_weightsOn(y, x);
-}
-
-inline double SpikingNeuron::getWeightsOff(const int x, const int y) {
-    return m_weightsOff(y, x);
+inline double SpikingNeuron::getWeights(const int p, const int x, const int y) {
+    return m_weights(p, y, x);
 }
 
 double SpikingNeuron::getThreshold() {
@@ -30,7 +26,7 @@ double SpikingNeuron::getPotential(long time) {
 }
 
 inline double SpikingNeuron::potentialDecay(const long time) {
-    return m_potential * exp(- static_cast<double>(time) / DECAY);
+    return m_potential * exp(- static_cast<double>(time) / TAU_M);
 }
 
 inline void SpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {

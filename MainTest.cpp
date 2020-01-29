@@ -1,6 +1,9 @@
 #include "src/SpikingNetwork.hpp"
+#include "src/matplotlibcpp.h"
 #include <chrono>
 #include <random>
+
+namespace plt = matplotlibcpp;
 
 void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     std::random_device rd;
@@ -20,15 +23,8 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
 int main(int argc, char* argv[]) {
     SpikingNetwork spinet;
     std::vector<cv::Mat> displays;
-    GnuplotPipe gp;
-    gp.sendLine("set title \"hey\"");
-    std::string plot = "plot[0:5][0:5] '-' lc rgb 'blue' with lines";
-    plot += "\n 1 2";
-    plot += "\n 2.5 2.5";
-    plot += "\n 3 4";
-    gp.sendLine(plot);
 
-    for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+/*    for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
     }
 
@@ -43,5 +39,5 @@ int main(int argc, char* argv[]) {
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::time_t end_time = std::chrono::system_clock::to_time_t(end);
 
-    std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
+    std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;*/
 }

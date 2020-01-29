@@ -19,7 +19,7 @@ protected:
     xt::xarray<long> m_delays;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_events;
 public:
-    DelayedSpikingNeuron(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold);
+    DelayedSpikingNeuron(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
     long getDelay(int x, int y);
     long getTimestampNextEvent();
 

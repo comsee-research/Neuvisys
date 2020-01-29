@@ -15,7 +15,7 @@ protected:
     std::vector<std::vector<Event>> m_events;
     unsigned long m_updateCount;
 public:
-    DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold);
+    DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
     long getDelay(int x, int y);
 
     bool update(long time);

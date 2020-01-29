@@ -1,12 +1,11 @@
 #include "DelayedSpikingNeuron2.hpp"
 
-DelayedSpikingNeuron2::DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weightsOn, xt::xarray<double> weightsOff, xt::xarray<long> delays, double threshold) {
+DelayedSpikingNeuron2::DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold) {
     m_events = std::vector<std::vector<Event>>(1000, std::vector<Event>());
 
     m_x = x;
     m_y = y;
-    m_weightsOn = std::move(weightsOn);
-    m_weightsOff = std::move(weightsOff);
+    m_weights = std::move(weights);
     m_delays = std::move(delays);
     m_threshold = threshold;
     m_potential = 0.f;
@@ -32,11 +31,7 @@ bool DelayedSpikingNeuron2::update(long time) {
         m_potential = potentialDecay(dt_event);
         m_timestampLastEvent = event.timestamp();
 
-        if (event.polarity()) {
-            m_potential += m_weightsOn(event.y(), event.x());
-        } else {
-            m_potential += m_weightsOff(event.y(), event.x());
-        }
+        m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
             return fire();
@@ -51,7 +46,7 @@ bool DelayedSpikingNeuron2::update(long time) {
 }
 
 double DelayedSpikingNeuron2::potentialDecay(const long time) {
-    double new_potential = m_potential - static_cast<double>(time) * DECAY;
+    double new_potential = m_potential - static_cast<double>(time) * TAU_M;
     if (new_potential > 0) {
         return new_potential;
     }

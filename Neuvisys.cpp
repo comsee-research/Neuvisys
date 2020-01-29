@@ -16,10 +16,10 @@ public:
             outputs.getFrameOutput(std::to_string(i)).setup(inputs.getEventInput("events"));
             displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
         }*/
-        outputs.getFrameOutput(std::to_string(0)).setup(inputs.getEventInput("events"));
-        outputs.getFrameOutput(std::to_string(1)).setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
+        outputs.getFrameOutput("0").setup(inputs.getEventInput("events"));
+        outputs.getFrameOutput("1").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
-        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC1));
+        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
         slicer.doEveryTimeInterval(1000, [this](const dv::EventStore &data) {
             doEvery1ms(data);
@@ -62,9 +62,13 @@ public:
 
     void doEvery30ms() {
         spinet.updateDisplay(lastTime, displays);
-        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+        outputs.getFrameOutput("0") << displays[0];
+        auto frame = outputs.getFrameOutput("1").frame();
+        frame.setFormat(dv::FrameFormat::BGR);
+        frame.commitMat(displays[1]);
+/*        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
             outputs.getFrameOutput(std::to_string(i)) << displays[i];
-        }
+        }*/
     }
 
     void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {

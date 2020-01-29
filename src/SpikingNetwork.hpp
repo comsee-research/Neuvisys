@@ -11,9 +11,10 @@
 class SpikingNetwork {
     std::vector<OrientedSpikingNeuron> m_neurons;
     std::vector<std::vector<size_t>> m_retina;
+
     std::vector<bool> m_firings;
-    std::vector<double> m_potentials;
-    std::vector<long> m_timestamps;
+    std::deque<double> m_potentials;
+    std::deque<long> m_timestamps;
     GnuplotPipe gp;
 
     void generateNeuronConfiguration();
