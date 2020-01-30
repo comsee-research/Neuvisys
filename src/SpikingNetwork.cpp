@@ -72,9 +72,9 @@ void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
                 }
             }
         }
-
-        m_firings[count] = false;
-        ++count;
+        std::cout << neuron.getSpikeFrequency(DISPLAY_FREQUENCY) << std::endl;
+//        m_firings[count] = false;
+//        ++count;
     }
 }
 
@@ -84,8 +84,8 @@ void SpikingNetwork::generateNeuronConfiguration() {
             m_neurons.emplace_back(OrientedSpikingNeuron(i, j, NO_GABOR, THRESHOLD));
         }
     }*/
-    for (int i = 150; i <= 165; i += NEURON_WIDTH) {
-        for (int j = 150; j <= 165; j += NEURON_HEIGHT) {
+    for (int i = 150; i <= 151; i += NEURON_WIDTH) {
+        for (int j = 150; j <= 151; j += NEURON_HEIGHT) {
             m_neurons.emplace_back(OrientedSpikingNeuron(i, j, UNIFORM_WEIGHTS, THRESHOLD));
         }
     }

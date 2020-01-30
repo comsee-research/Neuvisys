@@ -23,13 +23,3 @@ xt::xarray<double> uniformMatrix(const int row, const int col) {
     }
     return xray;
 }
-
-void normalizeMatrix(xt::xarray<double> &xray) {
-    for (int i = 0; i < 2; ++i) {
-        double norm = xt::linalg::norm(xt::view(xray, i));
-        if (norm != 0) {
-            xt::view(xray, i) = (xt::view(xray, i) / norm) * 2;
-        }
-    }
-
-}

@@ -34,7 +34,7 @@ bool DelayedSpikingNeuron2::update(long time) {
         m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
-            return fire();
+            return spike();
         }
     }
     m_events[m_updateCount].clear();
@@ -53,7 +53,7 @@ double DelayedSpikingNeuron2::potentialDecay(const long time) {
     return 0;
 }
 
-bool DelayedSpikingNeuron2::fire() {
+bool DelayedSpikingNeuron2::spike() {
     m_events = std::vector<std::vector<Event>>(1000, std::vector<Event>());
     m_potential = 0;
     return true;

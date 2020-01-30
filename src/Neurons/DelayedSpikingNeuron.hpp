@@ -26,7 +26,7 @@ public:
     bool update(long time);
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
-    bool fire() override;
+    bool spike() override;
 };
 
 #endif //NEUVISYS_DV_SPIKING_NEURON_HPP

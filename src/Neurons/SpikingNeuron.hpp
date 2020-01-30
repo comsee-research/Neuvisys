@@ -20,7 +20,7 @@ public:
     inline virtual double getPotential(long time);
     virtual double potentialDecay(long time);
     virtual void newEvent(long timestamp, int x, int y, bool polarity);
-    virtual bool fire();
+    virtual bool spike();
 };
 
 #endif //NEUVISYS_DV_SPIKINGNEURON_HPP

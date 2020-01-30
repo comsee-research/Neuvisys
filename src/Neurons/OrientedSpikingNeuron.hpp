@@ -18,13 +18,17 @@ class OrientedSpikingNeuron : public SpikingNeuron {
     long m_spikingTime;
     long m_lastSpikingTime;
     int m_countNormalize;
+    int m_spikeCount;
+    void normalize();
 public:
     OrientedSpikingNeuron(int x, int y, xt::xarray<double> weights, double threshold);
+
     double getPotential(long time) override;
+    long getSpikeFrequency(int timeInterval);
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long timestamp, int x, int y, bool polarity);
     void learnWeightsSTDP();
-    bool fire() override;
+    bool spike() override;
 };
 
 #endif //NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP

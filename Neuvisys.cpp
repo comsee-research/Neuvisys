@@ -21,11 +21,11 @@ public:
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
         displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
-        slicer.doEveryTimeInterval(1000, [this](const dv::EventStore &data) {
-            doEvery1ms(data);
+        slicer.doEveryTimeInterval(EVENT_FREQUENCY, [this](const dv::EventStore &data) {
+            computeEvents(data);
         });
-        slicer.doEveryTimeInterval(30000, [this](const dv::EventStore &data) {
-            doEvery30ms();
+        slicer.doEveryTimeInterval(DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
+            computeDisplays();
         });
     }
 
@@ -47,7 +47,7 @@ public:
 		config.add("printInterval", dv::ConfigOption::intOption("Interval in number of events between consecutive printing of the event number.", 10000));
 	}
 
-	void doEvery1ms(const dv::EventStore &events) {
+	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
             lastTime = events.getHighestTime();
 //            for (unsigned int i = 0; i < NUMBER_THREADS; ++i) {
@@ -60,7 +60,7 @@ public:
         //spinet.updateNeurons(lastTime);
     }
 
-    void doEvery30ms() {
+    void computeDisplays() {
         spinet.updateDisplay(lastTime, displays);
         outputs.getFrameOutput("0") << displays[0];
         auto frame = outputs.getFrameOutput("1").frame();

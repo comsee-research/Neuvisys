@@ -38,13 +38,13 @@ bool DelayedSpikingNeuron::update(long time) {
         m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
-            return fire();
+            return spike();
         }
     }
     return false;
 }
 
-bool DelayedSpikingNeuron::fire() {
+bool DelayedSpikingNeuron::spike() {
     m_events = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_potential = 0;
     return true;

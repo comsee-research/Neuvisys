@@ -9,8 +9,11 @@
 
 const int WIDTH = 346;
 const int HEIGHT = 260;
-const int NEURON_WIDTH = 16;
-const int NEURON_HEIGHT = 16;
+const int NEURON_WIDTH = 8;
+const int NEURON_HEIGHT = 8;
+
+const int EVENT_FREQUENCY = 1000; // μs
+const int DISPLAY_FREQUENCY = 30000; // μs
 
 const int NUMBER_DISPLAY = 2;
 const int NUMBER_THREADS = 4;
@@ -22,13 +25,12 @@ const double TAU_LTD = 20000; // μs
 const int SPEED = 500000; // μs
 
 const double VRESET = -20; // mV
-const double THRESHOLD = 20; // mV
-const double DELTA_VP = 0.05; // mV
-const double DELTA_VD = 0.03; // mV
+const double THRESHOLD = 15; // mV
+const double DELTA_VP = 0.02; // mV
+const double DELTA_VD = 0.01; // mV
 
-const double GAIN = 1e-3 * TAU_M / (NEURON_WIDTH * NEURON_HEIGHT);
-
-const int NORMALIZATION_THRESHOLD = 10;
+const double NORMALIZATION_FACTOR = 8;
+const int NORMALIZATION_FREQUENCY = 10; // number spikes
 
 const xt::xarray<double> NO_GABOR = xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH, 2});
 const xt::xarray<double> GABOR_H = opencvMatToXarray(cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 50, M_PI/2, 1.06, 8, M_PI/2), NEURON_HEIGHT, NEURON_WIDTH); // horizontal gabor

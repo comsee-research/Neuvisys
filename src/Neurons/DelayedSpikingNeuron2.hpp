@@ -22,7 +22,7 @@ public:
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     double potentialDecay(long time) override;
-    bool fire() override;
+    bool spike() override;
 };
 
 #endif //NEUVISYS_DV_DELAYEDSPIKINGNEURON2_HPP
