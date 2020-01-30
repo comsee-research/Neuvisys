@@ -24,6 +24,7 @@ public:
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::vector<cv::Mat> &displays);
+    void displayInformations();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

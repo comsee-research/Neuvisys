@@ -7,6 +7,11 @@
 
 #include "Utils.hpp"
 
+class Config {
+public:
+    double DELTA_VP = 0.05; // mV
+};
+
 const int WIDTH = 346;
 const int HEIGHT = 260;
 const int NEURON_WIDTH = 8;
@@ -26,14 +31,16 @@ const int SPEED = 500000; // μs
 
 const double VRESET = -20; // mV
 const double THRESHOLD = 15; // mV
-const double DELTA_VP = 0.02; // mV
-const double DELTA_VD = 0.01; // mV
+
+const double DELTA_VP = 0.05; // mV
+const double DELTA_VD = 0.03; // mV
 
 const double V_MIN = 4; // mV
 const double V_DEP = 3; // mV
+
 const double LEARNING_RATE = 0.5; // %
 
-const double NORMALIZATION_FACTOR = 8;
+const double NORMALIZATION_FACTOR = 4;
 const int NORMALIZATION_FREQUENCY = 10; // number spikes
 
 const xt::xarray<double> NO_GABOR = xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH, 2});

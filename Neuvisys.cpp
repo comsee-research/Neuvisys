@@ -27,6 +27,9 @@ public:
         slicer.doEveryTimeInterval(DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
             computeDisplays();
         });
+        slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
+            informations();
+        });
     }
 
 	static void addInputs(dv::InputDefinitionList &in) {
@@ -40,12 +43,16 @@ public:
 	}
 
 	static const char *getDescription() {
-		return ("This is an example module that counts positive events and logs the number to DV logging.");
+		return ("Neuvisys module.");
 	}
 
 	static void getConfigOptions(dv::RuntimeConfig &config) {
-		config.add("printInterval", dv::ConfigOption::intOption("Interval in number of events between consecutive printing of the event number.", 10000));
+		config.add("DELTA_VP", dv::ConfigOption::doubleOption("Synapse potentiation value", DELTA_VP));
 	}
+
+    void configUpdate() override {
+        //DELTA_VP = config.getDouble("DELTA_VP");
+    }
 
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
@@ -69,6 +76,10 @@ public:
 /*        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
             outputs.getFrameOutput(std::to_string(i)) << displays[i];
         }*/
+    }
+
+    void informations() {
+        spinet.displayInformations();
     }
 
     void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {

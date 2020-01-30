@@ -25,12 +25,16 @@ inline void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, c
     update(timestamp, x, y, polarity);
 }
 
-inline void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
-    if (m_potential > - V_MIN && m_potentials < 0) {
-        m_weights(polarity, x, y) += exp(LEARNING_RATE * (- m_potentials - V_MIN)) - V_DEP;
-    } else {
-        m_weights(polarity, x, y) += exp(LEARNING_RATE * (m_potentials - V_MIN)) - V_DEP;
+void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
+    if (m_potential > 5) {
+        m_weights(polarity, x, y) += 0.016;
+    } else if (m_potential > -5 && m_weights(polarity, x, y) > 0.008){
+        m_weights(polarity, x, y) -= 0.008;
     }
+/*    if (m_weights(polarity, y, x) < 0.) {
+        m_weights(polarity, y, x) = 0.;
+    }*/
+    update(timestamp, x, y, polarity);
 }
 
 inline bool OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
@@ -67,14 +71,15 @@ inline void OrientedSpikingNeuron::learnWeightsSTDP() {
 
 inline bool OrientedSpikingNeuron::spike() {
     ++m_spikeCount;
-    m_lastSpikingTime = m_spikingTime;
-    m_spikingTime = m_events.back().timestamp();
+//    m_lastSpikingTime = m_spikingTime;
+//    m_spikingTime = m_events.back().timestamp();
     m_potential = VRESET;
-    learnWeightsSTDP();
+//    learnWeightsSTDP();
     return true;
 }
 
-inline void OrientedSpikingNeuron::normalize() {
+void OrientedSpikingNeuron::normalize() {
+    //std::cout << m_weights << std::endl;
     m_countNormalize = 0;
     for (int i = 0; i < 2; ++i) {
         double norm = xt::linalg::norm(xt::view(m_weights, i));
@@ -85,13 +90,13 @@ inline void OrientedSpikingNeuron::normalize() {
 }
 
 inline void OrientedSpikingNeuron::adaptThreshold() {
-    m_thresold += 0.1 * (m_spikeCount - 20);
+    m_threshold += 0.1 * (m_spikeCount - 20);
 }
 
 void OrientedSpikingNeuron::resetSpikeCount() {
     m_spikeCount = 0;
 }
 
-long OrientedSpikingNeuron::getSpikeCount() {
+int OrientedSpikingNeuron::getSpikeCount() {
     return m_spikeCount;
 }
