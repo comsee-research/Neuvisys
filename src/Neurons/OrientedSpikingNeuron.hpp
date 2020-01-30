@@ -24,11 +24,15 @@ public:
     OrientedSpikingNeuron(int x, int y, xt::xarray<double> weights, double threshold);
 
     double getPotential(long time) override;
-    long getSpikeFrequency(int timeInterval);
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long timestamp, int x, int y, bool polarity);
     void learnWeightsSTDP();
     bool spike() override;
+
+    void newEventPot(const long timestamp, const int x, const int y, const bool polarity);
+    void resetSpikeCount();
+    int getSpikeCount();
+    void adaptThreshold();
 };
 
 #endif //NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP

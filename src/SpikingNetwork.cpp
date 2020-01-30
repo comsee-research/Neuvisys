@@ -72,7 +72,10 @@ void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
                 }
             }
         }
-        std::cout << neuron.getSpikeFrequency(DISPLAY_FREQUENCY) << std::endl;
+
+        std::cout << long freq = timeInterval * m_spikeCount / 1000000; << std::endl;
+//        neuron.adaptThreshold();
+
 //        m_firings[count] = false;
 //        ++count;
     }

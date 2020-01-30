@@ -29,6 +29,10 @@ const double THRESHOLD = 15; // mV
 const double DELTA_VP = 0.02; // mV
 const double DELTA_VD = 0.01; // mV
 
+const double V_MIN = 4; // mV
+const double V_DEP = 3; // mV
+const double LEARNING_RATE = 0.5; // %
+
 const double NORMALIZATION_FACTOR = 8;
 const int NORMALIZATION_FREQUENCY = 10; // number spikes
 

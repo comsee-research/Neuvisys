@@ -25,13 +25,13 @@ inline void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, c
     update(timestamp, x, y, polarity);
 }
 
-/*inline void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
-    if (m_potential > -2 && m_potentials < 0) {
-        m_weights(polarity, x, y) += exp(- m_potentials - 2) - 1;
+inline void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
+    if (m_potential > - V_MIN && m_potentials < 0) {
+        m_weights(polarity, x, y) += exp(LEARNING_RATE * (- m_potentials - V_MIN)) - V_DEP;
     } else {
-        m_weights(polarity, x, y) += exp(m_potentials - 2) - 1;
+        m_weights(polarity, x, y) += exp(LEARNING_RATE * (m_potentials - V_MIN)) - V_DEP;
     }
-}*/
+}
 
 inline bool OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
@@ -84,8 +84,14 @@ inline void OrientedSpikingNeuron::normalize() {
     }
 }
 
-long OrientedSpikingNeuron::getSpikeFrequency(int timeInterval) {
-    long freq = timeInterval * m_spikeCount / 1000000;
+inline void OrientedSpikingNeuron::adaptThreshold() {
+    m_thresold += 0.1 * (m_spikeCount - 20);
+}
+
+void OrientedSpikingNeuron::resetSpikeCount() {
     m_spikeCount = 0;
-    return freq;
+}
+
+long OrientedSpikingNeuron::getSpikeCount() {
+    return m_spikeCount;
 }
