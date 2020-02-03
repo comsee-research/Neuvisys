@@ -2,8 +2,9 @@
 //#include "src/matplotlibcpp.h"
 #include <chrono>
 #include <random>
-
+#include "src/Dependencies/json.hpp"
 //namespace plt = matplotlibcpp;
+using json = nlohmann::json;
 
 void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     std::random_device rd;
@@ -20,12 +21,10 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     }
 }
 
+
 int main(int argc, char* argv[]) {
     SpikingNetwork spinet;
     std::vector<cv::Mat> displays;
-
-    Config::saveConfig((std::string &) "test");
-
 
 /*    for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
         displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));

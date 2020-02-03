@@ -85,6 +85,11 @@ public:
     }
 
     static void getConfigOptions(dv::RuntimeConfig &config) {
+        config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
+        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), "/home/thomas/neuvisys-dv/configs/config.json", "json"));
+        config.add("A_SAVE_BUTTON", dv::ConfigOption::buttonOption("Save config file", "Save Config"));
+        config.add("A_SAVE_CONFIG", dv::ConfigOption::fileSaveOption(("Config file save location"), "/home/thomas/neuvisys-dv/configs/config.json", "json"));
+
         config.add("NEURON_WIDTH", dv::ConfigOption::intOption("Width of the neurons' receptive field (pixels)", NEURON_WIDTH));
         config.add("NEURON_HEIGHT", dv::ConfigOption::intOption("Height of the neurons' receptive field (pixels)", NEURON_HEIGHT));
         config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
@@ -100,18 +105,42 @@ public:
     }
 
     void configUpdate() override {
-        NEURON_WIDTH = config.getInt("NEURON_WIDTH");
-        NEURON_HEIGHT = config.getInt("NEURON_HEIGHT");
-        TAU_M = config.getDouble("TAU_M");
-        TAU_LTP = config.getDouble("TAU_LTP");
-        TAU_LTD = config.getDouble("TAU_LTD");
-        SPEED = config.getInt("SPEED");
-        VRESET = config.getDouble("VRESET");
-        THRESHOLD = config.getDouble("THRESHOLD");
-        DELTA_VP = config.getDouble("DELTA_VP");
-        DELTA_VD = config.getDouble("DELTA_VD");
-        NORM_FACTOR = config.getDouble("NORM_FACTOR");
-        NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
+        if (config.getBool("A_LOAD_BUTTON")) {
+            std::string conf = config.getString("A_LOAD_CONFIG");
+            Config::loadConfig(conf);
+
+            config.setInt("NEURON_WIDTH", NEURON_WIDTH);
+            config.setInt("NEURON_HEIGHT", NEURON_HEIGHT);
+            config.setDouble("TAU_M", TAU_M);
+            config.setDouble("TAU_LTP", TAU_LTP);
+            config.setDouble("TAU_LTD", TAU_LTD);
+            config.setInt("SPEED", SPEED);
+            config.setDouble("VRESET", VRESET);
+            config.setDouble("THRESHOLD", THRESHOLD);
+            config.setDouble("DELTA_VP", DELTA_VP);
+            config.setDouble("DELTA_VD", DELTA_VD);
+            config.setDouble("NORM_FACTOR", NORM_FACTOR);
+            config.setInt("NORM_THRESHOLD", NORM_THRESHOLD);
+            config.setBool("A_LOAD_BUTTON", false);
+        } else if (config.getBool("A_SAVE_BUTTON")) {
+            std::string conf = config.getString("A_SAVE_CONFIG");
+            Config::loadConfig(conf);
+            config.setBool("A_SAVE_BUTTON", false);
+        } else {
+            NEURON_WIDTH = config.getInt("NEURON_WIDTH");
+            NEURON_HEIGHT = config.getInt("NEURON_HEIGHT");
+            TAU_M = config.getDouble("TAU_M");
+            TAU_LTP = config.getDouble("TAU_LTP");
+            TAU_LTD = config.getDouble("TAU_LTD");
+            SPEED = config.getInt("SPEED");
+            VRESET = config.getDouble("VRESET");
+            THRESHOLD = config.getDouble("THRESHOLD");
+            DELTA_VP = config.getDouble("DELTA_VP");
+            DELTA_VD = config.getDouble("DELTA_VD");
+            NORM_FACTOR = config.getDouble("NORM_FACTOR");
+            NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
+        }
+        std::cout << DELTA_VP << std::endl;
     }
 };
 

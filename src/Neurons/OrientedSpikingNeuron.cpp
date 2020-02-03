@@ -71,10 +71,10 @@ inline void OrientedSpikingNeuron::learnWeightsSTDP() {
 
 inline bool OrientedSpikingNeuron::spike() {
     ++m_spikeCount;
-//    m_lastSpikingTime = m_spikingTime;
-//    m_spikingTime = m_events.back().timestamp();
+    m_lastSpikingTime = m_spikingTime;
+    m_spikingTime = m_events.back().timestamp();
     m_potential = VRESET;
-//    learnWeightsSTDP();
+    learnWeightsSTDP();
     return true;
 }
 

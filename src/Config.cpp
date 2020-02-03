@@ -1,5 +1,4 @@
 #include "Config.hpp"
-#include "src/Dependencies/json.hpp"
 
 using json = nlohmann::json;
 
@@ -25,27 +24,50 @@ double NORM_FACTOR = 4;
 int NORM_THRESHOLD = 10; // number spikes
 
 void Config::loadConfig(std::string &fileName) {
-    std::ifstream i(fileName);
-    json j;
-    i >> j;
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        json conf;
+        ifs >> conf;
+
+        NEURON_WIDTH = conf["NEURON_WIDTH"];
+        NEURON_HEIGHT = conf["NEURON_HEIGHT"];
+        TAU_M = conf["TAU_M"];
+        TAU_LTP = conf["TAU_LTP"];
+        TAU_LTD = conf["TAU_LTD"];
+        SPEED = conf["SPEED"];
+        VRESET = conf["VRESET"];
+        THRESHOLD = conf["THRESHOLD"];
+        DELTA_VP = conf["DELTA_VP"];
+        DELTA_VD = conf["DELTA_VD"];
+        NORM_FACTOR = conf["NORM_FACTOR"];
+        NORM_THRESHOLD = conf["NORM_THRESHOLD"];
+    } else {
+        std::cout << "cannot open config file" << std::endl;
+    }
+    ifs.close();
 }
 
 void Config::saveConfig(std::string &fileName) {
-    json j;
+    json conf;
 
-    j["NEURON_WIDTH"] = NEURON_WIDTH;
-    j["NEURON_HEIGHT"] = NEURON_HEIGHT;
-    j["TAU_M"] = TAU_M;
-    j["TAU_LTP"] = TAU_LTP;
-    j["TAU_LTD"] = TAU_LTD;
-    j["SPEED"] = SPEED;
-    j["VRESET"] = VRESET;
-    j["THRESHOLD"] = THRESHOLD;
-    j["DELTA_VP"] = DELTA_VP;
-    j["DELTA_VD"] = DELTA_VD;
-    j["NORM_FACTOR"] = NORM_FACTOR;
-    j["NORM_THRESHOLD"] = NORM_THRESHOLD;
+    conf["NEURON_WIDTH"] = NEURON_WIDTH;
+    conf["NEURON_HEIGHT"] = NEURON_HEIGHT;
+    conf["TAU_M"] = TAU_M;
+    conf["TAU_LTP"] = TAU_LTP;
+    conf["TAU_LTD"] = TAU_LTD;
+    conf["SPEED"] = SPEED;
+    conf["VRESET"] = VRESET;
+    conf["THRESHOLD"] = THRESHOLD;
+    conf["DELTA_VP"] = DELTA_VP;
+    conf["DELTA_VD"] = DELTA_VD;
+    conf["NORM_FACTOR"] = NORM_FACTOR;
+    conf["NORM_THRESHOLD"] = NORM_THRESHOLD;
 
-    std::ofstream o(fileName);
-    o << std::setw(4) << j << std::endl;
+    std::ofstream ofs(fileName);
+    if (ofs.is_open()) {
+        ofs << std::setw(4) << conf << std::endl;
+    } else {
+        std::cout << "cannot open config file" << std::endl;
+    }
+    ofs.close();
 }

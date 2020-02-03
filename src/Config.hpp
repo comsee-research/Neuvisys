@@ -4,6 +4,7 @@
 #include <opencv2/opencv.hpp>
 #include "xtensor/xtensor.hpp"
 #include "xtensor-blas/xlinalg.hpp"
+#include "src/Dependencies/json.hpp"
 
 #include "Utils.hpp"
 

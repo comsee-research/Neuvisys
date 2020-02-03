@@ -15,7 +15,7 @@ SpikingNetwork::SpikingNetwork() {
 
 void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, const bool polarity) {
     for (size_t ind : m_retina[x*HEIGHT+y]) {
-        m_neurons[ind].newEventPot(timestamp, x - m_neurons[ind].getX(), y - m_neurons[ind].getY(), polarity);
+        m_neurons[ind].newEvent(timestamp, x - m_neurons[ind].getX(), y - m_neurons[ind].getY(), polarity);
 
         m_potentials.push_back(m_neurons[ind].getPotential(timestamp));
         m_potentials.pop_front();
