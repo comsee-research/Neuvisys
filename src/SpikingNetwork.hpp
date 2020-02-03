@@ -6,7 +6,7 @@
 #include "src/Neurons/OrientedSpikingNeuron.hpp"
 #include <vector>
 #include <array>
-#include "gnuplot.h"
+#include "src/Dependencies/gnuplot.h"
 
 class SpikingNetwork {
     std::vector<OrientedSpikingNeuron> m_neurons;
@@ -24,7 +24,7 @@ public:
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::vector<cv::Mat> &displays);
-    void displayInformations();
+    void neuronsInfos();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

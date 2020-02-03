@@ -28,7 +28,7 @@ public:
             computeDisplays();
         });
         slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
-            informations();
+            displayInformations();
         });
     }
 
@@ -41,18 +41,6 @@ public:
             out.addFrameOutput(std::to_string(i));
         }
 	}
-
-	static const char *getDescription() {
-		return ("Neuvisys module.");
-	}
-
-	static void getConfigOptions(dv::RuntimeConfig &config) {
-		config.add("DELTA_VP", dv::ConfigOption::doubleOption("Synapse potentiation value", DELTA_VP));
-	}
-
-    void configUpdate() override {
-        //DELTA_VP = config.getDouble("DELTA_VP");
-    }
 
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
@@ -78,8 +66,8 @@ public:
         }*/
     }
 
-    void informations() {
-        spinet.displayInformations();
+    void displayInformations() {
+        spinet.neuronsInfos();
     }
 
     void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {
@@ -90,6 +78,40 @@ public:
 
 	void run() override {
         slicer.accept(inputs.getEventInput("events").events());
+    }
+
+    static const char *getDescription() {
+        return ("Neuvisys module.");
+    }
+
+    static void getConfigOptions(dv::RuntimeConfig &config) {
+        config.add("NEURON_WIDTH", dv::ConfigOption::intOption("Width of the neurons' receptive field (pixels)", NEURON_WIDTH));
+        config.add("NEURON_HEIGHT", dv::ConfigOption::intOption("Height of the neurons' receptive field (pixels)", NEURON_HEIGHT));
+        config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
+        config.add("TAU_LTP", dv::ConfigOption::doubleOption("Potentiation learning time constant (μs)", TAU_LTP));
+        config.add("TAU_LTD", dv::ConfigOption::doubleOption("Deprecation learning time constant (μs)", TAU_LTD));
+        config.add("SPEED", dv::ConfigOption::intOption("Neurons speed sensitivity (μs)", SPEED));
+        config.add("VRESET", dv::ConfigOption::doubleOption("Neurons potential reset value after a spike (mV)", VRESET));
+        config.add("THRESHOLD", dv::ConfigOption::doubleOption("Neurons potential threshold at which a spike is triggerred (mV)", THRESHOLD));
+        config.add("DELTA_VP", dv::ConfigOption::doubleOption("Potentiation learning value (mV)", DELTA_VP));
+        config.add("DELTA_VD", dv::ConfigOption::doubleOption("Deprecation learning value (mV)", DELTA_VD));
+        config.add("NORM_FACTOR", dv::ConfigOption::doubleOption("Normalization factor", NORM_FACTOR));
+        config.add("NORM_THRESHOLD", dv::ConfigOption::intOption("Number of spikes needed for normalization to occur", NORM_THRESHOLD));
+    }
+
+    void configUpdate() override {
+        NEURON_WIDTH = config.getInt("NEURON_WIDTH");
+        NEURON_HEIGHT = config.getInt("NEURON_HEIGHT");
+        TAU_M = config.getDouble("TAU_M");
+        TAU_LTP = config.getDouble("TAU_LTP");
+        TAU_LTD = config.getDouble("TAU_LTD");
+        SPEED = config.getInt("SPEED");
+        VRESET = config.getDouble("VRESET");
+        THRESHOLD = config.getDouble("THRESHOLD");
+        DELTA_VP = config.getDouble("DELTA_VP");
+        DELTA_VD = config.getDouble("DELTA_VD");
+        NORM_FACTOR = config.getDouble("NORM_FACTOR");
+        NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
     }
 };
 

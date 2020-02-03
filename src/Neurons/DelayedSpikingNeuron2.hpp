@@ -6,7 +6,7 @@
 #include <xtensor/xarray.hpp>
 
 #include "src/Event.hpp"
-#include "src/Config.h"
+#include "src/Config.hpp"
 #include "SpikingNeuron.hpp"
 
 class DelayedSpikingNeuron2 : public SpikingNeuron {

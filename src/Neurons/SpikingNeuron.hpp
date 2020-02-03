@@ -1,7 +1,7 @@
 #ifndef NEUVISYS_DV_SPIKINGNEURON_HPP
 #define NEUVISYS_DV_SPIKINGNEURON_HPP
 
-#include "src/Config.h"
+#include "src/Config.hpp"
 
 class SpikingNeuron {
 protected:

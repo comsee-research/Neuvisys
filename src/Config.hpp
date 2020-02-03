@@ -1,5 +1,5 @@
-#ifndef NEUVISYS_DV_CONFIG_H
-#define NEUVISYS_DV_CONFIG_H
+#ifndef NEUVISYS_DV_CONFIG_HPP
+#define NEUVISYS_DV_CONFIG_HPP
 
 #include <opencv2/opencv.hpp>
 #include "xtensor/xtensor.hpp"
@@ -9,13 +9,14 @@
 
 class Config {
 public:
-    double DELTA_VP = 0.05; // mV
+    static void loadConfig(std::string &fileName);
+    static void saveConfig(std::string &fileName);
 };
 
 const int WIDTH = 346;
 const int HEIGHT = 260;
-const int NEURON_WIDTH = 8;
-const int NEURON_HEIGHT = 8;
+extern int NEURON_WIDTH;
+extern int NEURON_HEIGHT;
 
 const int EVENT_FREQUENCY = 1000; // μs
 const int DISPLAY_FREQUENCY = 30000; // μs
@@ -23,25 +24,23 @@ const int DISPLAY_FREQUENCY = 30000; // μs
 const int NUMBER_DISPLAY = 2;
 const int NUMBER_THREADS = 4;
 
-const double TAU_M = 10000; // μs
-const double TAU_LTP = 10000; // μs
-const double TAU_LTD = 20000; // μs
+extern double TAU_M; // μs
+extern double TAU_LTP; // μs
+extern double TAU_LTD; // μs
 
-const int SPEED = 500000; // μs
+extern int SPEED; // μs
 
-const double VRESET = -20; // mV
-const double THRESHOLD = 15; // mV
+extern double VRESET; // mV
+extern double THRESHOLD; // mV
 
-const double DELTA_VP = 0.05; // mV
-const double DELTA_VD = 0.03; // mV
+extern double DELTA_VP; // mV
+extern double DELTA_VD; // mV
 
-const double V_MIN = 4; // mV
-const double V_DEP = 3; // mV
+extern double V_MIN; // mV
+extern double V_DEP; // mV
 
-const double LEARNING_RATE = 0.5; // %
-
-const double NORMALIZATION_FACTOR = 4;
-const int NORMALIZATION_FREQUENCY = 10; // number spikes
+extern double NORM_FACTOR;
+extern int NORM_THRESHOLD;
 
 const xt::xarray<double> NO_GABOR = xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH, 2});
 const xt::xarray<double> GABOR_H = opencvMatToXarray(cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 50, M_PI/2, 1.06, 8, M_PI/2), NEURON_HEIGHT, NEURON_WIDTH); // horizontal gabor
@@ -54,4 +53,4 @@ const xt::xarray<long> DELAYS_RL = xt::linalg::outer(xt::ones<long>({NEURON_HEIG
 const xt::xarray<long> DELAYS_TB = xt::linalg::outer(xt::linspace<long>(SPEED, 0, NEURON_HEIGHT), xt::ones<long>({NEURON_WIDTH})); // top to bottom
 const xt::xarray<long> DELAYS_BT = xt::linalg::outer(xt::linspace<long>(0, SPEED, NEURON_HEIGHT), xt::ones<long>({NEURON_WIDTH})); // bottom to top
 
-#endif //NEUVISYS_DV_CONFIG_H
+#endif //NEUVISYS_DV_CONFIG_HPP

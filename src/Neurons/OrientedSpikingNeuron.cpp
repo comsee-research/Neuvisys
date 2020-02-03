@@ -64,7 +64,7 @@ inline void OrientedSpikingNeuron::learnWeightsSTDP() {
 
     /***** Weights Normalization *****/
     ++m_countNormalize;
-    if (m_countNormalize > NORMALIZATION_FREQUENCY) {
+    if (m_countNormalize > NORM_THRESHOLD) {
         normalize();
     }
 }
@@ -79,12 +79,11 @@ inline bool OrientedSpikingNeuron::spike() {
 }
 
 void OrientedSpikingNeuron::normalize() {
-    //std::cout << m_weights << std::endl;
     m_countNormalize = 0;
     for (int i = 0; i < 2; ++i) {
         double norm = xt::linalg::norm(xt::view(m_weights, i));
         if (norm != 0) {
-            xt::view(m_weights, i) = NORMALIZATION_FACTOR * (xt::view(m_weights, i) / norm);
+            xt::view(m_weights, i) = NORM_FACTOR * (xt::view(m_weights, i) / norm);
         }
     }
 }

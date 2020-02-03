@@ -103,9 +103,8 @@ void SpikingNetwork::assignNeurons() {
     }
 }
 
-void SpikingNetwork::displayInformations() {
+void SpikingNetwork::neuronsInfos() {
     for (auto &neuron : m_neurons) {
-        std::cout << neuron.getSpikeCount() << std::endl;
         neuron.resetSpikeCount();
         neuron.normalize();
     }
