@@ -140,7 +140,6 @@ public:
             NORM_FACTOR = config.getDouble("NORM_FACTOR");
             NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
         }
-        std::cout << DELTA_VP << std::endl;
     }
 };
 

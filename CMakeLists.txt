@@ -46,29 +46,36 @@ DV_MODULE_SETUP()
 # Set full RPATH, modules are libraries for DV
 SET(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 
-# Compile this module (standard C++ file, no additional dependencies)
-ADD_LIBRARY(neuvisys SHARED Neuvisys.cpp
+##### Neuvisys Module #####
+ADD_LIBRARY(neuvisys SHARED dv-modules/Neuvisys.cpp
         src/SpikingNetwork.cpp
-        src/Neurons/SpikingNeuron.cpp
-        src/Neurons/DelayedSpikingNeuron.cpp
-        src/Neurons/DelayedSpikingNeuron2.cpp
-        src/Neurons/OrientedSpikingNeuron.cpp
+        src/neurons/SpikingNeuron.cpp
+        src/neurons/DelayedSpikingNeuron.cpp
+        src/neurons/DelayedSpikingNeuron2.cpp
+        src/neurons/OrientedSpikingNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
 TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
 INSTALL(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 
+##### EventAnalysis Module #####
+
+ADD_LIBRARY(event-analysis SHARED dv-modules/EventAnalysis.cpp)
+TARGET_LINK_LIBRARIES(event-analysis PRIVATE ${DV_LIBRARIES})
+INSTALL(TARGETS event-analysis DESTINATION ${DV_MODULES_DIR})
+
+##### Tests Executables #####
 FIND_PACKAGE(OpenCV REQUIRED)
 FIND_PACKAGE(PythonLibs REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})
 
-ADD_EXECUTABLE(neuvisys-test MainTest.cpp
+ADD_EXECUTABLE(neuvisys-test tests/MainTest.cpp
         src/SpikingNetwork.cpp
-        src/Neurons/SpikingNeuron.cpp
-        src/Neurons/DelayedSpikingNeuron.cpp
-        src/Neurons/DelayedSpikingNeuron2.cpp
-        src/Neurons/OrientedSpikingNeuron.cpp
+        src/neurons/SpikingNeuron.cpp
+        src/neurons/DelayedSpikingNeuron.cpp
+        src/neurons/DelayedSpikingNeuron2.cpp
+        src/neurons/OrientedSpikingNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
 TARGET_LINK_LIBRARIES(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES})

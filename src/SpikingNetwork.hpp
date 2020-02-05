@@ -1,12 +1,13 @@
 #ifndef NEUVISYS_DV_SPIKING_NETWORK_HPP
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 
-#include "src/Neurons/DelayedSpikingNeuron.hpp"
-#include "src/Neurons/DelayedSpikingNeuron2.hpp"
-#include "src/Neurons/OrientedSpikingNeuron.hpp"
 #include <vector>
 #include <array>
-#include "src/Dependencies/gnuplot.h"
+
+#include "src/neurons/DelayedSpikingNeuron.hpp"
+#include "src/neurons/DelayedSpikingNeuron2.hpp"
+#include "src/neurons/OrientedSpikingNeuron.hpp"
+#include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
     std::vector<OrientedSpikingNeuron> m_neurons;
