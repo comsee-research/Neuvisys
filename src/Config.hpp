@@ -40,7 +40,7 @@ extern int NETWORK_DEPTH;
 extern double TAU_M; // μs
 extern double TAU_LTP; // μs
 extern double TAU_LTD; // μs
-
+extern long INHIBITION; // μs
 extern int SPEED; // μs
 
 extern double VRESET; // mV

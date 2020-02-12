@@ -17,15 +17,18 @@ OrientedSpikingNeuron::OrientedSpikingNeuron(int x, int y, xt::xarray<double> we
 }
 
 double OrientedSpikingNeuron::getPotential(const long time) {
-    return potentialDecay(time - m_timestampLastEvent);;
+    return potentialDecay(time - m_timestampLastEvent);
 }
 
-inline void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    m_events.emplace_back(timestamp, x, y, polarity);
-    update(timestamp, x, y, polarity);
+inline bool OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+    if (timestamp > m_inhibitionTime + INHIBITION) {
+        m_events.emplace_back(timestamp, x, y, polarity);
+        return update(timestamp, x, y, polarity);
+    }
+    return false;
 }
 
-void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
+inline bool OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
     if (m_potential > 5) {
         m_weights(polarity, x, y) += 0.016;
     } else if (m_potential > -5 && m_weights(polarity, x, y) > 0.008){
@@ -34,7 +37,7 @@ void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const
     update(timestamp, x, y, polarity);
 }
 
-inline void OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
+inline bool OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
     m_timestampLastEvent = timestamp;
@@ -43,7 +46,9 @@ inline void OrientedSpikingNeuron::update(const long timestamp, const int x, con
 
     if (m_potential > m_threshold) {
         spike();
+        return true;
     }
+    return false;
 }
 
 inline void OrientedSpikingNeuron::learnWeightsSTDP() {

@@ -14,13 +14,14 @@ protected:
     xt::xarray<long> m_delays;
     std::vector<std::vector<Event>> m_events;
     unsigned long m_updateCount;
+    void resetListEvents();
 public:
     DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
     long getDelay(int x, int y);
 
-    void update(long time);
     double getPotential(long time) override;
-    void newEvent(long timestamp, int x, int y, bool polarity) override;
+    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    bool update(long time);
     double potentialDecay(long time) override;
     void spike() override;
 };

@@ -11,6 +11,7 @@ protected:
     double m_threshold{};
     long m_timestampLastEvent{};
     bool m_spike{};
+    long m_inhibitionTime{};
 public:
     SpikingNeuron() = default;
     virtual int getX();
@@ -18,10 +19,11 @@ public:
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
     virtual double getPotential();
+    virtual void setInhibitionTime(long inhibitionTime);
     virtual bool hasSpiked();
-    inline virtual double getPotential(long time);
+    virtual double getPotential(long time);
     virtual double potentialDecay(long time);
-    virtual void newEvent(long timestamp, int x, int y, bool polarity);
+    virtual bool newEvent(long timestamp, int x, int y, bool polarity);
     virtual void spike();
 };
 

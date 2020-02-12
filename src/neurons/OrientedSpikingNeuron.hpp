@@ -23,12 +23,12 @@ public:
     OrientedSpikingNeuron(int x, int y, xt::xarray<double> weights, double threshold);
 
     double getPotential(long time) override;
-    void newEvent(long timestamp, int x, int y, bool polarity) override;
-    void update(long timestamp, int x, int y, bool polarity);
+    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    bool update(long timestamp, int x, int y, bool polarity);
     void learnWeightsSTDP();
     void spike() override;
 
-    void newEventPot(long timestamp, int x, int y, bool polarity);
+    bool newEventPot(long timestamp, int x, int y, bool polarity);
     void resetSpikeCount();
     int getSpikeCount();
     void adaptThreshold();

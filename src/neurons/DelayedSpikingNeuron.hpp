@@ -23,9 +23,9 @@ public:
     long getDelay(int x, int y);
     long getTimestampNextEvent();
 
-    void update(long time);
     double getPotential(long time) override;
-    void newEvent(long timestamp, int x, int y, bool polarity) override;
+    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    bool update(long time);
     void spike() override;
 };
 

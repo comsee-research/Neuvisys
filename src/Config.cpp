@@ -8,15 +8,15 @@ int NEURON_HEIGHT = 8;
 
 int X_ANCHOR_POINT = 173; // px
 int Y_ANCHOR_POINT = 130; // px
-int NETWORK_WIDTH = 1; // neurons
-int NETWORK_HEIGHT = 1; // neurons
-int NETWORK_DEPTH = 1; // neurons
+int NETWORK_WIDTH = 10; // neurons
+int NETWORK_HEIGHT = 10; // neurons
+int NETWORK_DEPTH = 8; // neurons
 
 /***** Neurons internal parameters *****/
 double TAU_M = 10000; // μs
 double TAU_LTP = 10000; // μs
 double TAU_LTD = 20000; // μs
-
+long INHIBITION = 20000; // μs
 int SPEED = 500000; // μs
 
 double VRESET = -20; // mV

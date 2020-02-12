@@ -29,7 +29,7 @@ inline double SpikingNeuron::potentialDecay(const long time) {
     return m_potential * exp(- static_cast<double>(time) / TAU_M);
 }
 
-inline void SpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+inline bool SpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
 
 }
 
@@ -44,4 +44,8 @@ bool SpikingNeuron::hasSpiked() {
         return true;
     }
     return false;
+}
+
+void SpikingNeuron::setInhibitionTime(long inhibitionTime) {
+    m_inhibitionTime = inhibitionTime;
 }

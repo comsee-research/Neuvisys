@@ -14,12 +14,20 @@ SpikingNetwork::SpikingNetwork() {
 
 void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, const bool polarity) {
     for (size_t ind : m_retina[x*HEIGHT+y]) {
-        m_neurons[ind].newEvent(timestamp, x - m_neurons[ind].getX(), y - m_neurons[ind].getY(), polarity);
+        if (m_neurons[ind].newEvent(timestamp, x - m_neurons[ind].getX(), y - m_neurons[ind].getY(), polarity)) {
+            for (size_t inhibit : m_retina[x*HEIGHT+y]) {
+                if (inhibit != ind) {
+                    m_neurons[inhibit].setInhibitionTime(timestamp);
+                }
+            }
+        }
 
-        m_potentials.push_back(m_neurons[LOOKING_AT].getPotential(timestamp));
-        m_potentials.pop_front();
-        m_timestamps.push_back(timestamp);
-        m_timestamps.pop_front();
+        if (ind == LOOKING_AT) {
+            m_potentials.push_back(m_neurons[LOOKING_AT].getPotential(timestamp));
+            m_potentials.pop_front();
+            m_timestamps.push_back(timestamp);
+            m_timestamps.pop_front();
+        }
     }
 }
 
@@ -33,6 +41,7 @@ void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
     double potential;
     int norm_potential;
     double weight;
+    int count = 0;
 
     for (auto &neuron : m_neurons) {
         /***** Show an image of the neurons potentials *****/
@@ -45,7 +54,10 @@ void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
 //        displays[1](cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = norm_potential;
 
         /***** Show an image of the neurons spikes *****/
-        displays[1](cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = 255 * neuron.hasSpiked();
+        if (count % 8 == 0) {
+            displays[1](cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = 255 * neuron.hasSpiked();
+        }
+        ++count;
     }
 
     /***** Show the weights potentials *****/

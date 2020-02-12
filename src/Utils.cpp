@@ -1,5 +1,6 @@
 #include "Utils.hpp"
-#include "stdlib.h"
+#include <stdlib.h>
+#include <time.h>
 
 xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int col) {
     xt::xarray<double> xray = xt::zeros<double>({2, row, col});
@@ -13,6 +14,8 @@ xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int
 }
 
 xt::xarray<double> uniformMatrix(const int row, const int col) {
+    srand(time(NULL));
+
     xt::xarray<double> xray = xt::zeros<double>({2, row, col});
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < col; ++j) {

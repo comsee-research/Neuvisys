@@ -23,11 +23,12 @@ double DelayedSpikingNeuron::getPotential(const long time) {
     return potentialDecay(time - m_timestampLastEvent);
 }
 
-void DelayedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+inline bool DelayedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
     m_events.emplace(timestamp + m_delays(y, x), x, y, polarity);
+    return false;
 }
 
-void DelayedSpikingNeuron::update(long time) {
+inline bool DelayedSpikingNeuron::update(long time) {
     while (!m_events.empty() && getTimestampNextEvent() <= time) {
         Event event = m_events.top();
         m_events.pop();
@@ -40,9 +41,10 @@ void DelayedSpikingNeuron::update(long time) {
 
         if (m_potential > m_threshold) {
             spike();
-            break;
+            return true;
         }
     }
+    return false;
 }
 
 void DelayedSpikingNeuron::spike() {
