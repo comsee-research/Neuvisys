@@ -12,15 +12,17 @@ private:
 public:
     Neuvisys() {
         lastTime = 0;
-/*        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
-            outputs.getFrameOutput(std::to_string(i)).setup(inputs.getEventInput("events"));
-            displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
-        }*/
-        outputs.getFrameOutput("0").setup(inputs.getEventInput("events"));
-        outputs.getFrameOutput("1").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
-        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+
+        // Displays
+        outputs.getFrameOutput("weights").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
         displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
+        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
+            outputs.getFrameOutput(std::to_string(i)).setup(inputs.getEventInput("events"));
+            displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+        }
+
+        // Slicers
         slicer.doEveryTimeInterval(EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
         });
@@ -32,12 +34,13 @@ public:
         });
     }
 
-	static void addInputs(dv::InputDefinitionList &in) {
+	static void initInputs(dv::InputDefinitionList &in) {
 		in.addEventInput("events");
 	}
 
-	static void addOutputs(dv::OutputDefinitionList &out) {
-        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+	static void initOutputs(dv::OutputDefinitionList &out) {
+        out.addFrameOutput("weights");
+        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
             out.addFrameOutput(std::to_string(i));
         }
 	}
@@ -45,46 +48,48 @@ public:
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
             lastTime = events.getHighestTime();
-//            for (unsigned int i = 0; i < NUMBER_THREADS; ++i) {
-//                std::thread(&Neuvisys::parallel_events, this, std::ref(events), i * events.getTotalLength() / NUMBER_THREADS, events.getTotalLength() / NUMBER_THREADS).join();
-//            }
             for (const dv::Event &event : events) {
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
+//            for (unsigned int i = 0; i < NUMBER_THREADS; ++i) {
+//                std::thread(&Neuvisys::parallel_events, this, std::ref(events), i * events.getTotalLength() / NUMBER_THREADS, events.getTotalLength() / NUMBER_THREADS).join();
+//            }
         }
         //spinet.updateNeurons(lastTime);
     }
 
     void computeDisplays() {
         spinet.updateDisplay(lastTime, displays);
-        outputs.getFrameOutput("0") << displays[0];
-        auto frame = outputs.getFrameOutput("1").frame();
+
+        auto frame = outputs.getFrameOutput("weights").frame();
         frame.setFormat(dv::FrameFormat::BGR);
-        frame.commitMat(displays[1]);
-/*        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
-            outputs.getFrameOutput(std::to_string(i)) << displays[i];
-        }*/
+        frame << displays[0];
+        frame.commit();
+        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
+            outputs.getFrameOutput(std::to_string(i)).frame() << displays[i];
+            outputs.getFrameOutput(std::to_string(i)).frame().commit();
+        }
     }
 
     void displayInformations() {
         spinet.neuronsInfos();
     }
 
-    void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {
-        for (const dv::Event &event : events.slice(start, length)) {
-            spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
-        }
-    }
+//    void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {
+//        for (const dv::Event &event : events.slice(start, length)) {
+//            spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
+//        }
+//    }
 
 	void run() override {
         slicer.accept(inputs.getEventInput("events").events());
     }
 
-    static const char *getDescription() {
+    static const char *initDescription() {
         return ("Neuvisys module.");
     }
 
-    static void getConfigOptions(dv::RuntimeConfig &config) {
+    static void initConfigOptions(dv::RuntimeConfig &config) {
         config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
         config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), "/home/thomas/neuvisys-dv/configs/config.json", "json"));
         config.add("A_SAVE_BUTTON", dv::ConfigOption::buttonOption("Save config file", "Save Config"));

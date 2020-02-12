@@ -2,9 +2,17 @@
 
 using json = nlohmann::json;
 
+/***** Spiking Neural Network layout parameters *****/
 int NEURON_WIDTH = 8;
 int NEURON_HEIGHT = 8;
 
+int X_ANCHOR_POINT = 173; // px
+int Y_ANCHOR_POINT = 130; // px
+int NETWORK_WIDTH = 1; // neurons
+int NETWORK_HEIGHT = 1; // neurons
+int NETWORK_DEPTH = 1; // neurons
+
+/***** Neurons internal parameters *****/
 double TAU_M = 10000; // μs
 double TAU_LTP = 10000; // μs
 double TAU_LTD = 20000; // μs
@@ -31,6 +39,12 @@ void Config::loadConfig(std::string &fileName) {
 
         NEURON_WIDTH = conf["NEURON_WIDTH"];
         NEURON_HEIGHT = conf["NEURON_HEIGHT"];
+        X_ANCHOR_POINT = conf["X_ANCHOR_POINT"];
+        Y_ANCHOR_POINT = conf["Y_ANCHOR_POINT"];
+        NETWORK_WIDTH = conf["NETWORK_WIDTH"];
+        NETWORK_HEIGHT = conf["NETWORK_HEIGHT"];
+        NETWORK_DEPTH = conf["NETWORK_DEPTH"];
+
         TAU_M = conf["TAU_M"];
         TAU_LTP = conf["TAU_LTP"];
         TAU_LTD = conf["TAU_LTD"];

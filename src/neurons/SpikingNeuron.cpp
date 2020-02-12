@@ -33,7 +33,15 @@ inline void SpikingNeuron::newEvent(const long timestamp, const int x, const int
 
 }
 
-inline bool SpikingNeuron::spike() {
+inline void SpikingNeuron::spike() {
     m_potential = VRESET;
-    return true;
+    m_spike = true;
+}
+
+bool SpikingNeuron::hasSpiked() {
+    if (m_spike){
+        m_spike = false;
+        return true;
+    }
+    return false;
 }

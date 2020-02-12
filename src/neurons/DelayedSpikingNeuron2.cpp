@@ -11,6 +11,7 @@ DelayedSpikingNeuron2::DelayedSpikingNeuron2(int x, int y, xt::xarray<double> we
     m_potential = 0.f;
     m_timestampLastEvent = 0;
     m_updateCount = 0;
+    m_spike = false;
 }
 
 long DelayedSpikingNeuron2::getDelay(const int x, const int y) {
@@ -25,7 +26,7 @@ void DelayedSpikingNeuron2::newEvent(const long timestamp, const int x, const in
     m_events[(m_updateCount + m_delays(y, x) - 1) % SPEED].emplace_back(timestamp, x, y, polarity);
 }
 
-bool DelayedSpikingNeuron2::update(long time) {
+void DelayedSpikingNeuron2::update(long time) {
     for (Event &event : m_events[m_updateCount]) {
         long dt_event = event.timestamp() - m_timestampLastEvent;
         m_potential = potentialDecay(dt_event);
@@ -34,7 +35,8 @@ bool DelayedSpikingNeuron2::update(long time) {
         m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
-            return spike();
+            spike();
+            break;
         }
     }
     m_events[m_updateCount].clear();
@@ -42,7 +44,6 @@ bool DelayedSpikingNeuron2::update(long time) {
     if (m_updateCount >= SPEED) {
         m_updateCount = 0;
     }
-    return false;
 }
 
 double DelayedSpikingNeuron2::potentialDecay(const long time) {
@@ -53,8 +54,8 @@ double DelayedSpikingNeuron2::potentialDecay(const long time) {
     return 0;
 }
 
-bool DelayedSpikingNeuron2::spike() {
+void DelayedSpikingNeuron2::spike() {
     m_events = std::vector<std::vector<Event>>(1000, std::vector<Event>());
     m_potential = 0;
-    return true;
+    m_spike = true;
 }

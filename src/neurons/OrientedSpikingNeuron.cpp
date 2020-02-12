@@ -8,6 +8,7 @@ OrientedSpikingNeuron::OrientedSpikingNeuron(int x, int y, xt::xarray<double> we
     m_threshold = threshold;
 
     m_potential = 0;
+    m_spike = false;
     m_timestampLastEvent = 0;
     m_countNormalize = 0;
     m_spikingTime = 0;
@@ -16,8 +17,7 @@ OrientedSpikingNeuron::OrientedSpikingNeuron(int x, int y, xt::xarray<double> we
 }
 
 double OrientedSpikingNeuron::getPotential(const long time) {
-    m_potential = potentialDecay(time - m_timestampLastEvent);
-    return m_potential;
+    return potentialDecay(time - m_timestampLastEvent);;
 }
 
 inline void OrientedSpikingNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
@@ -31,13 +31,10 @@ void OrientedSpikingNeuron::newEventPot(const long timestamp, const int x, const
     } else if (m_potential > -5 && m_weights(polarity, x, y) > 0.008){
         m_weights(polarity, x, y) -= 0.008;
     }
-/*    if (m_weights(polarity, y, x) < 0.) {
-        m_weights(polarity, y, x) = 0.;
-    }*/
     update(timestamp, x, y, polarity);
 }
 
-inline bool OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
+inline void OrientedSpikingNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
     m_timestampLastEvent = timestamp;
@@ -45,9 +42,8 @@ inline bool OrientedSpikingNeuron::update(const long timestamp, const int x, con
     m_potential += m_weights(polarity, y, x);
 
     if (m_potential > m_threshold) {
-        return spike();
+        spike();
     }
-    return false;
 }
 
 inline void OrientedSpikingNeuron::learnWeightsSTDP() {
@@ -69,13 +65,13 @@ inline void OrientedSpikingNeuron::learnWeightsSTDP() {
     }
 }
 
-inline bool OrientedSpikingNeuron::spike() {
+inline void OrientedSpikingNeuron::spike() {
     ++m_spikeCount;
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = m_events.back().timestamp();
     m_potential = VRESET;
     learnWeightsSTDP();
-    return true;
+    m_spike = true;
 }
 
 void OrientedSpikingNeuron::normalize() {

@@ -10,6 +10,7 @@ protected:
     double m_potential{};
     double m_threshold{};
     long m_timestampLastEvent{};
+    bool m_spike{};
 public:
     SpikingNeuron() = default;
     virtual int getX();
@@ -17,10 +18,11 @@ public:
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
     virtual double getPotential();
+    virtual bool hasSpiked();
     inline virtual double getPotential(long time);
     virtual double potentialDecay(long time);
     virtual void newEvent(long timestamp, int x, int y, bool polarity);
-    virtual bool spike();
+    virtual void spike();
 };
 
 #endif //NEUVISYS_DV_SPIKINGNEURON_HPP

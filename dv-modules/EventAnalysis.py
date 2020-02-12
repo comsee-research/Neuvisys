@@ -11,7 +11,7 @@ taus = np.arange(0, t_tau+1, tau)
 size = (346, 260) # px
 n = size[0] * size[1] # px
 l = 20 # px
-file_name = "/home/thomas/Vidéos/DVS_Recordings/air_hockey/air_hockey1.aedat4"
+file_name = "/home/thomas/Vidéos/DVS_Recordings/sport_20_min_video.aedat4"
 
 nb_event = 1000000000
 freq_display = int(nb_event * 0.01) # %
@@ -89,9 +89,8 @@ def temporal_correlation(x, y, polarity, timestamp, temp_corr, timestamps):
             temp_corr[2, i] += 1 * timestamps[0, y, x] >= timestamp - t and timestamps[0, y, x] < timestamp - t + tau # P(On | Off)
             temp_corr[3, i] += 1 * timestamps[1, y, x] >= timestamp - t and timestamps[1, y, x] < timestamp - t + tau # P(Off | Off)
     timestamps[1*polarity, y, x] = timestamp
-    
-
-#%% Spatial Correlation computation
+            
+#%% Spatial Correlation
 with AedatFile(file_name) as f:
     print("Spatial Correlation computation...")
     timestamps = np.zeros((2, size[1], size[0]))
@@ -114,7 +113,7 @@ for i in range(4):
 #%% Plot
 plot_spatial_correlation(spat_corr)
 
-#%% Temporal Correlation computation
+#%% Temporal Correlation
 with AedatFile(file_name) as f:
     print("Temporal Correlation computation...")
     timestamps = np.zeros((2, size[1], size[0]))
@@ -138,6 +137,54 @@ plot_temporal_correlation(100*temp_corr)
 
 #%% Plot
 plot_temporal_cumsum(100*temp_corr)
+
+#%% polarity frequency variation
+with AedatFile(file_name) as f:
+    print("Polarity frequency variation computation...")
+    polarities = [[], []]
+    on, off = 0, 0
+    time1, time2 = 0, 0
+    disp_freq = 200 # ms
+    bins = 1000 # µs
+    cumsum = np.zeros(2, dtype=np.int32)
+    np.set_printoptions(formatter={'float': lambda x: "{0:0.1f}".format(x)})
+    
+    test = []
+    
+    for e in f['events']:
+        time1 = e.timestamp
+        time2 = e.timestamp
+        break
+
+    for e in f['events']:
+        if e.polarity:
+            on += 1
+        else:
+            off += 1
+            
+        if e.timestamp - time1 > bins:
+            time1 = e.timestamp
+            perc = on / (on + off)
+            polarities[0].append(perc)
+            polarities[1].append(1 - perc)
+            cumsum += [on, off]
+            test.append(on + off)
+            plt.plot(test)
+            plt.pause(0.01)
+            on, off = 0, 0
+            
+        if e.timestamp - time2 > 1000 * disp_freq:
+            time2 = e.timestamp
+            plt.title("ratio of On and Off events by bins of " + str(bins) + " µs.")
+            plt.stackplot(range(len(polarities[0])), polarities[0], polarities[1])
+            plt.xticks(np.linspace(0, len(polarities[0]), 11, dtype=np.int32), np.linspace(0, disp_freq, 11, dtype=np.int32), rotation=45, fontsize=12)
+            plt.ylabel("on/off ratio")
+            plt.xlabel("time (ms)")
+            plt.axhline(y=0.5, color='r', linestyle='-')
+            plt.show()
+            
+            print("ratio on/off:", 100 * np.array([np.mean(polarities[0]), 1 - np.mean(polarities[0])]), "/ cumulative ratio:",  100 * cumsum / cumsum.sum())
+            polarities = [[], []]
 
 #%% Loop frames
 # with AedatFile(file_name) as f:    

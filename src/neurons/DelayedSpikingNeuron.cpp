@@ -8,6 +8,7 @@ DelayedSpikingNeuron::DelayedSpikingNeuron(int x, int y, xt::xarray<double> weig
     m_threshold = threshold;
     m_potential = 0.f;
     m_timestampLastEvent = 0;
+    m_spike = false;
 }
 
 long DelayedSpikingNeuron::getDelay(const int x, const int y) {
@@ -26,7 +27,7 @@ void DelayedSpikingNeuron::newEvent(const long timestamp, const int x, const int
     m_events.emplace(timestamp + m_delays(y, x), x, y, polarity);
 }
 
-bool DelayedSpikingNeuron::update(long time) {
+void DelayedSpikingNeuron::update(long time) {
     while (!m_events.empty() && getTimestampNextEvent() <= time) {
         Event event = m_events.top();
         m_events.pop();
@@ -38,14 +39,14 @@ bool DelayedSpikingNeuron::update(long time) {
         m_potential += m_weights(event.polarity(), event.y(), event.x());
 
         if (m_potential > m_threshold) {
-            return spike();
+            spike();
+            break;
         }
     }
-    return false;
 }
 
-bool DelayedSpikingNeuron::spike() {
+void DelayedSpikingNeuron::spike() {
     m_events = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_potential = 0;
-    return true;
+    m_spike = true;
 }

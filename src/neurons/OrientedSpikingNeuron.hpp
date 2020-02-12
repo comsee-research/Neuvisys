@@ -24,9 +24,9 @@ public:
 
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
-    bool update(long timestamp, int x, int y, bool polarity);
+    void update(long timestamp, int x, int y, bool polarity);
     void learnWeightsSTDP();
-    bool spike() override;
+    void spike() override;
 
     void newEventPot(long timestamp, int x, int y, bool polarity);
     void resetSpikeCount();

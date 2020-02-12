@@ -14,17 +14,29 @@ public:
     static void saveConfig(std::string &fileName);
 };
 
-const int WIDTH = 346;
-const int HEIGHT = 260;
-extern int NEURON_WIDTH;
-extern int NEURON_HEIGHT;
+/***** General parameters *****/
+const int WIDTH = 346; // px
+const int HEIGHT = 260; // px
 
 const int EVENT_FREQUENCY = 1000; // μs
 const int DISPLAY_FREQUENCY = 30000; // μs
 
-const int NUMBER_DISPLAY = 2;
+const int NUMBER_DISPLAY = 1;
 const int NUMBER_THREADS = 4;
 
+const int LOOKING_AT = 0;
+
+/***** Spiking Neural Network layout parameters *****/
+extern int NEURON_WIDTH;
+extern int NEURON_HEIGHT;
+
+extern int X_ANCHOR_POINT;
+extern int Y_ANCHOR_POINT;
+extern int NETWORK_WIDTH;
+extern int NETWORK_HEIGHT;
+extern int NETWORK_DEPTH;
+
+/***** Neurons internal parameters *****/
 extern double TAU_M; // μs
 extern double TAU_LTP; // μs
 extern double TAU_LTD; // μs

@@ -18,11 +18,11 @@ public:
     DelayedSpikingNeuron2(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
     long getDelay(int x, int y);
 
-    bool update(long time);
+    void update(long time);
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     double potentialDecay(long time) override;
-    bool spike() override;
+    void spike() override;
 };
 
 #endif //NEUVISYS_DV_DELAYEDSPIKINGNEURON2_HPP

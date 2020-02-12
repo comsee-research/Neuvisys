@@ -23,10 +23,10 @@ public:
     long getDelay(int x, int y);
     long getTimestampNextEvent();
 
-    bool update(long time);
+    void update(long time);
     double getPotential(long time) override;
     void newEvent(long timestamp, int x, int y, bool polarity) override;
-    bool spike() override;
+    void spike() override;
 };
 
 #endif //NEUVISYS_DV_SPIKING_NEURON_HPP
