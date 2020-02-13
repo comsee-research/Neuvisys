@@ -4,14 +4,16 @@
 #include <opencv2/opencv.hpp>
 #include "xtensor/xtensor.hpp"
 #include "xtensor-blas/xlinalg.hpp"
+#include "xtensor/xnpy.hpp"
 #include "src/dependencies/json.hpp"
 
 #include "Utils.hpp"
 
 class Config {
 public:
-    static void loadConfig(std::string &fileName);
-    static void saveConfig(std::string &fileName);
+    static void saveNeuronsParameters(std::string &fileName);
+    static void loadNeuronsParameters(std::string &fileName);
+    static void loadNetworkLayout(std::string &fileName);
 };
 
 /***** General parameters *****/
@@ -24,7 +26,13 @@ const int DISPLAY_FREQUENCY = 30000; // μs
 const int NUMBER_DISPLAY = 1;
 const int NUMBER_THREADS = 4;
 
-const int LOOKING_AT = 0;
+/***** Display parameters *****/
+const std::string SAVE_LOCATION = "/home/thomas/Documents/Results/weights/neuron";
+
+extern int X_NEURON;
+extern int Y_NEURON;
+extern int LAYER;
+extern int IND;
 
 /***** Spiking Neural Network layout parameters *****/
 extern int NEURON_WIDTH;

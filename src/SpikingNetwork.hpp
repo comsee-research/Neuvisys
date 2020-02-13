@@ -19,12 +19,18 @@ class SpikingNetwork {
 
     void generateNeuronConfiguration();
     void assignNeurons();
+
+    void weightDisplay(cv::Mat &display);
+    void potentialDisplay();
+    void spikingDisplay(cv::Mat &display);
+    void multiPotentialDisplay(long time, cv::Mat &display);
 public:
     SpikingNetwork();
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::vector<cv::Mat> &displays);
     void neuronsInfos();
+    void saveWeights();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

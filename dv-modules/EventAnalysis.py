@@ -89,6 +89,13 @@ def temporal_correlation(x, y, polarity, timestamp, temp_corr, timestamps):
             temp_corr[2, i] += 1 * timestamps[0, y, x] >= timestamp - t and timestamps[0, y, x] < timestamp - t + tau # P(On | Off)
             temp_corr[3, i] += 1 * timestamps[1, y, x] >= timestamp - t and timestamps[1, y, x] < timestamp - t + tau # P(Off | Off)
     timestamps[1*polarity, y, x] = timestamp
+    
+def display_weights(nb_display):
+    for i in range(nb_display):
+        fig, axs = plt.subplots(1, 2)
+        axs[0].imshow(np.load("/home/thomas/Documents/Results/weights/neuron" + str(i) + ".npy")[0])
+        axs[1].imshow(np.load("/home/thomas/Documents/Results/weights/neuron" + str(i) + ".npy")[1])
+        plt.show()
             
 #%% Spatial Correlation
 with AedatFile(file_name) as f:

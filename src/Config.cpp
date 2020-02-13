@@ -2,12 +2,18 @@
 
 using json = nlohmann::json;
 
-/***** Spiking Neural Network layout parameters *****/
-int NEURON_WIDTH = 8;
-int NEURON_HEIGHT = 8;
+/***** Display parameters *****/
+int X_NEURON = 0;
+int Y_NEURON = 0;
+int LAYER = 0;
+int IND = X_NEURON*(NETWORK_HEIGHT+NETWORK_DEPTH) + Y_NEURON*LAYER + LAYER;
 
-int X_ANCHOR_POINT = 173; // px
-int Y_ANCHOR_POINT = 130; // px
+/***** Spiking Neural Network layout parameters *****/
+int NEURON_WIDTH = 20;
+int NEURON_HEIGHT = 20;
+
+int X_ANCHOR_POINT = 0; // px
+int Y_ANCHOR_POINT = 0; // px
 int NETWORK_WIDTH = 10; // neurons
 int NETWORK_HEIGHT = 10; // neurons
 int NETWORK_DEPTH = 8; // neurons
@@ -31,19 +37,11 @@ double V_DEP = 3; // mV
 double NORM_FACTOR = 4;
 int NORM_THRESHOLD = 10; // number spikes
 
-void Config::loadConfig(std::string &fileName) {
+void Config::loadNeuronsParameters(std::string &fileName) {
     std::ifstream ifs(fileName);
     if (ifs.is_open()) {
         json conf;
         ifs >> conf;
-
-        NEURON_WIDTH = conf["NEURON_WIDTH"];
-        NEURON_HEIGHT = conf["NEURON_HEIGHT"];
-        X_ANCHOR_POINT = conf["X_ANCHOR_POINT"];
-        Y_ANCHOR_POINT = conf["Y_ANCHOR_POINT"];
-        NETWORK_WIDTH = conf["NETWORK_WIDTH"];
-        NETWORK_HEIGHT = conf["NETWORK_HEIGHT"];
-        NETWORK_DEPTH = conf["NETWORK_DEPTH"];
 
         TAU_M = conf["TAU_M"];
         TAU_LTP = conf["TAU_LTP"];
@@ -61,11 +59,28 @@ void Config::loadConfig(std::string &fileName) {
     ifs.close();
 }
 
-void Config::saveConfig(std::string &fileName) {
+void Config::loadNetworkLayout(std::string &fileName) {
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        json conf;
+        ifs >> conf;
+
+        NEURON_WIDTH = conf["NEURON_WIDTH"];
+        NEURON_HEIGHT = conf["NEURON_HEIGHT"];
+        X_ANCHOR_POINT = conf["X_ANCHOR_POINT"];
+        Y_ANCHOR_POINT = conf["Y_ANCHOR_POINT"];
+        NETWORK_WIDTH = conf["NETWORK_WIDTH"];
+        NETWORK_HEIGHT = conf["NETWORK_HEIGHT"];
+        NETWORK_DEPTH = conf["NETWORK_DEPTH"];
+    } else {
+        std::cout << "cannot open config file" << std::endl;
+    }
+    ifs.close();
+}
+
+void Config::saveNeuronsParameters(std::string &fileName) {
     json conf;
 
-    conf["NEURON_WIDTH"] = NEURON_WIDTH;
-    conf["NEURON_HEIGHT"] = NEURON_HEIGHT;
     conf["TAU_M"] = TAU_M;
     conf["TAU_LTP"] = TAU_LTP;
     conf["TAU_LTD"] = TAU_LTD;

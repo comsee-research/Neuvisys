@@ -22,8 +22,8 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
             }
         }
 
-        if (ind == LOOKING_AT) {
-            m_potentials.push_back(m_neurons[LOOKING_AT].getPotential(timestamp));
+        if (ind == LAYER) {
+            m_potentials.push_back(m_neurons[IND].getPotential(timestamp));
             m_potentials.pop_front();
             m_timestamps.push_back(timestamp);
             m_timestamps.pop_front();
@@ -38,50 +38,25 @@ void SpikingNetwork::updateNeurons(long time) {
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-    double potential;
-    int norm_potential;
-    double weight;
-    int count = 0;
+//    multiPotentialDisplay(time, displays[0]);
+    potentialDisplay();
+    weightDisplay(displays[0]);
+    spikingDisplay(displays[1]);
+}
 
+void SpikingNetwork::neuronsInfos() {
     for (auto &neuron : m_neurons) {
-        /***** Show an image of the neurons potentials *****/
-//        potential = neuron.getPotential(time);
-//        if (potential > neuron.getThreshold()) {
-//            norm_potential = 255;
-//        } else {
-//            norm_potential = static_cast<int>((potential / neuron.getThreshold()) * 255);
-//        }
-//        displays[1](cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = norm_potential;
+        neuron.resetSpikeCount();
+        neuron.normalize();
+    }
+}
 
-        /***** Show an image of the neurons spikes *****/
-        if (count % 8 == 0) {
-            displays[1](cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = 255 * neuron.hasSpiked();
-        }
+void SpikingNetwork::saveWeights() {
+    int count = 0;
+    std::string fileName = SAVE_LOCATION;
+    for (auto &neuron : m_neurons) {
+        neuron.saveWeights(fileName + std::to_string(count) + ".npy");
         ++count;
-    }
-
-    /***** Show the weights potentials *****/
-    for (int x = 0; x < NEURON_WIDTH; ++x) {
-        for (int y = 0; y < NEURON_HEIGHT; ++y) {
-            for (int p = 0; p < 2; p++) {
-                weight = m_neurons[LOOKING_AT].getWeights(p, x, y) * 15 * 255 / THRESHOLD;
-                if (weight > 255) { weight = 255; }
-                if (weight < 0) { weight = 0; }
-                displays[0].at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);
-            }
-        }
-    }
-
-    /***** Show a plot of a neuron potential *****/
-    if (!m_potentials.empty()) {
-        std::string plot;
-        plot += "plot '-' lc rgb 'blue' with lines";
-        for (size_t i = 0; i < m_timestamps.size(); ++i) {
-            plot += "\n " + std::to_string(m_timestamps[i]) + " " + std::to_string(m_potentials[i]);
-        }
-        gp.sendLine(plot, true);
-        gp.sendEndOfData();
-        plot = "";
     }
 }
 
@@ -107,9 +82,55 @@ void SpikingNetwork::assignNeurons() {
     }
 }
 
-void SpikingNetwork::neuronsInfos() {
+void SpikingNetwork::potentialDisplay() {
+    if (!m_potentials.empty()) {
+        std::string plot;
+        plot += "plot '-' lc rgb 'blue' with lines";
+        for (size_t i = 0; i < m_timestamps.size(); ++i) {
+            plot += "\n " + std::to_string(m_timestamps[i]) + " " + std::to_string(m_potentials[i]);
+        }
+        gp.sendLine(plot, true);
+        gp.sendEndOfData();
+        plot = "";
+    }
+}
+
+void SpikingNetwork::weightDisplay(cv::Mat &display) {
+    double weight;
+
+    for (int x = 0; x < NEURON_WIDTH; ++x) {
+        for (int y = 0; y < NEURON_HEIGHT; ++y) {
+            for (int p = 0; p < 2; p++) {
+                weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / THRESHOLD;
+                if (weight > 255) { weight = 255; }
+                if (weight < 0) { weight = 0; }
+                display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);
+            }
+        }
+    }
+}
+
+void SpikingNetwork::spikingDisplay(cv::Mat &display) {
+    int count = 0;
     for (auto &neuron : m_neurons) {
-        neuron.resetSpikeCount();
-        neuron.normalize();
+        if ((count + NETWORK_DEPTH - LAYER) % NETWORK_DEPTH == 0) {
+            display(cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = 255 * neuron.hasSpiked();
+        }
+        ++count;
+    }
+}
+
+void SpikingNetwork::multiPotentialDisplay(long time, cv::Mat &display) {
+    double potential;
+    int norm_potential;
+
+    for (auto &neuron : m_neurons) {
+        potential = neuron.getPotential(time);
+        if (potential > neuron.getThreshold()) {
+            norm_potential = 255;
+        } else {
+            norm_potential = static_cast<int>((potential / neuron.getThreshold()) * 255);
+        }
+        display(cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = norm_potential;
     }
 }

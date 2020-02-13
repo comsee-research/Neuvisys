@@ -1,8 +1,6 @@
 {
     "DELTA_VD": 0.03,
     "DELTA_VP": 0.05,
-    "NEURON_HEIGHT": 8,
-    "NEURON_WIDTH": 8,
     "NORM_FACTOR": 4.0,
     "NORM_THRESHOLD": 10,
     "SPEED": 500000,

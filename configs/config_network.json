@@ -1,0 +1,9 @@
+{
+    "NEURON_WIDTH": 20,
+    "NEURON_HEIGHT": 20,
+    "X_ANCHOR_POINT": 0,
+    "Y_ANCHOR_POINT": 0,
+    "NETWORK_WIDTH": 10,
+    "NETWORK_HEIGHT": 10,
+    "NETWORK_DEPTH": 8
+}

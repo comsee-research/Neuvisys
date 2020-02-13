@@ -1,5 +1,5 @@
 #include "SpikingNeuron.hpp"
-#include "math.h"
+#include <cmath>
 
 inline int SpikingNeuron::getX() {
     return m_x;
@@ -48,4 +48,8 @@ bool SpikingNeuron::hasSpiked() {
 
 void SpikingNeuron::setInhibitionTime(long inhibitionTime) {
     m_inhibitionTime = inhibitionTime;
+}
+
+void SpikingNeuron::saveWeights(const std::string fileName) {
+    xt::dump_npy(fileName, m_weights);
 }

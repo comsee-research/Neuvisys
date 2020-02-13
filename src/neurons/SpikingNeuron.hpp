@@ -19,12 +19,13 @@ public:
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
     virtual double getPotential();
-    virtual void setInhibitionTime(long inhibitionTime);
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);
     virtual bool newEvent(long timestamp, int x, int y, bool polarity);
     virtual void spike();
+    virtual void setInhibitionTime(long inhibitionTime);
+    virtual void saveWeights(std::string fileName);
 };
 
 #endif //NEUVISYS_DV_SPIKINGNEURON_HPP
