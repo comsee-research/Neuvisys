@@ -18,7 +18,6 @@ public:
     virtual int getY();
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
-    virtual double getPotential();
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);

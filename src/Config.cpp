@@ -8,6 +8,10 @@ int Y_NEURON = 0;
 int LAYER = 0;
 int IND = X_NEURON*(NETWORK_HEIGHT+NETWORK_DEPTH) + Y_NEURON*LAYER + LAYER;
 
+std::string FILE_NUMBER = "0";
+std::string SAVE_DATA_LOCATION = "/home/thomas/Documents/Results/weights/";
+std::string CONF_FILES_LOCATION = "/home/thomas/neuvisys-dv/configs/";
+
 /***** Spiking Neural Network layout parameters *****/
 int NEURON_WIDTH = 20;
 int NEURON_HEIGHT = 20;
@@ -37,6 +41,21 @@ double V_DEP = 3; // mV
 double NORM_FACTOR = 4;
 int NORM_THRESHOLD = 10; // number spikes
 
+void Config::loadConfiguration(std::string &fileName) {
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        json conf;
+        ifs >> conf;
+
+        FILE_NUMBER = conf["FILE_NUMBER"];
+        SAVE_DATA_LOCATION = conf["SAVE_DATA_LOCATION"];
+        CONF_FILES_LOCATION = conf["CONF_FILES_LOCATION"];
+    } else {
+        std::cout << "cannot open main configuration file" << std::endl;
+    }
+    ifs.close();
+}
+
 void Config::loadNeuronsParameters(std::string &fileName) {
     std::ifstream ifs(fileName);
     if (ifs.is_open()) {
@@ -54,7 +73,7 @@ void Config::loadNeuronsParameters(std::string &fileName) {
         NORM_FACTOR = conf["NORM_FACTOR"];
         NORM_THRESHOLD = conf["NORM_THRESHOLD"];
     } else {
-        std::cout << "cannot open config file" << std::endl;
+        std::cout << "cannot open neuron configuration file" << std::endl;
     }
     ifs.close();
 }
@@ -73,7 +92,7 @@ void Config::loadNetworkLayout(std::string &fileName) {
         NETWORK_HEIGHT = conf["NETWORK_HEIGHT"];
         NETWORK_DEPTH = conf["NETWORK_DEPTH"];
     } else {
-        std::cout << "cannot open config file" << std::endl;
+        std::cout << "cannot open network configuration file" << std::endl;
     }
     ifs.close();
 }
@@ -96,7 +115,7 @@ void Config::saveNeuronsParameters(std::string &fileName) {
     if (ofs.is_open()) {
         ofs << std::setw(4) << conf << std::endl;
     } else {
-        std::cout << "cannot open config file" << std::endl;
+        std::cout << "cannot open and save neuron configuration file" << std::endl;
     }
     ofs.close();
 }

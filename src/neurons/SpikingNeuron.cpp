@@ -13,15 +13,11 @@ inline double SpikingNeuron::getWeights(const int p, const int x, const int y) {
     return m_weights(p, y, x);
 }
 
-double SpikingNeuron::getThreshold() {
+inline double SpikingNeuron::getThreshold() {
     return m_threshold;
 }
 
-double SpikingNeuron::getPotential() {
-    return m_potential;
-}
-
-double SpikingNeuron::getPotential(long time) {
+inline double SpikingNeuron::getPotential(long time) {
     return 0;
 }
 
@@ -38,7 +34,7 @@ inline void SpikingNeuron::spike() {
     m_spike = true;
 }
 
-bool SpikingNeuron::hasSpiked() {
+inline bool SpikingNeuron::hasSpiked() {
     if (m_spike){
         m_spike = false;
         return true;
@@ -46,7 +42,7 @@ bool SpikingNeuron::hasSpiked() {
     return false;
 }
 
-void SpikingNeuron::setInhibitionTime(long inhibitionTime) {
+inline void SpikingNeuron::setInhibitionTime(long inhibitionTime) {
     m_inhibitionTime = inhibitionTime;
 }
 

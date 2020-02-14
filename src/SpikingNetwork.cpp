@@ -53,7 +53,7 @@ void SpikingNetwork::neuronsInfos() {
 
 void SpikingNetwork::saveWeights() {
     int count = 0;
-    std::string fileName = SAVE_LOCATION;
+    std::string fileName = SAVE_DATA_LOCATION + "neuron_";
     for (auto &neuron : m_neurons) {
         neuron.saveWeights(fileName + std::to_string(count) + ".npy");
         ++count;

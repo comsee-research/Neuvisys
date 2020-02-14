@@ -11,6 +11,7 @@
 
 class Config {
 public:
+    static void loadConfiguration(std::string &fileName);
     static void saveNeuronsParameters(std::string &fileName);
     static void loadNeuronsParameters(std::string &fileName);
     static void loadNetworkLayout(std::string &fileName);
@@ -26,8 +27,12 @@ const int DISPLAY_FREQUENCY = 30000; // μs
 const int NUMBER_DISPLAY = 1;
 const int NUMBER_THREADS = 4;
 
+const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configs/conf.json";
+
 /***** Display parameters *****/
-const std::string SAVE_LOCATION = "/home/thomas/Documents/Results/weights/neuron";
+extern std::string FILE_NUMBER;
+extern std::string SAVE_DATA_LOCATION;
+extern std::string CONF_FILES_LOCATION;
 
 extern int X_NEURON;
 extern int Y_NEURON;

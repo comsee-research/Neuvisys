@@ -11,6 +11,8 @@ private:
     long lastTime;
 public:
     Neuvisys() {
+        std::string fileName = CONF_FILE;
+        Config::loadConfiguration(fileName);
         lastTime = 0;
 
         // Displays
@@ -94,10 +96,12 @@ public:
     }
 
     static void initConfigOptions(dv::RuntimeConfig &config) {
+        std::string neuronFile = CONF_FILES_LOCATION + "config_neuron_" + FILE_NUMBER + ".json";
+
         config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
-        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), "/home/thomas/neuvisys-dv/configs/config.json", "json"));
+        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), neuronFile, "json"));
         config.add("A_SAVE_BUTTON", dv::ConfigOption::buttonOption("Save config file", "Save Config"));
-        config.add("A_SAVE_CONFIG", dv::ConfigOption::fileSaveOption(("Config file save location"), "/home/thomas/neuvisys-dv/configs/config.json", "json"));
+        config.add("A_SAVE_CONFIG", dv::ConfigOption::fileSaveOption(("Config file save location"), neuronFile, "json"));
 
         config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
         config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));
@@ -115,12 +119,13 @@ public:
         config.add("NORM_THRESHOLD", dv::ConfigOption::intOption("Number of spikes needed for normalization to occur", NORM_THRESHOLD));
 
         loadNetworkConfiguration();
-        loadNeuronConfiguration(config);
+        loadNeuronConfiguration(config, neuronFile);
     }
 
     void configUpdate() override {
         if (config.getBool("A_LOAD_BUTTON")) {
-            loadNeuronConfiguration(config);
+            std::string fileName = config.getString("A_LOAD_CONFIG");
+            loadNeuronConfiguration(config, fileName);
         } else if (config.getBool("A_SAVE_BUTTON")) {
             std::string conf = config.getString("A_SAVE_CONFIG");
             Config::saveNeuronsParameters(conf);
@@ -131,13 +136,12 @@ public:
     }
 
     static void loadNetworkConfiguration() {
-        std::string conf = "/home/thomas/neuvisys-dv/configs/config_network.json";
-        Config::loadNetworkLayout(conf);
+        std::string fileName = CONF_FILES_LOCATION + "config_network_" + FILE_NUMBER + ".json";
+        Config::loadNetworkLayout(fileName);
     }
 
-    static void loadNeuronConfiguration(dv::RuntimeConfig &config) {
-        std::string conf = config.getString("A_LOAD_CONFIG");
-        Config::loadNeuronsParameters(conf);
+    static void loadNeuronConfiguration(dv::RuntimeConfig &config, std::string &fileName) {
+        Config::loadNeuronsParameters(fileName);
 
         config.setDouble("TAU_M", TAU_M);
         config.setDouble("TAU_LTP", TAU_LTP);

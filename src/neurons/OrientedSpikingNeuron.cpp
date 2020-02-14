@@ -16,7 +16,7 @@ OrientedSpikingNeuron::OrientedSpikingNeuron(int x, int y, xt::xarray<double> we
     m_spikeCount = 0;
 }
 
-double OrientedSpikingNeuron::getPotential(const long time) {
+inline double OrientedSpikingNeuron::getPotential(const long time) {
     return potentialDecay(time - m_timestampLastEvent);
 }
 
@@ -79,7 +79,7 @@ inline void OrientedSpikingNeuron::spike() {
     m_spike = true;
 }
 
-void OrientedSpikingNeuron::normalize() {
+inline void OrientedSpikingNeuron::normalize() {
     m_countNormalize = 0;
     for (int i = 0; i < 2; ++i) {
         double norm = xt::linalg::norm(xt::view(m_weights, i));
@@ -89,7 +89,7 @@ void OrientedSpikingNeuron::normalize() {
     }
 }
 
-inline void OrientedSpikingNeuron::adaptThreshold() {
+void OrientedSpikingNeuron::adaptThreshold() {
     m_threshold += 0.1 * (m_spikeCount - 20);
 }
 
