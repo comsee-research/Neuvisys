@@ -1,6 +1,7 @@
 {
     "DELTA_VD": 0.03,
     "DELTA_VP": 0.05,
+    "INHIBITION": 20000.0,
     "NORM_FACTOR": 4.0,
     "NORM_THRESHOLD": 10,
     "SPEED": 500000,

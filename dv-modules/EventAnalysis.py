@@ -93,8 +93,8 @@ def temporal_correlation(x, y, polarity, timestamp, temp_corr, timestamps):
 def display_weights(nb_display):
     for i in range(nb_display):
         fig, axs = plt.subplots(1, 2)
-        axs[0].imshow(np.load("/home/thomas/Documents/Results/weights/neuron" + str(i) + ".npy")[0])
-        axs[1].imshow(np.load("/home/thomas/Documents/Results/weights/neuron" + str(i) + ".npy")[1])
+        axs[0].imshow(np.load("/home/thomas/neuvisys-dv/results/weights/neuron_" + str(i) + ".npy")[0])
+        axs[1].imshow(np.load("/home/thomas/neuvisys-dv/results/weights/neuron_" + str(i) + ".npy")[1])
         plt.show()
             
 #%% Spatial Correlation

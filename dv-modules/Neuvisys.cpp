@@ -11,8 +11,8 @@ private:
     long lastTime;
 public:
     Neuvisys() {
-        std::string fileName = CONF_FILE;
-        Config::loadConfiguration(fileName);
+        // Initialize Network
+        spinet.loadWeights();
         lastTime = 0;
 
         // Displays
@@ -96,12 +96,22 @@ public:
     }
 
     static void initConfigOptions(dv::RuntimeConfig &config) {
+        std::string confFile = CONF_FILE;
+        Config::loadConfiguration(confFile);
+
+        std::string networkFile = CONF_FILES_LOCATION + "config_network_" + FILE_NUMBER + ".json";
+        Config::loadNetworkLayout(networkFile);
+
         std::string neuronFile = CONF_FILES_LOCATION + "config_neuron_" + FILE_NUMBER + ".json";
+        Config::loadNeuronsParameters(neuronFile);
+
+        X_NEURON = 0;
+        Y_NEURON = 0;
+        LAYER = 0;
+        IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
 
         config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
         config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), neuronFile, "json"));
-        config.add("A_SAVE_BUTTON", dv::ConfigOption::buttonOption("Save config file", "Save Config"));
-        config.add("A_SAVE_CONFIG", dv::ConfigOption::fileSaveOption(("Config file save location"), neuronFile, "json"));
 
         config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
         config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));
@@ -118,31 +128,34 @@ public:
         config.add("NORM_FACTOR", dv::ConfigOption::doubleOption("Normalization factor", NORM_FACTOR));
         config.add("NORM_THRESHOLD", dv::ConfigOption::intOption("Number of spikes needed for normalization to occur", NORM_THRESHOLD));
 
-        loadNetworkConfiguration();
-        loadNeuronConfiguration(config, neuronFile);
+        setParameters(config);
     }
 
     void configUpdate() override {
         if (config.getBool("A_LOAD_BUTTON")) {
             std::string fileName = config.getString("A_LOAD_CONFIG");
-            loadNeuronConfiguration(config, fileName);
-        } else if (config.getBool("A_SAVE_BUTTON")) {
-            std::string conf = config.getString("A_SAVE_CONFIG");
-            Config::saveNeuronsParameters(conf);
-            config.setBool("A_SAVE_BUTTON", false);
+            Config::loadNeuronsParameters(fileName);
+            setParameters(config);
         } else {
-            getConfiguration();
+            X_NEURON = config.getInt("X_NEURON");
+            Y_NEURON = config.getInt("Y_NEURON");
+            LAYER = config.getInt("LAYER");
+            IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
+
+            TAU_M = config.getDouble("TAU_M");
+            TAU_LTP = config.getDouble("TAU_LTP");
+            TAU_LTD = config.getDouble("TAU_LTD");
+            SPEED = config.getInt("SPEED");
+            VRESET = config.getDouble("VRESET");
+            THRESHOLD = config.getDouble("THRESHOLD");
+            DELTA_VP = config.getDouble("DELTA_VP");
+            DELTA_VD = config.getDouble("DELTA_VD");
+            NORM_FACTOR = config.getDouble("NORM_FACTOR");
+            NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
         }
     }
 
-    static void loadNetworkConfiguration() {
-        std::string fileName = CONF_FILES_LOCATION + "config_network_" + FILE_NUMBER + ".json";
-        Config::loadNetworkLayout(fileName);
-    }
-
-    static void loadNeuronConfiguration(dv::RuntimeConfig &config, std::string &fileName) {
-        Config::loadNeuronsParameters(fileName);
-
+    static void setParameters(dv::RuntimeConfig &config) {
         config.setDouble("TAU_M", TAU_M);
         config.setDouble("TAU_LTP", TAU_LTP);
         config.setDouble("TAU_LTD", TAU_LTD);
@@ -154,24 +167,6 @@ public:
         config.setDouble("NORM_FACTOR", NORM_FACTOR);
         config.setInt("NORM_THRESHOLD", NORM_THRESHOLD);
         config.setBool("A_LOAD_BUTTON", false);
-    }
-
-    void getConfiguration() {
-        X_NEURON = config.getInt("X_NEURON");
-        Y_NEURON = config.getInt("Y_NEURON");
-        LAYER = config.getInt("LAYER");
-        IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
-
-        TAU_M = config.getDouble("TAU_M");
-        TAU_LTP = config.getDouble("TAU_LTP");
-        TAU_LTD = config.getDouble("TAU_LTD");
-        SPEED = config.getInt("SPEED");
-        VRESET = config.getDouble("VRESET");
-        THRESHOLD = config.getDouble("THRESHOLD");
-        DELTA_VP = config.getDouble("DELTA_VP");
-        DELTA_VD = config.getDouble("DELTA_VD");
-        NORM_FACTOR = config.getDouble("NORM_FACTOR");
-        NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
     }
 };
 

@@ -22,7 +22,7 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
             }
         }
 
-        if (ind == LAYER) {
+        if (ind == IND) {
             m_potentials.push_back(m_neurons[IND].getPotential(timestamp));
             m_potentials.pop_front();
             m_timestamps.push_back(timestamp);
@@ -31,9 +31,9 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
     }
 }
 
-void SpikingNetwork::updateNeurons(long time) {
+void SpikingNetwork::updateNeurons() {
     for (auto &neuron : m_neurons) {
-//        neuron.update(time);
+        //neuron.update();
     }
 }
 
@@ -45,17 +45,25 @@ void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
 }
 
 void SpikingNetwork::neuronsInfos() {
-    for (auto &neuron : m_neurons) {
-        neuron.resetSpikeCount();
-        neuron.normalize();
-    }
+
 }
 
 void SpikingNetwork::saveWeights() {
     int count = 0;
-    std::string fileName = SAVE_DATA_LOCATION + "neuron_";
+    std::string fileName;
     for (auto &neuron : m_neurons) {
-        neuron.saveWeights(fileName + std::to_string(count) + ".npy");
+        fileName = SAVE_DATA_LOCATION + "neuron_" + std::to_string(count) + ".npy";
+        neuron.saveWeights(fileName);
+        ++count;
+    }
+}
+
+void SpikingNetwork::loadWeights() {
+    int count = 0;
+    std::string fileName;
+    for (auto &neuron : m_neurons) {
+        fileName = SAVE_DATA_LOCATION + "neuron_" + std::to_string(count) + ".npy";
+        neuron.loadWeights(fileName);
         ++count;
     }
 }
@@ -64,7 +72,7 @@ void SpikingNetwork::generateNeuronConfiguration() {
     for (int i = X_ANCHOR_POINT; i < X_ANCHOR_POINT + NEURON_WIDTH * NETWORK_WIDTH; i += NEURON_WIDTH) {
         for (int j = Y_ANCHOR_POINT; j < Y_ANCHOR_POINT + NEURON_HEIGHT * NETWORK_HEIGHT; j += NEURON_HEIGHT) {
             for (int k = 0; k < NETWORK_DEPTH; ++k) {
-                m_neurons.emplace_back(OrientedSpikingNeuron(i, j, UNIFORM_WEIGHTS, THRESHOLD));
+                m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrix2(NEURON_HEIGHT, NEURON_WIDTH, 3), {0, 5, 10}, THRESHOLD));
             }
         }
     }

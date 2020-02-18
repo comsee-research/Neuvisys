@@ -1,5 +1,5 @@
-#ifndef NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP
-#define NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP
+#ifndef NEUVISYS_DV_ORIENTEDNEURON_HPP
+#define NEUVISYS_DV_ORIENTEDNEURON_HPP
 
 #include <thread>
 #include <mutex>
@@ -10,29 +10,25 @@
 
 #include "src/Event.hpp"
 #include "src/Config.hpp"
-#include "SpikingNeuron.hpp"
+#include "Neuron.hpp"
 
-class OrientedSpikingNeuron : public SpikingNeuron {
+class OrientedNeuron : public Neuron {
+protected:
     std::vector<Event> m_events;
-
     long m_spikingTime;
     long m_lastSpikingTime;
     int m_countNormalize;
-    int m_spikeCount;
 public:
-    OrientedSpikingNeuron(int x, int y, xt::xarray<double> weights, double threshold);
-
+    OrientedNeuron(int x, int y, xt::xarray<double> weights, double threshold);
     double getPotential(long time) override;
     bool newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long timestamp, int x, int y, bool polarity);
-    void learnWeightsSTDP();
-    void spike() override;
-
+    virtual void learnWeightsSTDP();
+    virtual void spike(long time);
     bool newEventPot(long timestamp, int x, int y, bool polarity);
-    void resetSpikeCount();
-    int getSpikeCount();
-    void adaptThreshold();
-    void normalize();
+    virtual void normalize();
+private:
+    using Neuron::spike;
 };
 
-#endif //NEUVISYS_DV_ORIENTEDSPIKINGNEURON_HPP
+#endif //NEUVISYS_DV_ORIENTEDNEURON_HPP

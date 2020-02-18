@@ -1,19 +1,20 @@
-#ifndef NEUVISYS_DV_SPIKINGNEURON_HPP
-#define NEUVISYS_DV_SPIKINGNEURON_HPP
+#ifndef NEUVISYS_DV_NEURON_HPP
+#define NEUVISYS_DV_NEURON_HPP
 
 #include "src/Config.hpp"
 
-class SpikingNeuron {
+class Neuron {
 protected:
-    int m_x{}, m_y{};
+    int m_x;
+    int m_y;
     xt::xarray<double> m_weights;
-    double m_potential{};
-    double m_threshold{};
-    long m_timestampLastEvent{};
-    bool m_spike{};
-    long m_inhibitionTime{};
+    double m_potential;
+    double m_threshold;
+    long m_timestampLastEvent;
+    bool m_spike;
+    long m_inhibitionTime;
 public:
-    SpikingNeuron() = default;
+    Neuron(int x, int y, xt::xarray<double> weights, double threshold);
     virtual int getX();
     virtual int getY();
     virtual double getWeights(int p, int x, int y);
@@ -24,7 +25,8 @@ public:
     virtual bool newEvent(long timestamp, int x, int y, bool polarity);
     virtual void spike();
     virtual void setInhibitionTime(long inhibitionTime);
-    virtual void saveWeights(std::string fileName);
+    virtual void saveWeights(std::string &fileName);
+    virtual void loadWeights(std::string &fileName);
 };
 
-#endif //NEUVISYS_DV_SPIKINGNEURON_HPP
+#endif //NEUVISYS_DV_NEURON_HPP

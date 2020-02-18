@@ -1,6 +1,6 @@
 #include "Utils.hpp"
-#include <stdlib.h>
-#include <time.h>
+#include "Config.hpp"
+#include <random>
 
 xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int col) {
     xt::xarray<double> xray = xt::zeros<double>({2, row, col});
@@ -14,13 +14,33 @@ xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int
 }
 
 xt::xarray<double> uniformMatrix(const int row, const int col) {
-    srand(time(NULL));
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);;
 
     xt::xarray<double> xray = xt::zeros<double>({2, row, col});
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < col; ++j) {
             for (int k = 0; k < 2; ++k) {
-                xray(k, i, j) = static_cast<double>(rand()) / static_cast<double>(RAND_MAX);
+                xray(k, i, j) = distribution(generator);
+            }
+        }
+    }
+    return xray;
+}
+
+xt::xarray<double> uniformMatrix2(const int row, const int col, const int nbSynapses) {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    std::default_random_engine generator(seed);
+    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+    xt::xarray<double> xray = xt::zeros<double>({2, row, col});
+    for (int i = 0; i < row; ++i) {
+        for (int j = 0; j < col; ++j) {
+            for (int k = 0; k < nbSynapses; ++k) {
+                for (int l = 0; k < 2; ++k) {
+                    xray(l, k, i, j) = distribution(generator);
+                }
             }
         }
     }

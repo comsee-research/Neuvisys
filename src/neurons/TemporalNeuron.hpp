@@ -1,12 +1,12 @@
-#ifndef NEUVISYS_DV_SPIKING_NEURON_HPP
-#define NEUVISYS_DV_SPIKING_NEURON_HPP
+#ifndef NEUVISYS_DV_TEMPORALNEURON_HPP
+#define NEUVISYS_DV_TEMPORALNEURON_HPP
 
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <xtensor/xarray.hpp>
 
 #include "src/Event.hpp"
-#include "SpikingNeuron.hpp"
+#include "Neuron.hpp"
 
 struct CompareEventsTimestamp {
     bool operator()(Event const &event1, Event const &event2) {
@@ -14,12 +14,12 @@ struct CompareEventsTimestamp {
     }
 };
 
-class DelayedSpikingNeuron : public SpikingNeuron {
+class TemporalNeuron : public Neuron {
 protected:
     xt::xarray<long> m_delays;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_events;
 public:
-    DelayedSpikingNeuron(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
+    TemporalNeuron(int x, int y, xt::xarray<double> weights, xt::xarray<long> delays, double threshold);
     long getDelay(int x, int y);
     long getTimestampNextEvent();
 
@@ -29,4 +29,4 @@ public:
     void spike() override;
 };
 
-#endif //NEUVISYS_DV_SPIKING_NEURON_HPP
+#endif //NEUVISYS_DV_TEMPORALNEURON_HPP

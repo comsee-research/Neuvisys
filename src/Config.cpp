@@ -3,43 +3,40 @@
 using json = nlohmann::json;
 
 /***** Display parameters *****/
-int X_NEURON = 0;
-int Y_NEURON = 0;
-int LAYER = 0;
-int IND = X_NEURON*(NETWORK_HEIGHT+NETWORK_DEPTH) + Y_NEURON*LAYER + LAYER;
+int X_NEURON;
+int Y_NEURON;
+int LAYER;
+int IND;
 
-std::string FILE_NUMBER = "0";
-std::string SAVE_DATA_LOCATION = "/home/thomas/Documents/Results/weights/";
-std::string CONF_FILES_LOCATION = "/home/thomas/neuvisys-dv/configs/";
+std::string FILE_NUMBER;
+std::string SAVE_DATA_LOCATION;
+std::string CONF_FILES_LOCATION;
 
 /***** Spiking Neural Network layout parameters *****/
-int NEURON_WIDTH = 20;
-int NEURON_HEIGHT = 20;
+int NEURON_WIDTH;
+int NEURON_HEIGHT;
 
-int X_ANCHOR_POINT = 0; // px
-int Y_ANCHOR_POINT = 0; // px
-int NETWORK_WIDTH = 10; // neurons
-int NETWORK_HEIGHT = 10; // neurons
-int NETWORK_DEPTH = 8; // neurons
+int X_ANCHOR_POINT; // px
+int Y_ANCHOR_POINT; // px
+int NETWORK_WIDTH; // neurons
+int NETWORK_HEIGHT; // neurons
+int NETWORK_DEPTH; // neurons
 
 /***** Neurons internal parameters *****/
-double TAU_M = 10000; // μs
-double TAU_LTP = 10000; // μs
-double TAU_LTD = 20000; // μs
-long INHIBITION = 20000; // μs
-int SPEED = 500000; // μs
+double TAU_M; // μs
+double TAU_LTP; // μs
+double TAU_LTD; // μs
+long INHIBITION; // μs
+int SPEED; // μs
 
-double VRESET = -20; // mV
-double THRESHOLD = 15; // mV
+double VRESET; // mV
+double THRESHOLD; // mV
 
-double DELTA_VP = 0.05; // mV
-double DELTA_VD = 0.03; // mV
+double DELTA_VP; // mV
+double DELTA_VD; // mV
 
-double V_MIN = 4; // mV
-double V_DEP = 3; // mV
-
-double NORM_FACTOR = 4;
-int NORM_THRESHOLD = 10; // number spikes
+double NORM_FACTOR;
+int NORM_THRESHOLD; // number spikes
 
 void Config::loadConfiguration(std::string &fileName) {
     std::ifstream ifs(fileName);
@@ -62,16 +59,17 @@ void Config::loadNeuronsParameters(std::string &fileName) {
         json conf;
         ifs >> conf;
 
-        TAU_M = conf["TAU_M"];
-        TAU_LTP = conf["TAU_LTP"];
-        TAU_LTD = conf["TAU_LTD"];
-        SPEED = conf["SPEED"];
-        VRESET = conf["VRESET"];
-        THRESHOLD = conf["THRESHOLD"];
-        DELTA_VP = conf["DELTA_VP"];
         DELTA_VD = conf["DELTA_VD"];
+        DELTA_VP = conf["DELTA_VP"];
+        INHIBITION = conf["INHIBITION"];
         NORM_FACTOR = conf["NORM_FACTOR"];
         NORM_THRESHOLD = conf["NORM_THRESHOLD"];
+        SPEED = conf["SPEED"];
+        TAU_LTD = conf["TAU_LTD"];
+        TAU_LTP = conf["TAU_LTP"];
+        TAU_M = conf["TAU_M"];
+        THRESHOLD = conf["THRESHOLD"];
+        VRESET = conf["VRESET"];
     } else {
         std::cout << "cannot open neuron configuration file" << std::endl;
     }
