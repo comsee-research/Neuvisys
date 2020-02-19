@@ -6,6 +6,7 @@ using json = nlohmann::json;
 int X_NEURON;
 int Y_NEURON;
 int LAYER;
+int SYNAPSE;
 int IND;
 
 std::string FILE_NUMBER;

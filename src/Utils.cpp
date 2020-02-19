@@ -34,11 +34,11 @@ xt::xarray<double> uniformMatrix2(const int row, const int col, const int nbSyna
     std::default_random_engine generator(seed);
     std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-    xt::xarray<double> xray = xt::zeros<double>({2, row, col});
+    xt::xarray<double> xray = xt::zeros<double>({2, nbSynapses, row, col});
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < col; ++j) {
             for (int k = 0; k < nbSynapses; ++k) {
-                for (int l = 0; k < 2; ++k) {
+                for (int l = 0; l < 2; ++l) {
                     xray(l, k, i, j) = distribution(generator);
                 }
             }

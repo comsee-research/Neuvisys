@@ -16,7 +16,7 @@ inline double OrientedNeuron::getPotential(const long time) {
 inline bool OrientedNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
     if (timestamp > m_inhibitionTime + INHIBITION) {
         m_events.emplace_back(timestamp, x, y, polarity);
-        return update(timestamp, x, y, polarity);
+        return internalUpdate(timestamp, x, y, polarity);
     }
     return false;
 }
@@ -27,10 +27,10 @@ inline bool OrientedNeuron::newEventPot(const long timestamp, const int x, const
     } else if (m_potential > -5 && m_weights(polarity, x, y) > 0.008){
         m_weights(polarity, x, y) -= 0.008;
     }
-    update(timestamp, x, y, polarity);
+    internalUpdate(timestamp, x, y, polarity);
 }
 
-inline bool OrientedNeuron::update(const long timestamp, const int x, const int y, const bool polarity) {
+inline bool OrientedNeuron::internalUpdate(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
     m_timestampLastEvent = timestamp;

@@ -12,17 +12,17 @@ private:
 public:
     Neuvisys() {
         // Initialize Network
-        spinet.loadWeights();
+//        spinet.loadWeights();
         lastTime = 0;
 
         // Displays
-        outputs.getFrameOutput("weights").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
-        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
-
-        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
-            outputs.getFrameOutput(std::to_string(i)).setup(inputs.getEventInput("events"));
+        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+            outputs.getFrameOutput("output" + std::to_string(i)).setup(inputs.getEventInput("events"));
             displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
         }
+
+        outputs.getFrameOutput("weights").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
+        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
         // Slicers
         slicer.doEveryTimeInterval(EVENT_FREQUENCY, [this](const dv::EventStore &data) {
@@ -37,19 +37,34 @@ public:
     }
 
     ~Neuvisys() override {
-        spinet.saveWeights();
+//        spinet.saveWeights();
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
 		in.addEventInput("events");
+		in.addFrameInput("frames");
 	}
 
 	static void initOutputs(dv::OutputDefinitionList &out) {
-        out.addFrameOutput("weights");
-        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
-            out.addFrameOutput(std::to_string(i));
+        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+            out.addFrameOutput("output" + std::to_string(i));
         }
+        out.addFrameOutput("weights");
 	}
+
+    void computeDisplays() {
+        spinet.updateDisplay(lastTime, displays);
+
+        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
+            outputs.getFrameOutput("output" + std::to_string(i)).frame() << displays[i];
+            outputs.getFrameOutput("output" + std::to_string(i)).frame().commit();
+        }
+
+        auto frame = outputs.getFrameOutput("weights").frame();
+        frame.setFormat(dv::FrameFormat::BGR);
+        frame << displays[1];
+        frame.commit();
+    }
 
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
@@ -57,35 +72,13 @@ public:
             for (const dv::Event &event : events) {
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
-//            for (unsigned int i = 0; i < NUMBER_THREADS; ++i) {
-//                std::thread(&Neuvisys::parallel_events, this, std::ref(events), i * events.getTotalLength() / NUMBER_THREADS, events.getTotalLength() / NUMBER_THREADS).join();
-//            }
         }
-        //spinet.updateNeurons(lastTime);
-    }
-
-    void computeDisplays() {
-        spinet.updateDisplay(lastTime, displays);
-
-        auto frame = outputs.getFrameOutput("weights").frame();
-        frame.setFormat(dv::FrameFormat::BGR);
-        frame << displays[0];
-        frame.commit();
-        for (size_t i = 1; i < NUMBER_DISPLAY+1; ++i) {
-            outputs.getFrameOutput(std::to_string(i)).frame() << displays[i];
-            outputs.getFrameOutput(std::to_string(i)).frame().commit();
-        }
+        spinet.updateNeurons(lastTime);
     }
 
     void displayInformations() {
         spinet.neuronsInfos();
     }
-
-//    void parallel_events(const dv::EventStore &events, unsigned int start, unsigned int length) {
-//        for (const dv::Event &event : events.slice(start, length)) {
-//            spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
-//        }
-//    }
 
 	void run() override {
         slicer.accept(inputs.getEventInput("events").events());
@@ -115,6 +108,7 @@ public:
 
         config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
         config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));
+        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, 2));
         config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NETWORK_DEPTH-1));
 
         config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
@@ -139,6 +133,7 @@ public:
         } else {
             X_NEURON = config.getInt("X_NEURON");
             Y_NEURON = config.getInt("Y_NEURON");
+            SYNAPSE = config.getInt("SYNAPSE");
             LAYER = config.getInt("LAYER");
             IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
 

@@ -26,7 +26,7 @@ const int DISPLAY_FREQUENCY = 30000; // μs
 
 const int NUMBER_DISPLAY = 1;
 
-const int MAX_DELAY = 10;
+const int MAX_DELAY = 11;
 
 const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configs/conf.json";
 
@@ -38,6 +38,7 @@ extern std::string CONF_FILES_LOCATION;
 extern int X_NEURON;
 extern int Y_NEURON;
 extern int LAYER;
+extern int SYNAPSE;
 extern int IND;
 
 /***** Spiking Neural Network layout parameters *****/

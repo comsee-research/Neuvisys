@@ -31,21 +31,10 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
     }
 }
 
-void SpikingNetwork::updateNeurons() {
+void SpikingNetwork::updateNeurons(const long time) {
     for (auto &neuron : m_neurons) {
-        //neuron.update();
+        neuron.update(time);
     }
-}
-
-void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-//    multiPotentialDisplay(time, displays[0]);
-    potentialDisplay();
-    weightDisplay(displays[0]);
-    spikingDisplay(displays[1]);
-}
-
-void SpikingNetwork::neuronsInfos() {
-
 }
 
 void SpikingNetwork::saveWeights() {
@@ -90,6 +79,17 @@ void SpikingNetwork::assignNeurons() {
     }
 }
 
+void SpikingNetwork::neuronsInfos() {
+
+}
+
+void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
+//    multiPotentialDisplay(time, displays[0]);
+    potentialDisplay();
+    spikingDisplay(displays[0]);
+    weightDisplay(displays[1]);
+}
+
 void SpikingNetwork::potentialDisplay() {
     if (!m_potentials.empty()) {
         std::string plot;
@@ -109,7 +109,7 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
     for (int x = 0; x < NEURON_WIDTH; ++x) {
         for (int y = 0; y < NEURON_HEIGHT; ++y) {
             for (int p = 0; p < 2; p++) {
-                weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / THRESHOLD;
+                weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 15 * 255 / THRESHOLD;
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
                 display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);
@@ -120,12 +120,14 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
 
 void SpikingNetwork::spikingDisplay(cv::Mat &display) {
     int count = 0;
+    display = cv::Scalar(0, 0, 0);
     for (auto &neuron : m_neurons) {
         if ((count + NETWORK_DEPTH - LAYER) % NETWORK_DEPTH == 0) {
             display(cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = 255 * neuron.hasSpiked();
         }
         ++count;
     }
+    cv::rectangle(display, cv::Point(m_neurons[IND].getX(), m_neurons[IND].getY()), cv::Point(m_neurons[IND].getX() + NEURON_WIDTH, m_neurons[IND].getY() + NEURON_HEIGHT), cv::viz::Color::white());
 }
 
 void SpikingNetwork::multiPotentialDisplay(long time, cv::Mat &display) {
