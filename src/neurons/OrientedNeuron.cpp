@@ -21,15 +21,6 @@ inline bool OrientedNeuron::newEvent(const long timestamp, const int x, const in
     return false;
 }
 
-inline bool OrientedNeuron::newEventPot(const long timestamp, const int x, const int y, const bool polarity) {
-    if (m_potential > 5) {
-        m_weights(polarity, x, y) += 0.016;
-    } else if (m_potential > -5 && m_weights(polarity, x, y) > 0.008){
-        m_weights(polarity, x, y) -= 0.008;
-    }
-    internalUpdate(timestamp, x, y, polarity);
-}
-
 inline bool OrientedNeuron::internalUpdate(const long timestamp, const int x, const int y, const bool polarity) {
     long dt_event = timestamp - m_timestampLastEvent;
     m_potential = potentialDecay(dt_event);
@@ -45,8 +36,8 @@ inline bool OrientedNeuron::internalUpdate(const long timestamp, const int x, co
 }
 
 inline void OrientedNeuron::spike(long time) {
-    m_spikingTime = time;
     m_lastSpikingTime = m_spikingTime;
+    m_spikingTime = time;
     learnWeightsSTDP();
     m_potential = VRESET;
     m_spike = true;

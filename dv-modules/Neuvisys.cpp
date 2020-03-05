@@ -11,11 +11,11 @@ private:
     long lastTime;
 public:
     Neuvisys() {
-        // Initialize Network
-//        spinet.loadWeights();
+        /***** Initialize Network *****/
+        spinet.loadWeights();
         lastTime = 0;
 
-        // Displays
+        /***** Displays *****/
         for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
             outputs.getFrameOutput("output" + std::to_string(i)).setup(inputs.getEventInput("events"));
             displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
@@ -24,7 +24,7 @@ public:
         outputs.getFrameOutput("weights").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
         displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
-        // Slicers
+        /***** Slicers *****/
         slicer.doEveryTimeInterval(EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
         });
@@ -37,7 +37,7 @@ public:
     }
 
     ~Neuvisys() override {
-//        spinet.saveWeights();
+        spinet.saveWeights();
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
@@ -73,7 +73,7 @@ public:
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
         }
-        spinet.updateNeurons(lastTime);
+        //spinet.updateNeurons(lastTime);
     }
 
     void displayInformations() {
