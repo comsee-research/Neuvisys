@@ -39,12 +39,16 @@ void SpikingNetwork::updateNeurons(const long time) {
 
 void SpikingNetwork::saveWeights() {
     int count = 0;
+    xt::xarray<int> numberSpikes = xt::zeros<double>({m_neurons.size()});;
     std::string fileName;
     for (auto &neuron : m_neurons) {
         fileName = SAVE_DATA_LOCATION + "neuron_" + std::to_string(count) + ".npy";
         neuron.saveWeights(fileName);
+        numberSpikes(count) = neuron.getCountSpike();
         ++count;
     }
+    fileName = SAVE_DATA_LOCATION + "numberSpikes.npy";
+    xt::dump_npy(fileName, numberSpikes);
 }
 
 void SpikingNetwork::loadWeights() {
@@ -85,10 +89,10 @@ void SpikingNetwork::neuronsInfos() {
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-//    multiPotentialDisplay(time, displays[0]);
     potentialDisplay();
-    spikingDisplay(displays[0]);
-    weightDisplay(displays[1]);
+    multiPotentialDisplay(time, displays[0]);
+    spikingDisplay(displays[1]);
+    weightDisplay(displays[2]);
 }
 
 void SpikingNetwork::potentialDisplay() {

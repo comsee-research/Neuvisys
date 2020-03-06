@@ -12,6 +12,7 @@ protected:
     double m_threshold;
     long m_timestampLastEvent;
     bool m_spike;
+    int m_countSpike;
     long m_inhibitionTime;
 public:
     Neuron(int x, int y, xt::xarray<double> weights, double threshold);
@@ -19,6 +20,7 @@ public:
     virtual int getY();
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
+    virtual int getCountSpike();
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);

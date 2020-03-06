@@ -24,7 +24,7 @@ const int HEIGHT = 260; // px
 const int EVENT_FREQUENCY = 1000; // μs
 const int DISPLAY_FREQUENCY = 30000; // μs
 
-const int NUMBER_DISPLAY = 1;
+const int NUMBER_DISPLAY = 2;
 
 const int MAX_DELAY = 11;
 

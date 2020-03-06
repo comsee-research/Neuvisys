@@ -9,6 +9,7 @@ Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
 
     m_potential = 0;
     m_spike = false;
+    m_countSpike = 0;
     m_timestampLastEvent = 0;
     m_inhibitionTime = 0;
 }
@@ -31,6 +32,10 @@ inline double Neuron::getThreshold() {
 
 inline double Neuron::getPotential(long time) {
     return 0;
+}
+
+int Neuron::getCountSpike() {
+    return m_countSpike;
 }
 
 inline double Neuron::potentialDecay(const long time) {

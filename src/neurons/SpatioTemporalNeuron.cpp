@@ -62,10 +62,9 @@ inline void SpatioTemporalNeuron::learnWeightsSTDP() {
     }
 
     /***** Weights Normalization *****/
-    ++m_countNormalize;
-    if (m_countNormalize > NORM_THRESHOLD) {
+    ++m_countSpike;
+    if (m_countSpike % NORM_THRESHOLD == 0) {
         normalize();
-        m_countNormalize = 0;
     }
 }
 

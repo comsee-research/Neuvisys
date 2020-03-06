@@ -9,7 +9,6 @@ int LAYER;
 int SYNAPSE;
 int IND;
 
-std::string FILE_NUMBER;
 std::string SAVE_DATA_LOCATION;
 std::string CONF_FILES_LOCATION;
 
@@ -45,7 +44,6 @@ void Config::loadConfiguration(std::string &fileName) {
         json conf;
         ifs >> conf;
 
-        FILE_NUMBER = conf["FILE_NUMBER"];
         SAVE_DATA_LOCATION = conf["SAVE_DATA_LOCATION"];
         CONF_FILES_LOCATION = conf["CONF_FILES_LOCATION"];
     } else {

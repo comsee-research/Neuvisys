@@ -4,7 +4,6 @@
 
 OrientedNeuron::OrientedNeuron(int x, int y, xt::xarray<double> weights, double threshold) : Neuron(x, y, std::move(weights), threshold) {
     m_events = std::vector<Event>();
-    m_countNormalize = 0;
     m_spikingTime = 0;
     m_lastSpikingTime = 0;
 }
@@ -56,14 +55,13 @@ inline void OrientedNeuron::learnWeightsSTDP() {
     }
 
     /***** Weights Normalization *****/
-    ++m_countNormalize;
-    if (m_countNormalize > NORM_THRESHOLD) {
+    ++m_countSpike;
+    if (m_countSpike % NORM_THRESHOLD == 0) {
         normalize();
     }
 }
 
 inline void OrientedNeuron::normalize() {
-    m_countNormalize = 0;
     for (int i = 0; i < 2; ++i) {
         double norm = xt::linalg::norm(xt::view(m_weights, i));
         if (norm != 0) {

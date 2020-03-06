@@ -62,7 +62,7 @@ public:
 
         auto frame = outputs.getFrameOutput("weights").frame();
         frame.setFormat(dv::FrameFormat::BGR);
-        frame << displays[1];
+        frame << displays[2];
         frame.commit();
     }
 
@@ -92,11 +92,9 @@ public:
         std::string confFile = CONF_FILE;
         Config::loadConfiguration(confFile);
 
-        std::string networkFile = CONF_FILES_LOCATION + "config_network_" + FILE_NUMBER + ".json";
-        Config::loadNetworkLayout(networkFile);
-
-        std::string neuronFile = CONF_FILES_LOCATION + "config_neuron_" + FILE_NUMBER + ".json";
-        Config::loadNeuronsParameters(neuronFile);
+        std::string configurationFile = CONF_FILES_LOCATION;
+        Config::loadNetworkLayout(configurationFile);
+        Config::loadNeuronsParameters(configurationFile);
 
         X_NEURON = 0;
         Y_NEURON = 0;
@@ -104,7 +102,7 @@ public:
         IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
 
         config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
-        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), neuronFile, "json"));
+        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), configurationFile, "json"));
 
         config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
         config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));

@@ -17,7 +17,6 @@ protected:
     std::vector<Event> m_events;
     long m_spikingTime;
     long m_lastSpikingTime;
-    int m_countNormalize;
 public:
     OrientedNeuron(int x, int y, xt::xarray<double> weights, double threshold);
     double getPotential(long time) override;
@@ -25,7 +24,6 @@ public:
     bool internalUpdate(long timestamp, int x, int y, bool polarity);
     virtual void learnWeightsSTDP();
     virtual void spike(long time);
-    bool newEventPot(long timestamp, int x, int y, bool polarity);
     virtual void normalize();
 private:
     using Neuron::spike;
