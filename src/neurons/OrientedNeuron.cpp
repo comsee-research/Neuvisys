@@ -13,7 +13,7 @@ inline double OrientedNeuron::getPotential(const long time) {
 }
 
 inline bool OrientedNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    if (timestamp > m_inhibitionTime + INHIBITION) {
+    if (timestamp > m_inhibitionTime + TAU_INHIB) {
         m_events.emplace_back(timestamp, x, y, polarity);
         return internalUpdate(timestamp, x, y, polarity);
     }

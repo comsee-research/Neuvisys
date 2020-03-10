@@ -4,55 +4,40 @@
 class EventAnalysis : public dv::ModuleBase {
 private:
     dv::EventStreamSlicer slicer;
-    unsigned long cumEvents;
-    unsigned long cumOn;
-    unsigned long cumOff;
+    dv::EventStore store;
+    dv::EventStore newStore;
 public:
     EventAnalysis() {
-        cumEvents = 0;
-        cumOn = 0;
-        cumOff = 0;
-        slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
-            analyseEvents(data);
-        });
+        outputs.getEventOutput("events").setup(inputs.getEventInput("events"));
+
+        store = inputs.getEventInput("events").events();
+//        long time = store.getHighestTime() - store.getLowestTime();
+//        for (auto event: store) {
+//            for (int loop = 0; loop < 20; ++loop) {
+//                newStore += dv::Event(event.timestamp() + loop * time, event.x(), event.y(), event.polarity());
+//            }
+//        }
+
+        outputs.getEventOutput("events") << store << dv::commit;
     }
 
-    static void addInputs(dv::InputDefinitionList &in) {
+    static void initInputs(dv::InputDefinitionList &in) {
         in.addEventInput("events");
     }
 
-
-    void analyseEvents(const dv::EventStore &events) {
-        eventFrequency(events);
-    }
-
-    void eventFrequency(const dv::EventStore &events) {
-        unsigned long on = 0, off = 0;
-        for (const dv::Event &event : events) {
-            if (event.polarity()) {
-                ++on;
-            } else {
-                ++off;
-            }
-        }
-        cumEvents += events.getTotalLength();
-        cumOn += on;
-        cumOff += off;
-        std::cout << "On frequency: " << 100. * static_cast<double>(on) / static_cast<double>(events.getTotalLength()) << "%" << std::endl;
-        std::cout << "Off frequency: " << 100. * static_cast<double>(off) / static_cast<double>(events.getTotalLength()) << "%" << std::endl;
-
-        std::cout << "Cumulative Frequency: " << 100. * static_cast<double>(cumOn) / static_cast<double>(cumEvents) << "% / " << 100. * static_cast<double>(cumOff) / static_cast<double>(cumEvents) << "%" << std::endl;
+    static void initOutputs(dv::OutputDefinitionList &out) {
+        out.addEventOutput("events");
     }
 
     void run() override {
-        slicer.accept(inputs.getEventInput("events").events());
+
     }
 
-    static const char *getDescription() {
+    static const char *initDescription() {
         return ("Module that analyses different characteristics of a stream of events");
     }
 
-    static void getConfigOptions(dv::RuntimeConfig &config) {
+    static void initConfigOptions(dv::RuntimeConfig &config) {
 
     }
 };

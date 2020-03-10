@@ -12,7 +12,9 @@ private:
 public:
     Neuvisys() {
         /***** Initialize Network *****/
-        spinet.loadWeights();
+        if (SAVE_DATA) {
+            spinet.loadWeights();
+        }
         lastTime = 0;
 
         /***** Displays *****/
@@ -37,12 +39,13 @@ public:
     }
 
     ~Neuvisys() override {
-        spinet.saveWeights();
+        if (SAVE_DATA) {
+            spinet.saveWeights();
+        }
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
 		in.addEventInput("events");
-		in.addFrameInput("frames");
 	}
 
 	static void initOutputs(dv::OutputDefinitionList &out) {
@@ -73,7 +76,7 @@ public:
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
         }
-        //spinet.updateNeurons(lastTime);
+        spinet.updateNeurons(lastTime); //TODO
     }
 
     void displayInformations() {
@@ -106,17 +109,18 @@ public:
 
         config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
         config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));
-        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, 2));
+        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NEURON_SYNAPSES-1));
         config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NETWORK_DEPTH-1));
 
-        config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
-        config.add("TAU_LTP", dv::ConfigOption::doubleOption("Potentiation learning time constant (μs)", TAU_LTP));
-        config.add("TAU_LTD", dv::ConfigOption::doubleOption("Deprecation learning time constant (μs)", TAU_LTD));
-        config.add("SPEED", dv::ConfigOption::intOption("Neurons speed sensitivity (μs)", SPEED));
-        config.add("VRESET", dv::ConfigOption::doubleOption("Neurons potential reset value after a spike (mV)", VRESET));
-        config.add("THRESHOLD", dv::ConfigOption::doubleOption("Neurons potential threshold at which a spike is triggerred (mV)", THRESHOLD));
         config.add("DELTA_VP", dv::ConfigOption::doubleOption("Potentiation learning value (mV)", DELTA_VP));
         config.add("DELTA_VD", dv::ConfigOption::doubleOption("Deprecation learning value (mV)", DELTA_VD));
+        config.add("TAU_LTP", dv::ConfigOption::doubleOption("Potentiation learning time constant (μs)", TAU_LTP));
+        config.add("TAU_LTD", dv::ConfigOption::doubleOption("Deprecation learning time constant (μs)", TAU_LTD));
+        config.add("VTHRESH", dv::ConfigOption::doubleOption("Neurons potential threshold at which a spike is triggerred (mV)", VTHRESH));
+        config.add("VRESET", dv::ConfigOption::doubleOption("Neurons potential reset value after a spike (mV)", VRESET));
+        config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
+        config.add("TAU_INHIB", dv::ConfigOption::doubleOption("Inhibition time constant (μs)", TAU_INHIB));
+
         config.add("NORM_FACTOR", dv::ConfigOption::doubleOption("Normalization factor", NORM_FACTOR));
         config.add("NORM_THRESHOLD", dv::ConfigOption::intOption("Number of spikes needed for normalization to occur", NORM_THRESHOLD));
 
@@ -135,28 +139,30 @@ public:
             LAYER = config.getInt("LAYER");
             IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
 
-            TAU_M = config.getDouble("TAU_M");
-            TAU_LTP = config.getDouble("TAU_LTP");
-            TAU_LTD = config.getDouble("TAU_LTD");
-            SPEED = config.getInt("SPEED");
-            VRESET = config.getDouble("VRESET");
-            THRESHOLD = config.getDouble("THRESHOLD");
             DELTA_VP = config.getDouble("DELTA_VP");
             DELTA_VD = config.getDouble("DELTA_VD");
+            TAU_LTP = config.getDouble("TAU_LTP");
+            TAU_LTD = config.getDouble("TAU_LTD");
+            VTHRESH = config.getDouble("VTHRESH");
+            VRESET = config.getDouble("VRESET");
+            TAU_M = config.getDouble("TAU_M");
+            TAU_INHIB = config.getDouble("TAU_INHIB");
+
             NORM_FACTOR = config.getDouble("NORM_FACTOR");
             NORM_THRESHOLD = config.getInt("NORM_THRESHOLD");
         }
     }
 
     static void setParameters(dv::RuntimeConfig &config) {
-        config.setDouble("TAU_M", TAU_M);
-        config.setDouble("TAU_LTP", TAU_LTP);
-        config.setDouble("TAU_LTD", TAU_LTD);
-        config.setInt("SPEED", SPEED);
-        config.setDouble("VRESET", VRESET);
-        config.setDouble("THRESHOLD", THRESHOLD);
         config.setDouble("DELTA_VP", DELTA_VP);
         config.setDouble("DELTA_VD", DELTA_VD);
+        config.setDouble("TAU_LTP", TAU_LTP);
+        config.setDouble("TAU_LTD", TAU_LTD);
+        config.setDouble("VTHRESH", VTHRESH);
+        config.setDouble("VRESET", VRESET);
+        config.setDouble("TAU_M", TAU_M);
+        config.setDouble("TAU_INHIB", TAU_INHIB);
+
         config.setDouble("NORM_FACTOR", NORM_FACTOR);
         config.setInt("NORM_THRESHOLD", NORM_THRESHOLD);
         config.setBool("A_LOAD_BUTTON", false);

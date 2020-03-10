@@ -31,7 +31,7 @@ const int MAX_DELAY = 11;
 const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configs/conf.json";
 
 /***** Display parameters *****/
-extern std::string FILE_NUMBER;
+extern bool SAVE_DATA;
 extern std::string SAVE_DATA_LOCATION;
 extern std::string CONF_FILES_LOCATION;
 
@@ -44,6 +44,7 @@ extern int IND;
 /***** Spiking Neural Network layout parameters *****/
 extern int NEURON_WIDTH;
 extern int NEURON_HEIGHT;
+extern int NEURON_SYNAPSES;
 
 extern int X_ANCHOR_POINT;
 extern int Y_ANCHOR_POINT;
@@ -55,11 +56,10 @@ extern int NETWORK_DEPTH;
 extern double TAU_M; // μs
 extern double TAU_LTP; // μs
 extern double TAU_LTD; // μs
-extern long INHIBITION; // μs
-extern int SPEED; // μs
+extern double TAU_INHIB; // μs
 
 extern double VRESET; // mV
-extern double THRESHOLD; // mV
+extern double VTHRESH; // mV
 
 extern double DELTA_VP; // mV
 extern double DELTA_VD; // mV

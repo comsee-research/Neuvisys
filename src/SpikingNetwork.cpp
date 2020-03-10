@@ -8,7 +8,7 @@ SpikingNetwork::SpikingNetwork() {
     m_potentials = std::deque<double>(1000, 0);
     m_timestamps = std::deque<long>(1000, 0);
     gp.sendLine("set title \"neuron's potential plotted against time\"");
-    gp.sendLine("set yrange [-20:20]");
+    gp.sendLine("set yrange [" + std::to_string(VRESET) + ":" + std::to_string(VTHRESH) + "]");
     std::cout << "Number of neurons: " << m_neurons.size() << std::endl;
 }
 
@@ -33,7 +33,7 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
 
 void SpikingNetwork::updateNeurons(const long time) {
     for (auto &neuron : m_neurons) {
-        //neuron.update(time);
+        neuron.update(time); //TODO
     }
 }
 
@@ -65,8 +65,8 @@ void SpikingNetwork::generateNeuronConfiguration() {
     for (int i = X_ANCHOR_POINT; i < X_ANCHOR_POINT + NEURON_WIDTH * NETWORK_WIDTH; i += NEURON_WIDTH) {
         for (int j = Y_ANCHOR_POINT; j < Y_ANCHOR_POINT + NEURON_HEIGHT * NETWORK_HEIGHT; j += NEURON_HEIGHT) {
             for (int k = 0; k < NETWORK_DEPTH; ++k) {
-                //m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrix2(NEURON_HEIGHT, NEURON_WIDTH, 3), {0, 5, 10}, THRESHOLD));
-                m_neurons.emplace_back(OrientedNeuron(i, j, uniformMatrix(NEURON_HEIGHT, NEURON_WIDTH), THRESHOLD));
+                m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrix2(NEURON_HEIGHT, NEURON_WIDTH, 2), {0, 10}, VTHRESH));
+                //m_neurons.emplace_back(OrientedNeuron(i, j, uniformMatrix(NEURON_HEIGHT, NEURON_WIDTH), VTHRESH)); TODO
             }
         }
     }
@@ -114,8 +114,8 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
     for (int x = 0; x < NEURON_WIDTH; ++x) {
         for (int y = 0; y < NEURON_HEIGHT; ++y) {
             for (int p = 0; p < 2; p++) {
-                //weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 15 * 255 / THRESHOLD;
-                weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / THRESHOLD;
+                weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 255;
+                //weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / VTHRESH; TODO
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
                 display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);

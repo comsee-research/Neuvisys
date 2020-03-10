@@ -9,12 +9,14 @@ int LAYER;
 int SYNAPSE;
 int IND;
 
+bool SAVE_DATA;
 std::string SAVE_DATA_LOCATION;
 std::string CONF_FILES_LOCATION;
 
 /***** Spiking Neural Network layout parameters *****/
 int NEURON_WIDTH;
 int NEURON_HEIGHT;
+int NEURON_SYNAPSES;
 
 int X_ANCHOR_POINT; // px
 int Y_ANCHOR_POINT; // px
@@ -26,11 +28,10 @@ int NETWORK_DEPTH; // neurons
 double TAU_M; // μs
 double TAU_LTP; // μs
 double TAU_LTD; // μs
-long INHIBITION; // μs
-int SPEED; // μs
+double TAU_INHIB; // μs
 
 double VRESET; // mV
-double THRESHOLD; // mV
+double VTHRESH; // mV
 
 double DELTA_VP; // mV
 double DELTA_VD; // mV
@@ -44,6 +45,7 @@ void Config::loadConfiguration(std::string &fileName) {
         json conf;
         ifs >> conf;
 
+        SAVE_DATA = conf["SAVE_DATA"];
         SAVE_DATA_LOCATION = conf["SAVE_DATA_LOCATION"];
         CONF_FILES_LOCATION = conf["CONF_FILES_LOCATION"];
     } else {
@@ -58,17 +60,17 @@ void Config::loadNeuronsParameters(std::string &fileName) {
         json conf;
         ifs >> conf;
 
-        DELTA_VD = conf["DELTA_VD"];
         DELTA_VP = conf["DELTA_VP"];
-        INHIBITION = conf["INHIBITION"];
+        DELTA_VD = conf["DELTA_VD"];
+        TAU_LTP = conf["TAU_LTP"];
+        TAU_LTD = conf["TAU_LTD"];
+        VTHRESH = conf["VTHRESH"];
+        VRESET = conf["VRESET"];
+        TAU_M = conf["TAU_M"];
+        TAU_INHIB = conf["TAU_INHIB"];
+
         NORM_FACTOR = conf["NORM_FACTOR"];
         NORM_THRESHOLD = conf["NORM_THRESHOLD"];
-        SPEED = conf["SPEED"];
-        TAU_LTD = conf["TAU_LTD"];
-        TAU_LTP = conf["TAU_LTP"];
-        TAU_M = conf["TAU_M"];
-        THRESHOLD = conf["THRESHOLD"];
-        VRESET = conf["VRESET"];
     } else {
         std::cout << "cannot open neuron configuration file" << std::endl;
     }
@@ -83,6 +85,8 @@ void Config::loadNetworkLayout(std::string &fileName) {
 
         NEURON_WIDTH = conf["NEURON_WIDTH"];
         NEURON_HEIGHT = conf["NEURON_HEIGHT"];
+        NEURON_SYNAPSES = conf["NEURON_SYNAPSES"];
+
         X_ANCHOR_POINT = conf["X_ANCHOR_POINT"];
         Y_ANCHOR_POINT = conf["Y_ANCHOR_POINT"];
         NETWORK_WIDTH = conf["NETWORK_WIDTH"];
@@ -92,27 +96,4 @@ void Config::loadNetworkLayout(std::string &fileName) {
         std::cout << "cannot open network configuration file" << std::endl;
     }
     ifs.close();
-}
-
-void Config::saveNeuronsParameters(std::string &fileName) {
-    json conf;
-
-    conf["TAU_M"] = TAU_M;
-    conf["TAU_LTP"] = TAU_LTP;
-    conf["TAU_LTD"] = TAU_LTD;
-    conf["SPEED"] = SPEED;
-    conf["VRESET"] = VRESET;
-    conf["THRESHOLD"] = THRESHOLD;
-    conf["DELTA_VP"] = DELTA_VP;
-    conf["DELTA_VD"] = DELTA_VD;
-    conf["NORM_FACTOR"] = NORM_FACTOR;
-    conf["NORM_THRESHOLD"] = NORM_THRESHOLD;
-
-    std::ofstream ofs(fileName);
-    if (ofs.is_open()) {
-        ofs << std::setw(4) << conf << std::endl;
-    } else {
-        std::cout << "cannot open and save neuron configuration file" << std::endl;
-    }
-    ofs.close();
 }

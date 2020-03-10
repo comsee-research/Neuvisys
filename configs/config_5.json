@@ -7,14 +7,14 @@
     "NETWORK_HEIGHT": 18,
     "NETWORK_DEPTH": 4,
 
-    "DELTA_VD": 0.02,
-    "DELTA_VP": 0.04,
-    "TAU_INHIB": 20000.0,
-    "NORM_FACTOR": 4.0,
-    "NORM_THRESHOLD": 10,
+    "DELTA_VP": 0.045,    
+    "DELTA_VD": 0.03,
+    "TAU_LTP": 15000.0,
     "TAU_LTD": 15000.0,
-    "TAU_LTP": 10000.0,
-    "TAU_M": 10000.0,
     "VTHRESH": 15.0,
-    "VRESET": -20.0
+    "VRESET": -30.0,
+    "TAU_M": 15000.0,
+    "TAU_INHIB": 10000.0,
+    "NORM_FACTOR": 4.0,
+    "NORM_THRESHOLD": 10
 }

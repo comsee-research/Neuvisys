@@ -13,10 +13,8 @@ class SpatioTemporalNeuron : public OrientedNeuron {
 protected:
     std::vector<long> m_delays;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
-    unsigned int m_updateCount;
 public:
     SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold);
-    double getPotential(long time) override;
     bool newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long time);
     void spike(long time) override;

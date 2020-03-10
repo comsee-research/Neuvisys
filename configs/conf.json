@@ -1,4 +1,5 @@
 {
-    "SAVE_DATA_LOCATION": "/home/thomas/neuvisys-dv/results/weights_2/",
-    "CONF_FILES_LOCATION": "/home/thomas/neuvisys-dv/configs/config_2.json"
+    "SAVE_DATA": true,
+    "SAVE_DATA_LOCATION": "/home/thomas/neuvisys-dv/results/weights/",
+    "CONF_FILES_LOCATION": "/home/thomas/neuvisys-dv/configs/config_7.json"
 }

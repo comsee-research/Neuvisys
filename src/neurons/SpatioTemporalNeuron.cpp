@@ -3,15 +3,10 @@
 SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold) : OrientedNeuron(x, y, std::move(weights), threshold) {
     m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_delays = std::move(delays);
-    m_updateCount = 0;
-}
-
-inline double SpatioTemporalNeuron::getPotential(const long time) {
-    return potentialDecay(time - m_timestampLastEvent);
 }
 
 inline bool SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    if (timestamp > m_inhibitionTime + INHIBITION) {
+    if (timestamp > m_inhibitionTime + TAU_INHIB) {
         int count = 0;
         for (auto delay : m_delays) {
             m_waitingList.emplace(timestamp + 1000 * delay, x, y, polarity, count++);
