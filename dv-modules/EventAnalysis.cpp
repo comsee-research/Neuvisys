@@ -4,21 +4,16 @@
 class EventAnalysis : public dv::ModuleBase {
 private:
     dv::EventStreamSlicer slicer;
-    dv::EventStore store;
-    dv::EventStore newStore;
+    long time;
 public:
     EventAnalysis() {
         outputs.getEventOutput("events").setup(inputs.getEventInput("events"));
+        dv::EventStore store = inputs.getEventInput("events").events();
+        time = store.getHighestTime() - store.getLowestTime();
 
-        store = inputs.getEventInput("events").events();
-//        long time = store.getHighestTime() - store.getLowestTime();
-//        for (auto event: store) {
-//            for (int loop = 0; loop < 20; ++loop) {
-//                newStore += dv::Event(event.timestamp() + loop * time, event.x(), event.y(), event.polarity());
-//            }
-//        }
-
-        outputs.getEventOutput("events") << store << dv::commit;
+        slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
+            process(data);
+        });
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
@@ -29,8 +24,18 @@ public:
         out.addEventOutput("events");
     }
 
-    void run() override {
+    void process(const dv::EventStore &events) {
+        dv::EventStore store;
+        for (auto event : events) {
+            for (int loop = 0; loop < 20; ++loop) {
+                store += dv::Event(event.timestamp() + loop * time, event.x(), event.y(), event.polarity());
+            }
+        }
+        outputs.getEventOutput("events").events() << store << dv::commit;
+    }
 
+    void run() override {
+        slicer.accept(inputs.getEventInput("events").events());
     }
 
     static const char *initDescription() {

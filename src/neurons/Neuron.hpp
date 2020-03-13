@@ -27,8 +27,8 @@ public:
     virtual bool newEvent(long timestamp, int x, int y, bool polarity);
     virtual void spike();
     virtual void setInhibitionTime(long inhibitionTime);
-    virtual void saveWeights(std::string &fileName);
-    virtual void loadWeights(std::string &fileName);
+    virtual void saveState(std::string &fileName);
+    virtual void loadState(std::string &fileName);
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP
