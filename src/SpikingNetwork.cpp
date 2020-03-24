@@ -33,7 +33,7 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
 
 void SpikingNetwork::updateNeurons(const long time) {
     for (auto &neuron : m_neurons) {
-        //neuron.update(time); //TODO
+        neuron.update(time); //TODO
     }
 }
 
@@ -58,11 +58,16 @@ void SpikingNetwork::loadWeights() {
 }
 
 void SpikingNetwork::generateNeuronConfiguration() {
+    std::vector<long> delays;
+    for (int synapse = 0; synapse < NEURON_SYNAPSES; synapse++) {
+        delays.push_back(synapse * SYNAPSE_DELAY);
+    }
+
     for (int i = X_ANCHOR_POINT; i < X_ANCHOR_POINT + NEURON_WIDTH * NETWORK_WIDTH; i += NEURON_WIDTH) {
         for (int j = Y_ANCHOR_POINT; j < Y_ANCHOR_POINT + NEURON_HEIGHT * NETWORK_HEIGHT; j += NEURON_HEIGHT) {
             for (int k = 0; k < NETWORK_DEPTH; ++k) {
-                //m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrix2(NEURON_HEIGHT, NEURON_WIDTH, 2), {0, 20}, VTHRESH));
-                m_neurons.emplace_back(OrientedNeuron(i, j, uniformMatrix(NEURON_HEIGHT, NEURON_WIDTH), VTHRESH)); //TODO
+                m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES), delays, VTHRESH));
+                //m_neurons.emplace_back(OrientedNeuron(i, j, uniformMatrix(NEURON_HEIGHT, NEURON_WIDTH), VTHRESH)); //TODO
             }
         }
     }
@@ -110,8 +115,8 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
     for (int x = 0; x < NEURON_WIDTH; ++x) {
         for (int y = 0; y < NEURON_HEIGHT; ++y) {
             for (int p = 0; p < 2; p++) {
-                //weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 255;
-                weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / VTHRESH; //TODO
+                weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 255;
+                //weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / VTHRESH; //TODO
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
                 display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);

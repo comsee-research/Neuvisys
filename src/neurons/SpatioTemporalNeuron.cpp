@@ -7,9 +7,9 @@ SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weig
 
 inline bool SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
     if (timestamp > m_inhibitionTime + TAU_INHIB) {
-        int count = 0;
+        int synapse = 0;
         for (auto delay : m_delays) {
-            m_waitingList.emplace(timestamp + 1000 * delay, x, y, polarity, count++);
+            m_waitingList.emplace(timestamp + delay, x, y, polarity, synapse++);
         }
     }
     return false;

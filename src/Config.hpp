@@ -22,7 +22,7 @@ const int WIDTH = 346; // px
 const int HEIGHT = 260; // px
 
 const int EVENT_FREQUENCY = 1000; // μs
-const int DISPLAY_FREQUENCY = 30000; // μs
+const int DISPLAY_FREQUENCY = 3000; // μs
 
 const int NUMBER_DISPLAY = 2;
 
@@ -63,6 +63,8 @@ extern double VTHRESH; // mV
 
 extern double DELTA_VP; // mV
 extern double DELTA_VD; // mV
+
+extern long SYNAPSE_DELAY; // μs
 
 extern double NORM_FACTOR;
 extern int NORM_THRESHOLD;

@@ -72,6 +72,7 @@ void Neuron::saveState(std::string &fileName) {
 
     conf["potential"] = m_potential;
     conf["count_spike"] = m_countSpike;
+    conf["threshold"] = m_threshold;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -96,6 +97,7 @@ void Neuron::loadState(std::string &fileName) {
 
         m_potential = conf["potential"];
         m_countSpike = conf["count_spike"];
+        m_threshold = conf["threshold"];
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }

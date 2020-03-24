@@ -36,6 +36,8 @@ double VTHRESH; // mV
 double DELTA_VP; // mV
 double DELTA_VD; // mV
 
+long SYNAPSE_DELAY; // μs
+
 double NORM_FACTOR;
 int NORM_THRESHOLD; // number spikes
 
@@ -68,6 +70,7 @@ void Config::loadNeuronsParameters(std::string &fileName) {
         VRESET = conf["VRESET"];
         TAU_M = conf["TAU_M"];
         TAU_INHIB = conf["TAU_INHIB"];
+        SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
 
         NORM_FACTOR = conf["NORM_FACTOR"];
         NORM_THRESHOLD = conf["NORM_THRESHOLD"];

@@ -10,8 +10,8 @@
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
-    std::vector<OrientedNeuron> m_neurons; //TODO
-    //std::vector<SpatioTemporalNeuron> m_neurons;
+    //std::vector<OrientedNeuron> m_neurons;
+    std::vector<SpatioTemporalNeuron> m_neurons; //TODO
     std::vector<std::vector<size_t>> m_retina;
 
     std::deque<double> m_potentials;
