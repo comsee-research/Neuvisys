@@ -33,8 +33,8 @@ public:
         slicer.doEveryTimeInterval(DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
             computeDisplays();
         });
-        slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
-            displayInformations();
+        slicer.doEveryTimeInterval(UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
+            computeParameters();
         });
     }
 
@@ -79,8 +79,8 @@ public:
         spinet.updateNeurons(lastTime); //TODO
     }
 
-    void displayInformations() {
-        spinet.neuronsInfos();
+    void computeParameters() {
+        spinet.updateNeuronsParameters();
     }
 
 	void run() override {

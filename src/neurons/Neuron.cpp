@@ -12,6 +12,8 @@ Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
     m_potential = 0;
     m_spike = false;
     m_countSpike = 0;
+    clock_gettime(CLOCK_REALTIME, &m_creationTime);
+    m_spikingRate = 0;
     m_timestampLastEvent = 0;
     m_inhibitionTime = 0;
 }
@@ -46,6 +48,13 @@ inline double Neuron::potentialDecay(const long time) {
 
 inline bool Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
 
+}
+
+inline void Neuron::thresholdAdaptation() {
+    timespec now{};
+    clock_gettime(CLOCK_REALTIME, &now);
+    m_spikingRate = static_cast<double>(m_countSpike) / static_cast<double>(now.tv_sec - m_creationTime.tv_sec);
+    m_threshold += 1 * (0.5 - m_spikingRate); // TODO
 }
 
 inline void Neuron::spike() {

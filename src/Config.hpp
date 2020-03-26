@@ -22,11 +22,10 @@ const int WIDTH = 346; // px
 const int HEIGHT = 260; // px
 
 const int EVENT_FREQUENCY = 1000; // μs
-const int DISPLAY_FREQUENCY = 3000; // μs
+const int DISPLAY_FREQUENCY = 30000; // μs
+const int UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
 const int NUMBER_DISPLAY = 2;
-
-const int MAX_DELAY = 11;
 
 const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configs/conf.json";
 

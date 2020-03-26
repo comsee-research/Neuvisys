@@ -37,12 +37,15 @@ bool SpatioTemporalNeuron::update(const long time) {
 }
 
 inline void SpatioTemporalNeuron::spike(const long time) {
+    m_spike = true;
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
-    learnWeightsSTDP();
+    ++m_countSpike;
     m_potential = VRESET;
-    m_spike = true;
-    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
+
+    learnWeightsSTDP();
+
+    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>(); // TODO
     m_events.clear();
 }
 
@@ -57,7 +60,6 @@ inline void SpatioTemporalNeuron::learnWeightsSTDP() {
     }
 
     /***** Weights Normalization *****/
-    ++m_countSpike;
     if (m_countSpike % NORM_THRESHOLD == 0) {
         normalize();
     }

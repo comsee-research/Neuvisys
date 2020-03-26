@@ -85,8 +85,10 @@ void SpikingNetwork::assignNeurons() {
     }
 }
 
-void SpikingNetwork::neuronsInfos() {
-
+void SpikingNetwork::updateNeuronsParameters() {
+    for (auto &neuron : m_neurons) {
+        neuron.thresholdAdaptation();
+    }
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {

@@ -13,6 +13,8 @@ protected:
     long m_timestampLastEvent;
     bool m_spike;
     int m_countSpike;
+    timespec m_creationTime;
+    double m_spikingRate;
     long m_inhibitionTime;
 public:
     Neuron(int x, int y, xt::xarray<double> weights, double threshold);
@@ -29,6 +31,7 @@ public:
     virtual void setInhibitionTime(long inhibitionTime);
     virtual void saveState(std::string &fileName);
     virtual void loadState(std::string &fileName);
+    virtual void thresholdAdaptation();
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP
