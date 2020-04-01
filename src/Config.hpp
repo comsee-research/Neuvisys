@@ -62,11 +62,14 @@ extern double VTHRESH; // mV
 
 extern double DELTA_VP; // mV
 extern double DELTA_VD; // mV
+extern double DELTA_SR; // mV
 
 extern long SYNAPSE_DELAY; // μs
 
 extern double NORM_FACTOR;
 extern int NORM_THRESHOLD;
+
+extern double TARGET_SPIKE_RATE; // spikes/s
 
 /*const xt::xarray<double> NO_GABOR = xt::ones<double>({NEURON_HEIGHT, NEURON_WIDTH, 2});
 const xt::xarray<double> GABOR_H = opencvMatToXarray(cv::getGaborKernel(cv::Size(NEURON_WIDTH, NEURON_HEIGHT), 50, M_PI/2, 1.06, 8, M_PI/2), NEURON_HEIGHT, NEURON_WIDTH); // horizontal gabor

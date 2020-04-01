@@ -33,6 +33,7 @@ public:
     void updateNeuronsParameters();
     void saveWeights();
     void loadWeights();
+    OrientedNeuron getNeuron(unsigned long index);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

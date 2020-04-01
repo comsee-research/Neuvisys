@@ -153,3 +153,7 @@ void SpikingNetwork::multiPotentialDisplay(long time, cv::Mat &display) {
         display(cv::Rect(neuron.getX(), neuron.getY(), NEURON_WIDTH, NEURON_HEIGHT)) = norm_potential;
     }
 }
+
+OrientedNeuron SpikingNetwork::getNeuron(unsigned long index) {
+    return m_neurons[index];
+}

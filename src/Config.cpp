@@ -35,11 +35,14 @@ double VTHRESH; // mV
 
 double DELTA_VP; // mV
 double DELTA_VD; // mV
+double DELTA_SR; // mV
 
 long SYNAPSE_DELAY; // μs
 
 double NORM_FACTOR;
 int NORM_THRESHOLD; // number spikes
+
+double TARGET_SPIKE_RATE; // spikes/s
 
 void Config::loadConfiguration(std::string &fileName) {
     std::ifstream ifs(fileName);
@@ -64,6 +67,7 @@ void Config::loadNeuronsParameters(std::string &fileName) {
 
         DELTA_VP = conf["DELTA_VP"];
         DELTA_VD = conf["DELTA_VD"];
+        DELTA_SR = conf["DELTA_SR"];
         TAU_LTP = conf["TAU_LTP"];
         TAU_LTD = conf["TAU_LTD"];
         VTHRESH = conf["VTHRESH"];
@@ -74,6 +78,7 @@ void Config::loadNeuronsParameters(std::string &fileName) {
 
         NORM_FACTOR = conf["NORM_FACTOR"];
         NORM_THRESHOLD = conf["NORM_THRESHOLD"];
+        TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
     } else {
         std::cout << "cannot open neuron configuration file" << std::endl;
     }

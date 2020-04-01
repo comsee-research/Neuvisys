@@ -13,7 +13,7 @@ protected:
     long m_timestampLastEvent;
     bool m_spike;
     int m_countSpike;
-    timespec m_creationTime;
+    long m_creationTime;
     double m_spikingRate;
     long m_inhibitionTime;
 public:
@@ -23,6 +23,7 @@ public:
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
     virtual int getCountSpike();
+    virtual double getSpikingRate();
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);

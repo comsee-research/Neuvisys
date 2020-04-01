@@ -76,10 +76,13 @@ public:
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
             }
         }
-        spinet.updateNeurons(lastTime); //TODO
+        spinet.updateNeurons(lastTime);
     }
 
     void computeParameters() {
+        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(IND).getSpikingRate()));
+        config.setLong("threshold", static_cast<long>(spinet.getNeuron(IND).getThreshold()));
+
         spinet.updateNeuronsParameters();
     }
 
@@ -120,9 +123,11 @@ public:
         config.add("VRESET", dv::ConfigOption::doubleOption("Neurons potential reset value after a spike (mV)", VRESET));
         config.add("TAU_M", dv::ConfigOption::doubleOption("Potential decay time constant (μs)", TAU_M));
         config.add("TAU_INHIB", dv::ConfigOption::doubleOption("Inhibition time constant (μs)", TAU_INHIB));
-
         config.add("NORM_FACTOR", dv::ConfigOption::doubleOption("Normalization factor", NORM_FACTOR));
         config.add("NORM_THRESHOLD", dv::ConfigOption::intOption("Number of spikes needed for normalization to occur", NORM_THRESHOLD));
+
+        config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking rate"));
+        config.add("threshold", dv::ConfigOption::statisticOption("Threshold"));
 
         setParameters(config);
     }
