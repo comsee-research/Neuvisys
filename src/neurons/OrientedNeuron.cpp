@@ -35,11 +35,15 @@ inline bool OrientedNeuron::internalUpdate(const long timestamp, const int x, co
 }
 
 inline void OrientedNeuron::spike(long time) {
+    m_spike = true;
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
-    learnWeightsSTDP();
+    ++m_countSpike;
+    ++m_totalSpike;
     m_potential = VRESET;
-    m_spike = true;
+
+    learnWeightsSTDP();
+
     m_events.clear();
 }
 
@@ -55,8 +59,7 @@ inline void OrientedNeuron::learnWeightsSTDP() {
     }
 
     /***** Weights Normalization *****/
-    ++m_countSpike;
-    if (m_countSpike % NORM_THRESHOLD == 0) {
+    if (m_totalSpike % NORM_THRESHOLD == 0) {
         normalize();
     }
 }

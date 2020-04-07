@@ -9,16 +9,14 @@ Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
     m_weights = std::move(weights);
     m_threshold = threshold;
 
+    m_recentSpikes = std::list<int>(20);
+    m_totalSpike = 0;
+    m_countSpike = 0;
     m_potential = 0;
     m_spike = false;
-    m_countSpike = 0;
     m_spikingRate = 0;
     m_timestampLastEvent = 0;
     m_inhibitionTime = 0;
-
-    timespec temp;
-    clock_gettime(CLOCK_REALTIME, &temp);
-    m_creationTime = temp.tv_sec;
 }
 
 inline int Neuron::getX() {
@@ -41,10 +39,6 @@ inline double Neuron::getPotential(long time) {
     return 0;
 }
 
-int Neuron::getCountSpike() {
-    return m_countSpike;
-}
-
 double Neuron::getSpikingRate() {
     return m_spikingRate;
 }
@@ -58,16 +52,19 @@ inline bool Neuron::newEvent(const long timestamp, const int x, const int y, con
 }
 
 inline void Neuron::thresholdAdaptation() {
-    timespec now{};
-    clock_gettime(CLOCK_REALTIME, &now);
-    m_spikingRate = static_cast<double>(m_countSpike) / static_cast<double>(now.tv_sec - m_creationTime);
-    if (m_spikingRate >= TARGET_SPIKE_RATE) {
-        m_threshold += DELTA_SR * (1 - exp(TARGET_SPIKE_RATE - m_spikingRate));
-    } else {
-        m_threshold -= DELTA_SR * (1 - exp(m_spikingRate - TARGET_SPIKE_RATE));
+    m_recentSpikes.pop_back();
+    m_recentSpikes.push_front(m_countSpike);
+    m_countSpike = 0;
+
+    for (int count : m_recentSpikes) {
+        m_spikingRate += count;
     }
-    if (m_threshold < 1) {
-        m_threshold = 1;
+    m_spikingRate /= 20;
+
+    m_threshold += DELTA_SR * (m_spikingRate - TARGET_SPIKE_RATE);
+
+    if (m_threshold < 10) {
+        m_threshold = 10;
     }
 }
 
@@ -94,7 +91,7 @@ void Neuron::saveState(std::string &fileName) {
     json conf;
 
     conf["potential"] = m_potential;
-    conf["count_spike"] = m_countSpike;
+    conf["count_spike"] = m_totalSpike;
     conf["threshold"] = m_threshold;
     conf["creation_time"] = m_creationTime;
     conf["spiking_rate"] = m_spikingRate;
@@ -121,7 +118,7 @@ void Neuron::loadState(std::string &fileName) {
         ifs >> conf;
 
         m_potential = conf["potential"];
-        m_countSpike = conf["count_spike"];
+        m_totalSpike = conf["count_spike"];
         m_threshold = conf["threshold"];
         m_creationTime = conf["creation_time"];
         m_spikingRate = conf["spiking_rate"];

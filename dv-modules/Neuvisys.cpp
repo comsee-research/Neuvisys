@@ -80,10 +80,10 @@ public:
     }
 
     void computeParameters() {
+        spinet.updateNeuronsParameters();
+
         config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(IND).getSpikingRate()));
         config.setLong("threshold", static_cast<long>(spinet.getNeuron(IND).getThreshold()));
-
-        spinet.updateNeuronsParameters();
     }
 
 	void run() override {

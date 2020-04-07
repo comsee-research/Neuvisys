@@ -8,11 +8,13 @@ protected:
     int m_x;
     int m_y;
     xt::xarray<double> m_weights;
+    std::list<int> m_recentSpikes;
+    int m_totalSpike;
+    int m_countSpike;
     double m_potential;
     double m_threshold;
     long m_timestampLastEvent;
     bool m_spike;
-    int m_countSpike;
     long m_creationTime;
     double m_spikingRate;
     long m_inhibitionTime;
@@ -22,7 +24,6 @@ public:
     virtual int getY();
     virtual double getWeights(int p, int x, int y);
     virtual double getThreshold();
-    virtual int getCountSpike();
     virtual double getSpikingRate();
     virtual bool hasSpiked();
     virtual double getPotential(long time);

@@ -92,7 +92,7 @@ void SpikingNetwork::updateNeuronsParameters() {
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-    potentialDisplay();
+    //potentialDisplay();
     multiPotentialDisplay(time, displays[0]);
     spikingDisplay(displays[1]);
     weightDisplay(displays[2]);
@@ -118,7 +118,7 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
         for (int y = 0; y < NEURON_HEIGHT; ++y) {
             for (int p = 0; p < 2; p++) {
                 weight = m_neurons[IND].getWeights(p, SYNAPSE, x, y) * 255;
-                //weight = m_neurons[IND].getWeights(p, x, y) * 15 * 255 / VTHRESH; //TODO
+                //weight = m_neurons[IND].getWeights(p, x, y) * 255; //TODO
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
                 display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);

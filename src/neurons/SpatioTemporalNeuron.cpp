@@ -41,6 +41,7 @@ inline void SpatioTemporalNeuron::spike(const long time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     ++m_countSpike;
+    ++m_totalSpike;
     m_potential = VRESET;
 
     learnWeightsSTDP();
@@ -60,7 +61,7 @@ inline void SpatioTemporalNeuron::learnWeightsSTDP() {
     }
 
     /***** Weights Normalization *****/
-    if (m_countSpike % NORM_THRESHOLD == 0) {
+    if (m_totalSpike % NORM_THRESHOLD == 0) {
         normalize();
     }
 }
