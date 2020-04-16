@@ -18,12 +18,19 @@ public:
         lastTime = 0;
 
         /***** Displays *****/
-        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
-            outputs.getFrameOutput("output" + std::to_string(i)).setup(inputs.getEventInput("events"));
-            displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
-        }
+        outputs.getEventOutput("frames").setup(WIDTH, HEIGHT, "frames");
+        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3));
 
-        outputs.getFrameOutput("weights").setup(NEURON_HEIGHT, NEURON_WIDTH, "weights");
+        outputs.getFrameOutput("potentials").setup(WIDTH, HEIGHT, "potentials");
+        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+
+        outputs.getFrameOutput("spikes").setup(WIDTH, HEIGHT, "spikes");
+        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+
+        outputs.getFrameOutput("weights").setup(NEURON_WIDTH, NEURON_HEIGHT, "weights");
+        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
+
+        outputs.getFrameOutput("zoom").setup(NEURON_WIDTH, NEURON_HEIGHT, "zoom");
         displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
 
         /***** Slicers *****/
@@ -31,7 +38,7 @@ public:
             computeEvents(data);
         });
         slicer.doEveryTimeInterval(DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
-            computeDisplays();
+            computeDisplays(data);
         });
         slicer.doEveryTimeInterval(UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
             computeParameters();
@@ -49,24 +56,36 @@ public:
 	}
 
 	static void initOutputs(dv::OutputDefinitionList &out) {
-        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
-            out.addFrameOutput("output" + std::to_string(i));
-        }
+        out.addFrameOutput("frames");
+        out.addFrameOutput("potentials");
+        out.addFrameOutput("spikes");
         out.addFrameOutput("weights");
+        out.addFrameOutput("zoom");
 	}
 
-    void computeDisplays() {
+    void computeDisplays(const dv::EventStore &events) {
         spinet.updateDisplay(lastTime, displays);
 
-        for (size_t i = 0; i < NUMBER_DISPLAY; ++i) {
-            outputs.getFrameOutput("output" + std::to_string(i)).frame() << displays[i];
-            outputs.getFrameOutput("output" + std::to_string(i)).frame().commit();
-        }
-
-        auto frame = outputs.getFrameOutput("weights").frame();
-        frame.setFormat(dv::FrameFormat::BGR);
-        frame << displays[2];
+        auto frame = outputs.getFrameOutput("frames").frame();
+        frame << displays[0];
         frame.commit();
+        displays[0] = 0;
+
+        outputs.getFrameOutput("potentials").frame() << displays[1];
+        outputs.getFrameOutput("potentials").frame().commit();
+
+        outputs.getFrameOutput("spikes").frame() << displays[2];
+        outputs.getFrameOutput("spikes").frame().commit();
+
+        auto weights = outputs.getFrameOutput("weights").frame();
+        weights.setFormat(dv::FrameFormat::BGR);
+        weights << displays[3];
+        weights.commit();
+
+        auto zoom = outputs.getFrameOutput("zoom").frame();
+        weights.setFormat(dv::FrameFormat::BGR);
+        zoom << displays[4];
+        zoom.commit();
     }
 
 	void computeEvents(const dv::EventStore &events) {
@@ -74,6 +93,8 @@ public:
             lastTime = events.getHighestTime();
             for (const dv::Event &event : events) {
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
+
+                displays[0].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
         }
         spinet.updateNeurons(lastTime);
@@ -171,6 +192,10 @@ public:
         config.setDouble("NORM_FACTOR", NORM_FACTOR);
         config.setInt("NORM_THRESHOLD", NORM_THRESHOLD);
         config.setBool("A_LOAD_BUTTON", false);
+    }
+
+    void event_visualization(const dv::EventStore &events) {
+
     }
 };
 

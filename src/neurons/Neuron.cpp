@@ -9,7 +9,7 @@ Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
     m_weights = std::move(weights);
     m_threshold = threshold;
 
-    m_recentSpikes = std::list<int>(20);
+    m_recentSpikes = std::list<int>(TIME_WINDOW_SR);
     m_totalSpike = 0;
     m_countSpike = 0;
     m_potential = 0;
@@ -59,7 +59,7 @@ inline void Neuron::thresholdAdaptation() {
     for (int count : m_recentSpikes) {
         m_spikingRate += count;
     }
-    m_spikingRate /= 20;
+    m_spikingRate /= TIME_WINDOW_SR;
 
     m_threshold += DELTA_SR * (m_spikingRate - TARGET_SPIKE_RATE);
 
@@ -95,6 +95,7 @@ void Neuron::saveState(std::string &fileName) {
     conf["threshold"] = m_threshold;
     conf["creation_time"] = m_creationTime;
     conf["spiking_rate"] = m_spikingRate;
+    conf["recent_spikes"] = m_recentSpikes;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -122,6 +123,10 @@ void Neuron::loadState(std::string &fileName) {
         m_threshold = conf["threshold"];
         m_creationTime = conf["creation_time"];
         m_spikingRate = conf["spiking_rate"];
+        m_recentSpikes.clear();
+        for (size_t i = 0; i < TIME_WINDOW_SR; ++i) {
+            m_recentSpikes.push_front(conf["recent_spikes"][i]);
+        }
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }

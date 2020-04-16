@@ -26,8 +26,9 @@ const int DISPLAY_FREQUENCY = 30000; // μs
 const int UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
 const int NUMBER_DISPLAY = 2;
+const int TIME_WINDOW_SR = 20;
 
-const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configs/conf.json";
+const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json";
 
 /***** Display parameters *****/
 extern bool SAVE_DATA;

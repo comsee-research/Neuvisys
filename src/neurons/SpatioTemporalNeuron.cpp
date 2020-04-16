@@ -30,10 +30,8 @@ bool SpatioTemporalNeuron::update(const long time) {
 
         if (m_potential > m_threshold) {
             spike(event.timestamp());
-            return true;
         }
     }
-    return false;
 }
 
 inline void SpatioTemporalNeuron::spike(const long time) {
@@ -46,7 +44,7 @@ inline void SpatioTemporalNeuron::spike(const long time) {
 
     learnWeightsSTDP();
 
-    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>(); // TODO
+//    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>(); // TODO
     m_events.clear();
 }
 

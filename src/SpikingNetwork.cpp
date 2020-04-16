@@ -92,10 +92,12 @@ void SpikingNetwork::updateNeuronsParameters() {
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-    //potentialDisplay();
-    multiPotentialDisplay(time, displays[0]);
-    spikingDisplay(displays[1]);
-    weightDisplay(displays[2]);
+    potentialDisplay();
+    multiPotentialDisplay(time, displays[1]);
+    spikingDisplay(displays[2]);
+    weightDisplay(displays[3]);
+    displays[0](cv::Rect(m_neurons[IND].getX(), m_neurons[IND].getY(), NEURON_WIDTH, NEURON_HEIGHT)).copyTo(displays[4]);
+    cv::rectangle(displays[0], cv::Point(m_neurons[IND].getX(), m_neurons[IND].getY()), cv::Point(m_neurons[IND].getX() + NEURON_WIDTH, m_neurons[IND].getY() + NEURON_HEIGHT), cv::viz::Color::white());
 }
 
 void SpikingNetwork::potentialDisplay() {
@@ -121,7 +123,7 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
                 //weight = m_neurons[IND].getWeights(p, x, y) * 255; //TODO
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
-                display.at<cv::Vec3b>(y, x)[p+1] = static_cast<unsigned char>(weight);
+                display.at<cv::Vec3b>(y, x)[2-p] = static_cast<unsigned char>(weight);
             }
         }
     }
