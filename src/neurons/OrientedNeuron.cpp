@@ -9,42 +9,38 @@ OrientedNeuron::OrientedNeuron(int x, int y, xt::xarray<double> weights, double 
 }
 
 inline double OrientedNeuron::getPotential(const long time) {
-    return potentialDecay(time - m_timestampLastEvent);
+    return m_potential * potentialDecay(time - m_timestampLastEvent);
 }
 
-inline bool OrientedNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    if (timestamp > m_inhibitionTime + TAU_INHIB) {
-        m_events.emplace_back(timestamp, x, y, polarity);
-        return internalUpdate(timestamp, x, y, polarity);
-    }
-    return false;
+inline void OrientedNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+    m_events.emplace_back(timestamp, x, y, polarity);
+    internalUpdate(timestamp, x, y, polarity);
 }
 
 inline bool OrientedNeuron::internalUpdate(const long timestamp, const int x, const int y, const bool polarity) {
-    long dt_event = timestamp - m_timestampLastEvent;
-    m_potential = potentialDecay(dt_event);
-    m_timestampLastEvent = timestamp;
+    double decay = m_potential * potentialDecay(timestamp - m_timestampLastEvent);
+    double grp = 1.2 * refractoryPeriod(timestamp - m_spikingTime);
+    m_potential = decay + m_weights(polarity, y, x) - grp;
 
-    m_potential += m_weights(polarity, y, x);
+    m_timestampLastEvent = timestamp;
 
     if (m_potential > m_threshold) {
         spike(timestamp);
-        return true;
     }
-    return false;
 }
 
 inline void OrientedNeuron::spike(long time) {
-    m_spike = true;
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
+    m_spike = true;
     ++m_countSpike;
     ++m_totalSpike;
     m_potential = VRESET;
-
     learnWeightsSTDP();
-
     m_events.clear();
+
+    // Tracking
+    m_spikeTrain.push_back(time);
 }
 
 inline void OrientedNeuron::learnWeightsSTDP() {

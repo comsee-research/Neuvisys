@@ -56,14 +56,17 @@ extern int NETWORK_DEPTH;
 extern double TAU_M; // μs
 extern double TAU_LTP; // μs
 extern double TAU_LTD; // μs
-extern double TAU_INHIB; // μs
-
-extern double VRESET; // mV
-extern double VTHRESH; // mV
+extern double TAU_INH; // μs
+extern double TAU_RP; // μs
 
 extern double DELTA_VP; // mV
 extern double DELTA_VD; // mV
 extern double DELTA_SR; // mV
+extern double DELTA_RP; // mv
+extern double DELTA_INH; // mV
+
+extern double VRESET; // mV
+extern double VTHRESH; // mV
 
 extern long SYNAPSE_DELAY; // μs
 

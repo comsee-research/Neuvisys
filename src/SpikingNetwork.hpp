@@ -10,12 +10,12 @@
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
-    std::vector<OrientedNeuron> m_neurons;
-    //std::vector<SpatioTemporalNeuron> m_neurons; //TODO
-    std::vector<std::vector<size_t>> m_retina;
+    std::vector<SpatioTemporalNeuron> m_neurons;
+    std::vector<std::vector<int>> m_retina;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
+    std::vector<int> m_spikes;
     GnuplotPipe gp = GnuplotPipe(false);
 
     void generateNeuronConfiguration();

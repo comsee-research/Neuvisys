@@ -16,7 +16,9 @@ Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
     m_spike = false;
     m_spikingRate = 0;
     m_timestampLastEvent = 0;
-    m_inhibitionTime = 0;
+
+    // Tracking Variables
+    m_spikeTrain = std::vector<long>(0);
 }
 
 inline int Neuron::getX() {
@@ -44,10 +46,14 @@ double Neuron::getSpikingRate() {
 }
 
 inline double Neuron::potentialDecay(const long time) {
-    return m_potential * exp(- static_cast<double>(time) / TAU_M);
+    return exp(- static_cast<double>(time) / TAU_M);
 }
 
-inline bool Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+inline double Neuron::refractoryPeriod(const long time) {
+    return exp(- static_cast<double>(time) / TAU_RP);
+}
+
+inline void Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
 
 }
 
@@ -81,21 +87,21 @@ inline bool Neuron::hasSpiked() {
     return false;
 }
 
-inline void Neuron::setInhibitionTime(long inhibitionTime) {
-    m_inhibitionTime = inhibitionTime;
+inline void Neuron::inhibition() {
+    m_potential -= DELTA_INH;
 }
 
 void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
 
     json conf;
-
     conf["potential"] = m_potential;
     conf["count_spike"] = m_totalSpike;
     conf["threshold"] = m_threshold;
     conf["creation_time"] = m_creationTime;
     conf["spiking_rate"] = m_spikingRate;
     conf["recent_spikes"] = m_recentSpikes;
+    conf["spike_train"] = m_spikeTrain;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -127,6 +133,9 @@ void Neuron::loadState(std::string &fileName) {
         for (size_t i = 0; i < TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(conf["recent_spikes"][i]);
         }
+/*        for (size_t i = 0; i < conf["spike_train"].size(); ++i) {
+            m_spikeTrain.push_back(conf["m_spikeTrain"][i]);
+        }*/
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }

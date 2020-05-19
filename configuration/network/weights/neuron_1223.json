@@ -1,0 +1,15 @@
+{
+    "count_spike": 27,
+    "creation_time": 3432,
+    "potential": 0.4302033454554408,
+    "recent_spikes": [
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "spike_train": [],
+    "spiking_rate": 2.0824021832152262e-133,
+    "threshold": 30.0
+}

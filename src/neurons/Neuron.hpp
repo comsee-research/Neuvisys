@@ -17,7 +17,9 @@ protected:
     bool m_spike;
     long m_creationTime;
     double m_spikingRate;
-    long m_inhibitionTime;
+
+    // Tracking Variables
+    std::vector<long> m_spikeTrain;
 public:
     Neuron(int x, int y, xt::xarray<double> weights, double threshold);
     virtual int getX();
@@ -28,9 +30,10 @@ public:
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);
-    virtual bool newEvent(long timestamp, int x, int y, bool polarity);
+    virtual double refractoryPeriod(long time);
+    virtual void newEvent(long timestamp, int x, int y, bool polarity);
     virtual void spike();
-    virtual void setInhibitionTime(long inhibitionTime);
+    virtual void inhibition();
     virtual void saveState(std::string &fileName);
     virtual void loadState(std::string &fileName);
     virtual void thresholdAdaptation();

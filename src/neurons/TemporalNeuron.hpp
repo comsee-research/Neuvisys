@@ -24,7 +24,7 @@ public:
     long getTimestampNextEvent();
 
     double getPotential(long time) override;
-    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    void newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long time);
     void spike() override;
 };

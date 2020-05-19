@@ -20,7 +20,7 @@ protected:
 public:
     OrientedNeuron(int x, int y, xt::xarray<double> weights, double threshold);
     double getPotential(long time) override;
-    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    void newEvent(long timestamp, int x, int y, bool polarity) override;
     bool internalUpdate(long timestamp, int x, int y, bool polarity);
     virtual void learnWeightsSTDP();
     virtual void spike(long time);

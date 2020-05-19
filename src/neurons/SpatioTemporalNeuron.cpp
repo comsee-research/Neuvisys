@@ -5,28 +5,24 @@ SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weig
     m_delays = std::move(delays);
 }
 
-inline bool SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    if (timestamp > m_inhibitionTime + TAU_INHIB) {
-        int synapse = 0;
-        for (auto delay : m_delays) {
-            m_waitingList.emplace(timestamp + delay, x, y, polarity, synapse++);
-        }
+inline void SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+    int synapse = 0;
+    for (auto delay : m_delays) {
+        m_waitingList.emplace(timestamp + delay, x, y, polarity, synapse++);
     }
-    return false;
 }
 
 bool SpatioTemporalNeuron::update(const long time) {
     while (!m_waitingList.empty() && m_waitingList.top().timestamp() <= time) {
         Event event = m_waitingList.top();
         m_waitingList.pop();
-
         m_events.push_back(event);
 
-        long dt_event = event.timestamp() - m_timestampLastEvent;
-        m_potential = potentialDecay(dt_event);
-        m_timestampLastEvent = event.timestamp();
+        double decay = m_potential * potentialDecay(event.timestamp() - m_timestampLastEvent);
+        double grp = DELTA_RP * refractoryPeriod(time - m_spikingTime);
+        m_potential = decay + m_weights(event.polarity(), event.synapse(), event.y(), event.x()) - grp;
 
-        m_potential += m_weights(event.polarity(), event.synapse(), event.y(), event.x());
+        m_timestampLastEvent = event.timestamp();
 
         if (m_potential > m_threshold) {
             spike(event.timestamp());
@@ -35,17 +31,17 @@ bool SpatioTemporalNeuron::update(const long time) {
 }
 
 inline void SpatioTemporalNeuron::spike(const long time) {
-    m_spike = true;
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
+    m_spike = true;
     ++m_countSpike;
     ++m_totalSpike;
     m_potential = VRESET;
-
     learnWeightsSTDP();
-
-//    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>(); // TODO
     m_events.clear();
+
+    // Tracking
+    m_spikeTrain.push_back(time);
 }
 
 inline void SpatioTemporalNeuron::learnWeightsSTDP() {

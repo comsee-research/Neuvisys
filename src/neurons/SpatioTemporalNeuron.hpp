@@ -15,7 +15,7 @@ protected:
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
     SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold);
-    bool newEvent(long timestamp, int x, int y, bool polarity) override;
+    void newEvent(long timestamp, int x, int y, bool polarity) override;
     bool update(long time);
     void spike(long time) override;
     void learnWeightsSTDP() override;

@@ -28,14 +28,17 @@ int NETWORK_DEPTH; // neurons
 double TAU_M; // μs
 double TAU_LTP; // μs
 double TAU_LTD; // μs
-double TAU_INHIB; // μs
-
-double VRESET; // mV
-double VTHRESH; // mV
+double TAU_INH; // μs
+double TAU_RP; // μs
 
 double DELTA_VP; // mV
 double DELTA_VD; // mV
 double DELTA_SR; // mV
+double DELTA_RP; // mV
+double DELTA_INH; // mV
+
+double VRESET; // mV
+double VTHRESH; // mV
 
 long SYNAPSE_DELAY; // μs
 
@@ -68,12 +71,14 @@ void Config::loadNeuronsParameters(std::string &fileName) {
         DELTA_VP = conf["DELTA_VP"];
         DELTA_VD = conf["DELTA_VD"];
         DELTA_SR = conf["DELTA_SR"];
+        DELTA_RP = conf["DELTA_RP"];
+        DELTA_INH = conf["DELTA_INH"];
         TAU_LTP = conf["TAU_LTP"];
         TAU_LTD = conf["TAU_LTD"];
         VTHRESH = conf["VTHRESH"];
         VRESET = conf["VRESET"];
         TAU_M = conf["TAU_M"];
-        TAU_INHIB = conf["TAU_INHIB"];
+        TAU_RP = conf["TAU_RP"];
         SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
 
         NORM_FACTOR = conf["NORM_FACTOR"];

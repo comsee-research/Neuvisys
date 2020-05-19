@@ -16,9 +16,8 @@ double TemporalNeuron::getPotential(const long time) {
     return potentialDecay(time - m_timestampLastEvent);
 }
 
-inline bool TemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+inline void TemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
     m_events.emplace(timestamp + m_delays(y, x), x, y, polarity);
-    return false;
 }
 
 inline bool TemporalNeuron::update(long time) {
