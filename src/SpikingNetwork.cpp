@@ -156,6 +156,6 @@ void SpikingNetwork::multiPotentialDisplay(long time, cv::Mat &display) {
     }
 }
 
-OrientedNeuron SpikingNetwork::getNeuron(unsigned long index) {
+SpatioTemporalNeuron SpikingNetwork::getNeuron(unsigned long index) {
     return m_neurons[index];
 }
