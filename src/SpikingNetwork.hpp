@@ -4,9 +4,7 @@
 #include <vector>
 #include <array>
 
-#include "src/neurons/TemporalNeuron.hpp"
 #include "src/neurons/SpatioTemporalNeuron.hpp"
-#include "src/neurons/OrientedNeuron.hpp"
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {

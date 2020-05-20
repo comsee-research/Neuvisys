@@ -105,6 +105,8 @@ public:
 
         config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(IND).getSpikingRate()));
         config.setLong("threshold", static_cast<long>(spinet.getNeuron(IND).getThreshold()));
+        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(IND).getAdaptationPotential()));
+        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(IND).getLearningDecay()));
     }
 
 	void run() override {
@@ -136,8 +138,10 @@ public:
         config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NEURON_SYNAPSES-1));
         config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NETWORK_DEPTH-1));
 
-        config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking rate"));
+        config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking Rate"));
         config.add("threshold", dv::ConfigOption::statisticOption("Threshold"));
+        config.add("adaptation_potential", dv::ConfigOption::statisticOption("Adaptation Potential"));
+        config.add("learning_decay", dv::ConfigOption::statisticOption("Learning Decay"));
 
         setParameters(config);
     }
