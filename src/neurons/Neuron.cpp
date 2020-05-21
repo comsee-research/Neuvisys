@@ -157,8 +157,8 @@ void Neuron::loadState(std::string &fileName) {
         for (size_t i = 0; i < TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(conf["recent_spikes"][i]);
         }
-        for (size_t i = 0; i < conf["spike_train"].size(); ++i) {
-            m_spikeTrain.push_back(conf["m_spikeTrain"][i]);
+        for (auto &spikes : conf["spike_train"]) {
+            m_spikeTrain.push_back(spikes);
         }
     } else {
         std::cout << "cannot open neuron state file" << std::endl;

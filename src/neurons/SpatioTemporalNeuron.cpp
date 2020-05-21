@@ -1,6 +1,9 @@
 #include "SpatioTemporalNeuron.hpp"
 
-SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold) : OrientedNeuron(x, y, std::move(weights), threshold) {
+SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold) : Neuron(x, y, std::move(weights), threshold) {
+    m_events = std::vector<Event>();
+    m_spikingTime = 0;
+    m_lastSpikingTime = 0;
     m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_delays = std::move(delays);
 }
@@ -66,11 +69,11 @@ inline void SpatioTemporalNeuron::learnWeightsSTDP() {
         }
     }
 
-    normalize();
+    normalizeWeights();
     m_learningDecay *= DECAY_FACTOR;
 }
 
-inline void SpatioTemporalNeuron::normalize() {
+inline void SpatioTemporalNeuron::normalizeWeights() {
     for (int i = 0; i < 2; ++i) {
         for (int j = 0; j < m_delays.size(); ++j) {
             double norm = xt::linalg::norm(xt::view(m_weights, i, j), 1);
