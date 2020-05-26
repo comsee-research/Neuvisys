@@ -3,20 +3,13 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(int x, int y, xt::xarray<double> weights, double threshold) {
+Neuron::Neuron(int x, int y, xt::xarray<double> &weights) : m_weights(weights) {
     m_x = x;
     m_y = y;
-    m_weights = std::move(weights);
-    m_threshold = threshold;
+    m_threshold = VTHRESH;
     m_learningDecay = 1.0;
     m_recentSpikes = std::list<int>(TIME_WINDOW_SR);
-    m_totalSpike = 0;
-    m_countSpike = 0;
-    m_potential = 0;
-    m_adaptation_potential = 0;
     m_spike = false;
-    m_spikingRate = 0;
-    m_timestampLastEvent = 0;
 
     // Tracking Variables
     m_spikeTrain = std::vector<long>(0);

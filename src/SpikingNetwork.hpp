@@ -32,6 +32,9 @@ public:
     void saveWeights();
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);
+private:
+    void simpleConfiguration(const std::vector<long>& delays);
+    void weightSharingConfiguration(const std::vector<long>& delays);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

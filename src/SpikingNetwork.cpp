@@ -8,8 +8,10 @@ SpikingNetwork::SpikingNetwork() {
     m_potentials = std::deque<double>(1000, 0);
     m_timestamps = std::deque<long>(1000, 0);
     m_spikes = std::vector<int>(0);
-    gp.sendLine("set title \"neuron's potential plotted against time\"");
-    gp.sendLine("set yrange [" + std::to_string(VRESET) + ":" + std::to_string(VTHRESH) + "]");
+
+//    gp.sendLine("set title \"neuron's potential plotted against time\"");
+//    gp.sendLine("set yrange [" + std::to_string(VRESET) + ":" + std::to_string(VTHRESH) + "]");
+
     std::cout << "Number of neurons: " << m_neurons.size() << std::endl;
 }
 
@@ -60,18 +62,53 @@ void SpikingNetwork::loadWeights() {
     }
 }
 
+void SpikingNetwork::simpleConfiguration(const std::vector<long> &delays) {
+    for (int i = X_ANCHOR_POINT; i < X_ANCHOR_POINT + NEURON_WIDTH * NETWORK_WIDTH; i += NEURON_WIDTH) {
+        for (int j = Y_ANCHOR_POINT; j < Y_ANCHOR_POINT + NEURON_HEIGHT * NETWORK_HEIGHT; j += NEURON_HEIGHT) {
+            for (int k = 0; k < NETWORK_DEPTH; ++k) {
+                auto weight = uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES);
+                m_neurons.emplace_back(SpatioTemporalNeuron(i, j, weight, delays));
+            }
+        }
+    }
+}
+
+void SpikingNetwork::weightSharingConfiguration(const std::vector<long> &delays) {
+    std::vector<xt::xarray<double>> weights;
+    for (int patch = 0; patch < 9; ++patch) {
+        for (int j = 0; j < NETWORK_DEPTH; ++j) {
+            weights.push_back(uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES));
+        }
+    }
+
+    int patch = 0;
+    std::vector<int> xs = {0, 153, 306};
+    std::vector<int> ys = {0, 110, 220};
+    for (int x : xs) {
+        for (int y : ys) {
+            for (int i = 0; i < 4 * NEURON_WIDTH; i += NEURON_WIDTH) {
+                for (int j = 0; j < 4 * NEURON_HEIGHT; j += NEURON_HEIGHT) {
+                    for (int k = 0; k < NETWORK_DEPTH; ++k) {
+//                        auto weight = uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES);
+                        m_neurons.emplace_back(SpatioTemporalNeuron(x+i, y+j, weights[patch*NETWORK_DEPTH+k], delays));
+                    }
+                }
+            }
+            ++patch;
+        }
+    }
+}
+
 void SpikingNetwork::generateNeuronConfiguration() {
     std::vector<long> delays;
     for (int synapse = 0; synapse < NEURON_SYNAPSES; synapse++) {
         delays.push_back(synapse * SYNAPSE_DELAY);
     }
 
-    for (int i = X_ANCHOR_POINT; i < X_ANCHOR_POINT + NEURON_WIDTH * NETWORK_WIDTH; i += NEURON_WIDTH) {
-        for (int j = Y_ANCHOR_POINT; j < Y_ANCHOR_POINT + NEURON_HEIGHT * NETWORK_HEIGHT; j += NEURON_HEIGHT) {
-            for (int k = 0; k < NETWORK_DEPTH; ++k) {
-                m_neurons.emplace_back(SpatioTemporalNeuron(i, j, uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES), delays, VTHRESH));
-            }
-        }
+    if (WEIGHT_SHARING) {
+        weightSharingConfiguration(delays);
+    } else {
+        simpleConfiguration(delays);
     }
 }
 
@@ -94,7 +131,7 @@ void SpikingNetwork::updateNeuronsParameters() {
 }
 
 void SpikingNetwork::updateDisplay(long time, std::vector<cv::Mat> &displays) {
-    potentialDisplay();
+//    potentialDisplay();
     multiPotentialDisplay(time, displays[1]);
     spikingDisplay(displays[2]);
     weightDisplay(displays[3]);

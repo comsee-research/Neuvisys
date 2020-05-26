@@ -1,9 +1,7 @@
 #include "SpatioTemporalNeuron.hpp"
 
-SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> weights, std::vector<long> delays, double threshold) : Neuron(x, y, std::move(weights), threshold) {
+SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> &weights, std::vector<long> delays) : Neuron(x, y, weights) {
     m_events = std::vector<Event>();
-    m_spikingTime = 0;
-    m_lastSpikingTime = 0;
     m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_delays = std::move(delays);
 }

@@ -30,6 +30,7 @@ const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json"
 
 /***** Display parameters *****/
 extern bool SAVE_DATA;
+extern bool WEIGHT_SHARING;
 extern std::string SAVE_DATA_LOCATION;
 extern std::string CONF_FILES_LOCATION;
 

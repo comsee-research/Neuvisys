@@ -10,6 +10,7 @@ int SYNAPSE;
 int IND;
 
 bool SAVE_DATA;
+bool WEIGHT_SHARING;
 std::string SAVE_DATA_LOCATION;
 std::string CONF_FILES_LOCATION;
 
@@ -55,6 +56,7 @@ void Config::loadConfiguration(std::string &fileName) {
         ifs >> conf;
 
         SAVE_DATA = conf["SAVE_DATA"];
+        WEIGHT_SHARING = conf["WEIGHT_SHARING"];
         SAVE_DATA_LOCATION = conf["SAVE_DATA_LOCATION"];
         CONF_FILES_LOCATION = conf["CONF_FILES_LOCATION"];
     } else {

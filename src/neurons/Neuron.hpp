@@ -9,21 +9,21 @@ protected:
     int m_y;
     xt::xarray<double> m_weights;
     std::list<int> m_recentSpikes;
-    int m_totalSpike;
-    int m_countSpike;
+    int m_totalSpike{};
+    int m_countSpike{};
     double m_learningDecay;
-    double m_potential;
-    double m_adaptation_potential;
+    double m_potential{};
+    double m_adaptation_potential{};
     double m_threshold;
-    long m_timestampLastEvent;
+    long m_timestampLastEvent{};
     bool m_spike;
-    long m_creationTime;
-    double m_spikingRate;
+    long m_creationTime{};
+    double m_spikingRate{};
 
     // Tracking Variables
     std::vector<long> m_spikeTrain;
 public:
-    Neuron(int x, int y, xt::xarray<double> weights, double threshold);
+    Neuron(int x, int y, xt::xarray<double> &weights);
     virtual int getX();
     virtual int getY();
     virtual double getWeights(int p, int x, int y);
