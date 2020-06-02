@@ -1,6 +1,8 @@
 #include "SpikingNetwork.hpp"
 
 SpikingNetwork::SpikingNetwork() {
+    m_sharedWeights = uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES);
+
     m_retina = std::vector<std::vector<int>>(WIDTH*HEIGHT, std::vector<int>(0));
     generateNeuronConfiguration();
     assignNeurons();
@@ -74,12 +76,12 @@ void SpikingNetwork::simpleConfiguration(const std::vector<long> &delays) {
 }
 
 void SpikingNetwork::weightSharingConfiguration(const std::vector<long> &delays) {
-    std::vector<xt::xarray<double>> weights;
-    for (int patch = 0; patch < 9; ++patch) {
-        for (int j = 0; j < NETWORK_DEPTH; ++j) {
-            weights.push_back(uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES));
-        }
-    }
+//    std::vector<xt::xarray<double>> weights;
+//    for (int patch = 0; patch < 9; ++patch) {
+//        for (int j = 0; j < NETWORK_DEPTH; ++j) {
+//            weights.push_back(uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES));
+//        }
+//    }
 
     int patch = 0;
     std::vector<int> xs = {0, 153, 306};
@@ -89,8 +91,8 @@ void SpikingNetwork::weightSharingConfiguration(const std::vector<long> &delays)
             for (int i = 0; i < 4 * NEURON_WIDTH; i += NEURON_WIDTH) {
                 for (int j = 0; j < 4 * NEURON_HEIGHT; j += NEURON_HEIGHT) {
                     for (int k = 0; k < NETWORK_DEPTH; ++k) {
-//                        auto weight = uniformMatrixSynapses(NEURON_HEIGHT, NEURON_WIDTH, NEURON_SYNAPSES);
-                        m_neurons.emplace_back(SpatioTemporalNeuron(x+i, y+j, weights[patch*NETWORK_DEPTH+k], delays));
+//                        m_neurons.emplace_back(SpatioTemporalNeuron(x+i, y+j, weights[patch*NETWORK_DEPTH+k], delays));
+                        m_neurons.emplace_back(SpatioTemporalNeuron(x+i, y+j, m_sharedWeights, delays));
                     }
                 }
             }

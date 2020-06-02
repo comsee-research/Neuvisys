@@ -7,7 +7,7 @@ class Neuron {
 protected:
     int m_x;
     int m_y;
-    xt::xarray<double> m_weights;
+    xt::xarray<double> &m_weights;
     std::list<int> m_recentSpikes;
     int m_totalSpike{};
     int m_countSpike{};

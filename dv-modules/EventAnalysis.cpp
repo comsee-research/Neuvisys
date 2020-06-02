@@ -1,41 +1,26 @@
 #include <dv-sdk/module.hpp>
 #include <dv-sdk/processing/core.hpp>
+#include "xtensor/xnpy.hpp"
+#include "xtensor/xtensor.hpp"
+#include "xtensor-blas/xlinalg.hpp"
+#include <fstream>
 
 class EventAnalysis : public dv::ModuleBase {
 private:
-    dv::EventStreamSlicer slicer;
-    long time;
 public:
     EventAnalysis() {
-        outputs.getEventOutput("events").setup(inputs.getEventInput("events"));
-        dv::EventStore store = inputs.getEventInput("events").events();
-        time = store.getHighestTime() - store.getLowestTime();
-
-        slicer.doEveryTimeInterval(1000000, [this](const dv::EventStore &data) {
-            process(data);
-        });
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
-        in.addEventInput("events");
+        //in.addEventInput("events");
     }
 
     static void initOutputs(dv::OutputDefinitionList &out) {
-        out.addEventOutput("events");
-    }
-
-    void process(const dv::EventStore &events) {
-        dv::EventStore store;
-        for (auto event : events) {
-            for (int loop = 0; loop < 20; ++loop) {
-                store += dv::Event(event.timestamp() + loop * time, event.x(), event.y(), event.polarity());
-            }
-        }
-        outputs.getEventOutput("events").events() << store << dv::commit;
+        //out.addEventOutput("events");
     }
 
     void run() override {
-        slicer.accept(inputs.getEventInput("events").events());
+
     }
 
     static const char *initDescription() {

@@ -8,6 +8,7 @@
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
+    xt::xarray<double> m_sharedWeights;
     std::vector<SpatioTemporalNeuron> m_neurons;
     std::vector<std::vector<int>> m_retina;
 

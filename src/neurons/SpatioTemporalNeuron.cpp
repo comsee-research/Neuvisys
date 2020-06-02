@@ -37,7 +37,7 @@ inline void SpatioTemporalNeuron::membraneUpdate(const long timestamp, const int
     m_timestampLastEvent = timestamp;
 
     if (m_potential > m_threshold) {
-        spike(timestamp);
+//        spike(timestamp);
     }
 }
 

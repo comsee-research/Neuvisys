@@ -79,8 +79,8 @@ inline void Neuron::thresholdAdaptation() {
         m_threshold -= DELTA_SR * (1 - exp(m_spikingRate - TARGET_SPIKE_RATE));
     }
 
-    if (m_threshold < 10) {
-        m_threshold = 10;
+    if (m_threshold < 5) {
+        m_threshold = 5;
     }
 }
 
