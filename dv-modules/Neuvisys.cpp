@@ -5,48 +5,49 @@
 
 class Neuvisys : public dv::ModuleBase {
 private:
+    NetworkConfig conf = NetworkConfig(Conf::CONF_FILE);
     dv::EventStreamSlicer slicer;
-	SpikingNetwork spinet;
+	SpikingNetwork spinet = SpikingNetwork(conf);
     std::vector<cv::Mat> displays;
     long lastTime;
 public:
     Neuvisys() {
         /***** Initialize Network *****/
-        if (SAVE_DATA) {
+        if (conf.SAVE_DATA) {
             spinet.loadWeights();
         }
         lastTime = 0;
 
         /***** Displays *****/
-        outputs.getEventOutput("frames").setup(WIDTH, HEIGHT, "frames");
-        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC3));
+        outputs.getEventOutput("frames").setup(Conf::WIDTH, Conf::HEIGHT, "frames");
+        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3));
 
-        outputs.getFrameOutput("potentials").setup(WIDTH, HEIGHT, "potentials");
-        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+        outputs.getFrameOutput("potentials").setup(Conf::WIDTH, Conf::HEIGHT, "potentials");
+        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1));
 
-        outputs.getFrameOutput("spikes").setup(WIDTH, HEIGHT, "spikes");
-        displays.emplace_back(cv::Mat::zeros(HEIGHT, WIDTH, CV_8UC1));
+        outputs.getFrameOutput("spikes").setup(Conf::WIDTH, Conf::HEIGHT, "spikes");
+        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1));
 
-        outputs.getFrameOutput("weights").setup(NEURON_WIDTH, NEURON_HEIGHT, "weights");
-        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
+        outputs.getFrameOutput("weights").setup(conf.NEURON_WIDTH, conf.NEURON_HEIGHT, "weights");
+        displays.emplace_back(cv::Mat::zeros(conf.NEURON_HEIGHT, conf.NEURON_WIDTH, CV_8UC3));
 
-        outputs.getFrameOutput("zoom").setup(NEURON_WIDTH, NEURON_HEIGHT, "zoom");
-        displays.emplace_back(cv::Mat::zeros(NEURON_HEIGHT, NEURON_WIDTH, CV_8UC3));
+        outputs.getFrameOutput("zoom").setup(conf.NEURON_WIDTH, conf.NEURON_HEIGHT, "zoom");
+        displays.emplace_back(cv::Mat::zeros(conf.NEURON_HEIGHT, conf.NEURON_WIDTH, CV_8UC3));
 
         /***** Slicers *****/
-        slicer.doEveryTimeInterval(EVENT_FREQUENCY, [this](const dv::EventStore &data) {
+        slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
         });
-        slicer.doEveryTimeInterval(DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
+        slicer.doEveryTimeInterval(Conf::DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
             computeDisplays(data);
         });
-        slicer.doEveryTimeInterval(UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
+        slicer.doEveryTimeInterval(Conf::UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
             computeParameters();
         });
     }
 
     ~Neuvisys() override {
-        if (SAVE_DATA) {
+        if (conf.SAVE_DATA) {
             spinet.saveWeights();
         }
     }
@@ -103,10 +104,10 @@ public:
     void computeParameters() {
         spinet.updateNeuronsParameters();
 
-        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(IND).getSpikingRate()));
-        config.setLong("threshold", static_cast<long>(spinet.getNeuron(IND).getThreshold()));
-        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(IND).getAdaptationPotential()));
-        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(IND).getLearningDecay()));
+        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::IND).getSpikingRate()));
+        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::IND).getThreshold()));
+        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::IND).getAdaptationPotential()));
+        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::IND).getLearningDecay()));
     }
 
 	void run() override {
@@ -118,50 +119,28 @@ public:
     }
 
     static void initConfigOptions(dv::RuntimeConfig &config) {
-        std::string confFile = CONF_FILE;
-        Config::loadConfiguration(confFile);
+        Selection::X_NEURON = 0;
+        Selection::Y_NEURON = 0;
+        Selection::LAYER = 0;
+        Selection::IND = Selection::X_NEURON * 24 * 10 + Selection::Y_NEURON * 10 + Selection::LAYER;
 
-        std::string configurationFile = CONF_FILES_LOCATION;
-        Config::loadNetworkLayout(configurationFile);
-        Config::loadNeuronsParameters(configurationFile);
-
-        X_NEURON = 0;
-        Y_NEURON = 0;
-        LAYER = 0;
-        IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
-
-        config.add("A_LOAD_BUTTON", dv::ConfigOption::buttonOption("Load config file", "Load Config"));
-        config.add("A_LOAD_CONFIG", dv::ConfigOption::fileOpenOption(("Config file load location"), configurationFile, "json"));
-
-        config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", X_NEURON, 0, NETWORK_WIDTH-1));
-        config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Y_NEURON, 0, NETWORK_HEIGHT-1));
-        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NEURON_SYNAPSES-1));
-        config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", LAYER, 0, NETWORK_DEPTH-1));
+        config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", Selection::X_NEURON, 0, 36 - 1));
+        config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Selection::Y_NEURON, 0, 24 - 1));
+        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, 1 - 1));
+        config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, 10 - 1));
 
         config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking Rate"));
         config.add("threshold", dv::ConfigOption::statisticOption("Threshold"));
         config.add("adaptation_potential", dv::ConfigOption::statisticOption("Adaptation Potential"));
         config.add("learning_decay", dv::ConfigOption::statisticOption("Learning Decay"));
-
-        setParameters(config);
     }
 
     void configUpdate() override {
-        if (config.getBool("A_LOAD_BUTTON")) {
-            std::string fileName = config.getString("A_LOAD_CONFIG");
-            Config::loadNeuronsParameters(fileName);
-            setParameters(config);
-        } else {
-            X_NEURON = config.getInt("X_NEURON");
-            Y_NEURON = config.getInt("Y_NEURON");
-            SYNAPSE = config.getInt("SYNAPSE");
-            LAYER = config.getInt("LAYER");
-            IND = X_NEURON * NETWORK_HEIGHT * NETWORK_DEPTH + Y_NEURON * NETWORK_DEPTH + LAYER;
-        }
-    }
-
-    static void setParameters(dv::RuntimeConfig &config) {
-        config.setBool("A_LOAD_BUTTON", false);
+        Selection::X_NEURON = config.getInt("X_NEURON");
+        Selection::Y_NEURON = config.getInt("Y_NEURON");
+        Selection::SYNAPSE = config.getInt("SYNAPSE");
+        Selection::LAYER = config.getInt("LAYER");
+        Selection::IND = Selection::X_NEURON * conf.NETWORK_HEIGHT * conf.NETWORK_DEPTH + Selection::Y_NEURON * conf.NETWORK_DEPTH + Selection::LAYER;
     }
 };
 

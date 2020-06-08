@@ -1,6 +1,6 @@
 #include "SpatioTemporalNeuron.hpp"
 
-SpatioTemporalNeuron::SpatioTemporalNeuron(int x, int y, xt::xarray<double> &weights, std::vector<long> delays) : Neuron(x, y, weights) {
+SpatioTemporalNeuron::SpatioTemporalNeuron(NeuronConfig &conf, int x, int y, xt::xarray<double> &weights, std::vector<long> delays) : Neuron(conf, x, y, weights) {
     m_events = std::vector<Event>();
     m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
     m_delays = std::move(delays);
@@ -37,7 +37,7 @@ inline void SpatioTemporalNeuron::membraneUpdate(const long timestamp, const int
     m_timestampLastEvent = timestamp;
 
     if (m_potential > m_threshold) {
-//        spike(timestamp);
+        spike(timestamp);
     }
 }
 
@@ -47,7 +47,7 @@ inline void SpatioTemporalNeuron::spike(const long time) {
     m_spike = true;
     ++m_countSpike;
     ++m_totalSpike;
-    m_potential = VRESET;
+    m_potential = conf.VRESET;
 
     spikeRateAdaptation();
     learnWeightsSTDP();
@@ -59,8 +59,8 @@ inline void SpatioTemporalNeuron::spike(const long time) {
 
 inline void SpatioTemporalNeuron::learnWeightsSTDP() {
     for (Event &event : m_events) {
-        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) += m_learningDecay * DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / TAU_LTP);
-        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) -= m_learningDecay * DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / TAU_LTD);
+        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) += m_learningDecay * conf.DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) -= m_learningDecay * conf.DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
         if (m_weights(event.polarity(), event.synapse(), event.y(), event.x()) < 0) {
             m_weights(event.polarity(), event.synapse(), event.y(), event.x()) = 0;
@@ -68,7 +68,7 @@ inline void SpatioTemporalNeuron::learnWeightsSTDP() {
     }
 
     normalizeWeights();
-    m_learningDecay *= DECAY_FACTOR;
+    m_learningDecay *= conf.DECAY_FACTOR;
 }
 
 inline void SpatioTemporalNeuron::normalizeWeights() {
@@ -76,7 +76,7 @@ inline void SpatioTemporalNeuron::normalizeWeights() {
         for (int j = 0; j < m_delays.size(); ++j) {
             double norm = xt::linalg::norm(xt::view(m_weights, i, j), 1);
             if (norm != 0) {
-                xt::view(m_weights, i, j) = NORM_FACTOR * (xt::view(m_weights, i, j) / norm);
+                xt::view(m_weights, i, j) = conf.NORM_FACTOR * (xt::view(m_weights, i, j) / norm);
             }
         }
     }

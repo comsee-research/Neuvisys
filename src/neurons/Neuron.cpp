@@ -3,12 +3,12 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(int x, int y, xt::xarray<double> &weights) : m_weights(weights) {
+Neuron::Neuron(NeuronConfig &conf, int x, int y, xt::xarray<double> &weights) : conf(conf), m_weights(weights) {
     m_x = x;
     m_y = y;
-    m_threshold = VTHRESH;
+    m_threshold = conf.VTHRESH;
     m_learningDecay = 1.0;
-    m_recentSpikes = std::list<int>(TIME_WINDOW_SR);
+    m_recentSpikes = std::list<int>(Conf::TIME_WINDOW_SR);
     m_spike = false;
 
     // Tracking Variables
@@ -36,7 +36,7 @@ inline double Neuron::getLearningDecay() {
 }
 
 inline double Neuron::getPotential(const long time) {
-    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / TAU_M);
+    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
 }
 
 inline double Neuron::getAdaptationPotential() {
@@ -48,15 +48,15 @@ double Neuron::getSpikingRate() {
 }
 
 inline double Neuron::potentialDecay(const long time) {
-    m_potential *= exp(- static_cast<double>(time) / TAU_M);
+    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
 }
 
 inline double Neuron::refractoryPotential(const long time) {
-    return DELTA_RP * exp(- static_cast<double>(time) / TAU_RP);
+    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
 }
 
 inline double Neuron::adaptationPotentialDecay(const long time) {
-    m_adaptation_potential *= exp(- static_cast<double>(time) / TAU_SRA);
+    m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
 }
 
 inline void Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
@@ -71,12 +71,12 @@ inline void Neuron::thresholdAdaptation() {
     for (int count : m_recentSpikes) {
         m_spikingRate += count;
     }
-    m_spikingRate /= TIME_WINDOW_SR;
+    m_spikingRate /= Conf::TIME_WINDOW_SR;
 
-    if (m_spikingRate > TARGET_SPIKE_RATE) {
-        m_threshold += DELTA_SR * (1 - exp(TARGET_SPIKE_RATE - m_spikingRate));
+    if (m_spikingRate > conf.TARGET_SPIKE_RATE) {
+        m_threshold += conf.DELTA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRate));
     } else {
-        m_threshold -= DELTA_SR * (1 - exp(m_spikingRate - TARGET_SPIKE_RATE));
+        m_threshold -= conf.DELTA_SR * (1 - exp(m_spikingRate - conf.TARGET_SPIKE_RATE));
     }
 
     if (m_threshold < 5) {
@@ -85,11 +85,11 @@ inline void Neuron::thresholdAdaptation() {
 }
 
 inline void Neuron::spikeRateAdaptation() {
-    m_adaptation_potential += DELTA_SRA;
+    m_adaptation_potential += conf.DELTA_SRA;
 }
 
 inline void Neuron::spike() {
-    m_potential = VRESET;
+    m_potential = conf.VRESET;
     m_spike = true;
 }
 
@@ -102,7 +102,7 @@ inline bool Neuron::hasSpiked() {
 }
 
 inline void Neuron::inhibition() {
-    m_potential -= DELTA_INH;
+    m_potential -= conf.DELTA_INH;
 }
 
 void Neuron::saveState(std::string &fileName) {
@@ -147,7 +147,7 @@ void Neuron::loadState(std::string &fileName) {
         m_learningDecay = conf["learning_decay"];
 
         m_recentSpikes.clear();
-        for (size_t i = 0; i < TIME_WINDOW_SR; ++i) {
+        for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(conf["recent_spikes"][i]);
         }
         for (auto &spikes : conf["spike_train"]) {

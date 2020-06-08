@@ -8,7 +8,10 @@
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
-    xt::xarray<double> m_sharedWeights;
+    NetworkConfig &conf;
+    NeuronConfig neuronConf;
+
+    std::vector<xt::xarray<double>> m_sharedWeights;
     std::vector<SpatioTemporalNeuron> m_neurons;
     std::vector<std::vector<int>> m_retina;
 
@@ -25,7 +28,7 @@ class SpikingNetwork {
     void spikingDisplay(cv::Mat &display);
     void multiPotentialDisplay(long time, cv::Mat &display);
 public:
-    SpikingNetwork();
+    explicit SpikingNetwork(NetworkConfig &conf);
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::vector<cv::Mat> &displays);

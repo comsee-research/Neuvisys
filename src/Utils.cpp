@@ -2,48 +2,50 @@
 #include "Config.hpp"
 #include <random>
 
-xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int col) {
-    xt::xarray<double> xray = xt::zeros<double>({2, row, col});
-    for (int i = 0; i < row; ++i) {
-        for (int j = 0; j < col; ++j) {
-            xray(0, i, j) = mat.at<double>(i, j);
-            xray(1, i, j) = mat.at<double>(i, j);
-        }
-    }
-    return xray;
-}
-
-xt::xarray<double> uniformMatrix(const int row, const int col) {
-    unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
-    std::default_random_engine generator(seed);
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);;
-
-    xt::xarray<double> xray = xt::zeros<double>({2, row, col});
-    for (int i = 0; i < row; ++i) {
-        for (int j = 0; j < col; ++j) {
-            for (int k = 0; k < 2; ++k) {
-                xray(k, i, j) = distribution(generator);
+namespace Util {
+    xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int col) {
+        xt::xarray<double> xray = xt::zeros<double>({2, row, col});
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                xray(0, i, j) = mat.at<double>(i, j);
+                xray(1, i, j) = mat.at<double>(i, j);
             }
         }
+        return xray;
     }
-    return xray;
-}
 
-xt::xarray<double> uniformMatrixSynapses(const int row, const int col, const int nbSynapses) {
-    unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
-    std::default_random_engine generator(seed);
-    std::uniform_real_distribution<double> distribution(0.0, 1.0);
+    xt::xarray<double> uniformMatrix(const int row, const int col) {
+        unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
+        std::default_random_engine generator(seed);
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);;
 
-    xt::xarray<double> xray = xt::zeros<double>({2, nbSynapses, row, col});
-    for (int i = 0; i < row; ++i) {
-        for (int j = 0; j < col; ++j) {
-            for (int k = 0; k < 2; ++k) {
-                double weight = distribution(generator);
-                for (int l = 0; l < nbSynapses; ++l) {
-                    xray(k, l, i, j) = weight;
+        xt::xarray<double> xray = xt::zeros<double>({2, row, col});
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                for (int k = 0; k < 2; ++k) {
+                    xray(k, i, j) = distribution(generator);
                 }
             }
         }
+        return xray;
     }
-    return xray;
+
+    xt::xarray<double> uniformMatrixSynapses(const int row, const int col, const int nbSynapses) {
+        unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
+        std::default_random_engine generator(seed);
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);
+
+        xt::xarray<double> xray = xt::zeros<double>({2, nbSynapses, row, col});
+        for (int i = 0; i < row; ++i) {
+            for (int j = 0; j < col; ++j) {
+                for (int k = 0; k < 2; ++k) {
+                    double weight = distribution(generator);
+                    for (int l = 0; l < nbSynapses; ++l) {
+                        xray(k, l, i, j) = weight;
+                    }
+                }
+            }
+        }
+        return xray;
+    }
 }

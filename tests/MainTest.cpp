@@ -11,29 +11,28 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     std::mt19937 mt(rd());
     std::uniform_int_distribution<int16_t> xs(0, 345);
     std::uniform_int_distribution<int16_t> ys(0, 259);
+    std::uniform_int_distribution<int16_t> ps(0, 1);
 
     long count = 0;
     while (count < 2000000) {
-        for (size_t i = 0; i < 20000; ++i) {
-//            spinet.addEvent(count, xs(mt), ys(mt), true);
-            spinet.addEvent(count, 0, 0, true);
-//            spinet.addEvent(count, 0, 10, true);
+        for (size_t i = 0; i < 1000; ++i) {
+            spinet.addEvent(count, xs(mt), ys(mt), ys(mt));
+//            displays[0].at<cv::Vec3b>(ys(mt), xs(mt))[2-ys(mt)] = 255;
             ++count;
         }
+        spinet.updateNeurons(count);
+//        spinet.updateNeuronsParameters();
     }
 }
 
 
 int main() {
-    std::string confFile = CONF_FILE;
-    Config::loadConfiguration(confFile);
+    std::string confFile = Conf::CONF_FILE;
+    NetworkConfig config = NetworkConfig(confFile);
 
-    std::string configurationFile = CONF_FILES_LOCATION;
-    Config::loadNetworkLayout(configurationFile);
-    Config::loadNeuronsParameters(configurationFile);
-
-    SpikingNetwork spinet;
+    SpikingNetwork spinet(config);
     std::vector<cv::Mat> displays;
+    displays.push_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3));
 
     auto start = std::chrono::system_clock::now();
     main_loop(spinet, displays);
@@ -41,7 +40,4 @@ int main() {
 
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
-
-    std::cout << spinet.getNeuron(0).getWeights(0, 0, 0, 0) << std::endl;
-    std::cout << spinet.getNeuron(4).getWeights(0, 0, 0, 0) << std::endl;
 }

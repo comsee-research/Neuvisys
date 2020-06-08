@@ -2,9 +2,11 @@
 #define NEUVISYS_DV_NEURON_HPP
 
 #include "src/Config.hpp"
+#include "src/Utils.hpp"
 
 class Neuron {
 protected:
+    NeuronConfig &conf;
     int m_x;
     int m_y;
     xt::xarray<double> &m_weights;
@@ -23,7 +25,7 @@ protected:
     // Tracking Variables
     std::vector<long> m_spikeTrain;
 public:
-    Neuron(int x, int y, xt::xarray<double> &weights);
+    Neuron(NeuronConfig &conf, int x, int y, xt::xarray<double> &weights);
     virtual int getX();
     virtual int getY();
     virtual double getWeights(int p, int x, int y);

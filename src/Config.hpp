@@ -9,70 +9,82 @@
 
 #include "Utils.hpp"
 
-class Config {
-public:
-    static void loadConfiguration(std::string &fileName);
-    static void loadNeuronsParameters(std::string &fileName);
-    static void loadNetworkLayout(std::string &fileName);
+using json = nlohmann::json;
+
+namespace Conf {
+    /***** General parameters *****/
+    inline constexpr int WIDTH = 346; // px
+    inline constexpr int HEIGHT = 260; // px
+
+    inline constexpr int EVENT_FREQUENCY = 1000; // μs
+    inline constexpr int DISPLAY_FREQUENCY = 30000; // μs
+    inline constexpr int UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
+
+    inline constexpr int TIME_WINDOW_SR = 20; // s
+
+    inline const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json";
+}
+
+namespace Selection {
+    inline int X_NEURON;
+    inline int Y_NEURON;
+    inline int LAYER;
+    inline int SYNAPSE;
+    inline int IND;
 };
 
-/***** General parameters *****/
-const int WIDTH = 346; // px
-const int HEIGHT = 260; // px
+class NetworkConfig {
+public:
+    explicit NetworkConfig(std::string configFile);
+    void loadConfiguration(std::string &fileName);
+    void loadNetworkLayout(std::string &fileName);
 
-const int EVENT_FREQUENCY = 1000; // μs
-const int DISPLAY_FREQUENCY = 30000; // μs
-const int UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
-
-const int TIME_WINDOW_SR = 20; // s
-
-const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json";
-
-/***** Display parameters *****/
-extern bool SAVE_DATA;
-extern bool WEIGHT_SHARING;
-extern std::string SAVE_DATA_LOCATION;
-extern std::string CONF_FILES_LOCATION;
-
-extern int X_NEURON;
-extern int Y_NEURON;
-extern int LAYER;
-extern int SYNAPSE;
-extern int IND;
+    /***** Display parameters *****/
+    bool SAVE_DATA;
+    bool WEIGHT_SHARING;
+    std::string SAVE_DATA_LOCATION;
+    std::string CONF_FILES_LOCATION;
 
 /***** Spiking Neural Network layout parameters *****/
-extern int NEURON_WIDTH;
-extern int NEURON_HEIGHT;
-extern int NEURON_SYNAPSES;
+    int NEURON_WIDTH;
+    int NEURON_HEIGHT;
+    int NEURON_SYNAPSES;
 
-extern int X_ANCHOR_POINT;
-extern int Y_ANCHOR_POINT;
-extern int NETWORK_WIDTH;
-extern int NETWORK_HEIGHT;
-extern int NETWORK_DEPTH;
+    int X_ANCHOR_POINT;
+    int Y_ANCHOR_POINT;
+    int NETWORK_WIDTH;
+    int NETWORK_HEIGHT;
+    int NETWORK_DEPTH;
+};
 
+class NeuronConfig {
+public:
+    explicit NeuronConfig(std::string configFile);
 /***** Neurons internal parameters *****/
-extern double TAU_M; // μs
-extern double TAU_LTP; // μs
-extern double TAU_LTD; // μs
-extern double TAU_RP; // μs
-extern double TAU_SRA; // μs
+    double TAU_M; // μs
+    double TAU_LTP; // μs
+    double TAU_LTD; // μs
+    double TAU_RP; // μs
+    double TAU_SRA; // μs
 
-extern double DELTA_VP; // mV
-extern double DELTA_VD; // mV
-extern double DELTA_SR; // mV
-extern double DELTA_RP; // mv
-extern double DELTA_SRA; // mV
-extern double DELTA_INH; // mV
+    double DELTA_VP; // mV
+    double DELTA_VD; // mV
+    double DELTA_SR; // mV
+    double DELTA_RP; // mv
+    double DELTA_SRA; // mV
+    double DELTA_INH; // mV
 
-extern double VRESET; // mV
-extern double VTHRESH; // mV
+    double VRESET; // mV
+    double VTHRESH; // mV
 
-extern long SYNAPSE_DELAY; // μs
+    long SYNAPSE_DELAY; // μs
 
-extern double NORM_FACTOR;
-extern double DECAY_FACTOR;
+    double NORM_FACTOR;
+    double DECAY_FACTOR;
 
-extern double TARGET_SPIKE_RATE; // spikes/s
+    double TARGET_SPIKE_RATE; // spikes/s
+private:
+    void loadNeuronsParameters(std::string &fileName);
+};
 
 #endif //NEUVISYS_DV_CONFIG_HPP
