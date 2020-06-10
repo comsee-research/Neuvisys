@@ -22,10 +22,12 @@ protected:
     long m_creationTime{};
     double m_spikingRate{};
 
+    Luts &m_luts;
+
     // Tracking Variables
     std::vector<long> m_spikeTrain;
 public:
-    Neuron(NeuronConfig &conf, int x, int y, xt::xarray<double> &weights);
+    Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
     virtual int getX();
     virtual int getY();
     virtual double getWeights(int p, int x, int y);

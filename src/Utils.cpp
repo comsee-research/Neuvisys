@@ -49,3 +49,13 @@ namespace Util {
         return xray;
     }
 }
+
+Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
+
+std::vector<double> Luts::expLUT(double tau) {
+    std::vector<double> exponential(1000000);
+    for (int i = 0; i < 1000000; ++i) {
+        exponential[i] = exp(- i / tau);
+    }
+    return exponential;
+}

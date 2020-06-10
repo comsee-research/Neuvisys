@@ -3,7 +3,7 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(NeuronConfig &conf, int x, int y, xt::xarray<double> &weights) : conf(conf), m_weights(weights) {
+Neuron::Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) : conf(conf), m_weights(weights), m_luts(luts) {
     m_x = x;
     m_y = y;
     m_threshold = conf.VTHRESH;
@@ -48,15 +48,30 @@ double Neuron::getSpikingRate() {
 }
 
 inline double Neuron::potentialDecay(const long time) {
-    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
+//    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
+    if (time < 1000000) {
+        m_potential *= m_luts.lutM[time];
+    } else {
+        m_potential = 0;
+    }
 }
 
 inline double Neuron::refractoryPotential(const long time) {
-    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
+//    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
+    if (time < 1000000) {
+        return conf.DELTA_RP * m_luts.lutRP[time];
+    } else {
+        return 0;
+    }
 }
 
 inline double Neuron::adaptationPotentialDecay(const long time) {
-    m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
+//    m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
+    if (time < 1000000) {
+        m_adaptation_potential *= m_luts.lutM[time];
+    } else {
+        m_adaptation_potential = 0;
+    }
 }
 
 inline void Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {

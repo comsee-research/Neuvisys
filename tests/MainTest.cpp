@@ -14,14 +14,33 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     std::uniform_int_distribution<int16_t> ps(0, 1);
 
     long count = 0;
-    while (count < 2000000) {
-        for (size_t i = 0; i < 1000; ++i) {
+    while (count < 20000000) {
+        for (size_t i = 0; i < 10000; ++i) {
             spinet.addEvent(count, xs(mt), ys(mt), ys(mt));
 //            displays[0].at<cv::Vec3b>(ys(mt), xs(mt))[2-ys(mt)] = 255;
             ++count;
         }
         spinet.updateNeurons(count);
 //        spinet.updateNeuronsParameters();
+    }
+}
+
+void evaluateRealExp() {
+    double tau = 10000;
+    double res = 0;
+    for (int i = 0; i < 1000000000; ++i) {
+        res = exp(-i / tau);
+    }
+}
+
+void evaluateLutExp(std::vector<double> lut) {
+    double res = 0;
+    for (int i = 0; i < 1000000000; ++i) {
+        if (i < 10) {
+            res = lut[i];
+        } else {
+            res = lut[0];
+        }
     }
 }
 

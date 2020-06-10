@@ -6,18 +6,19 @@
 #include "xtensor-blas/xlinalg.hpp"
 
 namespace Util {
-    inline std::vector<double> const& expLUT(double tau) {
-        std::vector<double> temp;
-        for (int i = 0; i < 1000000; ++i) {
-            temp.push_back(exp(- i / tau));
-        }
-        static std::vector<double> const exponential(temp);
-        return exponential;
-    }
-
     xt::xarray<double> opencvMatToXarray(cv::Mat mat, int row, int col);
     xt::xarray<double> uniformMatrix(int row, int col);
     xt::xarray<double> uniformMatrixSynapses(int row, int col, int nbSynapses);
 }
+
+class Luts {
+public:
+    Luts(double tauM, double tauRP, double tauSRA);
+    std::vector<double> const lutM;
+    std::vector<double> const lutRP;
+    std::vector<double> const lutSRA;
+private:
+    static std::vector<double> expLUT(double tau);
+};
 
 #endif //NEUVISYS_DV_UTILS_HPP

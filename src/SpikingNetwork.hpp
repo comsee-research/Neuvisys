@@ -18,6 +18,8 @@ class SpikingNetwork {
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
     std::vector<int> m_spikes;
+
+    Luts m_luts;
     GnuplotPipe gp = GnuplotPipe(false);
 
     void generateNeuronConfiguration();

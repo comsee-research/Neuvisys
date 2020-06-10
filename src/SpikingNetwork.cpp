@@ -1,6 +1,6 @@
 #include "SpikingNetwork.hpp"
 
-SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf), neuronConf(conf.CONF_FILES_LOCATION) {
+SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf), neuronConf(conf.CONF_FILES_LOCATION), m_luts(neuronConf.TAU_M, neuronConf.TAU_RP, neuronConf.TAU_SRA) {
     if (conf.WEIGHT_SHARING) {
         for (int patch = 0; patch < 9; ++patch) {
             for (int j = 0; j < conf.NETWORK_DEPTH; ++j) {
@@ -20,9 +20,6 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf), neuronConf(con
     m_potentials = std::deque<double>(1000, 0);
     m_timestamps = std::deque<long>(1000, 0);
     m_spikes = std::vector<int>(0);
-
-    std::vector<double> const& expM = Util::expLUT(neuronConf.TAU_M);
-    std::cout << expM[999999] << std::endl;
 
 //    gp.sendLine("set title \"neuron's potential plotted against time\"");
 //    gp.sendLine("set yrange [" + std::to_string(VRESET) + ":" + std::to_string(VTHRESH) + "]");
@@ -82,7 +79,7 @@ void SpikingNetwork::simpleConfiguration(const std::vector<long> &delays) {
     for (int i = conf.X_ANCHOR_POINT; i < conf.X_ANCHOR_POINT + conf.NEURON_WIDTH * conf.NETWORK_WIDTH; i += conf.NEURON_WIDTH) {
         for (int j = conf.Y_ANCHOR_POINT; j < conf.Y_ANCHOR_POINT + conf.NEURON_HEIGHT * conf.NETWORK_HEIGHT; j += conf.NEURON_HEIGHT) {
             for (int k = 0; k < conf.NETWORK_DEPTH; ++k) {
-                m_neurons.emplace_back(SpatioTemporalNeuron(neuronConf, i, j, m_sharedWeights[count], delays));
+                m_neurons.emplace_back(SpatioTemporalNeuron(neuronConf, m_luts, i, j, m_sharedWeights[count], delays));
                 ++count;
             }
         }
@@ -98,7 +95,7 @@ void SpikingNetwork::weightSharingConfiguration(const std::vector<long> &delays)
             for (int i = 0; i < 4 * conf.NEURON_WIDTH; i += conf.NEURON_WIDTH) {
                 for (int j = 0; j < 4 * conf.NEURON_HEIGHT; j += conf.NEURON_HEIGHT) {
                     for (int k = 0; k < conf.NETWORK_DEPTH; ++k) {
-                        m_neurons.emplace_back(SpatioTemporalNeuron(neuronConf, x+i, y+j, m_sharedWeights[patch * conf.NETWORK_DEPTH + k], delays));
+                        m_neurons.emplace_back(SpatioTemporalNeuron(neuronConf, m_luts, x+i, y+j, m_sharedWeights[patch * conf.NETWORK_DEPTH + k], delays));
                     }
                 }
             }
