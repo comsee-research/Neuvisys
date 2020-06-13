@@ -50,14 +50,14 @@ inline void SpatioTemporalNeuron::spike(const long time) {
     m_potential = conf.VRESET;
 
     spikeRateAdaptation();
-    learnWeightsSTDP();
+    updateSTDP();
     m_events.clear();
 
     // Tracking
     m_spikeTrain.push_back(time);
 }
 
-inline void SpatioTemporalNeuron::learnWeightsSTDP() {
+inline void SpatioTemporalNeuron::updateSTDP() {
     for (Event &event : m_events) {
         m_weights(event.polarity(), event.synapse(), event.y(), event.x()) += m_learningDecay * conf.DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
         m_weights(event.polarity(), event.synapse(), event.y(), event.x()) -= m_learningDecay * conf.DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);

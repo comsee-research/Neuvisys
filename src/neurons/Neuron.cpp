@@ -74,10 +74,6 @@ inline double Neuron::adaptationPotentialDecay(const long time) {
     }
 }
 
-inline void Neuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-
-}
-
 inline void Neuron::thresholdAdaptation() {
     m_recentSpikes.pop_back();
     m_recentSpikes.push_front(m_countSpike);
@@ -101,11 +97,6 @@ inline void Neuron::thresholdAdaptation() {
 
 inline void Neuron::spikeRateAdaptation() {
     m_adaptation_potential += conf.DELTA_SRA;
-}
-
-inline void Neuron::spike() {
-    m_potential = conf.VRESET;
-    m_spike = true;
 }
 
 inline bool Neuron::hasSpiked() {

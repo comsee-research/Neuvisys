@@ -7,7 +7,7 @@
 
 namespace Util {
     xt::xarray<double> opencvMatToXarray(cv::Mat mat, int row, int col);
-    xt::xarray<double> uniformMatrix(int row, int col);
+    xt::xarray<double> uniformMatrixPooling(int row, int col, int layer);
     xt::xarray<double> uniformMatrixSynapses(int row, int col, int nbSynapses);
 }
 

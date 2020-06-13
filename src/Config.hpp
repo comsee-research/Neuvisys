@@ -30,7 +30,12 @@ namespace Selection {
     inline int Y_NEURON;
     inline int LAYER;
     inline int SYNAPSE;
-    inline int IND;
+    inline unsigned int IND;
+
+    inline int NET_WIDTH = 36;
+    inline int NET_HEIGHT = 24;
+    inline int NET_DEPTH = 30;
+    inline int NET_SYNAPSES = 1;
 };
 
 class NetworkConfig {

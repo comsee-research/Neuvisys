@@ -42,6 +42,11 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
         std::cout << "cannot open network configuration file" << std::endl;
     }
     ifs.close();
+
+    Selection::NET_WIDTH = NETWORK_WIDTH;
+    Selection::NET_HEIGHT = NETWORK_HEIGHT;
+    Selection::NET_DEPTH = NETWORK_DEPTH;
+    Selection::NET_SYNAPSES = NEURON_SYNAPSES;
 }
 
 NeuronConfig::NeuronConfig(std::string configFile) {

@@ -20,4 +20,18 @@ public:
     inline int synapse() {return m_synapse;}
 };
 
+class NeuronEvent {
+    long m_timestamp;
+    int m_x;
+    int m_y;
+    int m_layer;
+public:
+    NeuronEvent() = default;
+    inline NeuronEvent(long timestamp, int x, int y, int layer) : m_timestamp(timestamp), m_x(x), m_y(y), m_layer(layer) {}
+    inline long timestamp() const {return m_timestamp;}
+    inline int x() {return m_x;}
+    inline int y() {return m_y;}
+    inline int layer() {return m_layer;}
+};
+
 #endif //NEUVISYS_DV_EVENT_HPP

@@ -11,6 +11,8 @@ protected:
     int m_y;
     xt::xarray<double> &m_weights;
     std::list<int> m_recentSpikes;
+    long m_spikingTime{};
+    long m_lastSpikingTime{};
     int m_totalSpike{};
     int m_countSpike{};
     double m_learningDecay;
@@ -40,8 +42,6 @@ public:
     virtual double potentialDecay(long time);
     virtual double refractoryPotential(long time);
     virtual double adaptationPotentialDecay(long time);
-    virtual void newEvent(long timestamp, int x, int y, bool polarity);
-    virtual void spike();
     virtual void inhibition();
     virtual void saveState(std::string &fileName);
     virtual void loadState(std::string &fileName);

@@ -122,12 +122,13 @@ public:
         Selection::X_NEURON = 0;
         Selection::Y_NEURON = 0;
         Selection::LAYER = 0;
-        Selection::IND = Selection::X_NEURON * 24 * 10 + Selection::Y_NEURON * 10 + Selection::LAYER;
+        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * Selection::NET_HEIGHT * Selection::NET_DEPTH +
+                                                   Selection::Y_NEURON * Selection::NET_DEPTH + Selection::LAYER);
 
-        config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", Selection::X_NEURON, 0, 36 - 1));
-        config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Selection::Y_NEURON, 0, 24 - 1));
-        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, 1 - 1));
-        config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, 10 - 1));
+        config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", Selection::X_NEURON, 0, Selection::NET_WIDTH - 1));
+        config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Selection::Y_NEURON, 0, Selection::NET_HEIGHT - 1));
+        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, Selection::NET_SYNAPSES - 1));
+        config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, Selection::NET_DEPTH - 1));
 
         config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking Rate"));
         config.add("threshold", dv::ConfigOption::statisticOption("Threshold"));
@@ -140,7 +141,8 @@ public:
         Selection::Y_NEURON = config.getInt("Y_NEURON");
         Selection::SYNAPSE = config.getInt("SYNAPSE");
         Selection::LAYER = config.getInt("LAYER");
-        Selection::IND = Selection::X_NEURON * conf.NETWORK_HEIGHT * conf.NETWORK_DEPTH + Selection::Y_NEURON * conf.NETWORK_DEPTH + Selection::LAYER;
+        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * conf.NETWORK_HEIGHT * conf.NETWORK_DEPTH +
+                                                   Selection::Y_NEURON * conf.NETWORK_DEPTH + Selection::LAYER);
     }
 };
 

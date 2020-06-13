@@ -3,21 +3,26 @@
 
 #include <vector>
 #include <array>
-
+#include <src/neurons/PoolingNeuron.hpp>
 #include "src/neurons/SpatioTemporalNeuron.hpp"
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
     NetworkConfig &conf;
-    NeuronConfig neuronConf;
+    NeuronConfig m_neuronConf;
+    NeuronConfig m_poolingNeuronConf;
 
     std::vector<xt::xarray<double>> m_sharedWeights;
+    std::vector<xt::xarray<double>> m_sharedWeightsPooling;
+
     std::vector<SpatioTemporalNeuron> m_neurons;
-    std::vector<std::vector<int>> m_retina;
+    std::vector<PoolingNeuron> m_poolingNeurons;
+    std::vector<std::vector<size_t>> m_retina;
+    std::vector<std::vector<size_t>> m_poolingRetina;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
-    std::vector<int> m_spikes;
+    std::vector<size_t> m_spikes;
 
     Luts m_luts;
     GnuplotPipe gp = GnuplotPipe(false);
