@@ -15,36 +15,12 @@ Neuron::Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> 
     m_spikeTrain = std::vector<long>(0);
 }
 
-inline int Neuron::getX() {
-    return m_x;
-}
-
-inline int Neuron::getY() {
-    return m_y;
-}
-
 inline double Neuron::getWeights(const int p, const int x, const int y) {
     return m_weights(p, y, x);
 }
 
-inline double Neuron::getThreshold() {
-    return m_threshold;
-}
-
-inline double Neuron::getLearningDecay() {
-    return m_learningDecay;
-}
-
 inline double Neuron::getPotential(const long time) {
     return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
-}
-
-inline double Neuron::getAdaptationPotential() {
-    return m_adaptation_potential;
-}
-
-double Neuron::getSpikingRate() {
-    return m_spikingRate;
 }
 
 inline double Neuron::potentialDecay(const long time) {

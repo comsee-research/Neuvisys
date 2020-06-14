@@ -15,6 +15,9 @@ class SpikingNetwork {
     std::vector<xt::xarray<double>> m_sharedWeights;
     std::vector<xt::xarray<double>> m_sharedWeightsPooling;
 
+    std::vector<Position> m_layout1;
+    std::vector<Position> m_layout2;
+
     std::vector<SpatioTemporalNeuron> m_neurons;
     std::vector<PoolingNeuron> m_poolingNeurons;
     std::vector<std::vector<size_t>> m_retina;

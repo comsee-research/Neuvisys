@@ -56,9 +56,8 @@ void SpikingNetwork::updateNeurons(const long time) {
             }
             m_spikes.push_back(ind); // update complex cell neurons (2nd layer)
             for (size_t poolInd : m_poolingRetina[ind]) {
-                m_poolingNeurons[poolInd].newEvent(m_neurons[ind].m_spikingTime, m_neurons[ind].getX() / conf.NEURON_WIDTH - m_poolingNeurons[poolInd].getX(),
-                                                   m_neurons[ind].getY() / conf.NEURON_HEIGHT - m_poolingNeurons[poolInd].getY(),
-                                                   );
+                m_poolingNeurons[poolInd].newEvent(m_neurons[ind].getSpikingTime(), m_layout1[ind].posx() - m_poolingNeurons[poolInd].getX(),
+                                                   m_layout1[ind].posy() - m_poolingNeurons[poolInd].getY(), m_layout1[ind].posz());
             }
         }
     }
@@ -90,15 +89,17 @@ void SpikingNetwork::simpleConfiguration(const std::vector<long> &delays) {
         for (int j = conf.Y_ANCHOR_POINT; j < conf.Y_ANCHOR_POINT + conf.NEURON_HEIGHT * conf.NETWORK_HEIGHT; j += conf.NEURON_HEIGHT) {
             for (int k = 0; k < conf.NETWORK_DEPTH; ++k) {
                 m_neurons.emplace_back(SpatioTemporalNeuron(m_neuronConf, m_luts, i, j, m_sharedWeights[static_cast<unsigned int>(count)], delays));
+                m_layout1.emplace_back(i, j, k);
                 ++count;
             }
         }
     }
 
     count = 0; // create complex cell neurons
-    for (int i = 0; i < conf.NETWORK_WIDTH; i += 3) {
-        for (int j = 0; j < conf.NETWORK_HEIGHT; j += 3) {
+    for (int i = 0; i < 3 * 11; i += 3) { //TODO
+        for (int j = 0; j < 3 * 6; j += 3) {
             m_poolingNeurons.emplace_back(PoolingNeuron(m_neuronConf, m_luts, i, j, m_sharedWeightsPooling[static_cast<unsigned int>(count)]));
+            m_layout2.emplace_back(i, j, 0);
             ++count;
         }
     }
@@ -139,20 +140,16 @@ void SpikingNetwork::generateNeuronConfiguration() {
 
 void SpikingNetwork::assignNeurons() {
     for (size_t ind = 0; ind < m_neurons.size(); ind++) {
-        int x = m_neurons[ind].getX();
-        int y = m_neurons[ind].getY();
-        for (int i = x; i < x + conf.NEURON_WIDTH; i++) {
-            for (int j = y; j < y + conf.NEURON_HEIGHT; j++) {
+        for (int i = m_neurons[ind].getX(); i < m_neurons[ind].getX() + conf.NEURON_WIDTH; i++) {
+            for (int j = m_neurons[ind].getY(); j < m_neurons[ind].getY() + conf.NEURON_HEIGHT; j++) {
                 m_retina[static_cast<unsigned int>(i * Conf::HEIGHT + j)].push_back(ind);
             }
         }
     }
 
     for (size_t ind = 0; ind < m_poolingNeurons.size(); ++ind) {
-        int x = m_poolingNeurons[ind].getX();
-        int y = m_poolingNeurons[ind].getY();
-        for (int i = x; i < x + 3; i++) {
-            for (int j = y; j < y + 3; j++) {
+        for (int i = m_poolingNeurons[ind].getX(); i < m_poolingNeurons[ind].getX() + 3; i++) {
+            for (int j = m_poolingNeurons[ind].getY(); j < m_poolingNeurons[ind].getY() + 3; j++) {
                 for (int k = 0; k < conf.NETWORK_DEPTH; ++k) {
                     m_poolingRetina[static_cast<unsigned int>(i * conf.NETWORK_HEIGHT * conf.NETWORK_DEPTH + j * conf.NETWORK_DEPTH + k)].push_back(ind);
                 }

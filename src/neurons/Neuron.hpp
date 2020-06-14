@@ -30,15 +30,17 @@ protected:
     std::vector<long> m_spikeTrain;
 public:
     Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
-    virtual int getX();
-    virtual int getY();
+    virtual int getX() {return m_x;}
+    virtual int getY() {return m_y;}
+    virtual double getThreshold() {return m_threshold;}
+    virtual double getSpikingRate() {return m_spikingRate;}
+    virtual double getLearningDecay() {return m_learningDecay;}
+    virtual long getSpikingTime() {return m_spikingTime;}
+    virtual double getAdaptationPotential() {return m_adaptation_potential;}
+
     virtual double getWeights(int p, int x, int y);
-    virtual double getThreshold();
-    virtual double getSpikingRate();
-    virtual double getLearningDecay();
     virtual bool hasSpiked();
     virtual double getPotential(long time);
-    virtual double getAdaptationPotential();
     virtual double potentialDecay(long time);
     virtual double refractoryPotential(long time);
     virtual double adaptationPotentialDecay(long time);
@@ -47,6 +49,10 @@ public:
     virtual void loadState(std::string &fileName);
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
+
+    virtual void newEvent(long timestamp, int x, int y, bool polarity) {};
+    virtual void newEvent(long timestamp, int x, int y, int z) {};
+    virtual void update(long time) {};
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

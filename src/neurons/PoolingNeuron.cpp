@@ -10,9 +10,9 @@ PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::x
     m_events = std::vector<NeuronEvent>();
 }
 
-inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int y, const int layer) {
-    membraneUpdate(timestamp, x, y, layer);
-    m_events.emplace_back(timestamp, x, y, layer);
+inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int y, const int z) {
+    membraneUpdate(timestamp, x, y, z);
+    m_events.emplace_back(timestamp, x, y, z);
 }
 
 inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int layer) {

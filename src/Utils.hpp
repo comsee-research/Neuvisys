@@ -21,4 +21,16 @@ private:
     static std::vector<double> expLUT(double tau);
 };
 
+class Position {
+    int m_posx;
+    int m_posy;
+    int m_posz;
+public:
+    Position() = default;
+    inline Position(int x, int y, int z) : m_posx(x), m_posy(y), m_posz(z) {}
+    inline int posx() const {return m_posx;}
+    inline int posy() const {return m_posy;}
+    inline int posz() const {return m_posz;}
+};
+
 #endif //NEUVISYS_DV_UTILS_HPP

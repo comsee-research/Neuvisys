@@ -18,7 +18,7 @@ inline void SpatioTemporalNeuron::newEvent(const long timestamp, const int x, co
     }
 }
 
-bool SpatioTemporalNeuron::update(const long time) {
+void SpatioTemporalNeuron::update(const long time) {
     while (!m_waitingList.empty() && m_waitingList.top().timestamp() <= time) {
         Event event = m_waitingList.top();
         m_waitingList.pop();

@@ -54,7 +54,7 @@ ADD_LIBRARY(neuvisys SHARED dv-modules/Neuvisys.cpp
         src/neurons/Neuron.cpp
         src/neurons/SpatioTemporalNeuron.cpp
         src/Utils.cpp
-        src/Config.cpp src/neurons/PoolingNeuron.cpp src/neurons/PoolingNeuron.hpp)
+        src/Config.cpp src/neurons/PoolingNeuron.cpp)
 TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
 
 INSTALL(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
@@ -75,5 +75,5 @@ ADD_EXECUTABLE(neuvisys-test tests/MainTest.cpp
         src/neurons/Neuron.cpp
         src/neurons/SpatioTemporalNeuron.cpp
         src/Utils.cpp
-        src/Config.cpp src/neurons/PoolingNeuron.cpp src/neurons/PoolingNeuron.hpp)
+        src/Config.cpp src/neurons/PoolingNeuron.cpp)
 TARGET_LINK_LIBRARIES(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES})
