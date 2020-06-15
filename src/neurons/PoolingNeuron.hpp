@@ -9,8 +9,9 @@ class PoolingNeuron : public Neuron {
 public:
     PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
     void newEvent(long timestamp, int x, int y, int z) override;
+    double getWeights(int x, int y, int z) override;
 private:
-    void membraneUpdate(long timestamp, int x, int y, int layer);
+    void membraneUpdate(long timestamp, int x, int y, int z);
     void spike(long time);
     void updateSTDP();
     void normalizeWeights();

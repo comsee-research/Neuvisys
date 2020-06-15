@@ -23,11 +23,8 @@ public:
     SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, std::vector<long> delays);
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     void update(long time) override;
-    double getWeights(int p, int s, int x, int y);
+    double getWeights(int p, int s, int x, int y) override;
 private:
-    using Neuron::getWeights;
-    using Neuron::newEvent;
-    using Neuron::update;
     void membraneUpdate(long timestamp, int x, int y, bool polarity, int synapse);
     void spike(long time);
     void updateSTDP();

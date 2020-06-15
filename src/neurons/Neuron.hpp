@@ -38,7 +38,6 @@ public:
     virtual long getSpikingTime() {return m_spikingTime;}
     virtual double getAdaptationPotential() {return m_adaptation_potential;}
 
-    virtual double getWeights(int p, int x, int y);
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);
@@ -53,6 +52,8 @@ public:
     virtual void newEvent(long timestamp, int x, int y, bool polarity) {};
     virtual void newEvent(long timestamp, int x, int y, int z) {};
     virtual void update(long time) {};
+    virtual double getWeights(int x, int y, int z) {};
+    virtual double getWeights(int p, int s, int x, int y) {};
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

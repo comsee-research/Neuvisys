@@ -48,18 +48,25 @@ public:
     bool SAVE_DATA;
     bool WEIGHT_SHARING;
     std::string SAVE_DATA_LOCATION;
-    std::string CONF_FILES_LOCATION;
+    std::string NETWORK_CONFIG;
 
-/***** Spiking Neural Network layout parameters *****/
-    int NEURON_WIDTH;
-    int NEURON_HEIGHT;
-    int NEURON_SYNAPSES;
+    /***** Spiking Neural Network layout parameters *****/
+    std::string Neuron1Config;
+    std::string Neuron2Config;
+    int L1Width;
+    int L1Height;
+    int L1Depth;
+    int L2Width;
+    int L2Height;
 
-    int X_ANCHOR_POINT;
-    int Y_ANCHOR_POINT;
-    int NETWORK_WIDTH;
-    int NETWORK_HEIGHT;
-    int NETWORK_DEPTH;
+    int L1XAnchor;
+    int L1YAnchor;
+    int Neuron1Width;
+    int Neuron1Height;
+    int Neuron1Synapses;
+
+    int Neuron2Width;
+    int Neuron2Height;
 };
 
 class NeuronConfig {

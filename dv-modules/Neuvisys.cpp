@@ -8,7 +8,7 @@ private:
     NetworkConfig conf = NetworkConfig(Conf::CONF_FILE);
     dv::EventStreamSlicer slicer;
 	SpikingNetwork spinet = SpikingNetwork(conf);
-    std::vector<cv::Mat> displays;
+    std::map<std::string, cv::Mat> displays;
     long lastTime;
 public:
     Neuvisys() {
@@ -20,19 +20,17 @@ public:
 
         /***** Displays *****/
         outputs.getEventOutput("frames").setup(Conf::WIDTH, Conf::HEIGHT, "frames");
-        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3));
-
+        displays["frames"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
         outputs.getFrameOutput("potentials").setup(Conf::WIDTH, Conf::HEIGHT, "potentials");
-        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1));
-
+        displays["potentials"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
         outputs.getFrameOutput("spikes").setup(Conf::WIDTH, Conf::HEIGHT, "spikes");
-        displays.emplace_back(cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1));
-
-        outputs.getFrameOutput("weights").setup(conf.NEURON_WIDTH, conf.NEURON_HEIGHT, "weights");
-        displays.emplace_back(cv::Mat::zeros(conf.NEURON_HEIGHT, conf.NEURON_WIDTH, CV_8UC3));
-
-        outputs.getFrameOutput("zoom").setup(conf.NEURON_WIDTH, conf.NEURON_HEIGHT, "zoom");
-        displays.emplace_back(cv::Mat::zeros(conf.NEURON_HEIGHT, conf.NEURON_WIDTH, CV_8UC3));
+        displays["spikes"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
+        outputs.getFrameOutput("weights").setup(conf.Neuron1Width, conf.Neuron1Height, "weights");
+        displays["weights"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
+        outputs.getFrameOutput("zoom").setup(conf.Neuron1Width, conf.Neuron1Height, "zoom");
+        displays["zoom"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
+        outputs.getFrameOutput("potentials2").setup(Conf::WIDTH, Conf::HEIGHT, "potentials2");
+        displays["potentials2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 
         /***** Slicers *****/
         slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
@@ -62,31 +60,33 @@ public:
         out.addFrameOutput("spikes");
         out.addFrameOutput("weights");
         out.addFrameOutput("zoom");
+        out.addFrameOutput("potentials2");
 	}
 
     void computeDisplays(const dv::EventStore &events) {
         spinet.updateDisplay(lastTime, displays);
 
         auto frame = outputs.getFrameOutput("frames").frame();
-        frame << displays[0];
+        frame << displays["frames"];
         frame.commit();
-        displays[0] = 0;
-
-        outputs.getFrameOutput("potentials").frame() << displays[1];
-        outputs.getFrameOutput("potentials").frame().commit();
-
-        outputs.getFrameOutput("spikes").frame() << displays[2];
-        outputs.getFrameOutput("spikes").frame().commit();
-
+        displays["frames"] = 0;
+        auto potentials = outputs.getFrameOutput("potentials").frame();
+        potentials << displays["potentials"];
+        potentials.commit();
+        auto spikes = outputs.getFrameOutput("spikes").frame();
+        spikes << displays["spikes"];
+        spikes.commit();
         auto weights = outputs.getFrameOutput("weights").frame();
         weights.setFormat(dv::FrameFormat::BGR);
-        weights << displays[3];
+        weights << displays["weights"];
         weights.commit();
-
         auto zoom = outputs.getFrameOutput("zoom").frame();
         weights.setFormat(dv::FrameFormat::BGR);
-        zoom << displays[4];
+        zoom << displays["zoom"];
         zoom.commit();
+        auto potentials2 = outputs.getFrameOutput("potentials2").frame();
+        potentials2 << displays["potentials2"];
+        potentials2.commit();
     }
 
 	void computeEvents(const dv::EventStore &events) {
@@ -95,7 +95,7 @@ public:
             for (const dv::Event &event : events) {
                 spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
 
-                displays[0].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
+                displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
         }
         spinet.updateNeurons(lastTime);
@@ -141,8 +141,8 @@ public:
         Selection::Y_NEURON = config.getInt("Y_NEURON");
         Selection::SYNAPSE = config.getInt("SYNAPSE");
         Selection::LAYER = config.getInt("LAYER");
-        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * conf.NETWORK_HEIGHT * conf.NETWORK_DEPTH +
-                                                   Selection::Y_NEURON * conf.NETWORK_DEPTH + Selection::LAYER);
+        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * conf.L1Height * conf.L1Depth +
+                                                   Selection::Y_NEURON * conf.L1Depth + Selection::LAYER);
     }
 };
 

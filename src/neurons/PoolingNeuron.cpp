@@ -4,9 +4,7 @@
 
 #include "PoolingNeuron.hpp"
 
-PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) : Neuron(conf, luts,
-                                                                                                                                           x, y,
-                                                                                                                                           weights) {
+PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) : Neuron(conf, luts, x, y, weights) {
     m_events = std::vector<NeuronEvent>();
 }
 
@@ -15,10 +13,10 @@ inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int
     m_events.emplace_back(timestamp, x, y, z);
 }
 
-inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int layer) {
+inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int z) {
     potentialDecay(timestamp - m_timestampLastEvent);
     adaptationPotentialDecay(timestamp - m_timestampLastEvent);
-    m_potential += m_weights(y, x, layer)
+    m_potential += m_weights(y, x, z)
                    - refractoryPotential(timestamp - m_spikingTime)
                    - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
@@ -46,7 +44,7 @@ inline void PoolingNeuron::spike(const long time) {
 
 inline void PoolingNeuron::updateSTDP() {
     for (NeuronEvent &event : m_events) {
-        if (m_spikingTime - event.timestamp() > 8000) {
+        if (m_spikingTime - event.timestamp() > 8000) { //TODO
             m_weights(event.y(), event.x(), event.layer()) += conf.DELTA_VP;
         }
     }
@@ -61,4 +59,8 @@ inline void PoolingNeuron::normalizeWeights() {
             xt::view(m_weights, layer) = conf.NORM_FACTOR * (xt::view(m_weights, layer) / norm);
         }
     }
+}
+
+double PoolingNeuron::getWeights(int x, int y, int z) {
+    return m_weights(y, x, z);
 }

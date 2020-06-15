@@ -29,26 +29,26 @@ class SpikingNetwork {
 
     Luts m_luts;
     GnuplotPipe gp = GnuplotPipe(false);
-
-    void generateNeuronConfiguration();
-    void assignNeurons();
-
-    void potentialDisplay();
-    void weightDisplay(cv::Mat &display);
-    void spikingDisplay(cv::Mat &display);
-    void multiPotentialDisplay(long time, cv::Mat &display);
 public:
     explicit SpikingNetwork(NetworkConfig &conf);
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
-    void updateDisplay(long time, std::vector<cv::Mat> &displays);
+    void updateDisplay(long time, std::map<std::string, cv::Mat> &displays);
     void updateNeuronsParameters();
     void saveWeights();
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);
 private:
+    void generateNeuronConfiguration();
+    void assignNeurons();
     void simpleConfiguration(const std::vector<long>& delays);
     void weightSharingConfiguration(const std::vector<long>& delays);
+    void potentialDisplay();
+    void weightDisplay(cv::Mat &display);
+    void weight2Display(cv::Mat &display);
+    void spikingDisplay(cv::Mat &display);
+    void multiPotentialDisplay(long time, cv::Mat &display);
+    void multiPotential2Display(long time, cv::Mat &display);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

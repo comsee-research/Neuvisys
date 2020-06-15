@@ -15,10 +15,6 @@ Neuron::Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> 
     m_spikeTrain = std::vector<long>(0);
 }
 
-inline double Neuron::getWeights(const int p, const int x, const int y) {
-    return m_weights(p, y, x);
-}
-
 inline double Neuron::getPotential(const long time) {
     return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
 }

@@ -25,26 +25,6 @@ void main_loop(SpikingNetwork &spinet, std::vector<cv::Mat> &displays) {
     }
 }
 
-void evaluateRealExp() {
-    double tau = 10000;
-    double res = 0;
-    for (int i = 0; i < 1000000000; ++i) {
-        res = exp(-i / tau);
-    }
-}
-
-void evaluateLutExp(std::vector<double> lut) {
-    double res = 0;
-    for (int i = 0; i < 1000000000; ++i) {
-        if (i < 10) {
-            res = lut[i];
-        } else {
-            res = lut[0];
-        }
-    }
-}
-
-
 int main() {
     std::string confFile = Conf::CONF_FILE;
     NetworkConfig config = NetworkConfig(confFile);
