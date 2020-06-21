@@ -19,11 +19,11 @@ namespace Util {
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);;
 
-        xt::xarray<double> xray = xt::zeros<double>({row, col, layer});
-        for (int i = 0; i < row; ++i) {
-            for (int j = 0; j < col; ++j) {
-                for (int k = 0; k < layer; ++k) {
-                    xray(i, j, k) = distribution(generator);
+        xt::xarray<double> xray = xt::zeros<double>({layer, row, col});
+        for (int k = 0; k < layer; ++k) {
+            for (int i = 0; i < row; ++i) {
+                for (int j = 0; j < col; ++j) {
+                    xray(k, i, j) = distribution(generator);
                 }
             }
         }

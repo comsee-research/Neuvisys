@@ -109,7 +109,7 @@ void Neuron::loadState(std::string &fileName) {
     try {
         m_weights = xt::load_npy<double>(fileName + ".npy");
     } catch (std::exception exe) {
-        std::cout << "No starting weights, random initialization" << std::endl;
+//        std::cout << "No starting weights, random initialization" << std::endl;
     }
 
     std::ifstream ifs(fileName + ".json");
@@ -132,7 +132,7 @@ void Neuron::loadState(std::string &fileName) {
             m_spikeTrain.push_back(spikes);
         }
     } else {
-        std::cout << "cannot open neuron state file" << std::endl;
+//        std::cout << "cannot open neuron state file" << std::endl;
     }
     ifs.close();
 }

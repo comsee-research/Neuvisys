@@ -26,6 +26,7 @@ class SpikingNetwork {
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
     std::vector<size_t> m_spikes;
+    std::vector<size_t> m_poolingSpikes;
 
     Luts m_luts;
     GnuplotPipe gp = GnuplotPipe(false);
@@ -39,6 +40,7 @@ public:
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);
 private:
+    void generateWeightSharing();
     void generateNeuronConfiguration();
     void assignNeurons();
     void simpleConfiguration(const std::vector<long>& delays);
@@ -47,6 +49,7 @@ private:
     void weightDisplay(cv::Mat &display);
     void weight2Display(cv::Mat &display);
     void spikingDisplay(cv::Mat &display);
+    void spiking2Display(cv::Mat &display);
     void multiPotentialDisplay(long time, cv::Mat &display);
     void multiPotential2Display(long time, cv::Mat &display);
 };

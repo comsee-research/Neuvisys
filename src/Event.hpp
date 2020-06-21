@@ -24,14 +24,14 @@ class NeuronEvent {
     long m_timestamp;
     int m_x;
     int m_y;
-    int m_layer;
+    int m_z;
 public:
     NeuronEvent() = default;
-    inline NeuronEvent(long timestamp, int x, int y, int layer) : m_timestamp(timestamp), m_x(x), m_y(y), m_layer(layer) {}
+    inline NeuronEvent(long timestamp, int x, int y, int z) : m_timestamp(timestamp), m_x(x), m_y(y), m_z(z) {}
     inline long timestamp() const {return m_timestamp;}
     inline int x() {return m_x;}
     inline int y() {return m_y;}
-    inline int layer() {return m_layer;}
+    inline int z() {return m_z;}
 };
 
 #endif //NEUVISYS_DV_EVENT_HPP
