@@ -28,6 +28,9 @@ class SpikingNetwork {
     std::vector<size_t> m_spikes;
     std::vector<size_t> m_poolingSpikes;
 
+    size_t m_nbNeurons;
+    size_t m_nbPoolingNeurons;
+
     Luts m_luts;
     GnuplotPipe gp = GnuplotPipe(false);
 public:
@@ -39,6 +42,9 @@ public:
     void saveWeights();
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);
+
+    [[nodiscard]] size_t getNumberNeurons() const {return m_nbNeurons;}
+    [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbPoolingNeurons;}
 private:
     void generateWeightSharing();
     void generateNeuronConfiguration();

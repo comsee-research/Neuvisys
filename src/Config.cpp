@@ -50,15 +50,14 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
         std::cout << "cannot open network configuration file" << std::endl;
     }
     ifs.close();
-
-    Selection::NET_WIDTH = L1Width;
-    Selection::NET_HEIGHT = L1Height;
-    Selection::NET_DEPTH = L1Depth;
-    Selection::NET_SYNAPSES = Neuron1Synapses;
 }
 
-NeuronConfig::NeuronConfig(std::string configFile) {
-    loadNeuronsParameters(configFile);
+NeuronConfig::NeuronConfig(std::string configFile, int type) {
+    if (type == 0) {
+        loadNeuronsParameters(configFile);
+    } else if (type == 1) {
+        loadPoolingNeuronsParameters(configFile);
+    }
 }
 
 void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
@@ -84,6 +83,24 @@ void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
         NORM_FACTOR = conf["NORM_FACTOR"];
         DECAY_FACTOR = conf["DECAY_FACTOR"];
         TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
+    } else {
+        std::cout << "cannot open neuron configuration file" << std::endl;
+    }
+    ifs.close();
+}
+
+void NeuronConfig::loadPoolingNeuronsParameters(std::string &fileName) {
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        json conf;
+        ifs >> conf;
+
+        DELTA_VP = conf["DELTA_VP"];
+        TAU_LTP = conf["TAU_LTP"];
+        TAU_M = conf["TAU_M"];
+        VTHRESH = conf["VTHRESH"];
+        VRESET = conf["VRESET"];
+        NORM_FACTOR = conf["NORM_FACTOR"];
     } else {
         std::cout << "cannot open neuron configuration file" << std::endl;
     }

@@ -85,20 +85,20 @@ inline void Neuron::inhibition() {
 
 void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
-
-    json conf;
-    conf["potential"] = m_potential;
-    conf["count_spike"] = m_totalSpike;
-    conf["threshold"] = m_threshold;
-    conf["creation_time"] = m_creationTime;
-    conf["spiking_rate"] = m_spikingRate;
-    conf["recent_spikes"] = m_recentSpikes;
-    conf["spike_train"] = m_spikeTrain;
-    conf["learning_decay"] = m_learningDecay;
+    json state;
+    
+    state["potential"] = m_potential;
+    state["count_spike"] = m_totalSpike;
+    state["threshold"] = m_threshold;
+    state["creation_time"] = m_creationTime;
+    state["spiking_rate"] = m_spikingRate;
+    state["recent_spikes"] = m_recentSpikes;
+    state["spike_train"] = m_spikeTrain;
+    state["learning_decay"] = m_learningDecay;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
-        ofs << std::setw(4) << conf << std::endl;
+        ofs << std::setw(4) << state << std::endl;
     } else {
         std::cout << "cannot save neuron state file" << std::endl;
     }
@@ -114,21 +114,21 @@ void Neuron::loadState(std::string &fileName) {
 
     std::ifstream ifs(fileName + ".json");
     if (ifs.is_open()) {
-        json conf;
-        ifs >> conf;
+        json state;
+        ifs >> state;
 
-        m_potential = conf["potential"];
-        m_totalSpike = conf["count_spike"];
-        m_threshold = conf["threshold"];
-        m_creationTime = conf["creation_time"];
-        m_spikingRate = conf["spiking_rate"];
-        m_learningDecay = conf["learning_decay"];
+        m_potential = state["potential"];
+        m_totalSpike = state["count_spike"];
+        m_threshold = state["threshold"];
+        m_creationTime = state["creation_time"];
+        m_spikingRate = state["spiking_rate"];
+        m_learningDecay = state["learning_decay"];
 
         m_recentSpikes.clear();
         for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
-            m_recentSpikes.push_front(conf["recent_spikes"][i]);
+            m_recentSpikes.push_front(state["recent_spikes"][i]);
         }
-        for (auto &spikes : conf["spike_train"]) {
+        for (auto &spikes : state["spike_train"]) {
             m_spikeTrain.push_back(spikes);
         }
     } else {

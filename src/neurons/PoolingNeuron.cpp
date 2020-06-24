@@ -11,10 +11,7 @@ inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int
 
 inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int z) {
     potentialDecay(timestamp - m_timestampLastEvent);
-//    adaptationPotentialDecay(timestamp - m_timestampLastEvent);
     m_potential += m_weights(z, y, x);
-//                   - refractoryPotential(timestamp - m_spikingTime)
-//                   - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
 
     if (m_potential > m_threshold) {
@@ -40,8 +37,13 @@ inline void PoolingNeuron::spike(const long time) {
 
 inline void PoolingNeuron::updateSTDP() {
     for (NeuronEvent &event : m_events) {
-        if (m_spikingTime - event.timestamp() < 8000) { //TODO
+        if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
             m_weights(event.z(), event.y(), event.x()) += conf.DELTA_VP;
+        }
+
+        if (m_weights(event.z(), event.y(), event.x()) < 0) {
+            std::cout << "wtf" << std::endl;
+            m_weights(event.z(), event.y(), event.x()) = 0;
         }
     }
 
@@ -49,11 +51,13 @@ inline void PoolingNeuron::updateSTDP() {
 }
 
 inline void PoolingNeuron::normalizeWeights() {
-    for (int layer = 0; layer < m_weights.shape()[0]; ++layer) {
-        double norm = xt::linalg::norm(xt::view(m_weights, layer), 1);
-        if (norm != 0) {
-            xt::view(m_weights, layer) = conf.NORM_FACTOR * (xt::view(m_weights, layer) / norm);
-        }
+    double norm = 0;
+    for (auto val : xt::ravel<xt::layout_type::row_major>(m_weights)) {
+        norm += val * val;
+    }
+    norm = sqrt(norm);
+    if (norm != 0) {
+        m_weights = conf.NORM_FACTOR * (m_weights / norm);
     }
 }
 

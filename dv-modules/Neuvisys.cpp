@@ -118,10 +118,37 @@ public:
     void computeParameters() {
         spinet.updateNeuronsParameters();
 
-        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::IND).getSpikingRate()));
-        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::IND).getThreshold()));
-        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::IND).getAdaptationPotential()));
-        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::IND).getLearningDecay()));
+        std::ifstream ifs(Conf::GUI_FILE);
+        if (ifs.is_open()) {
+            json gui;
+            ifs >> gui;
+
+            Selection::INDEX = gui["index"];
+            Selection::INDEX2 = gui["index2"];
+            Selection::LAYER = gui["layer"];
+            Selection::LAYER2 = gui["layer2"];
+
+            if (Selection::INDEX > spinet.getNumberNeurons()) {
+                std::cout << "neuron display index too big" << std::endl;
+                Selection::INDEX = 0;
+            }
+            if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
+                std::cout << "pooling neuron display index too big" << std::endl;
+                Selection::INDEX2 = 0;
+            }
+            if (Selection::LAYER > conf.L1Depth) {
+                std::cout << "neuron display layer too big" << std::endl;
+                Selection::LAYER = 0;
+            }
+        } else {
+            std::cout << "cannot open GUI file" << std::endl;
+        }
+        ifs.close();
+
+        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getSpikingRate()));
+        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::INDEX).getThreshold()));
+        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
+        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::INDEX).getLearningDecay()));
     }
 
 	void run() override {
@@ -133,17 +160,6 @@ public:
     }
 
     static void initConfigOptions(dv::RuntimeConfig &config) {
-        Selection::X_NEURON = 0;
-        Selection::Y_NEURON = 0;
-        Selection::LAYER = 0;
-        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * Selection::NET_HEIGHT * Selection::NET_DEPTH +
-                                                   Selection::Y_NEURON * Selection::NET_DEPTH + Selection::LAYER);
-
-        config.add("X_NEURON", dv::ConfigOption::intOption("X Position of the neuron to display", Selection::X_NEURON, 0, Selection::NET_WIDTH - 1));
-        config.add("Y_NEURON", dv::ConfigOption::intOption("Y Position of the neuron to display", Selection::Y_NEURON, 0, Selection::NET_HEIGHT - 1));
-        config.add("SYNAPSE", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, Selection::NET_SYNAPSES - 1));
-        config.add("LAYER", dv::ConfigOption::intOption("Layer of the neuron to display", Selection::LAYER, 0, Selection::NET_DEPTH - 1));
-
         config.add("spiking_rate", dv::ConfigOption::statisticOption("Spiking Rate"));
         config.add("threshold", dv::ConfigOption::statisticOption("Threshold"));
         config.add("adaptation_potential", dv::ConfigOption::statisticOption("Adaptation Potential"));
@@ -151,12 +167,6 @@ public:
     }
 
     void configUpdate() override {
-        Selection::X_NEURON = config.getInt("X_NEURON");
-        Selection::Y_NEURON = config.getInt("Y_NEURON");
-        Selection::SYNAPSE = config.getInt("SYNAPSE");
-        Selection::LAYER = config.getInt("LAYER");
-        Selection::IND = static_cast<unsigned int>(Selection::X_NEURON * conf.L1Height * conf.L1Depth +
-                                                   Selection::Y_NEURON * conf.L1Depth + Selection::LAYER);
     }
 };
 

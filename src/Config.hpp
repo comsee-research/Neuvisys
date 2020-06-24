@@ -23,20 +23,16 @@ namespace Conf {
     inline constexpr int TIME_WINDOW_SR = 20; // s
 
     inline const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json";
+    inline const std::string GUI_FILE = "/home/thomas/neuvisys-dv/configuration/gui.json";
 }
 
 namespace Selection {
-    inline int X_NEURON;
-    inline int Y_NEURON;
     inline int LAYER;
+    inline int LAYER2;
     inline int SYNAPSE;
-    inline unsigned int IND;
-
-    inline int NET_WIDTH = 36;
-    inline int NET_HEIGHT = 24;
-    inline int NET_DEPTH = 30;
-    inline int NET_SYNAPSES = 1;
-};
+    inline unsigned int INDEX;
+    inline unsigned int INDEX2;
+}
 
 class NetworkConfig {
 public:
@@ -71,32 +67,33 @@ public:
 
 class NeuronConfig {
 public:
-    explicit NeuronConfig(std::string configFile);
+    NeuronConfig(std::string configFile, int type);
 /***** Neurons internal parameters *****/
-    double TAU_M; // μs
-    double TAU_LTP; // μs
-    double TAU_LTD; // μs
-    double TAU_RP; // μs
-    double TAU_SRA; // μs
+    double TAU_M{}; // μs
+    double TAU_LTP{}; // μs
+    double TAU_LTD{}; // μs
+    double TAU_RP{}; // μs
+    double TAU_SRA{}; // μs
 
-    double DELTA_VP; // mV
-    double DELTA_VD; // mV
-    double DELTA_SR; // mV
-    double DELTA_RP; // mv
-    double DELTA_SRA; // mV
-    double DELTA_INH; // mV
+    double DELTA_VP{}; // mV
+    double DELTA_VD{}; // mV
+    double DELTA_SR{}; // mV
+    double DELTA_RP{}; // mv
+    double DELTA_SRA{}; // mV
+    double DELTA_INH{}; // mV
 
-    double VRESET; // mV
-    double VTHRESH; // mV
+    double VRESET{}; // mV
+    double VTHRESH{}; // mV
 
-    long SYNAPSE_DELAY; // μs
+    long SYNAPSE_DELAY{}; // μs
 
-    double NORM_FACTOR;
-    double DECAY_FACTOR;
+    double NORM_FACTOR{};
+    double DECAY_FACTOR{};
 
-    double TARGET_SPIKE_RATE; // spikes/s
+    double TARGET_SPIKE_RATE{}; // spikes/s
 private:
     void loadNeuronsParameters(std::string &fileName);
+    void loadPoolingNeuronsParameters(std::string &fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP
