@@ -22,16 +22,16 @@ namespace Conf {
 
     inline constexpr int TIME_WINDOW_SR = 20; // s
 
-    inline const std::string CONF_FILE = "/home/thomas/neuvisys-dv/configuration/conf.json";
-    inline const std::string GUI_FILE = "/home/thomas/neuvisys-dv/configuration/gui.json";
+    inline const std::string CONF_FILE("/home/thomas/neuvisys-dv/configuration/conf.json");
+    inline const std::string GUI_FILE("/home/thomas/neuvisys-dv/configuration/gui.json");
 }
 
 namespace Selection {
-    inline int LAYER;
-    inline int LAYER2;
-    inline int SYNAPSE;
-    inline unsigned int INDEX;
-    inline unsigned int INDEX2;
+    inline int LAYER = 0;
+    [[maybe_unused]] inline int LAYER2 = 0;
+    inline int SYNAPSE = 0;
+    inline unsigned int INDEX = 0;
+    inline unsigned int INDEX2 = 0;
 }
 
 class NetworkConfig {
@@ -41,28 +41,28 @@ public:
     void loadNetworkLayout(std::string &fileName);
 
     /***** Display parameters *****/
-    bool SAVE_DATA;
-    bool WEIGHT_SHARING;
+    bool SAVE_DATA{};
     std::string SAVE_DATA_LOCATION;
     std::string NETWORK_CONFIG;
 
     /***** Spiking Neural Network layout parameters *****/
     std::string Neuron1Config;
     std::string Neuron2Config;
-    int L1Width;
-    int L1Height;
-    int L1Depth;
-    int L2Width;
-    int L2Height;
+    int L1Width{};
+    int L1Height{};
+    int L1Depth{};
+    int L2Width{};
+    int L2Height{};
 
-    int L1XAnchor;
-    int L1YAnchor;
-    int Neuron1Width;
-    int Neuron1Height;
-    int Neuron1Synapses;
+    int L1XAnchor{};
+    int L1YAnchor{};
+    int Neuron1Width{};
+    int Neuron1Height{};
+    int Neuron1Synapses{};
 
-    int Neuron2Width;
-    int Neuron2Height;
+    int Neuron2Width{};
+    int Neuron2Height{};
+    bool WeightSharing{};
 };
 
 class NeuronConfig {
@@ -91,6 +91,7 @@ public:
     double DECAY_FACTOR{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
+    double MIN_THRESH{}; // mV
 private:
     void loadNeuronsParameters(std::string &fileName);
     void loadPoolingNeuronsParameters(std::string &fileName);

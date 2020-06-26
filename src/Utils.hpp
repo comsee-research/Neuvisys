@@ -6,7 +6,7 @@
 #include "xtensor-blas/xlinalg.hpp"
 
 namespace Util {
-    xt::xarray<double> opencvMatToXarray(cv::Mat mat, int row, int col);
+    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(cv::Mat &mat, int row, int col);
     xt::xarray<double> uniformMatrixPooling(int row, int col, int layer);
     xt::xarray<double> uniformMatrixSynapses(int row, int col, int nbSynapses);
 }
@@ -28,9 +28,9 @@ class Position {
 public:
     Position() = default;
     inline Position(int x, int y, int z) : m_posx(x), m_posy(y), m_posz(z) {}
-    inline int posx() const {return m_posx;}
-    inline int posy() const {return m_posy;}
-    inline int posz() const {return m_posz;}
+    [[nodiscard]] inline int posx() const {return m_posx;}
+    [[nodiscard]] inline int posy() const {return m_posy;}
+    [[nodiscard]] inline int posz() const {return m_posz;}
 };
 
 #endif //NEUVISYS_DV_UTILS_HPP

@@ -3,7 +3,7 @@
 #include <random>
 
 namespace Util {
-    xt::xarray<double> opencvMatToXarray(const cv::Mat mat, const int row, const int col) {
+    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(const cv::Mat &mat, const int row, const int col) {
         xt::xarray<double> xray = xt::zeros<double>({2, row, col});
         for (int i = 0; i < row; ++i) {
             for (int j = 0; j < col; ++j) {
@@ -17,7 +17,7 @@ namespace Util {
     xt::xarray<double> uniformMatrixPooling(const int row, const int col, const int layer) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
-        std::uniform_real_distribution<double> distribution(0.0, 1.0);;
+        std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
         xt::xarray<double> xray = xt::zeros<double>({layer, row, col});
         for (int k = 0; k < layer; ++k) {
@@ -54,8 +54,8 @@ Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP
 
 std::vector<double> Luts::expLUT(double tau) {
     std::vector<double> exponential(1000000);
-    for (int i = 0; i < 1000000; ++i) {
-        exponential[i] = exp(- i / tau);
+    for (size_t i = 0; i < 1000000; ++i) {
+        exponential[i] = exp(- static_cast<double>(i) / tau);
     }
     return exponential;
 }

@@ -1,7 +1,8 @@
 #include "PoolingNeuron.hpp"
 
-PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) : Neuron(conf, luts, x, y, weights) {
-    m_events = std::vector<NeuronEvent>();
+PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) :
+    Neuron(conf, luts, x, y, weights),
+    m_events(std::vector<NeuronEvent>()) {
 }
 
 inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int y, const int z) {
@@ -32,7 +33,7 @@ inline void PoolingNeuron::spike(const long time) {
     m_events.clear();
 
     // Tracking
-    m_spikeTrain.push_back(time);
+//    m_spikeTrain.push_back(time);
 }
 
 inline void PoolingNeuron::updateSTDP() {

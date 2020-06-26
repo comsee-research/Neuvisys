@@ -111,39 +111,56 @@ public:
 
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
+            spinet.updateNeurons(lastTime);
         }
-        spinet.updateNeurons(lastTime);
     }
 
     void computeParameters() {
         spinet.updateNeuronsParameters();
+        json gui;
 
         std::ifstream ifs(Conf::GUI_FILE);
         if (ifs.is_open()) {
-            json gui;
-            ifs >> gui;
-
-            Selection::INDEX = gui["index"];
-            Selection::INDEX2 = gui["index2"];
-            Selection::LAYER = gui["layer"];
-            Selection::LAYER2 = gui["layer2"];
-
-            if (Selection::INDEX > spinet.getNumberNeurons()) {
-                std::cout << "neuron display index too big" << std::endl;
-                Selection::INDEX = 0;
-            }
-            if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
-                std::cout << "pooling neuron display index too big" << std::endl;
-                Selection::INDEX2 = 0;
-            }
-            if (Selection::LAYER > conf.L1Depth) {
-                std::cout << "neuron display layer too big" << std::endl;
-                Selection::LAYER = 0;
+            try {
+                ifs >> gui;
+            } catch (const std::exception& e) {
+                std::cerr << "In GUI config file" << std::endl;
+                throw;
             }
         } else {
             std::cout << "cannot open GUI file" << std::endl;
         }
         ifs.close();
+
+        Selection::INDEX = gui["index"];
+        Selection::INDEX2 = gui["index2"];
+        Selection::LAYER = gui["layer"];
+        Selection::LAYER2 = gui["layer2"];
+        if (gui["save"]) {
+            spinet.saveWeights();
+            gui["save"] = false;
+
+            std::ofstream ofs(Conf::GUI_FILE);
+            if (ofs.is_open()) {
+                ofs << std::setw(4) << gui << std::endl;
+            } else {
+                std::cout << "cannot open GUI file" << std::endl;
+            }
+            ofs.close();
+        }
+
+        if (Selection::INDEX > spinet.getNumberNeurons()) {
+            std::cout << "neuron display index too big" << std::endl;
+            Selection::INDEX = 0;
+        }
+        if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
+            std::cout << "pooling neuron display index too big" << std::endl;
+            Selection::INDEX2 = 0;
+        }
+        if (Selection::LAYER > conf.L1Depth) {
+            std::cout << "neuron display layer too big" << std::endl;
+            Selection::LAYER = 0;
+        }
 
         config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getSpikingRate()));
         config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::INDEX).getThreshold()));

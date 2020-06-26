@@ -1,17 +1,20 @@
 #include "SpatioTemporalNeuron.hpp"
 
-SpatioTemporalNeuron::SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, std::vector<long> delays) : Neuron(conf, luts, x, y, weights) {
-    m_events = std::vector<Event>();
-    m_waitingList = std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>();
-    m_delays = std::move(delays);
+SpatioTemporalNeuron::SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses) :
+    Neuron(conf, luts, x, y, weights),
+    m_events(std::vector<Event>()),
+    m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
+    for (int synapse = 0; synapse < nbSynapses; synapse++) {
+        m_delays.push_back(synapse * conf.SYNAPSE_DELAY);
+    }
 }
 
 inline void SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
-    int synapse = 0;
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
-        membraneUpdate(timestamp, x, y, polarity, synapse);
-        m_events.emplace_back(timestamp, x, y, polarity, synapse);
+        membraneUpdate(timestamp, x, y, polarity, 0);
+        m_events.emplace_back(timestamp, x, y, polarity, 0);
     } else {
+        int synapse = 0;
         for (auto delay : m_delays) {
             m_waitingList.emplace(timestamp + delay, x, y, polarity, synapse++);
         }
@@ -54,7 +57,7 @@ inline void SpatioTemporalNeuron::spike(const long time) {
     m_events.clear();
 
     // Tracking
-    m_spikeTrain.push_back(time);
+//    m_spikeTrain.push_back(time);
 }
 
 inline void SpatioTemporalNeuron::updateSTDP() {
@@ -72,8 +75,8 @@ inline void SpatioTemporalNeuron::updateSTDP() {
 }
 
 inline void SpatioTemporalNeuron::normalizeWeights() {
-    for (int i = 0; i < 2; ++i) {
-        for (int j = 0; j < m_delays.size(); ++j) {
+    for (size_t i = 0; i < 2; ++i) {
+        for (size_t j = 0; j < m_delays.size(); ++j) {
             double norm = xt::linalg::norm(xt::view(m_weights, i, j), 1);
             if (norm != 0) {
                 xt::view(m_weights, i, j) = conf.NORM_FACTOR * (xt::view(m_weights, i, j) / norm);

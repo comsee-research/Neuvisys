@@ -49,9 +49,10 @@ private:
     void generateWeightSharing();
     void generateNeuronConfiguration();
     void assignNeurons();
-    void simpleConfiguration(const std::vector<long>& delays);
-    void weightSharingConfiguration(const std::vector<long>& delays);
-    void potentialDisplay();
+    void simpleConfiguration();
+    void weightSharingConfiguration();
+
+    [[maybe_unused]] void potentialDisplay();
     void weightDisplay(cv::Mat &display);
     void weight2Display(cv::Mat &display);
     void spikingDisplay(cv::Mat &display);

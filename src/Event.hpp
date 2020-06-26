@@ -13,11 +13,11 @@ public:
     Event() = default;
     inline Event(long timestamp, int x, int y, bool polarity) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity) {m_synapse = 0;}
     inline Event(long timestamp, int x, int y, bool polarity, int synapse) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity), m_synapse(synapse) {}
-    inline long timestamp() const {return m_timestamp;}
-    inline int x() {return m_x;}
-    inline int y() {return m_y;}
-    inline bool polarity() {return m_polarity;}
-    inline int synapse() {return m_synapse;}
+    [[nodiscard]] inline long timestamp() const {return m_timestamp;}
+    [[nodiscard]] inline int x() const {return m_x;}
+    [[nodiscard]] inline int y() const {return m_y;}
+    [[nodiscard]] inline bool polarity() const {return m_polarity;}
+    [[nodiscard]] inline int synapse() const {return m_synapse;}
 };
 
 class NeuronEvent {
@@ -28,10 +28,10 @@ class NeuronEvent {
 public:
     NeuronEvent() = default;
     inline NeuronEvent(long timestamp, int x, int y, int z) : m_timestamp(timestamp), m_x(x), m_y(y), m_z(z) {}
-    inline long timestamp() const {return m_timestamp;}
-    inline int x() {return m_x;}
-    inline int y() {return m_y;}
-    inline int z() {return m_z;}
+    [[nodiscard]] inline long timestamp() const {return m_timestamp;}
+    [[nodiscard]] inline int x() const {return m_x;}
+    [[nodiscard]] inline int y() const {return m_y;}
+    [[nodiscard]] inline int z() const {return m_z;}
 };
 
 #endif //NEUVISYS_DV_EVENT_HPP

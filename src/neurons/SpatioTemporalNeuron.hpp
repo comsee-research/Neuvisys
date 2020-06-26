@@ -20,7 +20,7 @@ class SpatioTemporalNeuron : public Neuron {
     std::vector<long> m_delays;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
-    SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, std::vector<long> delays);
+    SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses);
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     void update(long time) override;
     double getWeights(int p, int s, int x, int y) override;
