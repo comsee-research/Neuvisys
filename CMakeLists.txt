@@ -23,58 +23,60 @@ IF (NOT CMAKE_INSTALL_PREFIX)
 ENDIF()
 
 # Project name and version
-PROJECT(neuvisys-dv
+project(neuvisys-dv
         VERSION 1.0.0
         LANGUAGES C CXX)
 
-find_package(xtensor REQUIRED)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(PythonLibs REQUIRED)
+find_package(xtensor REQUIRED)
+#find_package(cnpy REQUIRED)
 
 # Define installation paths
-INCLUDE(GNUInstallDirs)
+include(GNUInstallDirs)
 
 # Custom CMake base module
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/dv /usr/${CMAKE_INSTALL_DATAROOTDIR}/dv
         ${CMAKE_INSTALL_PREFIX}/share/dv /usr/share/dv
         /usr/local/${CMAKE_INSTALL_DATAROOTDIR}/dv /usr/local/share/dv)
 
 # Basic setup
-INCLUDE(dv-modules)
-INCLUDE_DIRECTORIES(${xtensor_INCLUDE_DIRS})
+include(dv-modules)
+include_directories(${xtensor_INCLUDE_DIRS})
+include_directories(${PYTHON_INCLUDE_DIRS})
 DV_MODULE_SETUP()
 
 # Set full RPATH, modules are libraries for DV
-SET(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
+set(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 
 ##### Neuvisys Module #####
-ADD_LIBRARY(neuvisys SHARED dv-modules/Neuvisys.cpp
+add_library(neuvisys SHARED
+        dv-modules/Neuvisys.cpp
         src/SpikingNetwork.cpp
         src/neurons/Neuron.cpp
         src/neurons/SpatioTemporalNeuron.cpp
         src/neurons/PoolingNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
-TARGET_LINK_LIBRARIES(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+install(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 
-INSTALL(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
+##### Test Executable #####
+add_executable(neuvisys-test
+        tests/MainTest.cpp
+        src/SpikingNetwork.cpp
+        src/neurons/Neuron.cpp
+        src/neurons/SpatioTemporalNeuron.cpp
+        src/neurons/PoolingNeuron.cpp
+        src/Utils.cpp
+        src/Config.cpp)
+target_link_libraries(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
 
 ##### EventAnalysis Module #####
-ADD_LIBRARY(event-analysis SHARED dv-modules/EventAnalysis.cpp)
-TARGET_LINK_LIBRARIES(event-analysis PRIVATE ${DV_LIBRARIES})
-INSTALL(TARGETS event-analysis DESTINATION ${DV_MODULES_DIR})
-
-##### Tests Executables #####
-FIND_PACKAGE(OpenCV REQUIRED)
-FIND_PACKAGE(PythonLibs REQUIRED)
-include_directories(${PYTHON_INCLUDE_DIRS})
-
-ADD_EXECUTABLE(neuvisys-test tests/MainTest.cpp
-        src/SpikingNetwork.cpp
-        src/neurons/Neuron.cpp
-        src/neurons/SpatioTemporalNeuron.cpp
-        src/neurons/PoolingNeuron.cpp
-        src/Utils.cpp
-        src/Config.cpp)
-TARGET_LINK_LIBRARIES(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES})
+add_library(event-analysis SHARED
+        dv-modules/EventAnalysis.cpp)
+target_link_libraries(event-analysis PRIVATE ${DV_LIBRARIES})
+install(TARGETS event-analysis DESTINATION ${DV_MODULES_DIR})

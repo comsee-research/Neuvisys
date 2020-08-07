@@ -14,6 +14,7 @@ Neuron::Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> 
     m_threshold = conf.VTHRESH;
     m_learningDecay = 1.0;
     m_spike = false;
+    m_connections = xt::zeros<size_t>(m_weights.shape());
 }
 
 inline double Neuron::getPotential(const long time) {
@@ -86,6 +87,7 @@ inline void Neuron::inhibition() {
 
 void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
+    xt::dump_npy(fileName + "_conn.npy", m_connections);
 
     json state;
     state["potential"] = m_potential;
@@ -122,7 +124,7 @@ void Neuron::loadState(std::string &fileName) {
             std::cerr << "In Neuron state file" << std::endl;
             throw;
         }
-        m_potential = state["potential"];
+//        m_potential = state["potential"];
         m_totalSpike = state["count_spike"];
         m_threshold = state["threshold"];
         m_creationTime = state["creation_time"];

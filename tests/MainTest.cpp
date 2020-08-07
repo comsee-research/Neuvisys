@@ -1,26 +1,12 @@
 #include "src/SpikingNetwork.hpp"
 #include <chrono>
 #include <random>
+#include <utility>
 #include "src/dependencies/json.hpp"
+#include "cnpy.h"
+
 //#include "src/matplotlibcpp.h"
 //namespace plt = matplotlibcpp;
-using json = nlohmann::json;
-
-std::vector<Event> load_aedat(std::string &filePath) {
-    json events;
-
-    std::ifstream ifs(filePath);
-    if (ifs.is_open()) {
-        ifs >> events;
-    }
-    ifs.close();
-
-    std::vector<Event> vec_events;
-    for (auto event : events) {
-        vec_events.emplace_back(event[0], event[1], event[2], event[3]);
-    }
-    return vec_events;
-}
 
 void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays) {
     displays["frames"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
@@ -33,49 +19,51 @@ void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays)
     displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 }
 
-void main_loop(std::vector<Event> &events, SpikingNetwork &spinet, std::map<std::string, cv::Mat> &displays) {
+void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::string, cv::Mat> &displays) {
     int count = 0;
-    for (Event event : events) {
-        spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
-        displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.y()] = 255;
-        ++count;
+    auto *events = array.data<double>();
+    for (size_t i = 0; i < 4*array.shape[0]; i += 4) {
+        spinet.addEvent(events[i], events[i+1], events[i+2], events[i+3]);
 
         if (count % 1000 == 0) {
-            spinet.updateNeurons(event.timestamp());
+            spinet.updateNeurons(events[i]);
         }
-
-        if (count % 30000 == 0) {
-            spinet.updateDisplay(event.timestamp(), displays);
+//        if (count % 30000 == 0) {
+//            spinet.updateDisplay(event.timestamp(), displays);
+//        }
+        if (count % 1000000 == 0) {
+            std::cout << 100 * static_cast<size_t>(count) / array.shape[0] << "%" << std::endl;
+            spinet.updateNeuronsParameters(events[i]);
         }
-
-        if (count % 100000 == 0) {
-            spinet.updateNeuronsParameters();
-        }
+        ++count;
     }
 }
 
-int main() {
+void spikingNetwork(std::string filePath) {
+    std::cout << "Initializing Network, " << "File: " << filePath << std::endl;
     std::string confFile = Conf::CONF_FILE;
     NetworkConfig config = NetworkConfig(confFile);
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
     init_display(config, displays);
 
-    if (config.SAVE_DATA) {
-        spinet.loadWeights();
-    }
+    std::cout << "Loading Events" << std::endl;
+    cnpy::NpyArray array = cnpy::npy_load(std::move(filePath));
 
-    std::string filePath("/home/thomas/Bureau/test");
-    auto events = load_aedat(filePath);
-
+    std::cout << "Launching training" << std::endl;
     auto start = std::chrono::system_clock::now();
-    main_loop(events, spinet, displays);
+    main_loop(array, spinet, displays);
     auto end = std::chrono::system_clock::now();
-
-    if (config.SAVE_DATA) {
-        spinet.saveWeights();
-    }
 
     std::chrono::duration<double> elapsed_seconds = end - start;
     std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
+}
+
+int main(int argc, char *argv[]) {
+    if (argc > 1) {
+        std::string filePath(argv[1]);
+        spikingNetwork(filePath);
+    } else {
+        std::cerr << "Too few arguments" << std::endl;
+    }
 }

@@ -15,13 +15,13 @@ class SpikingNetwork {
     std::vector<xt::xarray<double>> m_sharedWeights;
     std::vector<xt::xarray<double>> m_sharedWeightsPooling;
 
-    std::vector<Position> m_layout1;
-    std::vector<Position> m_layout2;
-
     std::vector<SpatioTemporalNeuron> m_neurons;
     std::vector<PoolingNeuron> m_poolingNeurons;
     std::vector<std::vector<size_t>> m_retina;
     std::vector<std::vector<size_t>> m_poolingRetina;
+
+    std::vector<Position> m_layout1;
+    std::vector<Position> m_layout2;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
@@ -35,10 +35,12 @@ class SpikingNetwork {
     GnuplotPipe gp = GnuplotPipe(false);
 public:
     explicit SpikingNetwork(NetworkConfig &conf);
+
+    ~SpikingNetwork();
     void addEvent(long timestamp, int x, int y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::map<std::string, cv::Mat> &displays);
-    void updateNeuronsParameters();
+    void updateNeuronsParameters(long time);
     void saveWeights();
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);

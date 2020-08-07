@@ -4,8 +4,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <xtensor/xarray.hpp>
-
-#include "src/Event.hpp"
+#include <boost/circular_buffer.hpp>
 #include "src/Config.hpp"
 #include "Neuron.hpp"
 
@@ -16,8 +15,8 @@ struct CompareEventsTimestamp {
 };
 
 class SpatioTemporalNeuron : public Neuron {
-    std::vector<Event> m_events;
     std::vector<long> m_delays;
+    boost::circular_buffer<Event> m_events;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
     SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses);

@@ -13,9 +13,6 @@ private:
 public:
     Neuvisys() {
         /***** Initialize Network *****/
-        if (conf.SAVE_DATA) {
-            spinet.loadWeights();
-        }
         lastTime = 0;
 
         /***** Displays *****/
@@ -25,14 +22,14 @@ public:
         displays["potentials"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
         outputs.getFrameOutput("spikes").setup(Conf::WIDTH, Conf::HEIGHT, "spikes");
         displays["spikes"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights").setup(conf.Neuron1Width, conf.Neuron1Height, "weights");
-        displays["weights"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
+        outputs.getFrameOutput("weights").setup(20*conf.Neuron1Width, 20*conf.Neuron1Height, "weights");
+        displays["weights"] = cv::Mat::zeros(20*conf.Neuron1Height, 20*conf.Neuron1Width, CV_8UC3);
         outputs.getFrameOutput("zoom").setup(conf.Neuron1Width, conf.Neuron1Height, "zoom");
         displays["zoom"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
         outputs.getFrameOutput("potentials2").setup(Conf::WIDTH, Conf::HEIGHT, "potentials2");
         displays["potentials2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights2").setup(conf.Neuron2Width, conf.Neuron2Height, "weights2");
-        displays["weights2"] = cv::Mat::zeros(conf.Neuron2Height, conf.Neuron2Width, CV_8UC3);
+        outputs.getFrameOutput("weights2").setup(20*conf.Neuron2Width, 20*conf.Neuron2Height, "weights2");
+        displays["weights2"] = cv::Mat::zeros(20*conf.Neuron2Height, 20*conf.Neuron2Width, CV_8UC3);
         outputs.getFrameOutput("spikes2").setup(Conf::WIDTH, Conf::HEIGHT, "spikes2");
         displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 
@@ -46,13 +43,6 @@ public:
         slicer.doEveryTimeInterval(Conf::UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
             computeParameters();
         });
-    }
-
-    ~Neuvisys() override {
-        std::cout << "Network reset" << std::endl;
-        if (conf.SAVE_DATA) {
-            spinet.saveWeights();
-        }
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
@@ -116,7 +106,7 @@ public:
     }
 
     void computeParameters() {
-        spinet.updateNeuronsParameters();
+        spinet.updateNeuronsParameters(lastTime);
         json gui;
 
         std::ifstream ifs(Conf::GUI_FILE);

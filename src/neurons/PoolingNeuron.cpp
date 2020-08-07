@@ -2,12 +2,12 @@
 
 PoolingNeuron::PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) :
     Neuron(conf, luts, x, y, weights),
-    m_events(std::vector<NeuronEvent>()) {
+    m_events(boost::circular_buffer<NeuronEvent>(1000)) {
 }
 
 inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int y, const int z) {
     membraneUpdate(timestamp, x, y, z);
-    m_events.emplace_back(timestamp, x, y, z);
+    m_events.push_back(NeuronEvent(timestamp, x, y, z));
 }
 
 inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int z) {
@@ -29,7 +29,9 @@ inline void PoolingNeuron::spike(const long time) {
     m_potential = conf.VRESET;
 
 //    spikeRateAdaptation();
-    updateSTDP();
+    if (conf.STDP_LEARNING) {
+        updateSTDP();
+    }
     m_events.clear();
 
     // Tracking
@@ -43,7 +45,6 @@ inline void PoolingNeuron::updateSTDP() {
         }
 
         if (m_weights(event.z(), event.y(), event.x()) < 0) {
-            std::cout << "wtf" << std::endl;
             m_weights(event.z(), event.y(), event.x()) = 0;
         }
     }

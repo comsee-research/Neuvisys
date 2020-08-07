@@ -3,6 +3,7 @@
 
 #include "src/Config.hpp"
 #include "src/Utils.hpp"
+#include <src/Event.hpp>
 
 class Neuron {
 protected:
@@ -29,6 +30,8 @@ protected:
     // Tracking Variables
     std::vector<long> m_spikeTrain;
 public:
+    xt::xarray<size_t> m_connections;
+
     Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
     virtual int getX() {return m_x;}
     virtual int getY() {return m_y;}

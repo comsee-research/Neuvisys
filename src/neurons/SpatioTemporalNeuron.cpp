@@ -2,7 +2,7 @@
 
 SpatioTemporalNeuron::SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses) :
     Neuron(conf, luts, x, y, weights),
-    m_events(std::vector<Event>()),
+    m_events(boost::circular_buffer<Event>(1000)),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (int synapse = 0; synapse < nbSynapses; synapse++) {
         m_delays.push_back(synapse * conf.SYNAPSE_DELAY);
@@ -12,7 +12,7 @@ SpatioTemporalNeuron::SpatioTemporalNeuron(NeuronConfig &conf, Luts &luts, int x
 inline void SpatioTemporalNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         membraneUpdate(timestamp, x, y, polarity, 0);
-        m_events.emplace_back(timestamp, x, y, polarity, 0);
+        m_events.push_back(Event(timestamp, x, y, polarity, 0));
     } else {
         int synapse = 0;
         for (auto delay : m_delays) {
@@ -53,7 +53,9 @@ inline void SpatioTemporalNeuron::spike(const long time) {
     m_potential = conf.VRESET;
 
     spikeRateAdaptation();
-    updateSTDP();
+    if (conf.STDP_LEARNING) {
+        updateSTDP();
+    }
     m_events.clear();
 
     // Tracking
@@ -77,7 +79,7 @@ inline void SpatioTemporalNeuron::updateSTDP() {
 inline void SpatioTemporalNeuron::normalizeWeights() {
     for (size_t i = 0; i < 2; ++i) {
         for (size_t j = 0; j < m_delays.size(); ++j) {
-            double norm = xt::linalg::norm(xt::view(m_weights, i, j), 1);
+            double norm = xt::linalg::norm(xt::view(m_weights, i, j));
             if (norm != 0) {
                 xt::view(m_weights, i, j) = conf.NORM_FACTOR * (xt::view(m_weights, i, j) / norm);
             }

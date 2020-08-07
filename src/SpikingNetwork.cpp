@@ -5,23 +5,33 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf),
     m_poolingNeuronConf(conf.Neuron2Config, 1),
     m_retina(std::vector<std::vector<size_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<size_t>(0))),
     m_poolingRetina(std::vector<std::vector<size_t>>(static_cast<size_t>(conf.L1Width * conf.L1Height * conf.L1Depth), std::vector<size_t>(0))),
+    m_potentials(std::deque<double>(1000, 0)),
+    m_timestamps(std::deque<long>(1000, 0)),
+    m_spikes(std::vector<size_t>(0)),
     m_luts(m_neuronConf.TAU_M, m_neuronConf.TAU_RP, m_neuronConf.TAU_SRA) {
-
-    generateWeightSharing();
-    generateNeuronConfiguration();
-    assignNeurons();
-
-    m_potentials = std::deque<double>(1000, 0);
-    m_timestamps = std::deque<long>(1000, 0);
-    m_spikes = std::vector<size_t>(0);
 
     gp.sendLine("set title \"neuron's potential plotted against time\"");
     gp.sendLine("set yrange [" + std::to_string(m_neuronConf.VRESET) + ":" + std::to_string(m_neuronConf.VTHRESH) + "]");
+
+    std::cout << "Network generation" << std::endl;
+    generateWeightSharing();
+    generateNeuronConfiguration();
+    assignNeurons();
+    if (conf.SaveData) {
+        loadWeights();
+    }
 
     m_nbNeurons = m_neurons.size();
     m_nbPoolingNeurons = m_poolingNeurons.size();
     std::cout << "Layer 1 neurons: " << m_nbNeurons << std::endl;
     std::cout << "Layer 2 neurons: " << m_nbPoolingNeurons << std::endl;
+}
+
+SpikingNetwork::~SpikingNetwork() {
+    std::cout << "Network reset" << std::endl;
+    if (conf.SaveData) {
+        saveWeights();
+    }
 }
 
 void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, const bool polarity) {
@@ -144,7 +154,9 @@ void SpikingNetwork::assignNeurons() {
     for (size_t ind = 0; ind < m_neurons.size(); ind++) {
         for (int i = m_neurons[ind].getX(); i < m_neurons[ind].getX() + conf.Neuron1Width; i++) {
             for (int j = m_neurons[ind].getY(); j < m_neurons[ind].getY() + conf.Neuron1Height; j++) {
-                m_retina[static_cast<unsigned int>(i * Conf::HEIGHT + j)].push_back(ind);
+                auto pixel = static_cast<unsigned int>(i * Conf::HEIGHT + j);
+                m_retina[pixel].push_back(ind);
+                m_neurons[ind].m_connections(0, 0, j - m_neurons[ind].getY(), i - m_neurons[ind].getX()) = pixel;
             }
         }
     }
@@ -153,14 +165,16 @@ void SpikingNetwork::assignNeurons() {
         for (int i = m_poolingNeurons[ind].getX(); i < m_poolingNeurons[ind].getX() + conf.Neuron2Width; i++) {
             for (int j = m_poolingNeurons[ind].getY(); j < m_poolingNeurons[ind].getY() + conf.Neuron2Height; j++) {
                 for (int k = 0; k < conf.L1Depth; ++k) {
-                    m_poolingRetina[static_cast<unsigned int>(i * conf.L1Height * conf.L1Depth + j * conf.L1Depth + k)].push_back(ind);
+                    auto neuron = static_cast<unsigned int>(i * conf.L1Height * conf.L1Depth + j * conf.L1Depth + k);
+                    m_poolingRetina[neuron].push_back(ind);
+                    m_poolingNeurons[ind].m_connections(k, j - m_poolingNeurons[ind].getY(), i - m_poolingNeurons[ind].getX()) = neuron;
                 }
             }
         }
     }
 }
 
-void SpikingNetwork::updateNeuronsParameters() {
+void SpikingNetwork::updateNeuronsParameters(const long time) {
     for (auto &neuron : m_neurons) {
         neuron.thresholdAdaptation();
     }
@@ -194,6 +208,7 @@ void SpikingNetwork::updateDisplay(long time, std::map<std::string, cv::Mat> &di
 }
 
 void SpikingNetwork::weightDisplay(cv::Mat &display) {
+    cv::Mat temp = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
     if (m_nbNeurons > 0) {
         double weight;
         for (int x = 0; x < conf.Neuron1Width; ++x) {
@@ -202,14 +217,16 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
                     weight = m_neurons[Selection::INDEX].getWeights(p, static_cast<int>(Selection::SYNAPSE), x, y) * 255;
                     if (weight > 255) { weight = 255; }
                     if (weight < 0) { weight = 0; }
-                    display.at<cv::Vec3b>(y, x)[2 - p] = static_cast<unsigned char>(weight);
+                    temp.at<cv::Vec3b>(y, x)[2 - p] = static_cast<unsigned char>(weight);
                 }
             }
         }
     }
+    cv::resize(temp, display, display.size(), 0, 0, cv::INTER_NEAREST);
 }
 
 void SpikingNetwork::weight2Display(cv::Mat &display) {
+    cv::Mat temp = cv::Mat::zeros(conf.Neuron2Height, conf.Neuron2Width, CV_8UC3);
     if (m_nbPoolingNeurons > 0) {
         double weight;
         for (int x = 0; x < conf.Neuron2Width; ++x) {
@@ -217,10 +234,11 @@ void SpikingNetwork::weight2Display(cv::Mat &display) {
                 weight = m_poolingNeurons[Selection::INDEX2].getWeights(x, y, Selection::LAYER) * 255;
                 if (weight > 255) { weight = 255; }
                 if (weight < 0) { weight = 0; }
-                display.at<cv::Vec3b>(y, x)[0] = static_cast<unsigned char>(weight);
+                temp.at<cv::Vec3b>(y, x)[0] = static_cast<unsigned char>(weight);
             }
         }
     }
+    cv::resize(temp, display, display.size(), 0, 0, cv::INTER_NEAREST);
 }
 
 void SpikingNetwork::spikingDisplay(cv::Mat &display) {
@@ -288,13 +306,13 @@ void SpikingNetwork::saveWeights() {
     int count = 0;
     std::string fileName;
     for (auto &neuron : m_neurons) {
-        fileName = conf.SAVE_DATA_LOCATION + "neuron_" + std::to_string(count);
+        fileName = conf.SaveDataLocation + "weights/simple_cells/" + std::to_string(count);
         neuron.saveState(fileName);
         ++count;
     }
     count = 0;
     for (auto &neuron : m_poolingNeurons) {
-        fileName = conf.SAVE_DATA_LOCATION + "pooling_neuron_" + std::to_string(count);
+        fileName = conf.SaveDataLocation + "weights/complex_cells/" + std::to_string(count);
         neuron.saveState(fileName);
         ++count;
     }
@@ -304,13 +322,13 @@ void SpikingNetwork::loadWeights() {
     int count = 0;
     std::string fileName;
     for (auto &neuron : m_neurons) {
-        fileName = conf.SAVE_DATA_LOCATION + "neuron_" + std::to_string(count);
+        fileName = conf.SaveDataLocation + "weights/simple_cells/" + std::to_string(count);
         neuron.loadState(fileName);
         ++count;
     }
     count = 0;
     for (auto &neuron : m_poolingNeurons) {
-        fileName = conf.SAVE_DATA_LOCATION + "pooling_neuron_" + std::to_string(count);
+        fileName = conf.SaveDataLocation + "weights/complex_cells/" + std::to_string(count);
         neuron.loadState(fileName);
         ++count;
     }

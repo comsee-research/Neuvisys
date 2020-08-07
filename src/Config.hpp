@@ -41,9 +41,9 @@ public:
     void loadNetworkLayout(std::string &fileName);
 
     /***** Display parameters *****/
-    bool SAVE_DATA{};
-    std::string SAVE_DATA_LOCATION;
     std::string NETWORK_CONFIG;
+    bool SaveData{};
+    std::string SaveDataLocation;
 
     /***** Spiking Neural Network layout parameters *****/
     std::string Neuron1Config;
@@ -92,6 +92,8 @@ public:
 
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV
+
+    bool STDP_LEARNING{};
 private:
     void loadNeuronsParameters(std::string &fileName);
     void loadPoolingNeuronsParameters(std::string &fileName);

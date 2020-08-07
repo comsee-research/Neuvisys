@@ -14,8 +14,6 @@ void NetworkConfig::loadConfiguration(std::string &fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
-            SAVE_DATA = conf["SAVE_DATA"];
-            SAVE_DATA_LOCATION = conf["SAVE_DATA_LOCATION"];
             NETWORK_CONFIG = conf["NETWORK_CONFIG"];
         } catch (const std::exception& e) {
             std::cerr << "In Main config file" << std::endl;
@@ -52,6 +50,8 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
             Neuron2Height = conf["Neuron2Height"];
 
             WeightSharing = conf["WeightSharing"];
+            SaveData = conf["SaveData"];
+            SaveDataLocation = conf["SaveDataLocation"];
         } catch (const std::exception& e) {
             std::cerr << "In Network config file" << std::endl;
             throw;
@@ -95,6 +95,7 @@ void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
             DECAY_FACTOR = conf["DECAY_FACTOR"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
+            STDP_LEARNING = conf["STDP_LEARNING"];
         } catch (const std::exception& e) {
             std::cerr << "In Neuron config file" << std::endl;
             throw;
@@ -118,6 +119,7 @@ void NeuronConfig::loadPoolingNeuronsParameters(std::string &fileName) {
             VTHRESH = conf["VTHRESH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            STDP_LEARNING = conf["STDP_LEARNING"];
         } catch (const std::exception& e) {
             std::cerr << "In Pooling Neuron config file" << std::endl;
             throw;
