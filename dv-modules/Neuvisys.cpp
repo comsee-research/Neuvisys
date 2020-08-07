@@ -14,7 +14,6 @@ public:
     Neuvisys() {
         /***** Initialize Network *****/
         lastTime = 0;
-
         /***** Displays *****/
         outputs.getEventOutput("frames").setup(Conf::WIDTH, Conf::HEIGHT, "frames");
         displays["frames"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
