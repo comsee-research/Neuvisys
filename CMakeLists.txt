@@ -27,6 +27,9 @@ project(neuvisys-dv
         VERSION 1.0.0
         LANGUAGES C CXX)
 
+message(STATUS "BLAS VENDOR:    " ${BLA_VENDOR})
+message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
+
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
 find_package(OpenCV REQUIRED)

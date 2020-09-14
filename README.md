@@ -9,6 +9,7 @@ It offers a direct link with Inivation DV software so that it can be used with o
 ### Neuvisys library:
 install **xtensor** -> https://xtensor.readthedocs.io/en/latest/installation.html
 install **xtensor-blas** -> https://github.com/xtensor-stack/xtensor-blas
+(You may need to install BLAS and LAPACK libraries with ``sudo apt install libblas-dev liblapack-dev``)
 ### DV software:
 install **dv-software**: https://inivation.gitlab.io/dv/dv-docs/docs/getting-started.html
 
@@ -20,6 +21,7 @@ To compile the Neuvisys library:
 - Run ``cmake .`` in the directory folder
 or
 - Run ``mkdir cmake-build-release`` , ``cd cmake-build-release``, ``cmake ..``
+
 - Run ``make``
 
 You can test if the software is working properly by running ``./neuvisys-test``

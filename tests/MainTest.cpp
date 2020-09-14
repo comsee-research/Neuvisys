@@ -40,7 +40,7 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
 }
 
 void spikingNetwork(std::string filePath) {
-    std::cout << "Initializing Network, " << "File: " << filePath << std::endl;
+    std::cout << "Initializing Network, " << "Event file: " << filePath << std::endl;
     std::string confFile = Conf::CONF_FILE;
     NetworkConfig config = NetworkConfig(confFile);
     SpikingNetwork spinet(config);
