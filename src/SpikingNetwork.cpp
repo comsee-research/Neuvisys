@@ -38,13 +38,13 @@ void SpikingNetwork::addEvent(const long timestamp, const int x, const int y, co
     for (size_t ind : m_retina[static_cast<unsigned int>(x * Conf::HEIGHT + y)]) {
         m_neurons[ind].newEvent(timestamp, x - m_neurons[ind].getX(), y - m_neurons[ind].getY(), polarity);
 
-//        if (ind == Selection::INDEX2) {
-////            m_potentials.push_back(m_neurons[Selection::IND].getPotential(timestamp));
-//            m_potentials.push_back(m_poolingNeurons[Selection::INDEX2].getPotential(timestamp));
-//            m_potentials.pop_front();
-//            m_timestamps.push_back(timestamp);
-//            m_timestamps.pop_front();
-//        }
+        if (ind == Selection::INDEX2) {
+//            m_potentials.push_back(m_neurons[Selection::IND].getPotential(timestamp));
+            m_potentials.push_back(m_poolingNeurons[Selection::INDEX2].getPotential(timestamp));
+            m_potentials.pop_front();
+            m_timestamps.push_back(timestamp);
+            m_timestamps.pop_front();
+        }
     }
 }
 

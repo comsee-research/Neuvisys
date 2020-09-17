@@ -88,8 +88,8 @@ inline void Neuron::inhibition() {
 void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
     xt::dump_npy(fileName + "_conn.npy", m_connections);
-
     json state;
+
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;

@@ -23,47 +23,68 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
     int count = 0;
     auto *events = array.data<double>();
     for (size_t i = 0; i < 4*array.shape[0]; i += 4) {
-        spinet.addEvent(events[i], events[i+1], events[i+2], events[i+3]);
+        spinet.addEvent(static_cast<long>(events[i]), static_cast<int>(events[i + 1]), static_cast<int>(events[i + 2]),
+                        static_cast<bool>(events[i + 3]));
 
         if (count % 1000 == 0) {
-            spinet.updateNeurons(events[i]);
+            spinet.updateNeurons(static_cast<long>(events[i]));
         }
 //        if (count % 30000 == 0) {
 //            spinet.updateDisplay(event.timestamp(), displays);
 //        }
         if (count % 1000000 == 0) {
             std::cout << 100 * static_cast<size_t>(count) / array.shape[0] << "%" << std::endl;
-            spinet.updateNeuronsParameters(events[i]);
+            spinet.updateNeuronsParameters(static_cast<long>(events[i]));
         }
         ++count;
     }
 }
 
-void spikingNetwork(std::string filePath) {
-    std::cout << "Initializing Network, " << "Event file: " << filePath << std::endl;
+cnpy::NpyArray loadEvents(std::string filePath) {
+    std::cout << "Loading Events" << " (file: " << filePath << ")" << std::endl;
+    return cnpy::npy_load(std::move(filePath));
+}
+
+void testSpikingNetwork(std::string &filePath) {
+    auto array = loadEvents(filePath);
+
     std::string confFile = Conf::CONF_FILE;
     NetworkConfig config = NetworkConfig(confFile);
+
+    std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
     init_display(config, displays);
 
-    std::cout << "Loading Events" << std::endl;
-    cnpy::NpyArray array = cnpy::npy_load(std::move(filePath));
-
     std::cout << "Launching training" << std::endl;
-    auto start = std::chrono::system_clock::now();
     main_loop(array, spinet, displays);
-    auto end = std::chrono::system_clock::now();
+}
 
-    std::chrono::duration<double> elapsed_seconds = end - start;
-    std::cout << "elapsed time: " << elapsed_seconds.count() << std::endl;
+void tailoredSpikingNetwork() {
+    auto array_h = loadEvents("/home/thomas/Vidéos/samples/npy/bars_horizontal.npy");
+    auto array_v = loadEvents("/home/thomas/Vidéos/samples/npy/bars_vertical.npy");
+
+    std::string confFile = Conf::CONF_FILE;
+    NetworkConfig config = NetworkConfig(confFile);
+
+    for (int j = 0; j < 9; ++j) {
+        std::cout << "Pass " << j+1 << std::endl;
+
+        std::cout << "Initializing Network " << std::endl;
+        SpikingNetwork spinet(config);
+        std::map<std::string, cv::Mat> displays;
+        //init_display(config, displays);
+
+        std::cout << "Launching training" << std::endl;
+        main_loop(array_v, spinet, displays);
+    }
 }
 
 int main(int argc, char *argv[]) {
     if (argc > 1) {
         std::string filePath(argv[1]);
-        spikingNetwork(filePath);
+        testSpikingNetwork(filePath);
     } else {
-        std::cerr << "Too few arguments" << std::endl;
+        tailoredSpikingNetwork();
     }
 }
