@@ -36,6 +36,9 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
             std::cout << 100 * static_cast<size_t>(count) / array.shape[0] << "%" << std::endl;
             spinet.updateNeuronsParameters(static_cast<long>(events[i]));
         }
+        if (count % 100 == 0) {
+            spinet.trackNeuron(static_cast<long>(events[i]));
+        }
         ++count;
     }
 }
@@ -63,20 +66,27 @@ void testSpikingNetwork(std::string &filePath) {
 void tailoredSpikingNetwork() {
     auto array_h = loadEvents("/home/thomas/Vidéos/samples/npy/bars_horizontal.npy");
     auto array_v = loadEvents("/home/thomas/Vidéos/samples/npy/bars_vertical.npy");
+//    auto array = loadEvents("/home/thomas/Vidéos/samples/npy/shape_slow_hovering.npy");
 
     std::string confFile = Conf::CONF_FILE;
     NetworkConfig config = NetworkConfig(confFile);
 
-    for (int j = 0; j < 9; ++j) {
-        std::cout << "Pass " << j+1 << std::endl;
+    for (int inp = 0; inp < 4; ++inp) {
+        for (int ite = 0; ite < 5; ++ite) {
+            std::cout << "Pass " << ite+1 << ", Input: " << inp % 2 << std::endl;
 
-        std::cout << "Initializing Network " << std::endl;
-        SpikingNetwork spinet(config);
-        std::map<std::string, cv::Mat> displays;
-        //init_display(config, displays);
+            std::cout << "Initializing Network " << std::endl;
+            SpikingNetwork spinet(config);
+            std::map<std::string, cv::Mat> displays;
+            //init_display(config, displays);
 
-        std::cout << "Launching training" << std::endl;
-        main_loop(array_v, spinet, displays);
+            std::cout << "Launching training" << std::endl;
+            if (inp % 2 == 0) {
+                main_loop(array_h, spinet, displays);
+            } else {
+                main_loop(array_v, spinet, displays);
+            }
+        }
     }
 }
 

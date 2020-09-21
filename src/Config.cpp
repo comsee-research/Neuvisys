@@ -40,8 +40,18 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
             L2Width = conf["L2Width"];
             L2Height = conf["L2Height"];
 
-            L1XAnchor = conf["L1XAnchor"];
-            L1YAnchor = conf["L1YAnchor"];
+            for (const auto& x : conf["L1XAnchor"]) {
+                L1XAnchor.push_back(x);
+            }
+            for (const auto& y : conf["L1YAnchor"]) {
+                L1YAnchor.push_back(y);
+            }
+            for (const auto& x2 : conf["L2XAnchor"]) {
+                L2XAnchor.push_back(x2);
+            }
+            for (const auto& y2 : conf["L2YAnchor"]) {
+                L2YAnchor.push_back(y2);
+            }
             Neuron1Width = conf["Neuron1Width"];
             Neuron1Height = conf["Neuron1Height"];
             Neuron1Synapses = conf["Neuron1Synapses"];
@@ -119,6 +129,7 @@ void NeuronConfig::loadPoolingNeuronsParameters(std::string &fileName) {
             VTHRESH = conf["VTHRESH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            DECAY_FACTOR = conf["DECAY_FACTOR"];
             STDP_LEARNING = conf["STDP_LEARNING"];
         } catch (const std::exception& e) {
             std::cerr << "In Pooling Neuron config file" << std::endl;

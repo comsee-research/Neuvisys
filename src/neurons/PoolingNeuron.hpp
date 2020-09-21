@@ -6,6 +6,7 @@
 #include "Neuron.hpp"
 
 class PoolingNeuron : public Neuron {
+protected:
     boost::circular_buffer<NeuronEvent> m_events;
 public:
     PoolingNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);

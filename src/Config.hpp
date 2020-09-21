@@ -54,8 +54,10 @@ public:
     int L2Width{};
     int L2Height{};
 
-    int L1XAnchor{};
-    int L1YAnchor{};
+    std::vector<int> L1XAnchor;
+    std::vector<int> L1YAnchor;
+    std::vector<int> L2XAnchor;
+    std::vector<int> L2YAnchor;
     int Neuron1Width{};
     int Neuron1Height{};
     int Neuron1Synapses{};

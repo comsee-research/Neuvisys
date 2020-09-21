@@ -9,29 +9,30 @@
 
 class SpikingNetwork {
     NetworkConfig &conf;
-    NeuronConfig m_neuronConf;
-    NeuronConfig m_poolingNeuronConf;
+    NeuronConfig m_simpleNeuronConf;
+    NeuronConfig m_complexNeuronConf;
 
-    std::vector<xt::xarray<double>> m_sharedWeights;
-    std::vector<xt::xarray<double>> m_sharedWeightsPooling;
+    std::vector<xt::xarray<double>> m_sharedWeightsSimple;
+    std::vector<xt::xarray<double>> m_sharedWeightsComplex;
 
-    std::vector<SpatioTemporalNeuron> m_neurons;
-    std::vector<PoolingNeuron> m_poolingNeurons;
-    std::vector<std::vector<size_t>> m_retina;
-    std::vector<std::vector<size_t>> m_poolingRetina;
+    std::vector<SpatioTemporalNeuron> m_simpleNeurons;
+    std::vector<PoolingNeuron> m_complexNeurons;
+    std::vector<std::vector<size_t>> m_simpleRetina;
+    std::vector<std::vector<size_t>> m_complexRetina;
 
     std::vector<Position> m_layout1;
     std::vector<Position> m_layout2;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
-    std::vector<size_t> m_spikes;
-    std::vector<size_t> m_poolingSpikes;
+    std::vector<size_t> m_simpleSpikes;
+    std::vector<size_t> m_complexSpikes;
 
-    size_t m_nbNeurons;
-    size_t m_nbPoolingNeurons;
+    size_t m_nbSimpleNeurons;
+    size_t m_nbComplexNeurons;
 
-    Luts m_luts;
+    Luts m_simpleluts;
+    Luts m_complexluts;
     GnuplotPipe gp = GnuplotPipe(false);
 public:
     explicit SpikingNetwork(NetworkConfig &conf);
@@ -45,14 +46,13 @@ public:
     void loadWeights();
     SpatioTemporalNeuron getNeuron(unsigned long index);
 
-    [[nodiscard]] size_t getNumberNeurons() const {return m_nbNeurons;}
-    [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbPoolingNeurons;}
+    [[nodiscard]] size_t getNumberNeurons() const {return m_nbSimpleNeurons;}
+    [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbComplexNeurons;}
+    void trackNeuron(long time);
 private:
     void generateWeightSharing();
     void generateNeuronConfiguration();
     void assignNeurons();
-    void simpleConfiguration();
-    void weightSharingConfiguration();
 
     [[maybe_unused]] void potentialDisplay();
     void weightDisplay(cv::Mat &display);

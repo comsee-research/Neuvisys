@@ -73,7 +73,10 @@ inline void SpatioTemporalNeuron::updateSTDP() {
     }
 
     normalizeWeights();
-    m_learningDecay *= conf.DECAY_FACTOR;
+    m_learningDecay -= conf.DECAY_FACTOR;
+    if (m_learningDecay < 0) {
+        m_learningDecay = 0;
+    }
 }
 
 inline void SpatioTemporalNeuron::normalizeWeights() {

@@ -12,7 +12,8 @@ inline void PoolingNeuron::newEvent(const long timestamp, const int x, const int
 
 inline void PoolingNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int z) {
     potentialDecay(timestamp - m_timestampLastEvent);
-    m_potential += m_weights(z, y, x);
+    m_potential += m_weights(z, y, x)
+                - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
 
     if (m_potential > m_threshold) {
@@ -28,7 +29,7 @@ inline void PoolingNeuron::spike(const long time) {
     ++m_totalSpike;
     m_potential = conf.VRESET;
 
-//    spikeRateAdaptation();
+    spikeRateAdaptation();
     if (conf.STDP_LEARNING) {
         updateSTDP();
     }
@@ -41,7 +42,7 @@ inline void PoolingNeuron::spike(const long time) {
 inline void PoolingNeuron::updateSTDP() {
     for (NeuronEvent &event : m_events) {
         if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
-            m_weights(event.z(), event.y(), event.x()) += conf.DELTA_VP;
+            m_weights(event.z(), event.y(), event.x()) += m_learningDecay * conf.DELTA_VP;
         }
 
         if (m_weights(event.z(), event.y(), event.x()) < 0) {
@@ -50,6 +51,10 @@ inline void PoolingNeuron::updateSTDP() {
     }
 
     normalizeWeights();
+    m_learningDecay -= conf.DECAY_FACTOR;
+    if (m_learningDecay < 0) {
+        m_learningDecay = 0;
+    }
 }
 
 inline void PoolingNeuron::normalizeWeights() {

@@ -29,6 +29,7 @@ protected:
 
     // Tracking Variables
     std::vector<long> m_spikeTrain;
+    std::vector<std::pair<double, long>> m_potentialTrain;
 public:
     xt::xarray<size_t> m_connections;
 
@@ -57,6 +58,7 @@ public:
     virtual void update(long time) {};
     virtual double getWeights(int x, int y, int z) {};
     virtual double getWeights(int p, int s, int x, int y) {};
+    virtual void track(long time);
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP
