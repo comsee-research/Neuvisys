@@ -3,8 +3,8 @@
 
 #include <vector>
 #include <array>
-#include <src/neurons/PoolingNeuron.hpp>
-#include "src/neurons/SpatioTemporalNeuron.hpp"
+#include <src/neurons/ComplexNeuron.hpp>
+#include "src/neurons/SimpleNeuron.hpp"
 #include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
@@ -15,8 +15,8 @@ class SpikingNetwork {
     std::vector<xt::xarray<double>> m_sharedWeightsSimple;
     std::vector<xt::xarray<double>> m_sharedWeightsComplex;
 
-    std::vector<SpatioTemporalNeuron> m_simpleNeurons;
-    std::vector<PoolingNeuron> m_complexNeurons;
+    std::vector<SimpleNeuron> m_simpleNeurons;
+    std::vector<ComplexNeuron> m_complexNeurons;
     std::vector<std::vector<size_t>> m_simpleRetina;
     std::vector<std::vector<size_t>> m_complexRetina;
 
@@ -44,7 +44,7 @@ public:
     void updateNeuronsParameters(long time);
     void saveWeights();
     void loadWeights();
-    SpatioTemporalNeuron getNeuron(unsigned long index);
+    SimpleNeuron getNeuron(unsigned long index);
 
     [[nodiscard]] size_t getNumberNeurons() const {return m_nbSimpleNeurons;}
     [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbComplexNeurons;}

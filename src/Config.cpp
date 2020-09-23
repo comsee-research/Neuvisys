@@ -39,6 +39,7 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
             L1Depth = conf["L1Depth"];
             L2Width = conf["L2Width"];
             L2Height = conf["L2Height"];
+            L2Depth = conf["L2Depth"];
 
             for (const auto& x : conf["L1XAnchor"]) {
                 L1XAnchor.push_back(x);

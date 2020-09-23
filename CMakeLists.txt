@@ -60,8 +60,8 @@ add_library(neuvisys SHARED
         dv-modules/Neuvisys.cpp
         src/SpikingNetwork.cpp
         src/neurons/Neuron.cpp
-        src/neurons/SpatioTemporalNeuron.cpp
-        src/neurons/PoolingNeuron.cpp
+        src/neurons/SimpleNeuron.cpp
+        src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
 target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
@@ -72,8 +72,8 @@ add_executable(neuvisys-test
         tests/MainTest.cpp
         src/SpikingNetwork.cpp
         src/neurons/Neuron.cpp
-        src/neurons/SpatioTemporalNeuron.cpp
-        src/neurons/PoolingNeuron.cpp
+        src/neurons/SimpleNeuron.cpp
+        src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
 target_link_libraries(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)

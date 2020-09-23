@@ -53,6 +53,7 @@ public:
     int L1Depth{};
     int L2Width{};
     int L2Height{};
+    int L2Depth{};
 
     std::vector<int> L1XAnchor;
     std::vector<int> L1YAnchor;
