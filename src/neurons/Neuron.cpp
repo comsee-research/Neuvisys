@@ -3,18 +3,18 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights) :
+Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights) :
+    m_index(index),
     conf(conf),
+    m_pos(pos),
+    m_offset(offset),
     m_weights(weights),
     m_recentSpikes(std::list<int>(Conf::TIME_WINDOW_SR)),
     m_luts(luts),
     m_spikeTrain(std::vector<long>(0)) {
-    m_x = x;
-    m_y = y;
     m_threshold = conf.VTHRESH;
     m_learningDecay = 1.0;
     m_spike = false;
-    m_connections = xt::zeros<size_t>(m_weights.shape());
 }
 
 inline double Neuron::getPotential(const long time) {
@@ -87,9 +87,22 @@ inline void Neuron::inhibition() {
 
 void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
-    xt::dump_npy(fileName + "_conn.npy", m_connections);
     json state;
 
+    std::vector<int> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
+    std::vector<int> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
+    std::vector<size_t> inIndex;
+    std::vector<size_t> outIndex;
+    for (auto neuron : m_inConnections) {
+        inIndex.push_back(neuron.get().getIndex());
+    }
+    for (auto neuron : m_outConnections) {
+        outIndex.push_back(neuron.get().getIndex());
+    }
+    state["position"] = position;
+    state["offset"] = offset;
+    state["in_connections"] = inIndex;
+    state["out_connections"] = outIndex;
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;
@@ -146,5 +159,6 @@ void Neuron::loadState(std::string &fileName) {
 }
 
 void Neuron::track(const long time) {
-    m_potentialTrain.emplace_back(m_potential, time);
+    double potential = getPotential(time);
+    m_potentialTrain.emplace_back(potential, time);
 }

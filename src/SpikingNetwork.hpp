@@ -17,11 +17,10 @@ class SpikingNetwork {
 
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
-    std::vector<std::vector<size_t>> m_simpleRetina;
-    std::vector<std::vector<size_t>> m_complexRetina;
+    std::vector<std::vector<size_t>> m_retina;
 
-    std::vector<Position> m_layout1;
-    std::vector<Position> m_layout2;
+    xt::xarray<size_t> m_layout1;
+    xt::xarray<size_t> m_layout2;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
@@ -44,8 +43,8 @@ public:
     void updateNeuronsParameters(long time);
     void saveWeights();
     void loadWeights();
-    SimpleNeuron getNeuron(unsigned long index);
 
+    SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
     [[nodiscard]] size_t getNumberNeurons() const {return m_nbSimpleNeurons;}
     [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbComplexNeurons;}
     void trackNeuron(long time);

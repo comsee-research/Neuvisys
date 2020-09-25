@@ -1,7 +1,7 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses) :
-    Neuron(conf, luts, x, y, weights),
+SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights, int nbSynapses) :
+    Neuron(index,conf, luts, pos, offset, weights),
     m_events(boost::circular_buffer<Event>(1000)),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (int synapse = 0; synapse < nbSynapses; synapse++) {

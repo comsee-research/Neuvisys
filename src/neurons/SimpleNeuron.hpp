@@ -19,7 +19,7 @@ class SimpleNeuron : public Neuron {
     boost::circular_buffer<Event> m_events;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
-    SimpleNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights, int nbSynapses);
+    SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights, int nbSynapses);
     void newEvent(long timestamp, int x, int y, bool polarity) override;
     void update(long time) override;
     double getWeights(int p, int s, int x, int y) override;

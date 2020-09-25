@@ -28,6 +28,7 @@ class Position {
 public:
     Position() = default;
     inline Position(int x, int y, int z) : m_posx(x), m_posy(y), m_posz(z) {}
+    inline Position(int x, int y) : m_posx(x), m_posy(y), m_posz(0) {}
     [[nodiscard]] inline int posx() const {return m_posx;}
     [[nodiscard]] inline int posy() const {return m_posy;}
     [[nodiscard]] inline int posz() const {return m_posz;}

@@ -9,7 +9,7 @@ class ComplexNeuron : public Neuron {
 protected:
     boost::circular_buffer<NeuronEvent> m_events;
 public:
-    ComplexNeuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
+    ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights);
     void newEvent(long timestamp, int x, int y, int z) override;
     double getWeights(int x, int y, int z) override;
 private:

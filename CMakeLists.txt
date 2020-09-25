@@ -78,8 +78,13 @@ add_executable(neuvisys-test
         src/Config.cpp)
 target_link_libraries(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
 
-##### EventAnalysis Module #####
-add_library(event-analysis SHARED
-        dv-modules/EventAnalysis.cpp)
-target_link_libraries(event-analysis PRIVATE ${DV_LIBRARIES})
-install(TARGETS event-analysis DESTINATION ${DV_MODULES_DIR})
+##### EventAnalysis Executable #####
+add_executable(event-analysis
+        dv-modules/EventAnalysis.cpp
+        src/SpikingNetwork.cpp
+        src/neurons/Neuron.cpp
+        src/neurons/SimpleNeuron.cpp
+        src/neurons/ComplexNeuron.cpp
+        src/Utils.cpp
+        src/Config.cpp)
+target_link_libraries(event-analysis ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)

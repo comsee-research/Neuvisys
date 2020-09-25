@@ -7,11 +7,14 @@
 
 class Neuron {
 protected:
+    size_t m_index;
     NeuronConfig &conf;
-    int m_x;
-    int m_y;
+    Position m_pos{};
+    Position m_offset{};
     xt::xarray<double> &m_weights;
     std::list<int> m_recentSpikes;
+    std::vector<std::reference_wrapper<Neuron>> m_outConnections;
+    std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     long m_spikingTime{};
     long m_lastSpikingTime{};
     int m_totalSpike{};
@@ -31,16 +34,17 @@ protected:
     std::vector<long> m_spikeTrain;
     std::vector<std::pair<double, long>> m_potentialTrain;
 public:
-    xt::xarray<size_t> m_connections;
-
-    Neuron(NeuronConfig &conf, Luts &luts, int x, int y, xt::xarray<double> &weights);
-    virtual int getX() {return m_x;}
-    virtual int getY() {return m_y;}
-    virtual double getThreshold() {return m_threshold;}
-    virtual double getSpikingRate() {return m_spikingRate;}
-    virtual double getLearningDecay() {return m_learningDecay;}
-    virtual long getSpikingTime() {return m_spikingTime;}
-    virtual double getAdaptationPotential() {return m_adaptation_potential;}
+    Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights);
+    virtual size_t getIndex() { return m_index; }
+    virtual Position getPos() { return m_pos; }
+    virtual Position getOffset() { return m_offset; }
+    virtual double getThreshold() { return m_threshold; }
+    virtual double getSpikingRate() { return m_spikingRate; }
+    virtual double getLearningDecay() { return m_learningDecay; }
+    virtual long getSpikingTime() { return m_spikingTime; }
+    virtual double getAdaptationPotential() { return m_adaptation_potential; }
+    virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() { return m_outConnections; }
+    virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() { return m_inConnections; }
 
     virtual bool hasSpiked();
     virtual double getPotential(long time);
@@ -53,6 +57,8 @@ public:
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
 
+    virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
+    virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
     virtual void newEvent(long timestamp, int x, int y, bool polarity) {};
     virtual void newEvent(long timestamp, int x, int y, int z) {};
     virtual void update(long time) {};
