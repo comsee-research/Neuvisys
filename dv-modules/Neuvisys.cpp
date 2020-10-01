@@ -101,11 +101,13 @@ public:
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
             spinet.updateNeurons(lastTime);
+            spinet.trackNeuron(lastTime);
         }
     }
 
     void computeParameters() {
         spinet.updateNeuronsParameters(lastTime);
+
         json gui;
 
         std::ifstream ifs(Conf::GUI_FILE);

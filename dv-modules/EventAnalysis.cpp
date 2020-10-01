@@ -109,84 +109,22 @@ void rotateEvents(cnpy::NpyArray &array, double degreeOfRotation) {
     }
 }
 
-void presentMultipleRotations() {
-    auto array = loadEvents("/home/thomas/Vidéos/samples/npy/bars_horizontal.npy");
-    std::vector<double> maxResponse;
-
-    for (int degreeOfRotation = -180; degreeOfRotation <= 180; degreeOfRotation += 5) {
-        rotateEvents(array, degreeOfRotation);
-
-        std::cout << "Rotation = " << degreeOfRotation << "°" << std::endl;
-        runSpikingNetwork(array);
-
-        json state;
-        std::ifstream ifs("/home/thomas/neuvisys-dv/configuration/network/weights/complex_cells/0.json");
-        if (ifs.is_open()) {
-            try {
-                ifs >> state;
-            } catch (const std::exception& e) {
-                std::cerr << "Error opening parameters" << std::endl;
-                throw;
-            }
-
-            double moy = 0;
-            for (const auto &potential : state["potential_train"]) {
-                moy += static_cast<double>(potential[0]);
-            }
-            moy /= static_cast<double>(state["potential_train"].size());
-            maxResponse.push_back(moy);
-        } else {
-        std::cout << "cannot open neuron state file" << std::endl;
-        }
-        ifs.close();
-    }
-
-    int rotation = -180;
-    for(const auto &max : maxResponse) {
-        std::cout << rotation << "° = " << max << std::endl;
-        rotation += 5;
-    }
-}
-
-void presentRotations(int degreeOfRotation) {
-    auto array = loadEvents("/home/thomas/Vidéos/samples/npy/bars_horizontal.npy");
-    std::vector<double> maxResponse;
-
+void presentRotation(std::string filePath, double degreeOfRotation) {
+    auto array = loadEvents(std::move(filePath));
+    std::cout << "Rotation " << degreeOfRotation << std::endl;
     rotateEvents(array, degreeOfRotation);
-
-    std::cout << "Rotation = " << degreeOfRotation << "°" << std::endl;
     runSpikingNetwork(array);
-
-    json state;
-    std::ifstream ifs("/home/thomas/neuvisys-dv/configuration/network/weights/complex_cells/0.json");
-    if (ifs.is_open()) {
-        try {
-            ifs >> state;
-        } catch (const std::exception& e) {
-            std::cerr << "Error opening parameters" << std::endl;
-            throw;
-        }
-
-        double moy = 0;
-        for (const auto &potential : state["potential_train"]) {
-            moy += static_cast<double>(potential[0]);
-        }
-        moy /= static_cast<double>(state["potential_train"].size());
-        maxResponse.push_back(moy);
-    } else {
-        std::cout << "cannot open neuron state file" << std::endl;
-    }
-    ifs.close();
-
-    int rotation = -180;
-    for(const auto &max : maxResponse) {
-        std::cout << rotation << "° = " << max << std::endl;
-        rotation += 5;
-    }
 }
 
 int main(int argc, char *argv[]) {
-//    alternateSNN();
-//    presentMultipleRotations();
-    presentRotations(0);
+    if (argc > 2) {
+        if (strcmp(argv[1], "rotation") == 0) {
+            presentRotation(argv[2], std::stod(argv[3]));
+        }
+        if (strcmp(argv[1], "alternate") == 0) {
+            alternateSNN();
+        }
+    } else {
+        std::cout << "too few arguments" << std::endl;
+    }
 }

@@ -14,7 +14,7 @@ namespace Util {
         return xray;
     }
 
-    xt::xarray<double> uniformMatrixPooling(const int row, const int col, const int layer) {
+    xt::xarray<double> uniformMatrixComplex(const int row, const int col, const int layer) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
@@ -30,7 +30,7 @@ namespace Util {
         return xray;
     }
 
-    xt::xarray<double> uniformMatrixSynapses(const int row, const int col, const int nbSynapses) {
+    xt::xarray<double> uniformMatrixSimple(const int row, const int col, const int nbSynapses) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);

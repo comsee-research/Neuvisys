@@ -7,8 +7,8 @@
 
 namespace Util {
     [[maybe_unused]] xt::xarray<double> opencvMatToXarray(cv::Mat &mat, int row, int col);
-    xt::xarray<double> uniformMatrixPooling(int row, int col, int layer);
-    xt::xarray<double> uniformMatrixSynapses(int row, int col, int nbSynapses);
+    xt::xarray<double> uniformMatrixComplex(int row, int col, int layer);
+    xt::xarray<double> uniformMatrixSimple(int row, int col, int nbSynapses);
 }
 
 class Luts {

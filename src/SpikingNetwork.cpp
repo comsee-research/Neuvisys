@@ -87,16 +87,18 @@ void SpikingNetwork::generateWeightSharing() {
     if (conf.WeightSharing) {
         for (size_t patch = 0; patch < conf.L1XAnchor.size() + conf.L1YAnchor.size(); ++patch) {
             for (int j = 0; j < conf.L1Depth; ++j) {
-                m_sharedWeightsSimple.push_back(Util::uniformMatrixSynapses(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
+                m_sharedWeightsSimple.push_back(
+                        Util::uniformMatrixSimple(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
             }
         }
     } else {
         for (size_t i = 0; i < conf.L1XAnchor.size() * conf.L1YAnchor.size() * static_cast<size_t>(conf.L1Width * conf.L1Height * conf.L1Depth); ++i) {
-            m_sharedWeightsSimple.push_back(Util::uniformMatrixSynapses(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
+            m_sharedWeightsSimple.push_back(
+                    Util::uniformMatrixSimple(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
         }
     }
     for (size_t i = 0; i < conf.L2XAnchor.size() * conf.L2YAnchor.size() * static_cast<size_t>(conf.L2Width * conf.L2Height * conf.L2Depth); ++i) {
-        m_sharedWeightsComplex.push_back(Util::uniformMatrixPooling(conf.Neuron2Width, conf.Neuron2Height, conf.L1Depth));
+        m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(conf.Neuron2Width, conf.Neuron2Height, conf.L1Depth));
     }
 }
 
