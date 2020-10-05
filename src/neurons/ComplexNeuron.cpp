@@ -5,12 +5,12 @@ ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Posit
     m_events(boost::circular_buffer<NeuronEvent>(1000)) {
 }
 
-inline void ComplexNeuron::newEvent(const long timestamp, const int x, const int y, const int z) {
+inline void ComplexNeuron::newEvent(const long timestamp, const size_t x, const size_t y, const size_t z) {
     membraneUpdate(timestamp, x, y, z);
     m_events.push_back(NeuronEvent(timestamp, x, y, z));
 }
 
-inline void ComplexNeuron::membraneUpdate(const long timestamp, const int x, const int y, const int z) {
+inline void ComplexNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const size_t z) {
     potentialDecay(timestamp - m_timestampLastEvent);
     m_potential += m_weights(z, y, x)
                 - m_adaptation_potential;
@@ -65,6 +65,6 @@ inline void ComplexNeuron::normalizeWeights() {
     }
 }
 
-double ComplexNeuron::getWeights(int x, int y, int z) {
+double ComplexNeuron::getWeights(size_t x, size_t y, size_t z) {
     return m_weights(z, y, x);
 }

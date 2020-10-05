@@ -37,7 +37,7 @@ public:
     explicit SpikingNetwork(NetworkConfig &conf);
 
     ~SpikingNetwork();
-    void addEvent(long timestamp, int x, int y, bool polarity);
+    void addEvent(long timestamp, size_t x, size_t y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::map<std::string, cv::Mat> &displays);
     void updateNeuronsParameters(long time);
@@ -60,6 +60,7 @@ private:
     void spiking2Display(cv::Mat &display);
     void multiPotentialDisplay(long time, cv::Mat &display);
     void multiPotential2Display(long time, cv::Mat &display);
+    Position findPixelComplexNeuron(ComplexNeuron &neuron);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

@@ -21,14 +21,14 @@ public:
         displays["potentials"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
         outputs.getFrameOutput("spikes").setup(Conf::WIDTH, Conf::HEIGHT, "spikes");
         displays["spikes"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights").setup(20*conf.Neuron1Width, 20*conf.Neuron1Height, "weights");
-        displays["weights"] = cv::Mat::zeros(20*conf.Neuron1Height, 20*conf.Neuron1Width, CV_8UC3);
-        outputs.getFrameOutput("zoom").setup(conf.Neuron1Width, conf.Neuron1Height, "zoom");
-        displays["zoom"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
+        outputs.getFrameOutput("weights").setup(20 * static_cast<int>(conf.Neuron1Width), 20 * static_cast<int>(conf.Neuron1Height), "weights");
+        displays["weights"] = cv::Mat::zeros(20 * static_cast<int>(conf.Neuron1Height), 20 * static_cast<int>(conf.Neuron1Width), CV_8UC3);
+        outputs.getFrameOutput("zoom").setup(static_cast<int>(conf.Neuron1Width), static_cast<int>(conf.Neuron1Height), "zoom");
+        displays["zoom"] = cv::Mat::zeros(static_cast<int>(conf.Neuron1Height), static_cast<int>(conf.Neuron1Width), CV_8UC3);
         outputs.getFrameOutput("potentials2").setup(Conf::WIDTH, Conf::HEIGHT, "potentials2");
         displays["potentials2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights2").setup(20*conf.Neuron2Width, 20*conf.Neuron2Height, "weights2");
-        displays["weights2"] = cv::Mat::zeros(20*conf.Neuron2Height, 20*conf.Neuron2Width, CV_8UC3);
+        outputs.getFrameOutput("weights2").setup(20 * static_cast<int>(conf.Neuron2Width), 20 * static_cast<int>(conf.Neuron2Height), "weights2");
+        displays["weights2"] = cv::Mat::zeros(20 * static_cast<int>(conf.Neuron2Height), 20 * static_cast<int>(conf.Neuron2Width), CV_8UC3);
         outputs.getFrameOutput("spikes2").setup(Conf::WIDTH, Conf::HEIGHT, "spikes2");
         displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 
@@ -96,7 +96,7 @@ public:
         if (!events.isEmpty()) {
             lastTime = events.getHighestTime();
             for (const dv::Event &event : events) {
-                spinet.addEvent(event.timestamp(), event.x(), event.y(), event.polarity());
+                spinet.addEvent(event.timestamp(), static_cast<size_t>(event.x()), static_cast<size_t>(event.y()), event.polarity());
 
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }

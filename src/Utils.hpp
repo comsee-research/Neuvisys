@@ -6,9 +6,9 @@
 #include "xtensor-blas/xlinalg.hpp"
 
 namespace Util {
-    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(cv::Mat &mat, int row, int col);
-    xt::xarray<double> uniformMatrixComplex(int row, int col, int layer);
-    xt::xarray<double> uniformMatrixSimple(int row, int col, int nbSynapses);
+    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(cv::Mat &mat, size_t row, size_t col);
+    xt::xarray<double> uniformMatrixComplex(size_t row, size_t col, size_t layer);
+    xt::xarray<double> uniformMatrixSimple(size_t row, size_t col, size_t nbSynapses);
 }
 
 class Luts {
@@ -22,16 +22,16 @@ private:
 };
 
 class Position {
-    int m_posx;
-    int m_posy;
-    int m_posz;
+    size_t m_posx;
+    size_t m_posy;
+    size_t m_posz;
 public:
     Position() = default;
-    inline Position(int x, int y, int z) : m_posx(x), m_posy(y), m_posz(z) {}
-    inline Position(int x, int y) : m_posx(x), m_posy(y), m_posz(0) {}
-    [[nodiscard]] inline int posx() const {return m_posx;}
-    [[nodiscard]] inline int posy() const {return m_posy;}
-    [[nodiscard]] inline int posz() const {return m_posz;}
+    inline Position(size_t x, size_t y, size_t z) : m_posx(x), m_posy(y), m_posz(z) {}
+    inline Position(size_t x, size_t y) : m_posx(x), m_posy(y), m_posz(0) {}
+    [[nodiscard]] inline size_t posx() const {return m_posx;}
+    [[nodiscard]] inline size_t posy() const {return m_posy;}
+    [[nodiscard]] inline size_t posz() const {return m_posz;}
 };
 
 #endif //NEUVISYS_DV_UTILS_HPP

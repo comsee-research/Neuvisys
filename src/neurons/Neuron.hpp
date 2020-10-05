@@ -12,13 +12,13 @@ protected:
     Position m_pos{};
     Position m_offset{};
     xt::xarray<double> &m_weights;
-    std::list<int> m_recentSpikes;
+    std::list<size_t> m_recentSpikes;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     long m_spikingTime{};
     long m_lastSpikingTime{};
-    int m_totalSpike{};
-    int m_countSpike{};
+    size_t m_totalSpike{};
+    size_t m_countSpike{};
     double m_learningDecay;
     double m_potential{};
     double m_adaptation_potential{};
@@ -59,11 +59,11 @@ public:
 
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
-    virtual void newEvent(long timestamp, int x, int y, bool polarity) {};
-    virtual void newEvent(long timestamp, int x, int y, int z) {};
+    virtual void newEvent(long timestamp, size_t x, size_t y, bool polarity) {};
+    virtual void newEvent(long timestamp, size_t x, size_t y, size_t z) {};
     virtual void update(long time) {};
-    virtual double getWeights(int x, int y, int z) {};
-    virtual double getWeights(int p, int s, int x, int y) {};
+    virtual double getWeights(size_t x, size_t y, size_t z) {};
+    virtual double getWeights(size_t p, size_t s, size_t x, size_t y) {};
     virtual void track(long time);
 };
 

@@ -73,7 +73,7 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
     ifs.close();
 }
 
-NeuronConfig::NeuronConfig(std::string configFile, int type) {
+NeuronConfig::NeuronConfig(std::string configFile, size_t type) {
     if (type == 0) {
         loadNeuronsParameters(configFile);
     } else if (type == 1) {

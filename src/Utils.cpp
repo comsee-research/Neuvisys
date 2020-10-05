@@ -3,10 +3,10 @@
 #include <random>
 
 namespace Util {
-    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(const cv::Mat &mat, const int row, const int col) {
-        xt::xarray<double> xray = xt::zeros<double>({2, row, col});
-        for (int i = 0; i < row; ++i) {
-            for (int j = 0; j < col; ++j) {
+    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(const cv::Mat &mat, const size_t row, const size_t col) {
+        xt::xarray<double> xray = xt::zeros<double>({static_cast<size_t>(2), row, col});
+        for (size_t i = 0; i < row; ++i) {
+            for (size_t j = 0; j < col; ++j) {
                 xray(0, i, j) = mat.at<double>(i, j);
                 xray(1, i, j) = mat.at<double>(i, j);
             }
@@ -14,15 +14,15 @@ namespace Util {
         return xray;
     }
 
-    xt::xarray<double> uniformMatrixComplex(const int row, const int col, const int layer) {
+    xt::xarray<double> uniformMatrixComplex(const size_t row, const size_t col, const size_t layer) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
         xt::xarray<double> xray = xt::zeros<double>({layer, row, col});
-        for (int k = 0; k < layer; ++k) {
-            for (int i = 0; i < row; ++i) {
-                for (int j = 0; j < col; ++j) {
+        for (size_t k = 0; k < layer; ++k) {
+            for (size_t i = 0; i < row; ++i) {
+                for (size_t j = 0; j < col; ++j) {
                     xray(k, i, j) = distribution(generator);
                 }
             }
@@ -30,17 +30,17 @@ namespace Util {
         return xray;
     }
 
-    xt::xarray<double> uniformMatrixSimple(const int row, const int col, const int nbSynapses) {
+    xt::xarray<double> uniformMatrixSimple(const size_t row, const size_t col, const size_t nbSynapses) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-        xt::xarray<double> xray = xt::zeros<double>({2, nbSynapses, row, col});
-        for (int i = 0; i < row; ++i) {
-            for (int j = 0; j < col; ++j) {
-                for (int k = 0; k < 2; ++k) {
+        xt::xarray<double> xray = xt::zeros<double>({static_cast<size_t>(2), nbSynapses, row, col});
+        for (size_t i = 0; i < row; ++i) {
+            for (size_t j = 0; j < col; ++j) {
+                for (size_t k = 0; k < 2; ++k) {
                     double weight = distribution(generator);
-                    for (int l = 0; l < nbSynapses; ++l) {
+                    for (size_t l = 0; l < nbSynapses; ++l) {
                         xray(k, l, i, j) = weight;
                     }
                 }

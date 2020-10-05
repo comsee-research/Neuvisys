@@ -12,22 +12,22 @@ void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays)
     displays["frames"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     displays["potentials"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
     displays["spikes"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-    displays["weights"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
-    displays["zoom"] = cv::Mat::zeros(conf.Neuron1Height, conf.Neuron1Width, CV_8UC3);
+    displays["weights"] = cv::Mat::zeros(static_cast<int>(conf.Neuron1Height), static_cast<int>(conf.Neuron1Width), CV_8UC3);
+    displays["zoom"] = cv::Mat::zeros(static_cast<int>(conf.Neuron1Height), static_cast<int>(conf.Neuron1Width), CV_8UC3);
     displays["potentials2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-    displays["weights2"] = cv::Mat::zeros(conf.Neuron2Height, conf.Neuron2Width, CV_8UC3);
+    displays["weights2"] = cv::Mat::zeros(static_cast<int>(conf.Neuron2Height), static_cast<int>(conf.Neuron2Width), CV_8UC3);
     displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 }
 
 void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::string, cv::Mat> &displays) {
-    int count = 0;
+    size_t count = 0;
     auto *events = array.data<double>();
     for (size_t i = 0; i < 4 * array.shape[0]; i += 4) {
         long timestamp = static_cast<long>(events[i]);
-        int x = static_cast<int>(events[i + 1]), y = static_cast<int>(events[i + 2]);
+        auto x = static_cast<size_t>(events[i + 1]), y = static_cast<size_t>(events[i + 2]);
         bool polarity = static_cast<bool>(events[i + 3]);
 
-        spinet.addEvent(timestamp, x, y,polarity);
+        spinet.addEvent(timestamp, x, y, polarity);
 
         if (count % 1000 == 0) {
             spinet.updateNeurons(timestamp);
@@ -67,10 +67,6 @@ void testSpikingNetwork(std::string &filePath) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc > 1) {
-        std::string filePath(argv[1]);
-        testSpikingNetwork(filePath);
-    } else {
-        std::cout << "too few arguments" << std::endl;
-    }
+    std::string filePath = "/home/thomas/Vidéos/samples/npy/shape_slow_hovering.npy";
+    testSpikingNetwork(filePath);
 }

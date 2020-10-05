@@ -1,20 +1,20 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights, int nbSynapses) :
+SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights, size_t nbSynapses) :
     Neuron(index,conf, luts, pos, offset, weights),
     m_events(boost::circular_buffer<Event>(1000)),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
-    for (int synapse = 0; synapse < nbSynapses; synapse++) {
-        m_delays.push_back(synapse * conf.SYNAPSE_DELAY);
+    for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
+        m_delays.push_back(static_cast<long>(synapse * conf.SYNAPSE_DELAY));
     }
 }
 
-inline void SimpleNeuron::newEvent(const long timestamp, const int x, const int y, const bool polarity) {
+inline void SimpleNeuron::newEvent(const long timestamp, const size_t x, const size_t y, const bool polarity) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         membraneUpdate(timestamp, x, y, polarity, 0);
         m_events.push_back(Event(timestamp, x, y, polarity, 0));
     } else {
-        int synapse = 0;
+        size_t synapse = 0;
         for (auto delay : m_delays) {
             m_waitingList.emplace(timestamp + delay, x, y, polarity, synapse++);
         }
@@ -31,7 +31,7 @@ void SimpleNeuron::update(const long time) {
     }
 }
 
-inline void SimpleNeuron::membraneUpdate(const long timestamp, const int x, const int y, const bool polarity, const int synapse) {
+inline void SimpleNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const bool polarity, const size_t synapse) {
     potentialDecay(timestamp - m_timestampLastEvent);
     adaptationPotentialDecay(timestamp - m_timestampLastEvent);
     m_potential += m_weights(polarity, synapse, y, x)
@@ -73,7 +73,7 @@ inline void SimpleNeuron::updateSTDP() {
     }
 
     normalizeWeights();
-    m_learningDecay = 1 / (1 + exp(m_totalSpike - conf.DECAY_FACTOR));
+//    m_learningDecay = 1 / (1 + exp(m_totalSpike - conf.DECAY_FACTOR));
 }
 
 inline void SimpleNeuron::normalizeWeights() {
@@ -87,6 +87,6 @@ inline void SimpleNeuron::normalizeWeights() {
     }
 }
 
-double SimpleNeuron::getWeights(int p, int s, int x, int y) {
+double SimpleNeuron::getWeights(size_t p, size_t s, size_t x, size_t y) {
     return m_weights(p, s, y, x);
 }

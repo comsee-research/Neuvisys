@@ -9,7 +9,7 @@ Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Posit
     m_pos(pos),
     m_offset(offset),
     m_weights(weights),
-    m_recentSpikes(std::list<int>(Conf::TIME_WINDOW_SR)),
+    m_recentSpikes(std::list<size_t>(Conf::TIME_WINDOW_SR)),
     m_luts(luts),
     m_spikeTrain(std::vector<long>(0)) {
     m_threshold = conf.VTHRESH;
@@ -53,8 +53,8 @@ inline void Neuron::thresholdAdaptation() {
     m_recentSpikes.push_front(m_countSpike);
     m_countSpike = 0;
 
-    for (int count : m_recentSpikes) {
-        m_spikingRate += count;
+    for (size_t count : m_recentSpikes) {
+        m_spikingRate += static_cast<double>(count);
     }
     m_spikingRate /= Conf::TIME_WINDOW_SR;
 
@@ -89,8 +89,8 @@ void Neuron::saveState(std::string &fileName) {
     xt::dump_npy(fileName + ".npy", m_weights);
     json state;
 
-    std::vector<int> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
-    std::vector<int> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
+    std::vector<size_t> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
+    std::vector<size_t> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
     std::vector<size_t> inIndex;
     std::vector<size_t> outIndex;
     for (auto neuron : m_inConnections) {

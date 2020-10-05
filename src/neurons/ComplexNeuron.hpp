@@ -10,10 +10,10 @@ protected:
     boost::circular_buffer<NeuronEvent> m_events;
 public:
     ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights);
-    void newEvent(long timestamp, int x, int y, int z) override;
-    double getWeights(int x, int y, int z) override;
+    void newEvent(long timestamp, size_t x, size_t y, size_t z) override;
+    double getWeights(size_t x, size_t y, size_t z) override;
 private:
-    void membraneUpdate(long timestamp, int x, int y, int z);
+    void membraneUpdate(long timestamp, size_t x, size_t y, size_t z);
     void spike(long time);
     void updateSTDP();
     void normalizeWeights();
