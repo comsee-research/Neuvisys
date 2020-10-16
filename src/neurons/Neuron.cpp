@@ -18,7 +18,7 @@ Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Posit
 }
 
 inline double Neuron::getPotential(const long time) {
-    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
+    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M); // TODO (use LUT)
 }
 
 inline double Neuron::potentialDecay(const long time) {
@@ -136,22 +136,22 @@ void Neuron::loadState(std::string &fileName) {
         try {
             ifs >> state;
         } catch (const std::exception& e) {
-            std::cerr << "In Neuron state file" << std::endl;
+            std::cerr << "In Neuron state file: " << fileName + ".json" << std::endl;
             throw;
         }
-//        m_potential = state["potential"];
         m_totalSpike = state["count_spike"];
         m_threshold = state["threshold"];
         m_creationTime = state["creation_time"];
         m_spikingRate = state["spiking_rate"];
         m_learningDecay = state["learning_decay"];
+//        m_potential = state["potential"];
         m_recentSpikes.clear();
         for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(state["recent_spikes"][i]);
         }
-        for (auto &spikes : state["spike_train"]) {
-            m_spikeTrain.push_back(spikes);
-        }
+//        for (auto &spikes : state["spike_train"]) {
+//            m_spikeTrain.push_back(spikes);
+//        }
     } else {
 //        std::cout << "cannot open neuron state file" << std::endl;
     }
@@ -159,6 +159,8 @@ void Neuron::loadState(std::string &fileName) {
 }
 
 void Neuron::track(const long time) {
-    double potential = getPotential(time);
-    m_potentialTrain.emplace_back(potential, time);
+    if (conf.TRACKING) {
+        double potential = getPotential(time);
+        m_potentialTrain.emplace_back(potential, time);
+    }
 }

@@ -4,6 +4,7 @@
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <xtensor/xarray.hpp>
+#include <xtensor/xview.hpp>
 #include <boost/circular_buffer.hpp>
 #include "src/Config.hpp"
 #include "Neuron.hpp"

@@ -39,7 +39,7 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
             spinet.updateNeuronsParameters(timestamp);
         }
         if (count % 100 == 0) {
-            spinet.trackNeuron(timestamp);
+//            spinet.trackNeuron(timestamp);
         }
         ++count;
     }
@@ -74,14 +74,6 @@ void alternateSNN() {
                 runSpikingNetwork(array_v);
             }
         }
-    }
-}
-
-void multiplePass(std::string filePath, size_t nbPass) {
-    auto array = loadEvents(filePath);
-
-    for (size_t i = 0; i < nbPass; ++i) {
-        runSpikingNetwork(array);
     }
 }
 
@@ -122,6 +114,14 @@ void presentRotation(std::string filePath, double degreeOfRotation) {
     std::cout << "Rotation " << degreeOfRotation << std::endl;
     rotateEvents(array, degreeOfRotation);
     runSpikingNetwork(array);
+}
+
+void multiplePass(std::string filePath, size_t nbPass) {
+    auto array = loadEvents(filePath);
+
+    for (size_t i = 0; i < nbPass; ++i) {
+        runSpikingNetwork(array);
+    }
 }
 
 int main(int argc, char *argv[]) {

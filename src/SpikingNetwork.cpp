@@ -87,12 +87,12 @@ void SpikingNetwork::generateWeightSharing() {
     if (conf.WeightSharing) {
         for (size_t patch = 0; patch < conf.L1XAnchor.size() * conf.L1YAnchor.size(); ++patch) {
             for (size_t j = 0; j < conf.L1Depth; ++j) {
-                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
+                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(conf.Neuron1Width, conf.Neuron1Height, conf.Neuron1Synapses));
             }
         }
     } else {
         for (size_t i = 0; i < conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth; ++i) {
-            m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(conf.Neuron1Height, conf.Neuron1Width, conf.Neuron1Synapses));
+            m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(conf.Neuron1Width, conf.Neuron1Height, conf.Neuron1Synapses));
         }
     }
     for (size_t i = 0; i < conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth; ++i) {
@@ -172,11 +172,15 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
 }
 
 void SpikingNetwork::trackNeuron(const long time) {
-    if (!m_complexNeurons.empty()) {
-        m_complexNeurons[0].track(time);
-    }
     if (!m_simpleNeurons.empty()) {
-//        m_simpleNeurons[16742].track(time);
+        for (auto &neuron : m_simpleNeurons) {
+            neuron.track(time);
+        }
+    }
+    if (!m_complexNeurons.empty()) {
+        for (auto &neuron : m_complexNeurons) {
+            neuron.track(time);
+        }
     }
 }
 
@@ -315,6 +319,8 @@ Position SpikingNetwork::findPixelComplexNeuron(ComplexNeuron &neuron) {
 }
 
 void SpikingNetwork::saveWeights() {
+    xt::dump_npy(conf.SaveDataLocation + "weights/layout1.npy", m_layout1);
+    xt::dump_npy(conf.SaveDataLocation + "weights/layout2.npy", m_layout2);
     size_t count = 0;
     std::string fileName;
     for (auto &neuron : m_simpleNeurons) {

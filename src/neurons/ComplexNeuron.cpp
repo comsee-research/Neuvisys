@@ -12,7 +12,7 @@ inline void ComplexNeuron::newEvent(const long timestamp, const size_t x, const 
 
 inline void ComplexNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const size_t z) {
     potentialDecay(timestamp - m_timestampLastEvent);
-    m_potential += m_weights(z, y, x)
+    m_potential += m_weights(x, y, z)
                 - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
 
@@ -35,18 +35,19 @@ inline void ComplexNeuron::spike(const long time) {
     }
     m_events.clear();
 
-    // Tracking
-//    m_spikeTrain.push_back(time);
+    if (conf.TRACKING) {
+        m_spikeTrain.push_back(time);
+    }
 }
 
 inline void ComplexNeuron::updateSTDP() {
     for (NeuronEvent &event : m_events) {
         if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
-            m_weights(event.z(), event.y(), event.x()) += m_learningDecay * conf.DELTA_VP;
+            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VP;
         }
 
-        if (m_weights(event.z(), event.y(), event.x()) < 0) {
-            m_weights(event.z(), event.y(), event.x()) = 0;
+        if (m_weights(event.x(), event.y(), event.z()) < 0) {
+            m_weights(event.x(), event.y(), event.z()) = 0;
         }
     }
 
@@ -66,5 +67,5 @@ inline void ComplexNeuron::normalizeWeights() {
 }
 
 double ComplexNeuron::getWeights(size_t x, size_t y, size_t z) {
-    return m_weights(z, y, x);
+    return m_weights(x, y, z);
 }

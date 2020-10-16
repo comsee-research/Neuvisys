@@ -97,6 +97,7 @@ public:
     double MIN_THRESH{}; // mV
 
     bool STDP_LEARNING{};
+    bool TRACKING{};
 private:
     void loadNeuronsParameters(std::string &fileName);
     void loadPoolingNeuronsParameters(std::string &fileName);

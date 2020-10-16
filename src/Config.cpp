@@ -107,6 +107,7 @@ void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
+            TRACKING = conf["TRACKING"];
         } catch (const std::exception& e) {
             std::cerr << "In Neuron config file" << std::endl;
             throw;
@@ -128,10 +129,12 @@ void NeuronConfig::loadPoolingNeuronsParameters(std::string &fileName) {
             TAU_LTP = conf["TAU_LTP"];
             TAU_M = conf["TAU_M"];
             VTHRESH = conf["VTHRESH"];
+            DELTA_INH = conf["DELTA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_FACTOR = conf["DECAY_FACTOR"];
             STDP_LEARNING = conf["STDP_LEARNING"];
+            TRACKING = conf["TRACKING"];
         } catch (const std::exception& e) {
             std::cerr << "In Pooling Neuron config file" << std::endl;
             throw;

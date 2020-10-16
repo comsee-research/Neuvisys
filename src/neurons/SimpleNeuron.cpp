@@ -34,7 +34,7 @@ void SimpleNeuron::update(const long time) {
 inline void SimpleNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const bool polarity, const size_t synapse) {
     potentialDecay(timestamp - m_timestampLastEvent);
     adaptationPotentialDecay(timestamp - m_timestampLastEvent);
-    m_potential += m_weights(polarity, synapse, y, x)
+    m_potential += m_weights(polarity, synapse, x, y)
                    - refractoryPotential(timestamp - m_spikingTime)
                    - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
@@ -58,17 +58,18 @@ inline void SimpleNeuron::spike(const long time) {
     }
     m_events.clear();
 
-    // Tracking
-//    m_spikeTrain.push_back(time);
+    if (conf.TRACKING) {
+        m_spikeTrain.push_back(time);
+    }
 }
 
 inline void SimpleNeuron::updateSTDP() {
     for (Event &event : m_events) {
-        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) += m_learningDecay * conf.DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-        m_weights(event.polarity(), event.synapse(), event.y(), event.x()) -= m_learningDecay * conf.DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+        m_weights(event.polarity(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+        m_weights(event.polarity(), event.synapse(), event.x(), event.y()) -= m_learningDecay * conf.DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
-        if (m_weights(event.polarity(), event.synapse(), event.y(), event.x()) < 0) {
-            m_weights(event.polarity(), event.synapse(), event.y(), event.x()) = 0;
+        if (m_weights(event.polarity(), event.synapse(), event.x(), event.y()) < 0) {
+            m_weights(event.polarity(), event.synapse(), event.x(), event.y()) = 0;
         }
     }
 
@@ -77,16 +78,16 @@ inline void SimpleNeuron::updateSTDP() {
 }
 
 inline void SimpleNeuron::normalizeWeights() {
-    for (size_t i = 0; i < 2; ++i) {
-        for (size_t j = 0; j < m_delays.size(); ++j) {
-            double norm = xt::linalg::norm(xt::view(m_weights, i, j));
+    for (size_t p = 0; p < 2; ++p) {
+        for (size_t s = 0; s < m_delays.size(); ++s) {
+            double norm = xt::linalg::norm(xt::view(m_weights, p, s));
             if (norm != 0) {
-                xt::view(m_weights, i, j) = conf.NORM_FACTOR * (xt::view(m_weights, i, j) / norm);
+                xt::view(m_weights, p, s) = conf.NORM_FACTOR * (xt::view(m_weights, p, s) / norm);
             }
         }
     }
 }
 
 double SimpleNeuron::getWeights(size_t p, size_t s, size_t x, size_t y) {
-    return m_weights(p, s, y, x);
+    return m_weights(p, s, x, y);
 }

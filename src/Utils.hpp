@@ -6,9 +6,8 @@
 #include "xtensor-blas/xlinalg.hpp"
 
 namespace Util {
-    [[maybe_unused]] xt::xarray<double> opencvMatToXarray(cv::Mat &mat, size_t row, size_t col);
-    xt::xarray<double> uniformMatrixComplex(size_t row, size_t col, size_t layer);
-    xt::xarray<double> uniformMatrixSimple(size_t row, size_t col, size_t nbSynapses);
+    xt::xarray<double> uniformMatrixComplex(size_t x, size_t y, size_t layer);
+    xt::xarray<double> uniformMatrixSimple(size_t x, size_t y, size_t nbSynapses);
 }
 
 class Luts {
