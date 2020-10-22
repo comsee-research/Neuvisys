@@ -13,6 +13,8 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf),
     gp.sendLine("set title \"neuron's potential plotted against time\"");
     gp.sendLine("set yrange [" + std::to_string(m_simpleNeuronConf.VRESET) + ":" + std::to_string(m_simpleNeuronConf.VTHRESH) + "]");
 
+    m_nbSimpleNeurons = conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth;
+    m_nbComplexNeurons = conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth;
     m_layout1 = xt::zeros<size_t>({conf.L1XAnchor.size() * conf.L1Width, conf.L1YAnchor.size() * conf.L1Height, conf.L1Depth});
     m_layout2 = xt::zeros<size_t>({conf.L2XAnchor.size() * conf.L2Width, conf.L2YAnchor.size() * conf.L2Height, conf.L2Depth});
 
@@ -24,8 +26,8 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf),
         loadWeights();
     }
 
-    m_nbSimpleNeurons = m_simpleNeurons.size();
-    m_nbComplexNeurons = m_complexNeurons.size();
+    assert(m_nbSimpleNeurons == m_complexNeurons.size());
+    assert(m_nbComplexNeurons == m_complexNeurons.size());
     std::cout << "Layer 1 neurons: " << m_nbSimpleNeurons << std::endl;
     std::cout << "Layer 2 neurons: " << m_nbComplexNeurons << std::endl;
 }
@@ -55,28 +57,26 @@ void SpikingNetwork::updateNeurons(const long time) {
     for (auto &simpleNeuron : m_simpleNeurons) {
         simpleNeuron.update(time); // update simple cell neurons (1st layer)
         if (simpleNeuron.hasSpiked()) {
+            for (auto &simpleNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
+                simpleNeuronToInhibit.get().inhibition();
+            }
             if (simpleNeuron.getPos().posz() == Selection::LAYER) {
                 m_simpleSpikes.push_back(simpleNeuron.getIndex());
             }
 
-            for (size_t i = 0; i < conf.L1Depth; ++i) { // simple cell inhibition
-                if (i != simpleNeuron.getPos().posz()) {
-                    m_simpleNeurons[m_layout1(simpleNeuron.getPos().posx(), simpleNeuron.getPos().posy(), i)].inhibition();
-                }
-            }
-
             for (auto &complexNeuron : simpleNeuron.getOutConnections()) { // update complex cell neurons (2nd layer)
-                complexNeuron.get().newEvent(simpleNeuron.getSpikingTime(), simpleNeuron.getPos().posx() - complexNeuron.get().getOffset().posx(),
-                                             simpleNeuron.getPos().posy() - complexNeuron.get().getOffset().posy(), simpleNeuron.getPos().posz());
+                complexNeuron.get().newEvent(simpleNeuron.getSpikingTime(),
+                                             simpleNeuron.getPos().posx() - complexNeuron.get().getOffset().posx(),
+                                             simpleNeuron.getPos().posy() - complexNeuron.get().getOffset().posy(),
+                                             simpleNeuron.getPos().posz() - complexNeuron.get().getOffset().posz());
 
                 if (complexNeuron.get().hasSpiked()) {
-                    for (size_t i = 0; i < conf.L2Depth; ++i) { // complex cell inhibition
-                        if (i != complexNeuron.get().getPos().posz()) {
-                            m_complexNeurons[m_layout2(complexNeuron.get().getPos().posx(), complexNeuron.get().getPos().posy(), i)].inhibition();
-                        }
+                    for (auto &complexNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
+                        complexNeuronToInhibit.get().inhibition();
                     }
-
-                    m_complexSpikes.push_back(complexNeuron.get().getIndex());
+                    if (complexNeuron.get().getPos().posz() == Selection::LAYER2) {
+                        m_complexSpikes.push_back(complexNeuron.get().getIndex());
+                    }
                 }
             }
         }
@@ -91,12 +91,12 @@ void SpikingNetwork::generateWeightSharing() {
             }
         }
     } else {
-        for (size_t i = 0; i < conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth; ++i) {
+        for (size_t i = 0; i < m_nbSimpleNeurons; ++i) {
             m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(conf.Neuron1Width, conf.Neuron1Height, conf.Neuron1Synapses));
         }
     }
-    for (size_t i = 0; i < conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth; ++i) {
-        m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(conf.Neuron2Width, conf.Neuron2Height, conf.L1Depth));
+    for (size_t i = 0; i < m_nbComplexNeurons; ++i) {
+        m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(conf.Neuron2Width, conf.Neuron2Height, conf.Neuron2Depth));
     }
 }
 
@@ -151,15 +151,27 @@ void SpikingNetwork::assignNeurons() {
                 m_retina[i * Conf::HEIGHT + j].push_back(simpleNeuron.getIndex());
             }
         }
+
+        for (size_t z = 0; z < conf.L1Depth; ++z) { // simple cell inhibition
+            if (z != simpleNeuron.getPos().posz()) {
+                simpleNeuron.addInhibitionConnection(m_simpleNeurons[m_layout1(simpleNeuron.getPos().posx(), simpleNeuron.getPos().posy(), z)]);
+            }
+        }
     }
 
     for (auto &complexNeuron : m_complexNeurons) {
         for (size_t i = complexNeuron.getOffset().posx(); i < complexNeuron.getOffset().posx() + conf.Neuron2Width; ++i) {
             for (size_t j = complexNeuron.getOffset().posy(); j < complexNeuron.getOffset().posy() + conf.Neuron2Height; ++j) {
-                for (size_t k = 0; k < conf.L1Depth; ++k) {
+                for (size_t k = complexNeuron.getOffset().posz(); k < complexNeuron.getOffset().posz() + conf.Neuron2Depth; ++k) {
                     complexNeuron.addInConnection(m_simpleNeurons[m_layout1(i, j, k)]);
                     m_simpleNeurons[m_layout1(i, j, k)].addOutConnection(complexNeuron);
                 }
+            }
+        }
+
+        for (size_t z = 0; z < conf.L2Depth; ++z) { // complex cell inhibition
+            if (z != complexNeuron.getPos().posz()) {
+                complexNeuron.addInhibitionConnection(m_complexNeurons[m_layout2(complexNeuron.getPos().posx(), complexNeuron.getPos().posy(), z)]);
             }
         }
     }

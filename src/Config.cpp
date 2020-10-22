@@ -59,6 +59,7 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
 
             Neuron2Width = conf["Neuron2Width"];
             Neuron2Height = conf["Neuron2Height"];
+            Neuron2Depth = conf["Neuron2Depth"];
 
             WeightSharing = conf["WeightSharing"];
             SaveData = conf["SaveData"];

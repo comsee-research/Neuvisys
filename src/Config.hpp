@@ -65,6 +65,7 @@ public:
 
     size_t Neuron2Width{};
     size_t Neuron2Height{};
+    size_t Neuron2Depth{};
     bool WeightSharing{};
 };
 

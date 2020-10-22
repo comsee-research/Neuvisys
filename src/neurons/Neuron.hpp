@@ -15,6 +15,7 @@ protected:
     std::list<size_t> m_recentSpikes;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
+    std::vector<std::reference_wrapper<Neuron>> m_inhibitionConnections;
     long m_spikingTime{};
     long m_lastSpikingTime{};
     size_t m_totalSpike{};
@@ -45,6 +46,7 @@ public:
     virtual double getAdaptationPotential() { return m_adaptation_potential; }
     virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() { return m_outConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() { return m_inConnections; }
+    virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() { return m_inhibitionConnections; }
 
     virtual bool hasSpiked();
     virtual double getPotential(long time);
@@ -59,6 +61,7 @@ public:
 
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
+    virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
     virtual void newEvent(long timestamp, size_t x, size_t y, bool polarity) {};
     virtual void newEvent(long timestamp, size_t x, size_t y, size_t z) {};
     virtual void update(long time) {};

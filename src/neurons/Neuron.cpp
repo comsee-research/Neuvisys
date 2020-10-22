@@ -93,16 +93,21 @@ void Neuron::saveState(std::string &fileName) {
     std::vector<size_t> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
     std::vector<size_t> inIndex;
     std::vector<size_t> outIndex;
+    std::vector<size_t> inhibIndex;
     for (auto neuron : m_inConnections) {
         inIndex.push_back(neuron.get().getIndex());
     }
     for (auto neuron : m_outConnections) {
         outIndex.push_back(neuron.get().getIndex());
     }
+    for (auto neuron : m_inhibitionConnections) {
+        inhibIndex.push_back(neuron.get().getIndex());
+    }
     state["position"] = position;
     state["offset"] = offset;
     state["in_connections"] = inIndex;
     state["out_connections"] = outIndex;
+    state["inhibition_connections"] = inhibIndex;
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;
