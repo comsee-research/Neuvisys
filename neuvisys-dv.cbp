@@ -1,0 +1,403 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="neuvisys-dv"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;CMake Files\..\;CMake Files\..\anaconda3\;CMake Files\..\anaconda3\lib\;CMake Files\..\anaconda3\lib\cmake\;CMake Files\..\anaconda3\lib\cmake\xtensor\;CMake Files\..\anaconda3\lib\cmake\xtl\;CMake Files\..\anaconda3\lib\cmake\Boost-1.70.0\;CMake Files\..\anaconda3\lib\cmake\boost_headers-1.70.0\;CMake Files\..\anaconda3\lib\cmake\boost_system-1.70.0\;CMake Files\..\anaconda3\lib\cmake\boost_filesystem-1.70.0\;CMake Files\..\..\;CMake Files\..\..\..\;CMake Files\..\..\..\usr\;CMake Files\..\..\..\usr\share\;CMake Files\..\..\..\usr\share\dv\;CMake Files\..\..\..\usr\share\caer\;CMake Files\..\..\..\usr\share\OpenCV\;CMake Files\..\..\..\usr\lib\;CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\;CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\;CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\libcaer\;CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\dv\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 install"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="list_install_components">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 list_install_components"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/strip">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 install/strip"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="install/local">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 install/local"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="event-analysis">
+				<Option output="/home/thomas/neuvisys-dv/libevent-analysis.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 event-analysis"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="event-analysis/fast">
+				<Option output="/home/thomas/neuvisys-dv/libevent-analysis.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 event-analysis/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="neuvisys">
+				<Option output="/home/thomas/neuvisys-dv/libneuvisys.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 neuvisys"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="neuvisys/fast">
+				<Option output="/home/thomas/neuvisys-dv/libneuvisys.so" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="3"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 neuvisys/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="neuvisys-test">
+				<Option output="/home/thomas/neuvisys-dv/neuvisys-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 neuvisys-test"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="neuvisys-test/fast">
+				<Option output="/home/thomas/neuvisys-dv/neuvisys-test" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add option="-DOS_UNIX=1"/>
+					<Add option="-DOS_LINUX=1"/>
+					<Add option="-DHAVE_PTHREADS=1"/>
+					<Add option="-D_XOPEN_SOURCE=700"/>
+					<Add option="-D_DEFAULT_SOURCE=1"/>
+					<Add option="-D_FILE_OFFSET_BITS=64"/>
+					<Add option="-DDV_MODULES_DIR=/usr/share/dv/modules"/>
+					<Add option="-DBOOST_ALL_NO_LIB"/>
+					<Add directory="/home/thomas/neuvisys-dv"/>
+					<Add directory="/home/thomas/anaconda3/include/python3.7m"/>
+					<Add directory="/home/thomas/anaconda3/include"/>
+					<Add directory="/usr/include/opencv"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 neuvisys-test/fast"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="/home/thomas/neuvisys-dv"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="/usr/bin/make -f &quot;/home/thomas/neuvisys-dv/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="/home/thomas/neuvisys-dv/dv-modules/EventAnalysis.cpp">
+			<Option target="event-analysis"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/dv-modules/Neuvisys.cpp">
+			<Option target="neuvisys"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/Config.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/Config.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/SpikingNetwork.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/SpikingNetwork.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/Utils.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/Utils.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/Neuron.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/Neuron.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/PoolingNeuron.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/PoolingNeuron.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/SpatioTemporalNeuron.cpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/src/neurons/SpatioTemporalNeuron.hpp">
+			<Option target="neuvisys"/>
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/tests/MainTest.cpp">
+			<Option target="neuvisys-test"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/BoostDetectToolset-1.70.0.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtensor/xtensorConfig.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtensor\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtensor/xtensorConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtensor\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtensor/xtensorTargets.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtensor\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtl/xtlConfig.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtl\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtl/xtlConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtl\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/xtl/xtlTargets.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\xtl\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/Boost-1.70.0/BoostConfig.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\Boost-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/Boost-1.70.0/BoostConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\Boost-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_headers-1.70.0/boost_headers-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_headers-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_headers-1.70.0/boost_headers-config.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_headers-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_system-1.70.0/boost_system-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_system-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_system-1.70.0/boost_system-config.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_system-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_system-1.70.0/libboost_system-variant-shared.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_system-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_system-1.70.0/libboost_system-variant-static.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_system-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_filesystem-1.70.0/boost_filesystem-config-version.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_filesystem-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_filesystem-1.70.0/boost_filesystem-config.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_filesystem-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_filesystem-1.70.0/libboost_filesystem-variant-shared.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_filesystem-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../anaconda3/lib/cmake/boost_filesystem-1.70.0/libboost_filesystem-variant-static.cmake">
+			<Option virtualFolder="CMake Files\..\anaconda3\lib\cmake\boost_filesystem-1.70.0\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/dv/dv-modules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\dv\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/caer/caer-base.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\caer\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/OpenCV/OpenCVConfig-version.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/OpenCV/OpenCVConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/OpenCV/OpenCVModules-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/share/OpenCV/OpenCVModules.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\share\OpenCV\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/libcaer/libcaer-exports-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\libcaer\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/libcaer/libcaer-exports.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\libcaer\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/libcaer/libcaerConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\libcaer\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/libcaer/libcaerConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\libcaer\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/dv/dv-exports-release.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\dv\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/dv/dv-exports.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\dv\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/dv/dvConfig.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\dv\"/>
+		</Unit>
+		<Unit filename="/home/thomas/neuvisys-dv/../../../usr/lib/x86_64-linux-gnu/cmake/dv/dvConfigVersion.cmake">
+			<Option virtualFolder="CMake Files\..\..\..\usr\lib\x86_64-linux-gnu\cmake\dv\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
