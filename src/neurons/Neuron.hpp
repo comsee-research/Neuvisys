@@ -4,6 +4,9 @@
 #include "src/Config.hpp"
 #include "src/Utils.hpp"
 #include <src/Event.hpp>
+#include <cmath>
+#include <list>
+#include <iomanip>
 
 class Neuron {
 protected:
@@ -11,7 +14,6 @@ protected:
     NeuronConfig &conf;
     Position m_pos{};
     Position m_offset{};
-    xt::xarray<double> &m_weights;
     std::list<size_t> m_recentSpikes;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
@@ -35,7 +37,7 @@ protected:
     std::vector<long> m_spikeTrain;
     std::vector<std::pair<double, long>> m_potentialTrain;
 public:
-    Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights);
+    Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset);
     virtual size_t getIndex() { return m_index; }
     virtual Position getPos() { return m_pos; }
     virtual Position getOffset() { return m_offset; }
@@ -62,11 +64,9 @@ public:
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
     virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
-    virtual void newEvent(long timestamp, size_t x, size_t y, bool polarity) {};
-    virtual void newEvent(long timestamp, size_t x, size_t y, size_t z) {};
-    virtual void update(long time) {};
-    virtual double getWeights(size_t x, size_t y, size_t z) {};
-    virtual double getWeights(size_t p, size_t s, size_t x, size_t y) {};
+    virtual void newEvent(long timestamp, long x, long y, bool polarity) {}
+    virtual void newEvent(long timestamp, long x, long y, long z) {}
+    virtual void update(long time) {}
     virtual void track(long time);
 };
 

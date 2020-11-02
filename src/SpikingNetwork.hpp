@@ -4,23 +4,25 @@
 #include <vector>
 #include <array>
 #include <src/neurons/ComplexNeuron.hpp>
+#include <opencv2/core/mat.hpp>
+#include <opencv2/imgproc.hpp>
 #include "src/neurons/SimpleNeuron.hpp"
-#include "src/dependencies/gnuplot.h"
+//#include "src/dependencies/gnuplot.h"
 
 class SpikingNetwork {
     NetworkConfig &conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
 
-    std::vector<xt::xarray<double>> m_sharedWeightsSimple;
-    std::vector<xt::xarray<double>> m_sharedWeightsComplex;
+    std::vector<Eigen::Tensor<double, 4>> m_sharedWeightsSimple;
+    std::vector<Eigen::Tensor<double, 3>> m_sharedWeightsComplex;
 
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
     std::vector<std::vector<size_t>> m_retina;
 
-    xt::xarray<size_t> m_layout1;
-    xt::xarray<size_t> m_layout2;
+    std::map<std::tuple<size_t, size_t, size_t>, size_t> m_layout1;
+    std::map<std::tuple<size_t, size_t, size_t>, size_t> m_layout2;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
@@ -32,24 +34,26 @@ class SpikingNetwork {
 
     Luts m_simpleluts;
     Luts m_complexluts;
-    GnuplotPipe gp = GnuplotPipe(false);
+    //GnuplotPipe gp = GnuplotPipe(false);
 public:
     explicit SpikingNetwork(NetworkConfig &conf);
 
     ~SpikingNetwork();
-    void addEvent(long timestamp, size_t x, size_t y, bool polarity);
+    void addEvent(long timestamp, long x, long y, bool polarity);
     void updateNeurons(long time);
     void updateDisplay(long time, std::map<std::string, cv::Mat> &displays);
     void updateNeuronsParameters(long time);
-    void saveWeights();
-    void loadWeights();
+    void saveNeuronsStates();
+    void loadWeights(bool simpleNeuronStored, bool complexNeuronStored);
 
     SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
     [[nodiscard]] size_t getNumberNeurons() const {return m_nbSimpleNeurons;}
     [[nodiscard]] size_t getNumberPoolingNeurons() const {return m_nbComplexNeurons;}
     void trackNeuron(long time);
 private:
-    void generateWeightSharing();
+    bool simpleNeuronsFilesExists() const;
+    bool complexNeuronsFilesExists() const;
+    void generateWeightSharing(bool simpleNeuronStored, bool complexNeuronStored);
     void generateNeuronConfiguration();
     void assignNeurons();
 

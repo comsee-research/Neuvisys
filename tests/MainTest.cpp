@@ -3,7 +3,6 @@
 #include <random>
 #include <utility>
 #include "src/dependencies/json.hpp"
-#include "cnpy.h"
 
 //#include "src/matplotlibcpp.h"
 //namespace plt = matplotlibcpp;
@@ -67,6 +66,6 @@ void testSpikingNetwork(std::string &filePath) {
 }
 
 int main(int argc, char *argv[]) {
-    std::string filePath = "/home/thomas/Vidéos/samples/npy/shape_slow_hovering.npy";
+    std::string filePath = "/home/alphat/Videos/shape_hovering.npy";
     testSpikingNetwork(filePath);
 }

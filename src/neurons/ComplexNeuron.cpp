@@ -1,17 +1,23 @@
 #include "ComplexNeuron.hpp"
 
-ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights) :
-    Neuron(index, conf, luts, pos, offset, weights),
-    m_events(boost::circular_buffer<NeuronEvent>(1000)) {
+ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
+    Neuron(index, conf, luts, pos, offset),
+    m_events(boost::circular_buffer<NeuronEvent>(1000)),
+    m_weights(weights) {
 }
 
-inline void ComplexNeuron::newEvent(const long timestamp, const size_t x, const size_t y, const size_t z) {
+inline void ComplexNeuron::newEvent(const long timestamp, const long x, const long y, const long z) {
     membraneUpdate(timestamp, x, y, z);
     m_events.push_back(NeuronEvent(timestamp, x, y, z));
 }
 
-inline void ComplexNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const size_t z) {
-    potentialDecay(timestamp - m_timestampLastEvent);
+inline void ComplexNeuron::membraneUpdate(const long timestamp, const long x, const long y, const long z) {
+//    potentialDecay(timestamp - m_timestampLastEvent);
+    if (timestamp - m_timestampLastEvent < 1000000) {
+        m_potential *= m_luts.lutM[static_cast<size_t>(timestamp - m_timestampLastEvent)];
+    } else {
+        m_potential = 0;
+    }
     m_potential += m_weights(x, y, z)
                 - m_adaptation_potential;
     m_timestampLastEvent = timestamp;
@@ -56,16 +62,21 @@ inline void ComplexNeuron::updateSTDP() {
 }
 
 inline void ComplexNeuron::normalizeWeights() {
-    double norm = 0;
-    for (auto val : xt::ravel<xt::layout_type::row_major>(m_weights)) {
-        norm += val * val;
-    }
-    norm = sqrt(norm);
-    if (norm != 0) {
-        m_weights = conf.NORM_FACTOR * (m_weights / norm);
+    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
+
+    if (norm(0) != 0) {
+        m_weights = conf.NORM_FACTOR * m_weights / norm(0);
     }
 }
 
-double ComplexNeuron::getWeights(size_t x, size_t y, size_t z) {
+void ComplexNeuron::saveWeights(std::string &saveFile) {
+    Util::save3DTensorToNumpyFile(m_weights, saveFile);
+}
+
+void ComplexNeuron::loadWeights(std::string &filePath) {
+    Util::loadNumpyFileTo3DTensor(filePath, m_weights);
+}
+
+double ComplexNeuron::getWeights(long x, long y, long z) {
     return m_weights(x, y, z);
 }

@@ -128,7 +128,7 @@ public:
         Selection::LAYER = gui["layer"];
         Selection::LAYER2 = gui["layer2"];
         if (gui["save"]) {
-            spinet.saveWeights();
+            spinet.saveNeuronsStates();
             gui["save"] = false;
 
             std::ofstream ofs(Conf::GUI_FILE);

@@ -1,15 +1,16 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights, size_t nbSynapses) :
-    Neuron(index,conf, luts, pos, offset, weights),
+SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, 4> &weights, size_t nbSynapses) :
+    Neuron(index, conf, luts, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
+    m_weights(weights),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
         m_delays.push_back(static_cast<long>(synapse * conf.SYNAPSE_DELAY));
     }
 }
 
-inline void SimpleNeuron::newEvent(const long timestamp, const size_t x, const size_t y, const bool polarity) {
+inline void SimpleNeuron::newEvent(const long timestamp, const long x, const long y, const bool polarity) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         membraneUpdate(timestamp, x, y, polarity, 0);
         m_events.push_back(Event(timestamp, x, y, polarity, 0));
@@ -31,9 +32,19 @@ void SimpleNeuron::update(const long time) {
     }
 }
 
-inline void SimpleNeuron::membraneUpdate(const long timestamp, const size_t x, const size_t y, const bool polarity, const size_t synapse) {
-    potentialDecay(timestamp - m_timestampLastEvent);
-    adaptationPotentialDecay(timestamp - m_timestampLastEvent);
+inline void SimpleNeuron::membraneUpdate(const long timestamp, const long x, const long y, const bool polarity, const long synapse) {
+    if (timestamp - m_timestampLastEvent < 1000000) {
+        m_potential *= m_luts.lutM[static_cast<size_t>(timestamp - m_timestampLastEvent)];
+    } else {
+        m_potential = 0;
+    }
+    if (timestamp - m_timestampLastEvent < 1000000) {
+        m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(timestamp - m_timestampLastEvent)];
+    } else {
+        m_adaptation_potential = 0;
+    }
+//    potentialDecay(timestamp - m_timestampLastEvent);
+//    adaptationPotentialDecay(timestamp - m_timestampLastEvent);
     m_potential += m_weights(polarity, synapse, x, y)
                    - refractoryPotential(timestamp - m_spikingTime)
                    - m_adaptation_potential;
@@ -78,16 +89,29 @@ inline void SimpleNeuron::updateSTDP() {
 }
 
 inline void SimpleNeuron::normalizeWeights() {
-    for (size_t p = 0; p < 2; ++p) {
-        for (size_t s = 0; s < m_delays.size(); ++s) {
-            double norm = xt::linalg::norm(xt::view(m_weights, p, s));
-            if (norm != 0) {
-                xt::view(m_weights, p, s) = conf.NORM_FACTOR * (xt::view(m_weights, p, s) / norm);
+    const Eigen::Tensor<double, 4>::Dimensions& d = m_weights.dimensions();
+
+    for (long p = 0; p < d[0]; ++p) {
+        for (long s = 0; s < d[1]; ++s) {
+            Eigen::array<long, 4> start = {p, s, 0, 0};
+            Eigen::array<long, 4> size = {1, 1, d[2], d[3]};
+            Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
+
+            if (norm(0) != 0) {
+                m_weights.slice(start, size) = conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
             }
         }
     }
 }
 
-double SimpleNeuron::getWeights(size_t p, size_t s, size_t x, size_t y) {
+void SimpleNeuron::saveWeights(std::string &saveFile) {
+    Util::save4DTensorToNumpyFile(m_weights, saveFile);
+}
+
+void SimpleNeuron::loadWeights(std::string &filePath) {
+    Util::loadNumpyFileTo4DTensor(filePath, m_weights);
+}
+
+double SimpleNeuron::getWeights(long p, long s, long x, long y) {
     return m_weights(p, s, x, y);
 }

@@ -27,15 +27,8 @@ project(neuvisys-dv
         VERSION 1.0.0
         LANGUAGES C CXX)
 
-message(STATUS "BLAS VENDOR:    " ${BLA_VENDOR})
-message(STATUS "BLAS LIBRARIES: " ${BLAS_LIBRARIES})
-
-find_package(BLAS REQUIRED)
-find_package(LAPACK REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(xtensor REQUIRED)
-#find_package(cnpy REQUIRED)
 
 # Define installation paths
 include(GNUInstallDirs)
@@ -48,7 +41,6 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 
 # Basic setup
 include(dv-modules)
-include_directories(${xtensor_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
 DV_MODULE_SETUP()
 
@@ -64,7 +56,7 @@ add_library(neuvisys SHARED
         src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
-target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES})
+target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES})
 install(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 
 ##### Test Executable #####
@@ -76,7 +68,7 @@ add_executable(neuvisys-test
         src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
-target_link_libraries(neuvisys-test ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(neuvisys-test ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
 
 ##### EventAnalysis Executable #####
 add_executable(event-analysis
@@ -87,4 +79,4 @@ add_executable(event-analysis
         src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
-target_link_libraries(event-analysis ${DV_LIBRARIES} xtensor xtensor::optimize ${BLAS_LIBRARIES} ${LAPACK_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(event-analysis ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)

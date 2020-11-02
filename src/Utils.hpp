@@ -1,13 +1,18 @@
 #ifndef NEUVISYS_DV_UTILS_HPP
 #define NEUVISYS_DV_UTILS_HPP
 
-#include <opencv2/core/mat.hpp>
-#include "xtensor/xtensor.hpp"
-#include "xtensor-blas/xlinalg.hpp"
+#include "dependencies/unsupported/Eigen/CXX11/Tensor"
+#include <random>
+#include <chrono>
+#include "cnpy.h"
 
 namespace Util {
-    xt::xarray<double> uniformMatrixComplex(size_t x, size_t y, size_t layer);
-    xt::xarray<double> uniformMatrixSimple(size_t x, size_t y, size_t nbSynapses);
+    Eigen::Tensor<double, 3> uniformMatrixComplex(long x, long y, long z);
+    Eigen::Tensor<double, 4> uniformMatrixSimple(long s, long x, long y);
+    void loadNumpyFileTo3DTensor(std::string &filePath, Eigen::Tensor<double, 3> &tensor);
+    void save3DTensorToNumpyFile(Eigen::Tensor<double, 3> tensor, std::string &saveFile);
+    void loadNumpyFileTo4DTensor(std::string &filePath, Eigen::Tensor<double, 4> &tensor);
+    void save4DTensorToNumpyFile(Eigen::Tensor<double, 4> tensor, std::string &saveFile);
 }
 
 class Luts {

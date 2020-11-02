@@ -1,13 +1,9 @@
 #ifndef NEUVISYS_DV_CONFIG_HPP
 #define NEUVISYS_DV_CONFIG_HPP
 
-#include <opencv2/opencv.hpp>
-#include "xtensor/xtensor.hpp"
-#include "xtensor-blas/xlinalg.hpp"
-#include "xtensor/xnpy.hpp"
+#include <iostream>
+#include <fstream>
 #include "src/dependencies/json.hpp"
-
-#include "Utils.hpp"
 
 using json = nlohmann::json;
 
@@ -22,8 +18,8 @@ namespace Conf {
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
 
-    inline const std::string CONF_FILE("/home/thomas/neuvisys-dv/configuration/conf.json");
-    inline const std::string GUI_FILE("/home/thomas/neuvisys-dv/configuration/gui.json");
+    inline const std::string CONF_FILE("/home/alphat/neuvisys-dv/configuration/conf.json");
+    inline const std::string GUI_FILE("/home/alphat/neuvisys-dv/configuration/gui.json");
 }
 
 namespace Selection {

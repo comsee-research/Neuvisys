@@ -1,14 +1,12 @@
 #include "Neuron.hpp"
-#include <cmath>
 
 using json = nlohmann::json;
 
-Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, xt::xarray<double> &weights) :
+Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset) :
     m_index(index),
     conf(conf),
     m_pos(pos),
     m_offset(offset),
-    m_weights(weights),
     m_recentSpikes(std::list<size_t>(Conf::TIME_WINDOW_SR)),
     m_luts(luts),
     m_spikeTrain(std::vector<long>(0)) {
@@ -86,7 +84,6 @@ inline void Neuron::inhibition() {
 }
 
 void Neuron::saveState(std::string &fileName) {
-    xt::dump_npy(fileName + ".npy", m_weights);
     json state;
 
     std::vector<size_t> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
@@ -129,12 +126,6 @@ void Neuron::saveState(std::string &fileName) {
 }
 
 void Neuron::loadState(std::string &fileName) {
-    try {
-        m_weights = xt::load_npy<double>(fileName + ".npy");
-    } catch (const std::exception &exe) {
-//        std::cout << "No starting weights, random initialization" << std::endl;
-    }
-
     json state;
     std::ifstream ifs(fileName + ".json");
     if (ifs.is_open()) {
