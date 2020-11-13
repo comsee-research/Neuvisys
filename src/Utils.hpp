@@ -6,13 +6,17 @@
 #include <chrono>
 #include "cnpy.h"
 
+#define SIMPLEDIM 5
+#define COMPLEXDIM 3
+#define NBPOLARITY 2
+
 namespace Util {
-    Eigen::Tensor<double, 3> uniformMatrixComplex(long x, long y, long z);
-    Eigen::Tensor<double, 4> uniformMatrixSimple(long s, long x, long y);
-    void loadNumpyFileTo3DTensor(std::string &filePath, Eigen::Tensor<double, 3> &tensor);
-    void save3DTensorToNumpyFile(Eigen::Tensor<double, 3> tensor, std::string &saveFile);
-    void loadNumpyFileTo4DTensor(std::string &filePath, Eigen::Tensor<double, 4> &tensor);
-    void save4DTensorToNumpyFile(Eigen::Tensor<double, 4> tensor, std::string &saveFile);
+    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z);
+    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y);
+    void loadNumpyFileToSimpleTensor(std::string &filePath, Eigen::Tensor<double, SIMPLEDIM> &tensor);
+    void saveSimpleTensorToNumpyFile(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &saveFile);
+    void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor);
+    void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile);
 }
 
 class Luts {
@@ -26,16 +30,16 @@ private:
 };
 
 class Position {
-    size_t m_posx;
-    size_t m_posy;
-    size_t m_posz;
+    uint64_t m_posx;
+    uint64_t m_posy;
+    uint64_t m_posz;
 public:
     Position() = default;
-    inline Position(size_t x, size_t y, size_t z) : m_posx(x), m_posy(y), m_posz(z) {}
-    inline Position(size_t x, size_t y) : m_posx(x), m_posy(y), m_posz(0) {}
-    [[nodiscard]] inline size_t posx() const {return m_posx;}
-    [[nodiscard]] inline size_t posy() const {return m_posy;}
-    [[nodiscard]] inline size_t posz() const {return m_posz;}
+    inline Position(uint64_t x, uint64_t y, uint64_t z) : m_posx(x), m_posy(y), m_posz(z) {}
+    inline Position(uint64_t x, uint64_t y) : m_posx(x), m_posy(y), m_posz(0) {}
+    [[nodiscard]] inline uint64_t posx() const {return m_posx;}
+    [[nodiscard]] inline uint64_t posy() const {return m_posy;}
+    [[nodiscard]] inline uint64_t posz() const {return m_posz;}
 };
 
 #endif //NEUVISYS_DV_UTILS_HPP

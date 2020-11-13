@@ -14,23 +14,23 @@ class SpikingNetwork {
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
 
-    std::vector<Eigen::Tensor<double, 4>> m_sharedWeightsSimple;
-    std::vector<Eigen::Tensor<double, 3>> m_sharedWeightsComplex;
+    std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
+    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
 
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
-    std::vector<std::vector<size_t>> m_retina;
+    std::vector<std::vector<uint64_t>> m_retina;
 
-    std::map<std::tuple<size_t, size_t, size_t>, size_t> m_layout1;
-    std::map<std::tuple<size_t, size_t, size_t>, size_t> m_layout2;
+    std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout1;
+    std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout2;
 
     std::deque<double> m_potentials;
     std::deque<long> m_timestamps;
-    std::vector<size_t> m_simpleSpikes;
-    std::vector<size_t> m_complexSpikes;
+    std::vector<uint64_t> m_simpleSpikes;
+    std::vector<uint64_t> m_complexSpikes;
 
-    size_t m_nbSimpleNeurons;
-    size_t m_nbComplexNeurons;
+    uint64_t m_nbSimpleNeurons;
+    uint64_t m_nbComplexNeurons;
 
     Luts m_simpleluts;
     Luts m_complexluts;
@@ -39,7 +39,7 @@ public:
     explicit SpikingNetwork(NetworkConfig &conf);
 
     ~SpikingNetwork();
-    void addEvent(long timestamp, long x, long y, bool polarity);
+    void addEvent(Event event);
     void updateNeurons(long time);
     void updateDisplay(long time, std::map<std::string, cv::Mat> &displays);
     void updateNeuronsParameters(long time);

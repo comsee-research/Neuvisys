@@ -45,7 +45,8 @@ public:
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
-		in.addEventInput("events");
+		in.addEventInput("events1");
+        in.addEventInput("events2");
 	}
 
 	static void initOutputs(dv::OutputDefinitionList &out) {
@@ -95,8 +96,9 @@ public:
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
             lastTime = events.getHighestTime();
-            for (const dv::Event &event : events) {
-                spinet.addEvent(event.timestamp(), static_cast<size_t>(event.x()), static_cast<size_t>(event.y()), event.polarity());
+            for (const dv::Event &eve : events) {
+                auto event = Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0);
+                spinet.addEvent(event);
 
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
@@ -160,7 +162,7 @@ public:
     }
 
 	void run() override {
-        slicer.accept(inputs.getEventInput("events").events());
+        slicer.accept(inputs.getEventInput("events1").events());
     }
 
     static const char *initDescription() {

@@ -32,6 +32,7 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
+            NbCameras = conf["NbCameras"];
             Neuron1Config = conf["Neuron1Config"];
             Neuron2Config = conf["Neuron2Config"];
             L1Width = conf["L1Width"];

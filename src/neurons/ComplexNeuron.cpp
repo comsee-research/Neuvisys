@@ -6,24 +6,24 @@ ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Posit
     m_weights(weights) {
 }
 
-inline void ComplexNeuron::newEvent(const long timestamp, const long x, const long y, const long z) {
-    membraneUpdate(timestamp, x, y, z);
-    m_events.push_back(NeuronEvent(timestamp, x, y, z));
+inline void ComplexNeuron::newEvent(NeuronEvent event) {
+    membraneUpdate(event);
+    m_events.push_back(event);
 }
 
-inline void ComplexNeuron::membraneUpdate(const long timestamp, const long x, const long y, const long z) {
+inline void ComplexNeuron::membraneUpdate(NeuronEvent event) {
 //    potentialDecay(timestamp - m_timestampLastEvent);
-    if (timestamp - m_timestampLastEvent < 1000000) {
-        m_potential *= m_luts.lutM[static_cast<size_t>(timestamp - m_timestampLastEvent)];
+    if (event.timestamp() - m_timestampLastEvent < 1000000) {
+        m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
     } else {
         m_potential = 0;
     }
-    m_potential += m_weights(x, y, z)
+    m_potential += m_weights(event.x(), event.y(), event.z())
                 - m_adaptation_potential;
-    m_timestampLastEvent = timestamp;
+    m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {
-        spike(timestamp);
+        spike(event.timestamp());
     }
 }
 
@@ -70,11 +70,11 @@ inline void ComplexNeuron::normalizeWeights() {
 }
 
 void ComplexNeuron::saveWeights(std::string &saveFile) {
-    Util::save3DTensorToNumpyFile(m_weights, saveFile);
+    Util::saveComplexTensorToNumpyFile(m_weights, saveFile);
 }
 
 void ComplexNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileTo3DTensor(filePath, m_weights);
+    Util::loadNumpyFileToComplexTensor(filePath, m_weights);
 }
 
 double ComplexNeuron::getWeights(long x, long y, long z) {

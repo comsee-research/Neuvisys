@@ -1,12 +1,12 @@
 #include "Utils.hpp"
 
 namespace Util {
-    Eigen::Tensor<double, 3> uniformMatrixComplex(const long x, const long y, const long z) {
+    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(const long x, const long y, const long z) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-        Eigen::Tensor<double, 3> mat(x, y, z);
+        Eigen::Tensor<double, COMPLEXDIM> mat(x, y, z);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
                 for (long k = 0; k < z; ++k) {
@@ -17,18 +17,20 @@ namespace Util {
         return mat;
     }
 
-    Eigen::Tensor<double, 4> uniformMatrixSimple(const long s, const long x, const long y) {
+    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(const long p, const long c, const long s, const long x, const long y) {
         unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
         std::default_random_engine generator(seed);
         std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-        Eigen::Tensor<double, 4> mat(2, s, x, y);
+        Eigen::Tensor<double, SIMPLEDIM> mat(p, c, s, x, y);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
-                for (long k = 0; k < 2; ++k) {
-                    double weight = distribution(generator);
-                    for (long l = 0; l < s; ++l) {
-                        mat(k, l, i, j) = weight;
+                for (long k = 0; k < p; ++k) {
+                    for (long l = 0; l < c; ++l) {
+                        double weight = distribution(generator);
+                        for (long m = 0; m < s; ++m) {
+                            mat(k, l, m, i, j) = weight;
+                        }
                     }
                 }
             }
@@ -36,11 +38,11 @@ namespace Util {
         return mat;
     }
 
-    void loadNumpyFileTo3DTensor(std::string &filePath, Eigen::Tensor<double, 3> &tensor) {
+    void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
-        const Eigen::Tensor<double, 3>::Dimensions& d = tensor.dimensions();
+        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = tensor.dimensions();
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
             for (long j = 0; j < d[1]; ++j) {
@@ -52,8 +54,8 @@ namespace Util {
         }
     }
 
-    void save3DTensorToNumpyFile(Eigen::Tensor<double, 3> tensor, std::string &saveFile) {
-        const Eigen::Tensor<double, 3>::Dimensions& d = tensor.dimensions();
+    void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile) {
+        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = tensor.dimensions();
         std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
@@ -68,34 +70,38 @@ namespace Util {
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "w");
     }
 
-    void loadNumpyFileTo4DTensor(std::string &filePath, Eigen::Tensor<double, 4> &tensor) {
+    void loadNumpyFileToSimpleTensor(std::string &filePath, Eigen::Tensor<double, SIMPLEDIM> &tensor) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
-        const Eigen::Tensor<double, 4>::Dimensions& d = tensor.dimensions();
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = tensor.dimensions();
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
             for (long j = 0; j < d[1]; ++j) {
                 for (long k = 0; k < d[2]; ++k) {
                     for (long l = 0; l < d[3]; ++l) {
-                        tensor(i, j, k, l) = weights[count];
-                        ++count;
+                        for (int m = 0; m < d[4]; ++m) {
+                            tensor(i, j, k, l, m) = weights[count];
+                            ++count;
+                        }
                     }
                 }
             }
         }
     }
 
-    void save4DTensorToNumpyFile(Eigen::Tensor<double, 4> tensor, std::string &saveFile) {
-        const Eigen::Tensor<double, 4>::Dimensions& d = tensor.dimensions();
-        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3]));
+    void saveSimpleTensorToNumpyFile(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &saveFile) {
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = tensor.dimensions();
+        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3] * d[4]));
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
             for (long j = 0; j < d[1]; ++j) {
                 for (long k = 0; k < d[2]; ++k) {
                     for (long l = 0; l < d[3]; ++l) {
-                        data[count] = tensor(i, j, k, l);
-                        ++count;
+                        for (int m = 0; m < d[4]; ++m) {
+                            data[count] = tensor(i, j, k, l, m);
+                            ++count;
+                        }
                     }
                 }
             }

@@ -22,21 +22,19 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
     size_t count = 0;
     auto *events = array.data<double>();
     for (size_t i = 0; i < 4 * array.shape[0]; i += 4) {
-        long timestamp = static_cast<long>(events[i]);
-        auto x = static_cast<size_t>(events[i + 1]), y = static_cast<size_t>(events[i + 2]);
-        bool polarity = static_cast<bool>(events[i + 3]);
+        auto event = Event(static_cast<long>(events[i]), static_cast<long>(events[i + 1]), static_cast<long>(events[i + 2]), static_cast<bool>(events[i + 3]), 0);
 
-        spinet.addEvent(timestamp, x, y, polarity);
+        spinet.addEvent(event);
 
         if (count % 1000 == 0) {
-            spinet.updateNeurons(timestamp);
+            spinet.updateNeurons(event.timestamp());
         }
 //        if (count % 30000 == 0) {
 //            spinet.updateDisplay(timestamp, displays);
 //        }
         if (count % 1000000 == 0) {
             std::cout << 100 * count / array.shape[0] << "%" << std::endl;
-            spinet.updateNeuronsParameters(timestamp);
+            spinet.updateNeuronsParameters(event.timestamp());
         }
         if (count % 100 == 0) {
 //            spinet.trackNeuron(timestamp);

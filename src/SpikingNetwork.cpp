@@ -4,10 +4,10 @@
 SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : conf(conf),
                                                       m_simpleNeuronConf(conf.Neuron1Config, 0),
                                                       m_complexNeuronConf(conf.Neuron2Config, 1),
-                                                      m_retina(std::vector<std::vector<size_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<size_t>(0))),
+                                                      m_retina(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
                                                       m_potentials(std::deque<double>(1000, 0)),
                                                       m_timestamps(std::deque<long>(1000, 0)),
-                                                      m_simpleSpikes(std::vector<size_t>(0)),
+                                                      m_simpleSpikes(std::vector<uint64_t>(0)),
                                                       m_simpleluts(m_simpleNeuronConf.TAU_M, m_simpleNeuronConf.TAU_RP, m_simpleNeuronConf.TAU_SRA),
                                                       m_complexluts(m_complexNeuronConf.TAU_M, m_complexNeuronConf.TAU_RP, m_complexNeuronConf.TAU_SRA) {
 
@@ -56,9 +56,11 @@ bool SpikingNetwork::complexNeuronsFilesExists() const {
     return std::filesystem::exists(conf.SaveDataLocation + "weights/complex_cells/0.npy");
 }
 
-void SpikingNetwork::addEvent(const long timestamp, const long x, const long y, const bool polarity) {
-    for (size_t ind : m_retina[static_cast<size_t>(x) * Conf::HEIGHT + static_cast<size_t>(y)]) {
-        m_simpleNeurons[ind].newEvent(timestamp, x - static_cast<long>(m_simpleNeurons[ind].getOffset().posx()), y - static_cast<long>(m_simpleNeurons[ind].getOffset().posy()), polarity);
+void SpikingNetwork::addEvent(Event event) {
+    for (size_t ind : m_retina[static_cast<uint32_t>(event.x()) * Conf::HEIGHT + static_cast<uint32_t>(event.y())]) {
+        m_simpleNeurons[ind].newEvent(Event(event.timestamp(),
+                                            event.x() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posx()),
+                                            event.y() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posy()), event.polarity(), event.camera()));
 
 //        if (ind == Selection::INDEX2) {
 ////            m_potentials.push_back(m_neurons[Selection::IND].getPotential(timestamp));
@@ -82,10 +84,10 @@ void SpikingNetwork::updateNeurons(const long time) {
             }
 
             for (auto &complexNeuron : simpleNeuron.getOutConnections()) { // update complex cell neurons (2nd layer)
-                complexNeuron.get().newEvent(simpleNeuron.getSpikingTime(),
-                                             static_cast<long>(simpleNeuron.getPos().posx() - complexNeuron.get().getOffset().posx()),
-                                             static_cast<long>(simpleNeuron.getPos().posy() - complexNeuron.get().getOffset().posy()),
-                                             static_cast<long>(simpleNeuron.getPos().posz() - complexNeuron.get().getOffset().posz()));
+                complexNeuron.get().newEvent(NeuronEvent(simpleNeuron.getSpikingTime(),
+                                             static_cast<int32_t>(simpleNeuron.getPos().posx() - complexNeuron.get().getOffset().posx()),
+                                             static_cast<int32_t>(simpleNeuron.getPos().posy() - complexNeuron.get().getOffset().posy()),
+                                             static_cast<int32_t>(simpleNeuron.getPos().posz() - complexNeuron.get().getOffset().posz())));
 
                 if (complexNeuron.get().hasSpiked()) {
                     for (auto &complexNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
@@ -105,18 +107,20 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
         for (size_t patch = 0; patch < conf.L1XAnchor.size() * conf.L1YAnchor.size(); ++patch) {
             for (size_t j = 0; j < conf.L1Depth; ++j) {
                 if (simpleNeuronStored) {
-                    m_sharedWeightsSimple.emplace_back(2, static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height));
+                    m_sharedWeightsSimple.emplace_back(NBPOLARITY, conf.NbCameras, static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height));
                 } else {
-                    m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height)));
+                    m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY,static_cast<long>(conf.NbCameras),
+                                                                              static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height)));
                 }
             }
         }
     } else {
         for (size_t i = 0; i < m_nbSimpleNeurons; ++i) {
             if (simpleNeuronStored) {
-                m_sharedWeightsSimple.emplace_back(2, static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height));
+                m_sharedWeightsSimple.emplace_back(NBPOLARITY, conf.NbCameras, static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height));
             } else {
-                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height)));
+                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(conf.NbCameras),
+                                                                          static_cast<long>(conf.Neuron1Synapses), static_cast<long>(conf.Neuron1Width), static_cast<long>(conf.Neuron1Height)));
             }
         }
     }
@@ -261,8 +265,8 @@ void SpikingNetwork::weightDisplay(cv::Mat &display) {
         double weight;
         for (size_t x = 0; x < conf.Neuron1Width; ++x) {
             for (size_t y = 0; y < conf.Neuron1Height; ++y) {
-                for (size_t p = 0; p < 2; p++) {
-                    weight = m_simpleNeurons[Selection::INDEX].getWeights(p, Selection::SYNAPSE, x, y) * 255;
+                for (size_t p = 0; p < NBPOLARITY; p++) {
+                    weight = m_simpleNeurons[Selection::INDEX].getWeights(p, Selection::CAMERA, Selection::SYNAPSE, x, y) * 255;
                     if (weight > 255) { weight = 255; }
                     if (weight < 0) { weight = 0; }
                     temp.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
@@ -397,4 +401,16 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
             ++count;
         }
     }
+
+    std::vector<size_t> data(static_cast<size_t>(conf.L1XAnchor.size() * conf.L1Width * conf.L1YAnchor.size() * conf.L1Height * conf.L1Depth));
+    count = 0;
+    for (size_t i = 0; i < conf.L1XAnchor.size() * conf.L1Width; ++i) {
+        for (size_t j = 0; j < conf.L1YAnchor.size() * conf.L1Height; ++j) {
+            for (size_t k = 0; k < conf.L1Depth; ++k) {
+                data[count] = m_layout1[{i, j, k}];
+                ++count;
+            }
+        }
+    }
+    cnpy::npy_save(conf.SaveDataLocation + "weights/layout1.npy", &data[0], {conf.L1XAnchor.size() * conf.L1Width, conf.L1YAnchor.size() * conf.L1Height, conf.L1Depth}, "w");
 }

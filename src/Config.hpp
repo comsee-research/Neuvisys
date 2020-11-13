@@ -24,6 +24,7 @@ namespace Conf {
 
 namespace Selection {
     inline size_t LAYER = 0;
+    inline size_t CAMERA = 0;
     [[maybe_unused]] inline size_t LAYER2 = 0;
     inline size_t SYNAPSE = 0;
     inline size_t INDEX = 0;
@@ -42,6 +43,7 @@ public:
     std::string SaveDataLocation;
 
     /***** Spiking Neural Network layout parameters *****/
+    size_t NbCameras;
     std::string Neuron1Config;
     std::string Neuron2Config;
     size_t L1Width{};
