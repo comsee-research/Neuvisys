@@ -107,7 +107,7 @@ namespace Util {
             }
         }
 
-        cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3])}, "w");
+        cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
 }
 

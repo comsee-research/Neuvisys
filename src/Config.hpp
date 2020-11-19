@@ -18,7 +18,6 @@ namespace Conf {
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
 
-    inline const std::string CONF_FILE("/home/alphat/neuvisys-dv/configuration/conf.json");
     inline const std::string GUI_FILE("/home/alphat/neuvisys-dv/configuration/gui.json");
 }
 
@@ -33,8 +32,7 @@ namespace Selection {
 
 class NetworkConfig {
 public:
-    explicit NetworkConfig(std::string configFile);
-    void loadConfiguration(std::string &fileName);
+    explicit NetworkConfig(std::string &networkPath);
     void loadNetworkLayout(std::string &fileName);
 
     /***** Display parameters *****/
@@ -43,7 +41,7 @@ public:
     std::string SaveDataLocation;
 
     /***** Spiking Neural Network layout parameters *****/
-    size_t NbCameras;
+    size_t NbCameras{};
     std::string Neuron1Config;
     std::string Neuron2Config;
     size_t L1Width{};

@@ -219,12 +219,12 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
 void SpikingNetwork::trackNeuron(const long time) {
     if (!m_simpleNeurons.empty()) {
         for (auto &neuron : m_simpleNeurons) {
-            neuron.track(time);
+            neuron.trackPotential(time);
         }
     }
     if (!m_complexNeurons.empty()) {
         for (auto &neuron : m_complexNeurons) {
-            neuron.track(time);
+            neuron.trackPotential(time);
         }
     }
 }

@@ -154,7 +154,7 @@ void Neuron::loadState(std::string &fileName) {
     ifs.close();
 }
 
-void Neuron::track(const long time) {
+void Neuron::trackPotential(const long time) {
     if (conf.TRACKING) {
         double potential = getPotential(time);
         m_potentialTrain.emplace_back(potential, time);

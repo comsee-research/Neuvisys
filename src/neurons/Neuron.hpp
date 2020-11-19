@@ -67,7 +67,7 @@ public:
     virtual void newEvent(Event event) {}
     virtual void newEvent(NeuronEvent event) {}
     virtual void update(long time) {}
-    virtual void track(long time);
+    virtual void trackPotential(long time);
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

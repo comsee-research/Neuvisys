@@ -2,27 +2,9 @@
 
 using json = nlohmann::json;
 
-NetworkConfig::NetworkConfig(std::string configFile) {
-    loadConfiguration(configFile);
+NetworkConfig::NetworkConfig(std::string &networkPath) {
+    NETWORK_CONFIG = networkPath;
     loadNetworkLayout(NETWORK_CONFIG);
-}
-
-void NetworkConfig::loadConfiguration(std::string &fileName) {
-    json conf;
-
-    std::ifstream ifs(fileName);
-    if (ifs.is_open()) {
-        try {
-            ifs >> conf;
-            NETWORK_CONFIG = conf["NETWORK_CONFIG"];
-        } catch (const std::exception& e) {
-            std::cerr << "In Main config file" << std::endl;
-            throw;
-        }
-    } else {
-        std::cout << "cannot open main configuration file" << std::endl;
-    }
-    ifs.close();
 }
 
 void NetworkConfig::loadNetworkLayout(std::string &fileName) {

@@ -18,61 +18,42 @@ void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays)
     displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 }
 
-void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::string, cv::Mat> &displays) {
-    size_t count = 0;
+void main_loop(SpikingNetwork &spinet, cnpy::NpyArray &array, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
+    size_t i, j, count = 0;
     auto *events = array.data<double>();
-    for (size_t i = 0; i < 4 * array.shape[0]; i += 4) {
-        auto event = Event(static_cast<long>(events[i]), static_cast<long>(events[i + 1]), static_cast<long>(events[i + 2]), static_cast<bool>(events[i + 3]), 0);
+    long firstTimestamp = static_cast<long>(events[0]);
+    long lastTimestamp = 0;
 
-        spinet.addEvent(event);
+    for (i = 0; i < nbPass; ++i) {
+        for (j = 0; j < 4 * array.shape[0]; j += 4) {
+            auto event = Event(static_cast<long>(events[j]) + static_cast<long>(i) * (lastTimestamp - firstTimestamp),
+                               static_cast<int16_t>(events[j+1]), static_cast<int16_t>(events[j+2]),
+                               static_cast<bool>(events[j+3]), 0);
+            spinet.addEvent(event);
 
-        if (count % 1000 == 0) {
-            spinet.updateNeurons(event.timestamp());
-        }
+            if (count % 1000 == 0) {
+                spinet.updateNeurons(event.timestamp());
+            }
 //        if (count % 30000 == 0) {
 //            spinet.updateDisplay(timestamp, displays);
 //        }
-        if (count % 1000000 == 0) {
-            std::cout << 100 * count / array.shape[0] << "%" << std::endl;
-            spinet.updateNeuronsParameters(event.timestamp());
-        }
-        if (count % 100 == 0) {
+            if (count % 1000000 == 0) {
+                std::cout << 100 * count / (nbPass * array.shape[0]) << "%" << std::endl;
+                spinet.updateNeuronsParameters(event.timestamp());
+            }
+//        if (count % 100 == 0) {
 //            spinet.trackNeuron(timestamp);
+//        }
+            ++count;
         }
-        ++count;
+        std::cout << "Finished iteration: " << i+1 << std::endl;
+        lastTimestamp = static_cast<long>(events[j-4]);
     }
 }
 
 cnpy::NpyArray loadEvents(std::string filePath) {
     std::cout << "Loading Events" << " (file: " << filePath << ")" << std::endl;
     return cnpy::npy_load(std::move(filePath));
-}
-
-void runSpikingNetwork(cnpy::NpyArray &array) {
-    std::string confFile = Conf::CONF_FILE;
-    NetworkConfig config = NetworkConfig(confFile);
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
-    std::map<std::string, cv::Mat> displays;
-
-    main_loop(array, spinet, displays);
-}
-
-void alternateSNN() {
-    auto array_h = loadEvents("/home/thomas/Vidéos/samples/npy/bars_horizontal.npy");
-    auto array_v = loadEvents("/home/thomas/Vidéos/samples/npy/bars_vertical.npy");
-
-    for (size_t inp = 0; inp < 4; ++inp) {
-        for (size_t ite = 0; ite < 5; ++ite) {
-            std::cout << "Pass " << ite+1 << ", Input: " << inp % 2 << std::endl;
-
-            if (inp % 2 == 0) {
-                runSpikingNetwork(array_h);
-            } else {
-                runSpikingNetwork(array_v);
-            }
-        }
-    }
 }
 
 void rotateEvents(cnpy::NpyArray &array, double degreeOfRotation) {
@@ -107,31 +88,49 @@ void rotateEvents(cnpy::NpyArray &array, double degreeOfRotation) {
     }
 }
 
-void presentRotation(std::string filePath, double degreeOfRotation) {
+void presentRotation(std::string networkPath, std::string filePath, double degreeOfRotation) {
     auto array = loadEvents(std::move(filePath));
     std::cout << "Rotation " << degreeOfRotation << std::endl;
     rotateEvents(array, degreeOfRotation);
-    runSpikingNetwork(array);
+
+    NetworkConfig config = NetworkConfig(networkPath);
+    std::cout << "Initializing Network " << std::endl;
+    SpikingNetwork spinet(config);
+    std::map<std::string, cv::Mat> displays;
+    main_loop(spinet, array, displays);
 }
 
-void multiplePass(std::string filePath, size_t nbPass) {
-    auto array = loadEvents(filePath);
+void multiplePass(std::string networkPath, std::string filePath, size_t nbPass) {
+    auto array = loadEvents(std::move(filePath));
 
-    for (size_t i = 0; i < nbPass; ++i) {
-        runSpikingNetwork(array);
-    }
+    NetworkConfig config = NetworkConfig(networkPath);
+    std::cout << "Initializing Network " << std::endl;
+    SpikingNetwork spinet(config);
+    std::map<std::string, cv::Mat> displays;
+    main_loop(spinet, array, displays, nbPass);
+}
+
+void stereo(std::string networkPath, std::string leftFilePath, std::string rightFilePath, size_t nbPass) {
+    auto leftArray = loadEvents(std::move(leftFilePath));
+    auto rightArray = loadEvents(std::move(rightFilePath));
+
+    NetworkConfig config = NetworkConfig(networkPath);
+    std::cout << "Initializing Network " << std::endl;
+    SpikingNetwork spinet(config);
+    std::map<std::string, cv::Mat> displays;
+    main_loop(spinet, leftArray, displays);
 }
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
-        if (strcmp(argv[1], "rotation") == 0) {
-            presentRotation(argv[2], std::stod(argv[3]));
+        if (strcmp(argv[2], "rotation") == 0) {
+            presentRotation(argv[1], argv[3], std::stod(argv[4]));
         }
-        if (strcmp(argv[1], "alternate") == 0) {
-            alternateSNN();
+        else if (strcmp(argv[2], "multi-pass") == 0) {
+            multiplePass(argv[1], argv[3], static_cast<size_t>(std::stoi(argv[4])));
         }
-        if (strcmp(argv[1], "multi-pass") == 0) {
-            multiplePass(argv[2], static_cast<size_t>(std::stoi(argv[3])));
+        else if (strcmp(argv[2], "stereo") == 0) {
+            stereo(argv[1], argv[3], argv[4], static_cast<size_t>(std::stoi(argv[5])));
         }
     } else {
         std::cout << "too few arguments" << std::endl;
