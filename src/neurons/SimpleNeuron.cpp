@@ -10,10 +10,10 @@ SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Positio
     }
 }
 
-inline void SimpleNeuron::newEvent(Event event) {
+inline bool SimpleNeuron::newEvent(Event event) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
-        membraneUpdate(event);
         m_events.push_back(event);
+        return membraneUpdate(event);
     } else {
         size_t synapse = 0;
         for (auto delay : m_delays) {
@@ -22,17 +22,14 @@ inline void SimpleNeuron::newEvent(Event event) {
     }
 }
 
-void SimpleNeuron::update(const long time) {
-    while (!m_waitingList.empty() && m_waitingList.top().timestamp() <= time) {
-        Event event = m_waitingList.top();
-        m_waitingList.pop();
-        m_events.push_back(event);
-
-        membraneUpdate(event);
-    }
+bool SimpleNeuron::update() {
+    Event event = m_waitingList.top();
+    m_waitingList.pop();
+    m_events.push_back(event);
+    return membraneUpdate(event);
 }
 
-inline void SimpleNeuron::membraneUpdate(Event event) {
+inline bool SimpleNeuron::membraneUpdate(Event event) {
     if (event.timestamp() - m_timestampLastEvent < 1000000) {
         m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
     } else {
@@ -52,7 +49,9 @@ inline void SimpleNeuron::membraneUpdate(Event event) {
 
     if (m_potential > m_threshold) {
         spike(event.timestamp());
+        return true;
     }
+    return false;
 }
 
 inline void SimpleNeuron::spike(const long time) {

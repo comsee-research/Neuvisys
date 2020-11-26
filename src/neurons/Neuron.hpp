@@ -64,9 +64,9 @@ public:
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
     virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
-    virtual void newEvent(Event event) {}
-    virtual void newEvent(NeuronEvent event) {}
-    virtual void update(long time) {}
+    virtual bool newEvent(Event event) {}
+    virtual bool newEvent(NeuronEvent event) {}
+    virtual bool update() {}
     virtual void trackPotential(long time);
 };
 

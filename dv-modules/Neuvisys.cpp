@@ -3,9 +3,11 @@
 #include <thread>
 #include "src/SpikingNetwork.hpp"
 
+#define CONFIG "/media/alphat/SSD Games/Thesis/Networks/network"
+
 class Neuvisys : public dv::ModuleBase {
 private:
-    NetworkConfig conf = NetworkConfig(Conf::CONF_FILE);
+    NetworkConfig conf = NetworkConfig(CONFIG);
     dv::EventStreamSlicer slicer;
 	SpikingNetwork spinet = SpikingNetwork(conf);
     std::map<std::string, cv::Mat> displays;

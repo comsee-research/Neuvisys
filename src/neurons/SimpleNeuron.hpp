@@ -19,13 +19,14 @@ class SimpleNeuron : public Neuron {
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
     SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
-    void newEvent(Event event) override;
-    void update(long time) override;
+    bool newEvent(Event event) override;
+    bool update() override;
     double getWeights(long p, long c, long s, long x, long y);
     void saveWeights(std::string &saveFile);
     void loadWeights(std::string &filePath);
+    bool checkNewEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 private:
-    void membraneUpdate(Event event);
+    bool membraneUpdate(Event event);
     void spike(long time);
     void updateSTDP();
     void normalizeWeights();

@@ -32,18 +32,16 @@ namespace Selection {
 
 class NetworkConfig {
 public:
-    explicit NetworkConfig(std::string &networkPath);
-    void loadNetworkLayout(std::string &fileName);
+    explicit NetworkConfig(std::string networkPath);
+    void loadNetworkLayout(const std::string& fileName);
 
     /***** Display parameters *****/
     std::string NETWORK_CONFIG;
     bool SaveData{};
-    std::string SaveDataLocation;
+    std::string NetworkPath;
 
     /***** Spiking Neural Network layout parameters *****/
     size_t NbCameras{};
-    std::string Neuron1Config;
-    std::string Neuron2Config;
     size_t L1Width{};
     size_t L1Height{};
     size_t L1Depth{};
@@ -63,11 +61,12 @@ public:
     size_t Neuron2Height{};
     size_t Neuron2Depth{};
     bool WeightSharing{};
+    bool Display{};
 };
 
 class NeuronConfig {
 public:
-    NeuronConfig(std::string configFile, size_t type);
+    NeuronConfig(const std::string& configFile, size_t type);
 /***** Neurons internal parameters *****/
     double TAU_M{}; // μs
     double TAU_LTP{}; // μs
@@ -96,8 +95,8 @@ public:
     bool STDP_LEARNING{};
     bool TRACKING{};
 private:
-    void loadNeuronsParameters(std::string &fileName);
-    void loadPoolingNeuronsParameters(std::string &fileName);
+    void loadNeuronsParameters(const std::string& fileName);
+    void loadPoolingNeuronsParameters(const std::string& fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP

@@ -1,13 +1,15 @@
 #include "Config.hpp"
 
+#include <utility>
+
 using json = nlohmann::json;
 
-NetworkConfig::NetworkConfig(std::string &networkPath) {
-    NETWORK_CONFIG = networkPath;
+NetworkConfig::NetworkConfig(std::string networkPath) {
+    NETWORK_CONFIG = std::move(networkPath);
     loadNetworkLayout(NETWORK_CONFIG);
 }
 
-void NetworkConfig::loadNetworkLayout(std::string &fileName) {
+void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
     json conf;
 
     std::ifstream ifs(fileName);
@@ -15,8 +17,6 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
         try {
             ifs >> conf;
             NbCameras = conf["NbCameras"];
-            Neuron1Config = conf["Neuron1Config"];
-            Neuron2Config = conf["Neuron2Config"];
             L1Width = conf["L1Width"];
             L1Height = conf["L1Height"];
             L1Depth = conf["L1Depth"];
@@ -46,7 +46,8 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
 
             WeightSharing = conf["WeightSharing"];
             SaveData = conf["SaveData"];
-            SaveDataLocation = conf["SaveDataLocation"];
+            NetworkPath = conf["NetworkPath"];
+            Display = conf["Display"];
         } catch (const std::exception& e) {
             std::cerr << "In Network config file" << std::endl;
             throw;
@@ -57,7 +58,7 @@ void NetworkConfig::loadNetworkLayout(std::string &fileName) {
     ifs.close();
 }
 
-NeuronConfig::NeuronConfig(std::string configFile, size_t type) {
+NeuronConfig::NeuronConfig(const std::string& configFile, size_t type) {
     if (type == 0) {
         loadNeuronsParameters(configFile);
     } else if (type == 1) {
@@ -65,7 +66,7 @@ NeuronConfig::NeuronConfig(std::string configFile, size_t type) {
     }
 }
 
-void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
+void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
     json conf;
 
     std::ifstream ifs(fileName);
@@ -102,7 +103,7 @@ void NeuronConfig::loadNeuronsParameters(std::string &fileName) {
     ifs.close();
 }
 
-void NeuronConfig::loadPoolingNeuronsParameters(std::string &fileName) {
+void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
     json conf;
 
     std::ifstream ifs(fileName);

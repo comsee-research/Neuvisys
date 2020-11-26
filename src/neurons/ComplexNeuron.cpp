@@ -6,12 +6,12 @@ ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Posit
     m_weights(weights) {
 }
 
-inline void ComplexNeuron::newEvent(NeuronEvent event) {
-    membraneUpdate(event);
+inline bool ComplexNeuron::newEvent(NeuronEvent event) {
     m_events.push_back(event);
+    return membraneUpdate(event);
 }
 
-inline void ComplexNeuron::membraneUpdate(NeuronEvent event) {
+inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
 //    potentialDecay(timestamp - m_timestampLastEvent);
     if (event.timestamp() - m_timestampLastEvent < 1000000) {
         m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
@@ -24,7 +24,9 @@ inline void ComplexNeuron::membraneUpdate(NeuronEvent event) {
 
     if (m_potential > m_threshold) {
         spike(event.timestamp());
+        return true;
     }
+    return false;
 }
 
 inline void ComplexNeuron::spike(const long time) {

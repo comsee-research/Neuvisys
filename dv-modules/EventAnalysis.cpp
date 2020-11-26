@@ -18,36 +18,73 @@ void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays)
     displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 }
 
-void main_loop(SpikingNetwork &spinet, cnpy::NpyArray &array, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
-    size_t i, j, count = 0;
-    auto *events = array.data<double>();
-    long firstTimestamp = static_cast<long>(events[0]);
-    long lastTimestamp = 0;
+inline void runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t count, size_t sizeArray) {
+    spinet.addEvent(event);
 
-    for (i = 0; i < nbPass; ++i) {
-        for (j = 0; j < 4 * array.shape[0]; j += 4) {
-            auto event = Event(static_cast<long>(events[j]) + static_cast<long>(i) * (lastTimestamp - firstTimestamp),
-                               static_cast<int16_t>(events[j+1]), static_cast<int16_t>(events[j+2]),
-                               static_cast<bool>(events[j+3]), 0);
-            spinet.addEvent(event);
-
-            if (count % 1000 == 0) {
-                spinet.updateNeurons(event.timestamp());
-            }
+    if (count % 1000 == 0) {
+        spinet.updateNeurons(event.timestamp());
+    }
 //        if (count % 30000 == 0) {
 //            spinet.updateDisplay(timestamp, displays);
 //        }
-            if (count % 1000000 == 0) {
-                std::cout << 100 * count / (nbPass * array.shape[0]) << "%" << std::endl;
-                spinet.updateNeuronsParameters(event.timestamp());
-            }
+    if (count % 1000000 == 0) {
+        std::cout << 100 * count / sizeArray << "%" << std::endl;
+        spinet.updateNeuronsParameters(event.timestamp());
+    }
 //        if (count % 100 == 0) {
 //            spinet.trackNeuron(timestamp);
 //        }
+}
+
+void main_loop(SpikingNetwork &spinet, cnpy::NpyArray &array, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
+    size_t pass, j, count = 0;
+    auto *events = array.data<double>();
+    long firstTimestamp = static_cast<long>(events[0]);
+    long lastTimestamp = 0;
+    size_t sizeArray = 4 * array.shape[0];
+    auto event = Event();
+
+    for (pass = 0; pass < nbPass; ++pass) {
+        for (j = 0; j < sizeArray; j += 4) {
+            event = Event(static_cast<long>(events[j]) + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
+                               static_cast<int16_t>(events[j+1]), static_cast<int16_t>(events[j+2]),
+                               static_cast<bool>(events[j+3]), 0);
+            runSpikingNetwork(spinet, event, count, nbPass * sizeArray / 4);
             ++count;
         }
-        std::cout << "Finished iteration: " << i+1 << std::endl;
+        std::cout << "Finished iteration: " << pass + 1 << std::endl;
         lastTimestamp = static_cast<long>(events[j-4]);
+    }
+}
+
+void stereo_loop(SpikingNetwork &spinet, cnpy::NpyArray &leftArray, cnpy::NpyArray &rightArray, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
+    size_t pass, count = 0, left, right;
+    auto *leftEvents = leftArray.data<double>();
+    auto *rightEvents = rightArray.data<double>();
+    long firstLeftTimestamp = static_cast<long>(leftEvents[0]), firstRightTimestamp = static_cast<long>(rightEvents[0]), lastLeftTimestamp = 0, lastRightTimestamp = 0;
+    size_t sizeLeftArray = 4 * leftArray.shape[0], sizeRightArray = 4 * rightArray.shape[0];
+    auto event = Event();
+
+    for (pass = 0; pass < nbPass; ++pass) {
+        left = 0; right = 0;
+        while (left < sizeLeftArray && right < sizeRightArray) {
+            if (right >= sizeRightArray || leftEvents[left] <= rightEvents[right]) {
+                event = Event(static_cast<long>(leftEvents[left]) + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp),
+                                   static_cast<int16_t>(leftEvents[left+1]), static_cast<int16_t>(leftEvents[left+2]),
+                                   static_cast<bool>(leftEvents[left+3]), 0);
+                left += 4;
+            } else {
+                event = Event(static_cast<long>(rightEvents[right]) + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp),
+                                   static_cast<int16_t>(rightEvents[right+1]), static_cast<int16_t>(rightEvents[right+2]),
+                                   static_cast<bool>(rightEvents[right+3]), 1);
+                right += 4;
+            }
+            runSpikingNetwork(spinet, event, count, nbPass * (sizeLeftArray + sizeRightArray) / 4);
+            ++count;
+        }
+        std::cout << "Finished iteration: " << pass + 1 << std::endl;
+        lastLeftTimestamp = static_cast<long>(leftEvents[left-4]);
+        lastRightTimestamp = static_cast<long>(rightEvents[right-4]);
     }
 }
 
@@ -93,7 +130,7 @@ void presentRotation(std::string networkPath, std::string filePath, double degre
     std::cout << "Rotation " << degreeOfRotation << std::endl;
     rotateEvents(array, degreeOfRotation);
 
-    NetworkConfig config = NetworkConfig(networkPath);
+    NetworkConfig config = NetworkConfig(std::move(networkPath));
     std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
@@ -103,7 +140,7 @@ void presentRotation(std::string networkPath, std::string filePath, double degre
 void multiplePass(std::string networkPath, std::string filePath, size_t nbPass) {
     auto array = loadEvents(std::move(filePath));
 
-    NetworkConfig config = NetworkConfig(networkPath);
+    NetworkConfig config = NetworkConfig(std::move(networkPath));
     std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
@@ -118,7 +155,7 @@ void stereo(std::string networkPath, std::string leftFilePath, std::string right
     std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
-    main_loop(spinet, leftArray, displays);
+    stereo_loop(spinet, leftArray, rightArray, displays, nbPass);
 }
 
 int main(int argc, char *argv[]) {
