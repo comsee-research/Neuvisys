@@ -3,7 +3,7 @@
 #include <thread>
 #include "src/SpikingNetwork.hpp"
 
-#define CONFIG "/media/alphat/SSD Games/Thesis/Networks/network"
+#define CONFIG "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json"
 
 class Neuvisys : public dv::ModuleBase {
 private:
@@ -48,7 +48,7 @@ public:
 
     static void initInputs(dv::InputDefinitionList &in) {
 		in.addEventInput("events1");
-        in.addEventInput("events2");
+        //in.addEventInput("events2");
 	}
 
 	static void initOutputs(dv::OutputDefinitionList &out) {
@@ -165,6 +165,7 @@ public:
 
 	void run() override {
         slicer.accept(inputs.getEventInput("events1").events());
+        //slicer.accept(inputs.getEventInput("events2").events());
     }
 
     static const char *initDescription() {

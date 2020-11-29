@@ -56,7 +56,7 @@ add_library(neuvisys SHARED
         src/neurons/ComplexNeuron.cpp
         src/Utils.cpp
         src/Config.cpp)
-target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES})
+target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES} /usr/local/lib/libcnpy.so)
 install(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
 
 ##### Test Executable #####

@@ -100,7 +100,7 @@ void SpikingNetwork::updateNeurons(const long time) {
                                              static_cast<int32_t>(simpleNeuron.getPos().posz() - complexNeuron.get().getOffset().posz())));
 
                 if (complexNeuron.get().hasSpiked()) {
-                    for (auto &complexNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
+                    for (auto &complexNeuronToInhibit : complexNeuron.get().getInhibitionConnections()) {
                         complexNeuronToInhibit.get().inhibition();
                     }
                     if (complexNeuron.get().getPos().posz() == Selection::LAYER2) {

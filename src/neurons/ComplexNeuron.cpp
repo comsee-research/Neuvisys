@@ -12,12 +12,12 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
-//    potentialDecay(timestamp - m_timestampLastEvent);
     if (event.timestamp() - m_timestampLastEvent < 1000000) {
         m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
     } else {
         m_potential = 0;
     }
+//    potentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.x(), event.y(), event.z())
                 - m_adaptation_potential;
     m_timestampLastEvent = event.timestamp();
@@ -50,9 +50,27 @@ inline void ComplexNeuron::spike(const long time) {
 
 inline void ComplexNeuron::updateSTDP() {
     for (NeuronEvent &event : m_events) {
+
+        // Step Window
         if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
             m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VP;
         }
+//        if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
+//            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VD;
+//        }
+
+        // Linear Window
+//        if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
+//            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VP * (1 - static_cast<double>(m_spikingTime - event.timestamp()));
+//        }
+//        if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
+//            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VD * (1 - static_cast<double>(event.timestamp() - m_lastSpikingTime));
+//        }
+
+        // Exponential Window
+//        m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+//        m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.DELTA_VD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+
 
         if (m_weights(event.x(), event.y(), event.z()) < 0) {
             m_weights(event.x(), event.y(), event.z()) = 0;

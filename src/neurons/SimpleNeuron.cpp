@@ -40,8 +40,8 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
     } else {
         m_adaptation_potential = 0;
     }
-//    potentialDecay(timestamp - m_timestampLastEvent);
-//    adaptationPotentialDecay(timestamp - m_timestampLastEvent);
+//    potentialDecay(event.timestamp() - m_timestampLastEvent);
+//    adaptationPotentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
                    - refractoryPotential(event.timestamp() - m_spikingTime)
                    - m_adaptation_potential;
