@@ -21,12 +21,12 @@ void init_display(NetworkConfig &conf, std::map<std::string, cv::Mat> &displays)
 inline void runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t count, size_t sizeArray) {
     spinet.addEvent(event);
 
-    if (count % Conf::EVENT_FREQUENCY == 0) {
-        spinet.updateNeurons(event.timestamp());
-    }
-//        if (count % Conf::DISPLAY_FREQUENCY == 0) {
-//            spinet.updateDisplay(timestamp, displays);
-//        }
+//    if (count % Conf::EVENT_FREQUENCY == 0) {
+//        spinet.updateNeurons(event.timestamp());
+//    }
+//    if (count % Conf::DISPLAY_FREQUENCY == 0) {
+//        spinet.updateDisplay(event.timestamp(), displays);
+//    }
     if (count % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
         std::cout << 100 * count / sizeArray << "%" << std::endl;
         spinet.updateNeuronsParameters(event.timestamp());

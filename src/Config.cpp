@@ -49,7 +49,7 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             NetworkPath = conf["NetworkPath"];
             Display = conf["Display"];
         } catch (const std::exception& e) {
-            std::cerr << "In Network config file" << std::endl;
+            std::cerr << "In network config file" << std::endl;
             throw;
         }
     } else {
@@ -94,7 +94,7 @@ void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
         } catch (const std::exception& e) {
-            std::cerr << "In Neuron config file" << std::endl;
+            std::cerr << "In simple cell config file" << std::endl;
             throw;
         }
     } else {
@@ -111,7 +111,9 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
         try {
             ifs >> conf;
             DELTA_VP = conf["DELTA_VP"];
+            DELTA_VD = conf["DELTA_VD"];
             TAU_LTP = conf["TAU_LTP"];
+            TAU_LTD = conf["TAU_LTD"];
             TAU_M = conf["TAU_M"];
             VTHRESH = conf["VTHRESH"];
             DELTA_INH = conf["DELTA_INH"];
@@ -120,8 +122,10 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
             DECAY_FACTOR = conf["DECAY_FACTOR"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
+            DELTA_RP = conf["DELTA_RP"];
+            TAU_RP = conf["TAU_RP"];
         } catch (const std::exception& e) {
-            std::cerr << "In Pooling Neuron config file" << std::endl;
+            std::cerr << "In complex cell config file" << std::endl;
             throw;
         }
     } else {

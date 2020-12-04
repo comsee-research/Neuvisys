@@ -24,7 +24,7 @@ public:
     double getWeights(long p, long c, long s, long x, long y);
     void saveWeights(std::string &saveFile);
     void loadWeights(std::string &filePath);
-    bool checkNewEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
+    bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 private:
     bool membraneUpdate(Event event);
     void spike(long time);

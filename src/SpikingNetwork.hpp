@@ -65,6 +65,7 @@ private:
     void multiPotentialDisplay(long time, cv::Mat &display);
     void multiPotential2Display(long time, cv::Mat &display);
     Position findPixelComplexNeuron(ComplexNeuron &neuron);
+    void addComplexEvent(SimpleNeuron &neuron);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

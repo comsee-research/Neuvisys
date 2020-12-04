@@ -58,13 +58,18 @@ bool SpikingNetwork::complexNeuronsFilesExists() const {
 
 void SpikingNetwork::addEvent(Event event) {
     for (size_t ind : m_retina[static_cast<uint32_t>(event.x()) * Conf::HEIGHT + static_cast<uint32_t>(event.y())]) {
-        bool spike = m_simpleNeurons[ind].newEvent(Event(event.timestamp(),
-                                            event.x() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posx()),
-                                            event.y() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posy()), event.polarity(), event.camera()));
-        if (spike) {
+        if (m_simpleNeurons[ind].newEvent(Event(event.timestamp(),
+                                                event.x() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posx()),
+                                                event.y() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posy()),
+                                                event.polarity(), event.camera()))) {
             for (auto &simpleNeuronToInhibit : m_simpleNeurons[ind].getInhibitionConnections()) {
                 simpleNeuronToInhibit.get().inhibition();
             }
+            if (m_simpleNeurons[ind].getPos().posz() == Selection::LAYER) {
+                m_simpleSpikes.push_back(m_simpleNeurons[ind].getIndex());
+            }
+
+            addComplexEvent(m_simpleNeurons[ind]);
         }
 
         if (conf.Display && ind == Selection::INDEX2) {
@@ -77,36 +82,33 @@ void SpikingNetwork::addEvent(Event event) {
     }
 }
 
+inline void SpikingNetwork::addComplexEvent(SimpleNeuron &neuron) {
+    for (auto &complexNeuron : neuron.getOutConnections()) {
+        if (complexNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
+                                                     static_cast<int32_t>(neuron.getPos().posx() - complexNeuron.get().getOffset().posx()),
+                                                     static_cast<int32_t>(neuron.getPos().posy() - complexNeuron.get().getOffset().posy()),
+                                                     static_cast<int32_t>(neuron.getPos().posz() - complexNeuron.get().getOffset().posz())))) {
+            for (auto &complexNeuronToInhibit : complexNeuron.get().getInhibitionConnections()) {
+                complexNeuronToInhibit.get().inhibition();
+            }
+            if (complexNeuron.get().getPos().posz() == Selection::LAYER2) {
+                m_complexSpikes.push_back(complexNeuron.get().getIndex());
+            }
+        }
+    }
+}
+
 void SpikingNetwork::updateNeurons(const long time) {
     for (auto &simpleNeuron : m_simpleNeurons) {
-        while (simpleNeuron.checkNewEvents(time)) {
-            bool spike = simpleNeuron.update(); // update simple cell neurons (1st layer)
-            if (spike) {
+        while (simpleNeuron.checkRemainingEvents(time)) {
+            if (simpleNeuron.update()) {
                 for (auto &simpleNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
                     simpleNeuronToInhibit.get().inhibition();
                 }
-            }
-        }
-
-        if (simpleNeuron.hasSpiked()) {
-            if (simpleNeuron.getPos().posz() == Selection::LAYER) {
-                m_simpleSpikes.push_back(simpleNeuron.getIndex());
-            }
-
-            for (auto &complexNeuron : simpleNeuron.getOutConnections()) { // update complex cell neurons (2nd layer)
-                complexNeuron.get().newEvent(NeuronEvent(simpleNeuron.getSpikingTime(),
-                                             static_cast<int32_t>(simpleNeuron.getPos().posx() - complexNeuron.get().getOffset().posx()),
-                                             static_cast<int32_t>(simpleNeuron.getPos().posy() - complexNeuron.get().getOffset().posy()),
-                                             static_cast<int32_t>(simpleNeuron.getPos().posz() - complexNeuron.get().getOffset().posz())));
-
-                if (complexNeuron.get().hasSpiked()) {
-                    for (auto &complexNeuronToInhibit : complexNeuron.get().getInhibitionConnections()) {
-                        complexNeuronToInhibit.get().inhibition();
-                    }
-                    if (complexNeuron.get().getPos().posz() == Selection::LAYER2) {
-                        m_complexSpikes.push_back(complexNeuron.get().getIndex());
-                    }
+                if (simpleNeuron.getPos().posz() == Selection::LAYER) {
+                    m_simpleSpikes.push_back(simpleNeuron.getIndex());
                 }
+                addComplexEvent(simpleNeuron);
             }
         }
     }
