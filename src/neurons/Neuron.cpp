@@ -57,9 +57,9 @@ inline void Neuron::thresholdAdaptation() {
     m_spikingRate /= Conf::TIME_WINDOW_SR;
 
     if (m_spikingRate > conf.TARGET_SPIKE_RATE) {
-        m_threshold += conf.DELTA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRate));
+        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRate));
     } else {
-        m_threshold -= conf.DELTA_SR * (1 - exp(m_spikingRate - conf.TARGET_SPIKE_RATE));
+        m_threshold -= conf.ETA_SR * (1 - exp(m_spikingRate - conf.TARGET_SPIKE_RATE));
     }
 
     if (m_threshold < conf.MIN_THRESH) {

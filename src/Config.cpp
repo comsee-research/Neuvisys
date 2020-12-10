@@ -73,9 +73,9 @@ void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
-            DELTA_VP = conf["DELTA_VP"];
-            DELTA_VD = conf["DELTA_VD"];
-            DELTA_SR = conf["DELTA_SR"];
+            ETA_LTP = conf["ETA_LTP"];
+            ETA_LTD = conf["ETA_LTD"];
+            ETA_SR = conf["ETA_SR"];
             DELTA_RP = conf["DELTA_RP"];
             DELTA_SRA = conf["DELTA_SRA"];
             DELTA_INH = conf["DELTA_INH"];
@@ -110,8 +110,8 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
-            DELTA_VP = conf["DELTA_VP"];
-            DELTA_VD = conf["DELTA_VD"];
+            ETA_LTP = conf["ETA_LTP"];
+            ETA_LTD = conf["ETA_LTD"];
             TAU_LTP = conf["TAU_LTP"];
             TAU_LTD = conf["TAU_LTD"];
             TAU_M = conf["TAU_M"];

@@ -74,9 +74,9 @@ public:
     double TAU_RP{}; // μs
     double TAU_SRA{}; // μs
 
-    double DELTA_VP{}; // mV
-    double DELTA_VD{}; // mV
-    double DELTA_SR{}; // mV
+    double ETA_LTP{}; // mV
+    double ETA_LTD{}; // mV
+    double ETA_SR{}; // mV
     double DELTA_RP{}; // mv
     double DELTA_SRA{}; // mV
     double DELTA_INH{}; // mV
