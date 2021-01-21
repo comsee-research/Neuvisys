@@ -151,11 +151,16 @@ void stereo(std::string networkPath, std::string leftFilePath, std::string right
     auto leftArray = loadEvents(std::move(leftFilePath));
     auto rightArray = loadEvents(std::move(rightFilePath));
 
-    NetworkConfig config = NetworkConfig(networkPath);
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
-    std::map<std::string, cv::Mat> displays;
-    stereo_loop(spinet, leftArray, rightArray, displays, nbPass);
+    NetworkConfig config = NetworkConfig(std::move(networkPath));
+
+    if (config.NbCameras == 2) {
+        std::cout << "Initializing Network " << std::endl;
+        SpikingNetwork spinet(config);
+        std::map<std::string, cv::Mat> displays;
+        stereo_loop(spinet, leftArray, rightArray, displays, nbPass);
+    } else {
+        std::cout << "Incorrect number of cameras for a stereo setup" << std::endl;
+    }
 }
 
 int main(int argc, char *argv[]) {

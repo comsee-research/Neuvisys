@@ -45,6 +45,7 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             Neuron2Depth = conf["Neuron2Depth"];
 
             WeightSharing = conf["WeightSharing"];
+            SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
             NetworkPath = conf["NetworkPath"];
             Display = conf["Display"];

@@ -61,6 +61,7 @@ public:
     size_t Neuron2Height{};
     size_t Neuron2Depth{};
     bool WeightSharing{};
+    std::string SharingType{};
     bool Display{};
 };
 
