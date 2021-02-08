@@ -36,128 +36,122 @@ inline void runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t count
 //        }
 }
 
-void main_loop(SpikingNetwork &spinet, cnpy::NpyArray &array, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
+void main_loop(SpikingNetwork &spinet, const std::string &array, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
     size_t pass, j, count = 0;
-    auto *events = array.data<double>();
-    long firstTimestamp = static_cast<long>(events[0]);
+
+    cnpy::NpyArray timestamps_array = cnpy::npz_load(array, "arr_0");
+    cnpy::NpyArray x_array = cnpy::npz_load(array, "arr_1");
+    cnpy::NpyArray y_array = cnpy::npz_load(array, "arr_2");
+    cnpy::NpyArray polarities_array = cnpy::npz_load(array, "arr_3");
+    size_t sizeArray = timestamps_array.shape[0];
+
+    auto *timestamps = timestamps_array.data<long>();
+    auto *x = x_array.data<long>();
+    auto *y = y_array.data<long>();
+    auto *polarities = polarities_array.data<bool>();
+
+    long firstTimestamp = timestamps[0];
     long lastTimestamp = 0;
-    size_t sizeArray = 4 * array.shape[0];
     auto event = Event();
 
     for (pass = 0; pass < nbPass; ++pass) {
-        for (j = 0; j < sizeArray; j += 4) {
-            event = Event(static_cast<long>(events[j]) + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
-                               static_cast<int16_t>(events[j+1]), static_cast<int16_t>(events[j+2]),
-                               static_cast<bool>(events[j+3]), 0);
-            runSpikingNetwork(spinet, event, count, nbPass * sizeArray / 4);
+        for (j = 0; j < sizeArray; ++j) {
+            event = Event(timestamps[j] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), x[j], y[j], polarities[j], 0);
+            runSpikingNetwork(spinet, event, count, nbPass * sizeArray);
             ++count;
         }
         std::cout << "Finished iteration: " << pass + 1 << std::endl;
-        lastTimestamp = static_cast<long>(events[j-4]);
+        lastTimestamp = static_cast<long>(timestamps[j-1]);
     }
 }
 
-void stereo_loop(SpikingNetwork &spinet, cnpy::NpyArray &leftArray, cnpy::NpyArray &rightArray, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
+void stereo_loop(SpikingNetwork &spinet, const std::string &leftArray, const std::string &rightArray, std::map<std::string, cv::Mat> &displays, size_t nbPass = 1) {
     size_t pass, count = 0, left, right;
-    auto *leftEvents = leftArray.data<double>();
-    auto *rightEvents = rightArray.data<double>();
-    long firstLeftTimestamp = static_cast<long>(leftEvents[0]), firstRightTimestamp = static_cast<long>(rightEvents[0]), lastLeftTimestamp = 0, lastRightTimestamp = 0;
-    size_t sizeLeftArray = 4 * leftArray.shape[0], sizeRightArray = 4 * rightArray.shape[0];
+
+    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(leftArray, "arr_0");
+    cnpy::NpyArray l_x_array = cnpy::npz_load(leftArray, "arr_1");
+    cnpy::NpyArray l_y_array = cnpy::npz_load(leftArray, "arr_2");
+    cnpy::NpyArray l_polarities_array = cnpy::npz_load(leftArray, "arr_3");
+    size_t sizeLeftArray = l_timestamps_array.shape[0];
+
+    auto *l_timestamps = l_timestamps_array.data<long>();
+    auto *l_x = l_x_array.data<long>();
+    auto *l_y = l_y_array.data<long>();
+    auto *l_polarities = l_polarities_array.data<bool>();
+
+    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(rightArray, "arr_0");
+    cnpy::NpyArray r_x_array = cnpy::npz_load(leftArray, "arr_1");
+    cnpy::NpyArray r_y_array = cnpy::npz_load(leftArray, "arr_2");
+    cnpy::NpyArray r_polarities_array = cnpy::npz_load(leftArray, "arr_3");
+    size_t sizeRightArray = r_timestamps_array.shape[0];
+
+    auto *r_timestamps = r_timestamps_array.data<long>();
+    auto *r_x = r_x_array.data<long>();
+    auto *r_y = r_y_array.data<long>();
+    auto *r_polarities = r_polarities_array.data<bool>();
+
+    long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = 0, lastRightTimestamp = 0;
     auto event = Event();
 
     for (pass = 0; pass < nbPass; ++pass) {
         left = 0; right = 0;
         while (left < sizeLeftArray && right < sizeRightArray) {
-            if (right >= sizeRightArray || leftEvents[left] <= rightEvents[right]) {
-                event = Event(static_cast<long>(leftEvents[left]) + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp),
-                                   static_cast<int16_t>(leftEvents[left+1]), static_cast<int16_t>(leftEvents[left+2]),
-                                   static_cast<bool>(leftEvents[left+3]), 0);
-                left += 4;
+            if (right >= sizeRightArray || l_timestamps[left] <= r_timestamps[right]) {
+                event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
+                ++left;
             } else {
-                event = Event(static_cast<long>(rightEvents[right]) + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp),
-                                   static_cast<int16_t>(rightEvents[right+1]), static_cast<int16_t>(rightEvents[right+2]),
-                                   static_cast<bool>(rightEvents[right+3]), 1);
-                right += 4;
+                event = Event(r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp), r_x[right], r_y[right], r_polarities[right], 1);
+                ++right;
             }
-            runSpikingNetwork(spinet, event, count, nbPass * (sizeLeftArray + sizeRightArray) / 4);
+            runSpikingNetwork(spinet, event, count, nbPass * (sizeLeftArray + sizeRightArray));
             ++count;
         }
         std::cout << "Finished iteration: " << pass + 1 << std::endl;
-        lastLeftTimestamp = static_cast<long>(leftEvents[left-4]);
-        lastRightTimestamp = static_cast<long>(rightEvents[right-4]);
+        lastLeftTimestamp = static_cast<long>(l_timestamps[left-1]);
+        lastRightTimestamp = static_cast<long>(r_timestamps[right-1]);
     }
 }
-
+//if (right >= sizeRightArray || l_timestamps[left] <= r_timestamps[right]) {
+//if (l_x[left] >= 0 && l_y[left] >= 0 && l_x[left] < 346 && l_y[left] < 256) {
+//event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp),
+//              l_x[left], l_y[left], l_polarities[left], 0);
+//++left;
+//} else {
+//std::cout << "Wrong left event position " << "x = " << l_x[left] << " y = " << l_y[left] << std::endl;
+//++left;
+//}
+//} else {
+//if (r_x[right] >= 0 && r_y[right] >= 0 && r_x[right] < 346 && r_y[right] < 256) {
+//event = Event(
+//        r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp),
+//        r_x[right], r_y[right], r_polarities[right], 1);
+//++right;
+//} else {
+//std::cout << "Wrong right event position " << "x = " << l_x[left] << " y = " << l_y[left] << std::endl;
+//++right;
+//}
+//}
 cnpy::NpyArray loadEvents(std::string filePath) {
     std::cout << "Loading Events" << " (file: " << filePath << ")" << std::endl;
     return cnpy::npy_load(std::move(filePath));
 }
 
-void rotateEvents(cnpy::NpyArray &array, double degreeOfRotation) {
-    auto *events = array.data<double>();
-
-    int height = 260;
-    int width = 346;
-    int centerX = (width - 1) / 2;
-    int centerY = (height - 1) / 2;
-    double cosOfDegree = std::cos(degreeOfRotation * static_cast<double>(M_PI) / static_cast<double>(180.0f));
-    double sinOfDegree = std::sin(degreeOfRotation * static_cast<double>(M_PI) / static_cast<double>(180.0f));
-
-    for (size_t i = 0; i < 4 * array.shape[0]; i += 4) {
-        int x = static_cast<int>(events[i + 1]), y = static_cast<int>(events[i + 2]);
-
-        if (double(degreeOfRotation) != 0.0) {
-            auto dx = static_cast<double>(x - centerX);
-            auto dy = static_cast<double>(y - centerY);
-
-            x = static_cast<int16_t>(dx * static_cast<double>(cosOfDegree) - dy * static_cast<double>(sinOfDegree) + centerX);
-            y = static_cast<int16_t>(dx * static_cast<double>(sinOfDegree) + dy * static_cast<double>(cosOfDegree) + centerY);
-
-            if (x >= width || x < 0) {
-                continue;
-            }
-            if (y >= height || y < 0) {
-                continue;
-            }
-        }
-        events[i + 1] = x;
-        events[i + 2] = y;
-    }
-}
-
-void presentRotation(std::string networkPath, std::string filePath, double degreeOfRotation) {
-    auto array = loadEvents(std::move(filePath));
-    std::cout << "Rotation " << degreeOfRotation << std::endl;
-    rotateEvents(array, degreeOfRotation);
-
+void multiplePass(std::string networkPath, const std::string &filePath, size_t nbPass) {
     NetworkConfig config = NetworkConfig(std::move(networkPath));
     std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
     std::map<std::string, cv::Mat> displays;
-    main_loop(spinet, array, displays);
+    main_loop(spinet, filePath, displays, nbPass);
 }
 
-void multiplePass(std::string networkPath, std::string filePath, size_t nbPass) {
-    auto array = loadEvents(std::move(filePath));
-
-    NetworkConfig config = NetworkConfig(std::move(networkPath));
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
-    std::map<std::string, cv::Mat> displays;
-    main_loop(spinet, array, displays, nbPass);
-}
-
-void stereo(std::string networkPath, std::string leftFilePath, std::string rightFilePath, size_t nbPass) {
-    auto leftArray = loadEvents(std::move(leftFilePath));
-    auto rightArray = loadEvents(std::move(rightFilePath));
-
+void stereo(std::string networkPath, const std::string &leftFilePath, const std::string &rightFilePath, size_t nbPass) {
     NetworkConfig config = NetworkConfig(std::move(networkPath));
 
     if (config.NbCameras == 2) {
         std::cout << "Initializing Network " << std::endl;
         SpikingNetwork spinet(config);
         std::map<std::string, cv::Mat> displays;
-        stereo_loop(spinet, leftArray, rightArray, displays, nbPass);
+        stereo_loop(spinet, leftFilePath, rightFilePath, displays, nbPass);
     } else {
         std::cout << "Incorrect number of cameras for a stereo setup" << std::endl;
     }
@@ -165,16 +159,23 @@ void stereo(std::string networkPath, std::string leftFilePath, std::string right
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
-        if (strcmp(argv[2], "rotation") == 0) {
-            presentRotation(argv[1], argv[3], std::stod(argv[4]));
-        }
-        else if (strcmp(argv[2], "multi-pass") == 0) {
+        if (strcmp(argv[2], "multi-pass") == 0) {
             multiplePass(argv[1], argv[3], static_cast<size_t>(std::stoi(argv[4])));
         }
         else if (strcmp(argv[2], "stereo") == 0) {
             stereo(argv[1], argv[3], argv[4], static_cast<size_t>(std::stoi(argv[5])));
         }
     } else {
-        std::cout << "too few arguments" << std::endl;
+        std::cout << "too few arguments, entering debug mode" << std::endl;
+//        std::string networkPath = "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json";
+//        std::string left = "/home/alphat/Desktop/l_events.npz";
+//        std::string right = "/home/alphat/Desktop/r_events.npz";
+//
+//        stereo(networkPath, left, right, 1);
+
+        std::string networkPath = "/home/alphat/neuvisys-dv/configuration/NETWORKS/stdps/exp_sym/configs/network_config.json";
+        std::string events = "/media/alphat/SSD Games/Thesis/videos/artificial_videos/lines_npz/0.npz";
+
+        multiplePass(networkPath, events, 1);
     }
 }
