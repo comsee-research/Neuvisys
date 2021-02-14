@@ -28,8 +28,8 @@ class SpikingNetwork {
     std::deque<long> m_timestamps;
     std::vector<uint64_t> m_simpleSpikesDisplay;
     std::vector<uint64_t> m_complexSpikesDisplay;
-    std::queue<std::pair<uint64_t, uint64_t>> m_simpleInhibitionQueue;
-    std::queue<std::pair<uint64_t, uint64_t>> m_complexInhibitionQueue;
+//    std::queue<std::pair<uint64_t, uint64_t>> m_simpleInhibitionQueue;
+//    std::queue<std::pair<uint64_t, uint64_t>> m_complexInhibitionQueue;
 
     uint64_t m_nbSimpleNeurons;
     uint64_t m_nbComplexNeurons;

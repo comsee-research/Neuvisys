@@ -46,8 +46,8 @@ void main_loop(SpikingNetwork &spinet, const std::string &array, std::map<std::s
     size_t sizeArray = timestamps_array.shape[0];
 
     auto *timestamps = timestamps_array.data<long>();
-    auto *x = x_array.data<long>();
-    auto *y = y_array.data<long>();
+    auto *x = x_array.data<int16_t>();
+    auto *y = y_array.data<int16_t>();
     auto *polarities = polarities_array.data<bool>();
 
     long firstTimestamp = timestamps[0];

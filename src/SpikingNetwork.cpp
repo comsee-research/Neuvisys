@@ -63,7 +63,9 @@ void SpikingNetwork::addEvent(Event event) {
                                                 event.x() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posx()),
                                                 event.y() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posy()),
                                                 event.polarity(), event.camera()))) {
-            m_simpleInhibitionQueue.emplace(event.timestamp(), m_simpleNeurons[ind].getIndex());
+            for (auto &simpleNeuronToInhibit : m_simpleNeurons[ind].getInhibitionConnections()) {
+                simpleNeuronToInhibit.get().inhibition();
+            }
             if (m_simpleNeurons[ind].getPos().posz() == Selection::LAYER) {
                 m_simpleSpikesDisplay.push_back(m_simpleNeurons[ind].getIndex());
             }
@@ -79,18 +81,18 @@ void SpikingNetwork::addEvent(Event event) {
         }
     }
 
-    if (!m_simpleInhibitionQueue.empty() && static_cast<uint64_t>(event.timestamp()) - m_simpleInhibitionQueue.front().first >= 1000) {
-        for (auto &simpleNeuronToInhibit : m_simpleNeurons[m_simpleInhibitionQueue.front().second].getInhibitionConnections()) {
-            simpleNeuronToInhibit.get().inhibition();
-        }
-        m_simpleInhibitionQueue.pop();
-    }
-    if (!m_complexInhibitionQueue.empty() && static_cast<uint64_t>(event.timestamp()) - m_complexInhibitionQueue.front().first >= 1000) {
-        for (auto &complexNeuronToInhibit : m_complexNeurons[m_complexInhibitionQueue.front().second].getInhibitionConnections()) {
-            complexNeuronToInhibit.get().inhibition();
-        }
-        m_complexInhibitionQueue.pop();
-    }
+//    if (!m_simpleInhibitionQueue.empty() && static_cast<uint64_t>(event.timestamp()) - m_simpleInhibitionQueue.front().first >= 0) {
+//        for (auto &simpleNeuronToInhibit : m_simpleNeurons[m_simpleInhibitionQueue.front().second].getInhibitionConnections()) {
+//            simpleNeuronToInhibit.get().inhibition();
+//        }
+//        m_simpleInhibitionQueue.pop();
+//    }
+//    if (!m_complexInhibitionQueue.empty() && static_cast<uint64_t>(event.timestamp()) - m_complexInhibitionQueue.front().first >= 0) {
+//        for (auto &complexNeuronToInhibit : m_complexNeurons[m_complexInhibitionQueue.front().second].getInhibitionConnections()) {
+//            complexNeuronToInhibit.get().inhibition();
+//        }
+//        m_complexInhibitionQueue.pop();
+//    }
 }
 
 inline void SpikingNetwork::addComplexEvent(SimpleNeuron &neuron) {
@@ -99,7 +101,9 @@ inline void SpikingNetwork::addComplexEvent(SimpleNeuron &neuron) {
                                                      static_cast<int32_t>(neuron.getPos().posx() - complexNeuron.get().getOffset().posx()),
                                                      static_cast<int32_t>(neuron.getPos().posy() - complexNeuron.get().getOffset().posy()),
                                                      static_cast<int32_t>(neuron.getPos().posz() - complexNeuron.get().getOffset().posz())))) {
-            m_complexInhibitionQueue.emplace(neuron.getSpikingTime(), complexNeuron.get().getIndex());
+            for (auto &complexNeuronToInhibit : complexNeuron.get().getInhibitionConnections()) {
+                complexNeuronToInhibit.get().inhibition();
+            }
             if (complexNeuron.get().getPos().posz() == Selection::LAYER2) {
                 m_complexSpikesDisplay.push_back(complexNeuron.get().getIndex());
             }
