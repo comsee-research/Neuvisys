@@ -59,12 +59,12 @@ set(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 link_directories(src/dependencies)
 
 set(PROJECT_SOURCES
-        src/SpikingNetwork.cpp
-        src/Utils.cpp
-        src/Config.cpp
-        src/neurons/Neuron.cpp
-        src/neurons/SimpleNeuron.cpp
-        src/neurons/ComplexNeuron.cpp
+        src/network/SpikingNetwork.cpp
+        src/network/Utils.cpp
+        src/network/Config.cpp
+        src/network/neurons/Neuron.cpp
+        src/network/neurons/SimpleNeuron.cpp
+        src/network/neurons/ComplexNeuron.cpp
 )
 
 set(GUI_SOURCES

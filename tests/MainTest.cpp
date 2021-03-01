@@ -1,4 +1,4 @@
-#include "src/SpikingNetwork.hpp"
+#include "src/network/SpikingNetwork.hpp"
 #include <chrono>
 #include <random>
 #include <utility>

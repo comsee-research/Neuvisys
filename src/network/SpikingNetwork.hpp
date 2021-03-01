@@ -3,10 +3,10 @@
 
 #include <vector>
 #include <array>
-#include <src/neurons/ComplexNeuron.hpp>
+#include <src/network/neurons/ComplexNeuron.hpp>
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
-#include "src/neurons/SimpleNeuron.hpp"
+#include "src/network/neurons/SimpleNeuron.hpp"
 
 class SpikingNetwork {
     NetworkConfig &conf;

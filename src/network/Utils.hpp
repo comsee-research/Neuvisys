@@ -1,7 +1,7 @@
 #ifndef NEUVISYS_DV_UTILS_HPP
 #define NEUVISYS_DV_UTILS_HPP
 
-#include "dependencies/unsupported/Eigen/CXX11/Tensor"
+#include "src/dependencies/unsupported/Eigen/CXX11/Tensor"
 #include <random>
 #include <chrono>
 #include "cnpy.h"

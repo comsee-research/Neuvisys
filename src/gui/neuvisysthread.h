@@ -6,7 +6,7 @@
 #include <random>
 #include <utility>
 
-#include "src/SpikingNetwork.hpp"
+#include "src/network/SpikingNetwork.hpp"
 #include "src/dependencies/json.hpp"
 #include "cnpy.h"
 
