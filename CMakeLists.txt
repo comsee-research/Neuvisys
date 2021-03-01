@@ -56,6 +56,8 @@ DV_MODULE_SETUP()
 # Set full RPATH, modules are libraries for DV
 set(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 
+link_directories(src/dependencies)
+
 set(PROJECT_SOURCES
         src/SpikingNetwork.cpp
         src/Utils.cpp
@@ -90,23 +92,23 @@ else()
         )
     endif()
 endif()
-target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED
         src/modules/Neuvisys-DV.cpp
         ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} cnpy)
 install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
 
 ##### Neuvisys Executable #####
 add_executable(neuvisys
         src/modules/Neuvisys.cpp
         ${PROJECT_SOURCES})
-target_link_libraries(neuvisys ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 ##### Test Executable #####
 add_executable(neuvisys-test
         tests/MainTest.cpp
         ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-test ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+target_link_libraries(neuvisys-test ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
