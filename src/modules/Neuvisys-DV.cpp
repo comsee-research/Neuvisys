@@ -38,12 +38,12 @@ public:
         slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
         });
-        slicer.doEveryTimeInterval(Conf::DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
-            computeDisplays(data);
-        });
-        slicer.doEveryTimeInterval(Conf::UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
-            computeParameters();
-        });
+//        slicer.doEveryTimeInterval(Conf::DISPLAY_FREQUENCY, [this](const dv::EventStore &data) {
+//            computeDisplays(data);
+//        });
+//        slicer.doEveryTimeInterval(Conf::UPDATE_PARAMETER_FREQUENCY, [this](const dv::EventStore &data) {
+//            computeParameters();
+//        });
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
@@ -62,38 +62,38 @@ public:
         out.addFrameOutput("spikes2");
 	}
 
-    void computeDisplays(const dv::EventStore &events) {
-        spinet.updateDisplay(lastTime, displays);
+//    void computeDisplays(const dv::EventStore &events) {
+//        spinet.updateDisplay(lastTime, displays);
 
-        auto frame = outputs.getFrameOutput("frames").frame();
-        frame << displays["frames"];
-        frame.commit();
-        displays["frames"] = 0;
-        auto potentials = outputs.getFrameOutput("potentials").frame();
-        potentials << displays["potentials"];
-        potentials.commit();
-        auto spikes = outputs.getFrameOutput("spikes").frame();
-        spikes << displays["spikes"];
-        spikes.commit();
-        auto weights = outputs.getFrameOutput("weights").frame();
-        weights.setFormat(dv::FrameFormat::BGR);
-        weights << displays["weights"];
-        weights.commit();
-        auto zoom = outputs.getFrameOutput("zoom").frame();
-        weights.setFormat(dv::FrameFormat::BGR);
-        zoom << displays["zoom"];
-        zoom.commit();
-        auto weights2 = outputs.getFrameOutput("weights2").frame();
-        weights2.setFormat(dv::FrameFormat::BGR);
-        weights2 << displays["weights2"];
-        weights2.commit();
-        auto potentials2 = outputs.getFrameOutput("potentials2").frame();
-        potentials2 << displays["potentials2"];
-        potentials2.commit();
-        auto spikes2 = outputs.getFrameOutput("spikes2").frame();
-        spikes2 << displays["spikes2"];
-        spikes2.commit();
-    }
+//        auto frame = outputs.getFrameOutput("frames").frame();
+//        frame << displays["frames"];
+//        frame.commit();
+//        displays["frames"] = 0;
+//        auto potentials = outputs.getFrameOutput("potentials").frame();
+//        potentials << displays["potentials"];
+//        potentials.commit();
+//        auto spikes = outputs.getFrameOutput("spikes").frame();
+//        spikes << displays["spikes"];
+//        spikes.commit();
+//        auto weights = outputs.getFrameOutput("weights").frame();
+//        weights.setFormat(dv::FrameFormat::BGR);
+//        weights << displays["weights"];
+//        weights.commit();
+//        auto zoom = outputs.getFrameOutput("zoom").frame();
+//        weights.setFormat(dv::FrameFormat::BGR);
+//        zoom << displays["zoom"];
+//        zoom.commit();
+//        auto weights2 = outputs.getFrameOutput("weights2").frame();
+//        weights2.setFormat(dv::FrameFormat::BGR);
+//        weights2 << displays["weights2"];
+//        weights2.commit();
+//        auto potentials2 = outputs.getFrameOutput("potentials2").frame();
+//        potentials2 << displays["potentials2"];
+//        potentials2.commit();
+//        auto spikes2 = outputs.getFrameOutput("spikes2").frame();
+//        spikes2 << displays["spikes2"];
+//        spikes2.commit();
+//    }
 
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
@@ -109,59 +109,59 @@ public:
         }
     }
 
-    void computeParameters() {
-        spinet.updateNeuronsParameters(lastTime);
+//    void computeParameters() {
+//        spinet.updateNeuronsParameters(lastTime);
 
-        json gui;
+//        json gui;
 
-        std::ifstream ifs(Conf::GUI_FILE);
-        if (ifs.is_open()) {
-            try {
-                ifs >> gui;
-            } catch (const std::exception& e) {
-                std::cerr << "In GUI config file" << std::endl;
-                throw;
-            }
-        } else {
-            std::cout << "cannot open GUI file" << std::endl;
-        }
-        ifs.close();
+//        std::ifstream ifs(Conf::GUI_FILE);
+//        if (ifs.is_open()) {
+//            try {
+//                ifs >> gui;
+//            } catch (const std::exception& e) {
+//                std::cerr << "In GUI config file" << std::endl;
+//                throw;
+//            }
+//        } else {
+//            std::cout << "cannot open GUI file" << std::endl;
+//        }
+//        ifs.close();
 
-        Selection::INDEX = gui["index"];
-        Selection::INDEX2 = gui["index2"];
-        Selection::LAYER = gui["layer"];
-        Selection::LAYER2 = gui["layer2"];
-        if (gui["save"]) {
-            spinet.saveNeuronsStates();
-            gui["save"] = false;
+//        Selection::INDEX = gui["index"];
+//        Selection::INDEX2 = gui["index2"];
+//        Selection::LAYER = gui["layer"];
+//        Selection::LAYER2 = gui["layer2"];
+//        if (gui["save"]) {
+//            spinet.saveNeuronsStates();
+//            gui["save"] = false;
 
-            std::ofstream ofs(Conf::GUI_FILE);
-            if (ofs.is_open()) {
-                ofs << std::setw(4) << gui << std::endl;
-            } else {
-                std::cout << "cannot open GUI file" << std::endl;
-            }
-            ofs.close();
-        }
+//            std::ofstream ofs(Conf::GUI_FILE);
+//            if (ofs.is_open()) {
+//                ofs << std::setw(4) << gui << std::endl;
+//            } else {
+//                std::cout << "cannot open GUI file" << std::endl;
+//            }
+//            ofs.close();
+//        }
 
-        if (Selection::INDEX > spinet.getNumberNeurons()) {
-            std::cout << "neuron display index too big" << std::endl;
-            Selection::INDEX = 0;
-        }
-        if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
-            std::cout << "pooling neuron display index too big" << std::endl;
-            Selection::INDEX2 = 0;
-        }
-        if (Selection::LAYER > conf.L1Depth) {
-            std::cout << "neuron display layer too big" << std::endl;
-            Selection::LAYER = 0;
-        }
+//        if (Selection::INDEX > spinet.getNumberNeurons()) {
+//            std::cout << "neuron display index too big" << std::endl;
+//            Selection::INDEX = 0;
+//        }
+//        if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
+//            std::cout << "pooling neuron display index too big" << std::endl;
+//            Selection::INDEX2 = 0;
+//        }
+//        if (Selection::LAYER > conf.L1Depth) {
+//            std::cout << "neuron display layer too big" << std::endl;
+//            Selection::LAYER = 0;
+//        }
 
-        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getSpikingRate()));
-        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::INDEX).getThreshold()));
-        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
-        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::INDEX).getLearningDecay()));
-    }
+//        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getSpikingRate()));
+//        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::INDEX).getThreshold()));
+//        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
+//        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::INDEX).getLearningDecay()));
+//    }
 
 	void run() override {
         slicer.accept(inputs.getEventInput("events1").events());

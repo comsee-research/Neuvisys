@@ -1,7 +1,19 @@
-# Init CMake (require at least version 3.10.0)
-CMAKE_MINIMUM_REQUIRED(VERSION 3.10.0)
+cmake_minimum_required(VERSION 3.10.0)
+
+# Project name and version
+project(neuvisys
+        VERSION 1.0.0
+        LANGUAGES C CXX)
+
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+set(CMAKE_AUTOUIC ON)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
 set(GCC_COVERAGE_COMPILE_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
@@ -22,13 +34,10 @@ IF (NOT CMAKE_INSTALL_PREFIX)
     ENDIF()
 ENDIF()
 
-# Project name and version
-project(neuvisys-dv
-        VERSION 1.0.0
-        LANGUAGES C CXX)
-
 find_package(OpenCV REQUIRED)
 find_package(PythonLibs REQUIRED)
+find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
 
 # Define installation paths
 include(GNUInstallDirs)
@@ -47,36 +56,57 @@ DV_MODULE_SETUP()
 # Set full RPATH, modules are libraries for DV
 set(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
 
-##### Neuvisys Module #####
-add_library(neuvisys SHARED
-        dv-modules/Neuvisys.cpp
+set(PROJECT_SOURCES
         src/SpikingNetwork.cpp
+        src/Utils.cpp
+        src/Config.cpp
         src/neurons/Neuron.cpp
         src/neurons/SimpleNeuron.cpp
         src/neurons/ComplexNeuron.cpp
-        src/Utils.cpp
-        src/Config.cpp)
-target_link_libraries(neuvisys PRIVATE ${DV_LIBRARIES} /usr/local/lib/libcnpy.so)
-install(TARGETS neuvisys DESTINATION ${DV_MODULES_DIR})
+)
+
+set(GUI_SOURCES
+        src/gui/main.cpp
+        src/gui/neuvisysgui.cpp
+        src/gui/neuvisysthread.cpp
+        src/gui/neuvisysgui.ui)
+
+##### Qt GUI #####
+if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    qt_add_executable(qt-gui
+            ${GUI_SOURCES}
+            ${PROJECT_SOURCES}
+    )
+else()
+    if(ANDROID)
+        add_library(qt-gui SHARED
+                ${GUI_SOURCES}
+                ${PROJECT_SOURCES}
+        )
+    else()
+        add_executable(qt-gui
+                ${GUI_SOURCES}
+                ${PROJECT_SOURCES}
+        )
+    endif()
+endif()
+target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
+
+##### Neuvisys DV Module #####
+add_library(neuvisys-dv SHARED
+        src/modules/Neuvisys-DV.cpp
+        ${PROJECT_SOURCES})
+target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} /usr/local/lib/libcnpy.so)
+install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
+
+##### Neuvisys Executable #####
+add_executable(neuvisys
+        src/modules/Neuvisys.cpp
+        ${PROJECT_SOURCES})
+target_link_libraries(neuvisys ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
 
 ##### Test Executable #####
 add_executable(neuvisys-test
         tests/MainTest.cpp
-        src/SpikingNetwork.cpp
-        src/neurons/Neuron.cpp
-        src/neurons/SimpleNeuron.cpp
-        src/neurons/ComplexNeuron.cpp
-        src/Utils.cpp
-        src/Config.cpp)
+        ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-test ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)
-
-##### EventAnalysis Executable #####
-add_executable(event-analysis
-        dv-modules/EventAnalysis.cpp
-        src/SpikingNetwork.cpp
-        src/neurons/Neuron.cpp
-        src/neurons/SimpleNeuron.cpp
-        src/neurons/ComplexNeuron.cpp
-        src/Utils.cpp
-        src/Config.cpp)
-target_link_libraries(event-analysis ${DV_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} /usr/local/lib/libcnpy.so)

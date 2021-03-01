@@ -149,14 +149,12 @@ void Neuron::loadState(std::string &fileName) {
 //            m_spikeTrain.push_back(spikes);
 //        }
     } else {
-//        std::cout << "cannot open neuron state file" << std::endl;
+        std::cout << "cannot open neuron state file" << std::endl;
     }
     ifs.close();
 }
 
 void Neuron::trackPotential(const long time) {
-    if (conf.TRACKING) {
-        double potential = getPotential(time);
-        m_potentialTrain.emplace_back(potential, time);
-    }
+    double potential = getPotential(time);
+    m_potentialTrain.emplace_back(potential, time);
 }

@@ -26,14 +26,14 @@ void main_loop(cnpy::NpyArray &array, SpikingNetwork &spinet, std::map<std::stri
         auto x = static_cast<size_t>(events[i + 1]), y = static_cast<size_t>(events[i + 2]);
         bool polarity = static_cast<bool>(events[i + 3]);
 
-        spinet.addEvent(timestamp, x, y, polarity);
+//        spinet.addEvent(timestamp, x, y, polarity);
 
         if (count % 1000 == 0) {
             spinet.updateNeurons(timestamp);
         }
-        if (count % 30000 == 0) {
-            spinet.updateDisplay(timestamp, displays);
-        }
+//        if (count % 30000 == 0) {
+//            spinet.updateDisplay(timestamp, displays);
+//        }
         if (count % 1000000 == 0) {
             std::cout << 100 * static_cast<size_t>(count) / array.shape[0] << "%" << std::endl;
             spinet.updateNeuronsParameters(timestamp);
@@ -53,16 +53,16 @@ cnpy::NpyArray loadEvents(std::string filePath) {
 void testSpikingNetwork(std::string &filePath) {
     auto array = loadEvents(filePath);
 
-    std::string confFile = Conf::CONF_FILE;
-    NetworkConfig config = NetworkConfig(confFile);
+//    std::string confFile = Conf::CONF_FILE;
+//    NetworkConfig config = NetworkConfig(confFile);
 
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
-    std::map<std::string, cv::Mat> displays;
-    init_display(config, displays);
+//    std::cout << "Initializing Network " << std::endl;
+//    SpikingNetwork spinet(config);
+//    std::map<std::string, cv::Mat> displays;
+//    init_display(config, displays);
 
-    std::cout << "Launching training" << std::endl;
-    main_loop(array, spinet, displays);
+//    std::cout << "Launching training" << std::endl;
+//    main_loop(array, spinet, displays);
 }
 
 int main(int argc, char *argv[]) {

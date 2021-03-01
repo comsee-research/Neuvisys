@@ -13,21 +13,9 @@ namespace Conf {
     inline constexpr size_t HEIGHT = 260; // px
 
     inline constexpr size_t EVENT_FREQUENCY = 1000; // μs
-    inline constexpr size_t DISPLAY_FREQUENCY = 30000; // μs
     inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
-
-    inline const std::string GUI_FILE("/home/alphat/neuvisys-dv/configuration/gui.json");
-}
-
-namespace Selection {
-    inline size_t LAYER = 0;
-    inline size_t CAMERA = 0;
-    [[maybe_unused]] inline size_t LAYER2 = 0;
-    inline size_t SYNAPSE = 0;
-    inline size_t INDEX = 0;
-    inline size_t INDEX2 = 0;
 }
 
 class NetworkConfig {
@@ -60,9 +48,7 @@ public:
     size_t Neuron2Width{};
     size_t Neuron2Height{};
     size_t Neuron2Depth{};
-    bool WeightSharing{};
     std::string SharingType{};
-    bool Display{};
 };
 
 class NeuronConfig {
@@ -94,7 +80,7 @@ public:
     double MIN_THRESH{}; // mV
 
     bool STDP_LEARNING{};
-    bool TRACKING{};
+    std::string TRACKING{};
 private:
     void loadNeuronsParameters(const std::string& fileName);
     void loadPoolingNeuronsParameters(const std::string& fileName);

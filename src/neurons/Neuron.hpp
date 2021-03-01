@@ -33,7 +33,6 @@ protected:
 
     Luts &m_luts;
 
-    // Tracking Variables
     std::vector<long> m_spikeTrain;
     std::vector<std::pair<double, long>> m_potentialTrain;
 public:
@@ -49,6 +48,8 @@ public:
     virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() { return m_outConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() { return m_inConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() { return m_inhibitionConnections; }
+    virtual const std::vector<long> &getSpikeTrain() { return m_spikeTrain; }
+    virtual const std::vector<std::pair<double, long>> &getPotentialTrain() { return m_potentialTrain; }
 
     virtual bool hasSpiked();
     virtual double getPotential(long time);

@@ -44,7 +44,7 @@ inline void ComplexNeuron::spike(const long time) {
     }
     m_events.clear();
 
-    if (conf.TRACKING) {
+    if (conf.TRACKING == "full" || conf.TRACKING == "partial") {
         m_spikeTrain.push_back(time);
     }
 }

@@ -1,0 +1,168 @@
+#include "neuvisysthread.h"
+
+NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
+    m_frameTime = std::chrono::high_resolution_clock::now();
+    m_iterations = 0;
+}
+
+void NeuvisysThread::run() {
+    multiplePass();
+    quit();
+}
+
+void NeuvisysThread::render(QString networkPath, QString leftEvents, QString rightEvents, int nbPass) {
+    m_networkPath = networkPath;
+    m_leftEvents = leftEvents;
+    m_rightEvents = rightEvents;
+    m_nbPass = nbPass;
+    m_iterations = 0;
+    start(HighPriority);
+}
+
+void NeuvisysThread::multiplePass() {
+    NetworkConfig config = NetworkConfig(m_networkPath.toStdString());
+    std::cout << "Initializing Network " << std::endl;
+    SpikingNetwork spinet(config);
+    emit networkConfiguration(config.NbCameras, config.Neuron1Synapses, config.SharingType, config.L1XAnchor.size() * config.L1Width, config.L1YAnchor.size() * config.L1Height, config.L1Depth);
+
+    m_eventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
+
+    if (m_rightEvents.isEmpty()) {
+        main_loop(spinet);
+    } else {
+        stereo_loop(spinet);
+    }
+    emit displayInformation(100, 0, m_eventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(), m_spikeTrain);
+    std::cout << "Finished" << std::endl;
+}
+
+void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
+    size_t pass, j;
+
+    cnpy::NpyArray timestamps_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_0");
+    cnpy::NpyArray x_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_1");
+    cnpy::NpyArray y_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_2");
+    cnpy::NpyArray polarities_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_3");
+    size_t sizeArray = timestamps_array.shape[0];
+
+    auto *timestamps = timestamps_array.data<long>();
+    auto *x = x_array.data<int16_t>();
+    auto *y = y_array.data<int16_t>();
+    auto *polarities = polarities_array.data<bool>();
+
+    long firstTimestamp = timestamps[0];
+    long lastTimestamp = 0;
+    auto event = Event();
+
+    for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
+        for (j = 0; j < sizeArray; ++j) {
+            event = Event(timestamps[j] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), x[j], y[j], polarities[j], 0);
+            runSpikingNetwork(spinet, event, m_nbPass * sizeArray);
+        }
+        std::cout << "Finished iteration: " << pass + 1 << std::endl;
+        lastTimestamp = static_cast<long>(timestamps[j-1]);
+    }
+}
+
+void NeuvisysThread::stereo_loop(SpikingNetwork &spinet) {
+    size_t pass, left, right;
+
+    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_0");
+    cnpy::NpyArray l_x_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_1");
+    cnpy::NpyArray l_y_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_2");
+    cnpy::NpyArray l_polarities_array = cnpy::npz_load(m_leftEvents.toStdString(), "arr_3");
+    size_t sizeLeftArray = l_timestamps_array.shape[0];
+
+    auto *l_timestamps = l_timestamps_array.data<long>();
+    auto *l_x = l_x_array.data<int16_t>();
+    auto *l_y = l_y_array.data<int16_t>();
+    auto *l_polarities = l_polarities_array.data<bool>();
+
+    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(m_rightEvents.toStdString(), "arr_0");
+    cnpy::NpyArray r_x_array = cnpy::npz_load(m_rightEvents.toStdString(), "arr_1");
+    cnpy::NpyArray r_y_array = cnpy::npz_load(m_rightEvents.toStdString(), "arr_2");
+    cnpy::NpyArray r_polarities_array = cnpy::npz_load(m_rightEvents.toStdString(), "arr_3");
+    size_t sizeRightArray = r_timestamps_array.shape[0];
+
+    auto *r_timestamps = r_timestamps_array.data<long>();
+    auto *r_x = r_x_array.data<int16_t>();
+    auto *r_y = r_y_array.data<int16_t>();
+    auto *r_polarities = r_polarities_array.data<bool>();
+
+    long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = 0, lastRightTimestamp = 0;
+    auto event = Event();
+
+    for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
+        left = 0; right = 0;
+        while (left < sizeLeftArray && right < sizeRightArray) {
+            if (right >= sizeRightArray || l_timestamps[left] <= r_timestamps[right]) {
+                event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
+                ++left;
+            } else {
+                event = Event(r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp), r_x[right], r_y[right], r_polarities[right], 1);
+                ++right;
+            }
+            runSpikingNetwork(spinet, event, m_nbPass * (sizeLeftArray + sizeRightArray));
+        }
+        std::cout << "Finished iteration: " << pass + 1 << std::endl;
+        lastLeftTimestamp = static_cast<long>(l_timestamps[left-1]);
+        lastRightTimestamp = static_cast<long>(r_timestamps[right-1]);
+    }
+}
+
+inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t sizeArray) {
+    spinet.addEvent(event);
+    if (m_eventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_eventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
+        m_eventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
+    }
+
+//    if (count % Conf::EVENT_FREQUENCY == 0) {
+//        spinet.updateNeurons(event.timestamp());
+//    }
+
+    std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+    if (1000000 * frameElapsed.count() > m_framerate) {
+        m_frameTime = std::chrono::high_resolution_clock::now();
+        display(spinet, sizeArray);
+    }
+
+    std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
+    if (1000000 * trackingElapsed.count() > m_trackingrate) {
+        m_trackingTime = std::chrono::high_resolution_clock::now();
+        spinet.trackNeuron(event.timestamp());
+    }
+
+    if (m_iterations % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+        spinet.updateNeuronsParameters(event.timestamp());
+    }
+    ++m_iterations;
+}
+
+inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
+    size_t count = 0;
+    for (size_t i = 0; i < spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width; ++i) {
+        for (size_t j = 0; j < spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height; ++j) {
+            m_spikeTrain[count] = spinet.getSpikingNeuron(spinet.getLayout1(i, j, m_layer), 0);
+            if (spinet.getNetworkConfig().SharingType == "none" || spinet.getNetworkConfig().SharingType == "patch") {
+                m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout1(i, j, m_layer), m_camera, m_synapse, 0, 0);
+            }
+            ++count;
+        }
+    }
+    if (spinet.getNetworkConfig().SharingType == "full") {
+        for (size_t i = 0; i < spinet.getNetworkConfig().L1Depth; ++i) {
+            m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout1(0, 0, i), m_camera, m_synapse, 0, 0);
+        }
+    }
+    emit displayInformation(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_index).getSpikingRate(), m_eventDisplay, m_weightDisplay, spinet.getPotentialNeuron(m_index, 0), m_spikeTrain);
+    m_eventDisplay = 0;
+}
+
+void NeuvisysThread::onGuiInformation(const size_t index, const size_t layer, const size_t camera, const size_t synapse, const size_t framerate, const size_t trackingrate) {
+    m_index = index;
+    m_layer = layer;
+    m_camera = camera;
+    m_synapse = synapse;
+    m_framerate = framerate;
+    m_trackingrate = trackingrate;
+}

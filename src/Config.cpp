@@ -44,11 +44,12 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             Neuron2Height = conf["Neuron2Height"];
             Neuron2Depth = conf["Neuron2Depth"];
 
-            WeightSharing = conf["WeightSharing"];
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
-            NetworkPath = conf["NetworkPath"];
-            Display = conf["Display"];
+
+            std::string toErase = "configs/network_config.json";
+            NetworkPath = fileName;
+            NetworkPath.erase(fileName.find(toErase), toErase.length());
         } catch (const std::exception& e) {
             std::cerr << "In network config file" << std::endl;
             throw;
@@ -76,10 +77,10 @@ void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
             ifs >> conf;
             ETA_LTP = conf["ETA_LTP"];
             ETA_LTD = conf["ETA_LTD"];
-            ETA_SR = conf["ETA_SR"];
-            DELTA_RP = conf["DELTA_RP"];
-            DELTA_SRA = conf["DELTA_SRA"];
-            DELTA_INH = conf["DELTA_INH"];
+            ETA_SR = conf["ETA_TA"];
+            DELTA_RP = conf["ETA_RP"];
+            DELTA_SRA = conf["ETA_SRA"];
+            DELTA_INH = conf["ETA_INH"];
             TAU_LTP = conf["TAU_LTP"];
             TAU_LTD = conf["TAU_LTD"];
             TAU_RP = conf["TAU_RP"];
@@ -117,13 +118,13 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
             TAU_LTD = conf["TAU_LTD"];
             TAU_M = conf["TAU_M"];
             VTHRESH = conf["VTHRESH"];
-            DELTA_INH = conf["DELTA_INH"];
+            DELTA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_FACTOR = conf["DECAY_FACTOR"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
-            DELTA_RP = conf["DELTA_RP"];
+            DELTA_RP = conf["ETA_RP"];
             TAU_RP = conf["TAU_RP"];
         } catch (const std::exception& e) {
             std::cerr << "In complex cell config file" << std::endl;
