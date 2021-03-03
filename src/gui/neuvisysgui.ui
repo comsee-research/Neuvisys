@@ -15,6 +15,13 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_9">
+    <item row="1" column="0" colspan="2">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>24</number>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget_2">
       <property name="currentIndex">
@@ -27,25 +34,19 @@
        <layout class="QGridLayout" name="gridLayout_2">
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
-          <item row="4" column="0">
+          <item row="3" column="0">
            <widget class="QLabel" name="label_number_runs">
             <property name="text">
              <string>Number of runs</string>
             </property>
            </widget>
           </item>
-          <item row="4" column="1">
-           <widget class="QSpinBox" name="number_runs"/>
-          </item>
-          <item row="2" column="0">
-           <widget class="QPushButton" name="button_event_file_2">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="button_event_file">
             <property name="text">
-             <string>Select Event File 2</string>
+             <string>Select Event File</string>
             </property>
            </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="text_event_file_1"/>
           </item>
           <item row="0" column="0">
            <widget class="QPushButton" name="button_network_directory">
@@ -54,18 +55,14 @@
             </property>
            </widget>
           </item>
-          <item row="1" column="0">
-           <widget class="QPushButton" name="button_event_file_1">
-            <property name="text">
-             <string>Select Event File</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="1">
-           <widget class="QLineEdit" name="text_event_file_2"/>
+          <item row="3" column="1">
+           <widget class="QSpinBox" name="number_runs"/>
           </item>
           <item row="0" column="1">
            <widget class="QLineEdit" name="text_network_directory"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="text_event_file"/>
           </item>
          </layout>
         </item>
@@ -121,93 +118,222 @@
        </attribute>
        <layout class="QVBoxLayout" name="verticalLayout">
         <item>
-         <layout class="QGridLayout" name="gridLayout_14">
-          <item row="2" column="1">
-           <widget class="QSpinBox" name="spin_synapse_selection"/>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="label_layer">
-            <property name="text">
-             <string>Layer map</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="0">
-           <widget class="QLabel" name="label_camera">
-            <property name="text">
-             <string>Camera</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_frame_rate">
-            <property name="text">
-             <string>Frame rate (ups)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QSpinBox" name="spin_layer_selection"/>
-          </item>
-          <item row="1" column="1">
-           <widget class="QSpinBox" name="spin_camera_selection"/>
-          </item>
-          <item row="3" column="1">
-           <widget class="QSlider" name="slider_frame_rate">
-            <property name="maximum">
-             <number>100000</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
-            </property>
-            <property name="tickInterval">
-             <number>1000</number>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="2">
-           <widget class="QLCDNumber" name="lcd_tracking_rate"/>
-          </item>
-          <item row="4" column="1">
-           <widget class="QSlider" name="slider_tracking_rate">
-            <property name="maximum">
-             <number>10000</number>
-            </property>
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="tickPosition">
-             <enum>QSlider::TicksAbove</enum>
-            </property>
-            <property name="tickInterval">
-             <number>100</number>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_synapse">
-            <property name="text">
-             <string>Synapse</string>
-            </property>
-           </widget>
-          </item>
-          <item row="4" column="0">
-           <widget class="QLabel" name="label_display_frequency">
-            <property name="text">
-             <string>Tracking freq (ms)</string>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="2">
-           <widget class="QLCDNumber" name="lcd_frame_rate"/>
-          </item>
-         </layout>
+         <widget class="QGroupBox" name="groupBox_2">
+          <property name="title">
+           <string>Network Selection</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <layout class="QFormLayout" name="formLayout">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_layer">
+               <property name="text">
+                <string>Layer map</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSpinBox" name="spin_layer_selection"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_camera">
+               <property name="text">
+                <string>Camera</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="spin_camera_selection"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_synapse">
+               <property name="text">
+                <string>Synapse</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSpinBox" name="spin_synapse_selection"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
         <item>
-         <layout class="QGridLayout" name="gridSelection"/>
+         <widget class="QGroupBox" name="groupBox_3">
+          <property name="title">
+           <string>Neuron Selection</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <layout class="QGridLayout" name="gridSelection"/>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item>
+         <widget class="QGroupBox" name="groupBox_4">
+          <property name="title">
+           <string>Graphs parameters</string>
+          </property>
+          <layout class="QVBoxLayout" name="verticalLayout_3">
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_5">
+             <property name="text">
+              <string>Event Viz</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_17">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_precision_event">
+               <property name="text">
+                <string>Precision (ms)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLCDNumber" name="lcd_precision_event"/>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSlider" name="slider_precision_event">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksAbove</enum>
+               </property>
+               <property name="tickInterval">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_potential">
+             <property name="text">
+              <string>Potential</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_16">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_range_potential">
+               <property name="text">
+                <string>Range (ms)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QSlider" name="slider_range_potential">
+               <property name="maximum">
+                <number>100000</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksAbove</enum>
+               </property>
+               <property name="tickInterval">
+                <number>1000</number>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="2">
+              <widget class="QLCDNumber" name="lcd_range_potential"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_precision_potential">
+               <property name="text">
+                <string>Precision (ms)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QSlider" name="slider_precision_potential">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksAbove</enum>
+               </property>
+               <property name="tickInterval">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="2">
+              <widget class="QLCDNumber" name="lcd_precision_potential"/>
+             </item>
+            </layout>
+           </item>
+           <item alignment="Qt::AlignHCenter">
+            <widget class="QLabel" name="label_spiketrain">
+             <property name="text">
+              <string>Spiketrain</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QGridLayout" name="gridLayout_14">
+             <item row="3" column="0">
+              <widget class="QLabel" name="label_precision_spiketrain">
+               <property name="text">
+                <string>Precision (ms)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="2" column="2">
+              <widget class="QLCDNumber" name="lcd_range_spiketrain"/>
+             </item>
+             <item row="2" column="1">
+              <widget class="QSlider" name="slider_range_spiketrain">
+               <property name="maximum">
+                <number>10000</number>
+               </property>
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksAbove</enum>
+               </property>
+               <property name="tickInterval">
+                <number>1000</number>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="2">
+              <widget class="QLCDNumber" name="lcd_precision_spiktrain"/>
+             </item>
+             <item row="2" column="0">
+              <widget class="QLabel" name="label_range_spiketrain">
+               <property name="text">
+                <string>Range (ms)</string>
+               </property>
+              </widget>
+             </item>
+             <item row="3" column="1">
+              <widget class="QSlider" name="slider_precision_spiketrain">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="tickPosition">
+                <enum>QSlider::TicksAbove</enum>
+               </property>
+               <property name="tickInterval">
+                <number>100</number>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -216,7 +342,7 @@
     <item row="0" column="1">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="event_viz">
        <attribute name="title">
@@ -224,7 +350,14 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
-         <widget class="QLabel" name="event_image">
+         <widget class="QLabel" name="left_event_image">
+          <property name="text">
+           <string/>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QLabel" name="right_event_image">
           <property name="text">
            <string/>
           </property>
@@ -252,17 +385,17 @@
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_on_off_ratio">
-               <property name="text">
-                <string>ON/OFF ratio</string>
-               </property>
-              </widget>
-             </item>
              <item row="0" column="1">
               <widget class="QLineEdit" name="text_event_rate">
                <property name="readOnly">
                 <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_on_off_ratio">
+               <property name="text">
+                <string>ON/OFF ratio</string>
                </property>
               </widget>
              </item>
@@ -285,20 +418,26 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
-            <layout class="QFormLayout" name="formLayout_4">
-             <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
               <widget class="QLabel" name="spike_rate">
                <property name="text">
-                <string>Spike rate</string>
+                <string>Spike rate (spike/s):</string>
                </property>
               </widget>
              </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="text_read_spike_rate">
-               <property name="readOnly">
-                <bool>false</bool>
+             <item>
+              <widget class="QLCDNumber" name="lcd_spike_rate"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="threshold">
+               <property name="text">
+                <string>Threshold (mV):</string>
                </property>
               </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcd_threshold"/>
              </item>
             </layout>
            </item>
@@ -313,7 +452,30 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_7">
         <item row="0" column="0">
-         <layout class="QGridLayout" name="weightLayout"/>
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollArea_2">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>665</width>
+             <height>632</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_15">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="weightLayout">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinAndMaxSize</enum>
+              </property>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
         </item>
        </layout>
       </widget>
@@ -337,13 +499,6 @@
         </item>
        </layout>
       </widget>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>24</number>
-      </property>
      </widget>
     </item>
    </layout>
@@ -376,11 +531,9 @@
  <tabstops>
   <tabstop>tabWidget_2</tabstop>
   <tabstop>button_network_directory</tabstop>
-  <tabstop>button_event_file_1</tabstop>
-  <tabstop>button_event_file_2</tabstop>
+  <tabstop>button_event_file</tabstop>
   <tabstop>text_network_directory</tabstop>
-  <tabstop>text_event_file_1</tabstop>
-  <tabstop>text_event_file_2</tabstop>
+  <tabstop>text_event_file</tabstop>
   <tabstop>number_runs</tabstop>
   <tabstop>tabWidget_3</tabstop>
   <tabstop>text_network_config</tabstop>
@@ -388,7 +541,6 @@
   <tabstop>text_complex_cell_config</tabstop>
   <tabstop>button_launch_network</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>text_read_spike_rate</tabstop>
   <tabstop>text_event_rate</tabstop>
   <tabstop>text_on_off_ratio</tabstop>
   <tabstop>potentialView</tabstop>

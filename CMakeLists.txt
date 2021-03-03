@@ -106,9 +106,3 @@ add_executable(neuvisys
         src/modules/Neuvisys.cpp
         ${PROJECT_SOURCES})
 target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
-
-##### Test Executable #####
-add_executable(neuvisys-test
-        tests/MainTest.cpp
-        ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-test ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
