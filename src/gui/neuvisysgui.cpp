@@ -15,8 +15,8 @@ NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::Neuv
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/alphat/Desktop/Events/2_1.npz");
-    ui->text_network_directory->setText("/home/alphat/neuvisys-dv/configuration/network");
+    ui->text_event_file->setText("/home/thomas/Bureau/2_3.npz");
+    ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);

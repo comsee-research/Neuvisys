@@ -1,8 +1,11 @@
 #include "neuvisysthread.h"
 
+#include <utility>
+
 NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
     m_frameTime = std::chrono::high_resolution_clock::now();
     m_iterations = 0;
+    m_nbPass = 0;
 }
 
 void NeuvisysThread::run() {
@@ -11,8 +14,8 @@ void NeuvisysThread::run() {
 }
 
 void NeuvisysThread::render(QString networkPath, QString events, int nbPass) {
-    m_networkPath = networkPath;
-    m_events = events;
+    m_networkPath = std::move(networkPath);
+    m_events = std::move(events);
     m_nbPass = nbPass;
     m_iterations = 0;
     start(HighPriority);
@@ -49,7 +52,7 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
 
     if (spinet.getNetworkConfig().NbCameras == 1) {
         long firstTimestamp = l_timestamps[0];
-        long lastTimestamp = 0;
+        long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray-1]);
         auto event = Event();
 
         for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
@@ -58,7 +61,6 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
                 runSpikingNetwork(spinet, event, m_nbPass * left);
             }
             std::cout << "Finished iteration: " << pass + 1 << std::endl;
-            lastTimestamp = static_cast<long>(l_timestamps[left-1]);
         }
     } else if (spinet.getNetworkConfig().NbCameras == 2) {
         cnpy::NpyArray r_timestamps_array = cnpy::npz_load(m_events.toStdString(), "arr_4");
@@ -72,24 +74,25 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
         auto *r_y = r_y_array.data<int16_t>();
         auto *r_polarities = r_polarities_array.data<bool>();
 
-        long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = 0, lastRightTimestamp = 0;
+        long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = static_cast<long>(l_timestamps[sizeLeftArray-1]), lastRightTimestamp = static_cast<long>(r_timestamps[sizeRightArray-1]);
+        long l_t, r_t;
         auto event = Event();
 
         for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
             left = 0; right = 0;
             while (left < sizeLeftArray && right < sizeRightArray) {
-                if (right >= sizeRightArray || l_timestamps[left] <= r_timestamps[right]) {
-                    event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
+                l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
+                r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
+                if (right >= sizeRightArray || l_t <= r_t) {
+                    event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
                     ++left;
-                } else {
-                    event = Event(r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp), r_x[right], r_y[right], r_polarities[right], 1);
+                } else if (left >= sizeLeftArray || l_t > r_t) {
+                    event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
                     ++right;
                 }
                 runSpikingNetwork(spinet, event, m_nbPass * (sizeLeftArray + sizeRightArray));
             }
             std::cout << "Finished iteration: " << pass + 1 << std::endl;
-            lastLeftTimestamp = static_cast<long>(l_timestamps[left-1]);
-            lastRightTimestamp = static_cast<long>(r_timestamps[right-1]);
         }
     }
 }

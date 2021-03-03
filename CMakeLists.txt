@@ -104,5 +104,5 @@ install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
 ##### Neuvisys Executable #####
 add_executable(neuvisys
         src/modules/Neuvisys.cpp
-        ${PROJECT_SOURCES})
+        ${PROJECT_SOURCES} src/modules/Neuvisys.hpp)
 target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)

@@ -29,7 +29,6 @@ signals:
 protected:
     QString m_networkPath;
     QString m_events;
-    QString m_rightEvents;
     int m_nbPass;
     long m_iterations;
     cv::Mat m_leftEventDisplay;
