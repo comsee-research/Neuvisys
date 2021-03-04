@@ -30,18 +30,18 @@ bool SimpleNeuron::update() {
 }
 
 inline bool SimpleNeuron::membraneUpdate(Event event) {
-    if (event.timestamp() - m_timestampLastEvent < 1000000) {
-        m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
-    } else {
-        m_potential = 0;
-    }
-    if (event.timestamp() - m_timestampLastEvent < 1000000) {
-        m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
-    } else {
-        m_adaptation_potential = 0;
-    }
-//    potentialDecay(event.timestamp() - m_timestampLastEvent);
-//    adaptationPotentialDecay(event.timestamp() - m_timestampLastEvent);
+//    if (event.timestamp() - m_timestampLastEvent < 1000000) {
+//        m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
+//    } else {
+//        m_potential = 0;
+//    }
+//    if (event.timestamp() - m_timestampLastEvent < 1000000) {
+//        m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
+//    } else {
+//        m_adaptation_potential = 0;
+//    }
+    potentialDecay(event.timestamp() - m_timestampLastEvent);
+    adaptationPotentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
                    - refractoryPotential(event.timestamp() - m_spikingTime)
                    - m_adaptation_potential;

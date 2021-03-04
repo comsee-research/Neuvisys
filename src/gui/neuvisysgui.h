@@ -20,15 +20,15 @@ class NeuvisysGUI : public QMainWindow
     Q_OBJECT
 
 public:
-    NeuvisysGUI(QWidget *parent = nullptr);
-    ~NeuvisysGUI();
+    explicit NeuvisysGUI(QWidget *parent = nullptr);
+    ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayInformation(const int progress, const double spike_rate, const double threshold, const cv::Mat leftEventDisplay, const cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
-    void onNetworkConfiguration(const int nbCameras, const int nbSynapses, const std::string sharingType, const int width, const int height, const int depth, const int widthPatchSize, const int heightPatchSize);
+    void onDisplayInformation(int progress, double spike_rate, double threshold, const cv::Mat& leftEventDisplay, const cv::Mat& rightEventDisplay, const std::map<size_t, cv::Mat>& weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
+    void onNetworkConfiguration(size_t nbCameras, size_t nbSynapses, const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
 
 signals:
-    void guiInformation(const size_t index, const size_t layer, const size_t camera, const size_t synapse, const size_t precisionEvent, const size_t rangePotential, const size_t precisionPotential, const size_t rangeSpiketrain, const size_t precisionSpiketrain);
+    void guiInformation(size_t index, size_t layer, size_t camera, size_t synapse, size_t precisionEvent, size_t rangePotential, size_t precisionPotential, size_t rangeSpiketrain);
 
 private slots:
     void on_button_event_file_clicked();
@@ -45,7 +45,6 @@ private slots:
     void on_slider_range_potential_sliderMoved(int position);
     void on_slider_precision_potential_sliderMoved(int position);
     void on_slider_range_spiketrain_sliderMoved(int position);
-    void on_slider_precision_spiketrain_sliderMoved(int position);
 
 protected:
     NeuvisysThread neuvisysThread;
@@ -55,17 +54,16 @@ protected:
     QScatterSeries *spikeSeries;
     QChart *spikeChart;
 
-    size_t index;
-    size_t index2;
-    size_t layer;
-    size_t layer2;
+    size_t idSimple;
+    size_t idComplex;
+    size_t layerSimple;
+    size_t layerComplex;
     size_t camera;
     size_t synapse;
 
     size_t precisionEvent;
     size_t precisionPotential;
     size_t rangePotential;
-    size_t precisionSpiketrain;
     size_t rangeSpiketrain;
 
 private:

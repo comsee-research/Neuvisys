@@ -45,9 +45,9 @@ public:
     NetworkConfig getNetworkConfig() { return conf; }
     uint64_t getLayout1(uint64_t x, uint64_t y, uint64_t z) { return m_layout1[{x, y, z}]; }
     uint64_t getLayout2(uint64_t x, uint64_t y, uint64_t z) { return m_layout2[{x, y, z}]; }
-    void trackNeuron(const long time, const int simpleId = 0, const int complexId = 0);
+    void trackNeuron(const long time, const size_t simpleId = 0, const size_t complexId = 0);
 
-    const cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
+    cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
 

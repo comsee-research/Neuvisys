@@ -13,7 +13,7 @@ void NeuvisysThread::run() {
     quit();
 }
 
-void NeuvisysThread::render(QString networkPath, QString events, int nbPass) {
+void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass) {
     m_networkPath = std::move(networkPath);
     m_events = std::move(events);
     m_nbPass = nbPass;
@@ -55,7 +55,7 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
         long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray-1]);
         auto event = Event();
 
-        for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
+        for (pass = 0; pass < m_nbPass; ++pass) {
             for (left = 0; left < sizeLeftArray; ++left) {
                 event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
                 runSpikingNetwork(spinet, event, m_nbPass * left);
@@ -78,7 +78,7 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
         long l_t, r_t;
         auto event = Event();
 
-        for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
+        for (pass = 0; pass < m_nbPass; ++pass) {
             left = 0; right = 0;
             while (left < sizeLeftArray && right < sizeRightArray) {
                 l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
@@ -114,18 +114,18 @@ inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, Event &eve
 //    }
 
     std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-    if (1000000 * frameElapsed.count() > m_precisionEvent) {
+    if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
         m_frameTime = std::chrono::high_resolution_clock::now();
         display(spinet, sizeArray);
     }
 
     std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-    if (1000000 * trackingElapsed.count() > m_precisionPotential) {
+    if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
         m_trackingTime = std::chrono::high_resolution_clock::now();
         spinet.trackNeuron(event.timestamp(), m_idSimple, m_idComplex);
     }
 
-    if (m_iterations % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+    if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
         spinet.updateNeuronsParameters(event.timestamp());
     }
     ++m_iterations;
@@ -135,9 +135,9 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     size_t count = 0;
     for (size_t i = 0; i < spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width; ++i) {
         for (size_t j = 0; j < spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height; ++j) {
-            m_spikeTrain[count] = spinet.getSpikingNeuron(spinet.getLayout1(i, j, m_layer), 0);
+            m_spikeTrain[count] = spinet.getSpikingNeuron(spinet.getLayout1(i, j, m_layerSimple), 0);
             if (spinet.getNetworkConfig().SharingType == "none") {
-                m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout1(i, j, m_layer), m_camera, m_synapse, 0, 0);
+                m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout1(i, j, m_layerSimple), m_camera, m_synapse, 0, 0);
             }
             ++count;
         }
@@ -161,9 +161,9 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     m_rightEventDisplay = 0;
 }
 
-void NeuvisysThread::onGuiInformation(const size_t index, const size_t layer, const size_t camera, const size_t synapse, const size_t precisionEvent, const size_t rangePotential, const size_t precisionPotential, const size_t rangeSpiketrain, const size_t precisionSpiketrain) {
+void NeuvisysThread::onGuiInformation(const size_t index, const size_t layer, const size_t camera, const size_t synapse, const size_t precisionEvent, const size_t rangePotential, const size_t precisionPotential, const size_t rangeSpiketrain) {
     m_idSimple = index;
-    m_layer = layer;
+    m_layerSimple = layer;
     m_camera = camera;
     m_synapse = synapse;
 
@@ -171,5 +171,4 @@ void NeuvisysThread::onGuiInformation(const size_t index, const size_t layer, co
     m_rangePotential = rangePotential;
     m_precisionPotential = precisionPotential;
     m_rangeSpiketrain = rangeSpiketrain;
-    m_precisionSpiketrain = precisionSpiketrain;
 }

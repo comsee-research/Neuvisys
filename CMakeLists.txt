@@ -73,6 +73,10 @@ set(GUI_SOURCES
         src/gui/neuvisysthread.cpp
         src/gui/neuvisysgui.ui)
 
+set_source_files_properties(src/dependencies/*
+        PROPERTIES
+        COMPILE_OPTIONS "-w")
+
 ##### Qt GUI #####
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(qt-gui

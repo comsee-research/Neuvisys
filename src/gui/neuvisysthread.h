@@ -15,22 +15,22 @@ class NeuvisysThread : public QThread
     Q_OBJECT
 
 public:
-    NeuvisysThread(QObject *parent = nullptr);
+    explicit NeuvisysThread(QObject *parent = nullptr);
 
-    void render(QString networkPath, QString events, int nbPass);
+    void render(QString networkPath, QString events, size_t nbPass);
 
 public slots:
-    void onGuiInformation(const size_t index, const size_t layer, const size_t camera, const size_t synapse, const size_t precisionEvent, const size_t rangePotential, const size_t precisionPotential, const size_t rangeSpiketrain, const size_t precisionSpiketrain);
+    void onGuiInformation(size_t index, size_t layer, size_t camera, size_t synapse, size_t precisionEvent, size_t rangePotential, size_t precisionPotential, size_t rangeSpiketrain);
 
 signals:
-    void displayInformation(const int progress, const double spike_rate, const double threshold, const cv::Mat leftEventDisplay, const cv::Mat rightEventDisplay, const std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
-    void networkConfiguration(const int nbCameras, const int nbSynapses, const std::string sharingType, const int width, const int height, const int depth, const int widthPatchSize, const int heightPatchSize);
+    void displayInformation(int progress, double spike_rate, double threshold, cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
+    void networkConfiguration(size_t nbCameras, size_t nbSynapses, std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
 
 protected:
     QString m_networkPath;
     QString m_events;
-    int m_nbPass;
-    long m_iterations;
+    size_t m_nbPass;
+    size_t m_iterations;
     cv::Mat m_leftEventDisplay;
     cv::Mat m_rightEventDisplay;
     std::map<size_t, cv::Mat> m_weightDisplay;
@@ -38,9 +38,9 @@ protected:
     std::chrono::time_point<std::chrono::system_clock> m_frameTime;
     std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
 
-    size_t m_layer = 0;
+    size_t m_layerSimple = 0;
     size_t m_camera = 0;
-    size_t m_layer2 = 0;
+    size_t m_layerComplex = 0;
     size_t m_synapse = 0;
     size_t m_idSimple = 0;
     size_t m_idComplex = 0;
@@ -49,7 +49,6 @@ protected:
     size_t m_rangePotential = 10000; // µs
     size_t m_precisionPotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
-    size_t m_precisionSpiketrain = 30000; // µs
 
     void run() override;
 

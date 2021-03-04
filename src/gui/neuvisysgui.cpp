@@ -2,16 +2,15 @@
 #include "./ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI) {
-    index = 0;
-    index2 = 0;
-    layer = 0;
-    layer2 = 0;
+    idSimple = 0;
+    idComplex = 0;
+    layerSimple = 0;
+    layerComplex = 0;
     camera = 0;
     synapse = 0;
     precisionEvent = 30000;
     precisionPotential = 10000;
-    rangePotential = 5000000;
-    precisionSpiketrain = 100000;
+    rangePotential = 1000000;
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
@@ -25,26 +24,21 @@ NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::Neuv
     /* Selection parameters */
     ui->slider_precision_event->setMaximum(100000);
     ui->slider_precision_event->setMinimum(5000);
-    ui->slider_precision_event->setValue(precisionEvent);
+    ui->slider_precision_event->setValue(static_cast<int>(precisionEvent));
 
     ui->slider_precision_potential->setMaximum(100000);
-    ui->slider_precision_potential->setMinimum(100);
-    ui->slider_precision_potential->setValue(precisionPotential);
+    ui->slider_precision_potential->setMinimum(500);
+    ui->slider_precision_potential->setValue(static_cast<int>(precisionPotential));
     ui->slider_range_potential->setMaximum(5000000);
     ui->slider_range_potential->setMinimum(1000);
-    ui->slider_range_potential->setValue(rangePotential);
-
-    ui->slider_precision_spiketrain->setMaximum(10000);
-    ui->slider_precision_spiketrain->setMinimum(100);
-    ui->slider_precision_spiketrain->setValue(precisionSpiketrain);
+    ui->slider_range_potential->setValue(static_cast<int>(rangePotential));
     ui->slider_range_spiketrain->setMaximum(5000000);
     ui->slider_range_spiketrain->setMinimum(100000);
-    ui->slider_range_spiketrain->setValue(rangeSpiketrain);
+    ui->slider_range_spiketrain->setValue(static_cast<int>(rangeSpiketrain));
 
     ui->lcd_precision_event->display(static_cast<double>(precisionEvent) / 1000);
     ui->lcd_precision_potential->display(static_cast<double>(precisionPotential) / 1000);
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
-    ui->lcd_precision_spiktrain->display(static_cast<double>(precisionSpiketrain) / 1000);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
 
     /* Qt charts */
@@ -171,6 +165,7 @@ void NeuvisysGUI::on_text_complex_cell_config_textChanged() {
 }
 
 void NeuvisysGUI::on_button_launch_network_clicked() {
+    qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<cv::Mat>("cv::Mat");
     qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
@@ -180,18 +175,18 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(&neuvisysThread, &NeuvisysThread::displayInformation, this, &NeuvisysGUI::onDisplayInformation);
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
     connect(this, &NeuvisysGUI::guiInformation, &neuvisysThread, &NeuvisysThread::onGuiInformation);
-    neuvisysThread.render(ui->text_network_directory->text()+"/configs/network_config.json", ui->text_event_file->text(), ui->number_runs->value());
+    neuvisysThread.render(ui->text_network_directory->text()+"/configs/network_config.json", ui->text_event_file->text(),static_cast<size_t>(ui->number_runs->value()));
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const int nbCameras, const int nbSynapses, const std::string sharingType, const int width, const int height, const int depth, const int widthPatchSize, const int heightPatchSize) {
-    ui->spin_layer_selection->setMaximum(depth);
-    ui->spin_camera_selection->setMaximum(nbCameras-1);
-    ui->spin_synapse_selection->setMaximum(nbSynapses-1);
+void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nbSynapses, const std::string &sharingType, const size_t width, const size_t height, const size_t depth, const size_t widthPatchSize, const size_t heightPatchSize) {
+    ui->spin_layer_selection->setMaximum(static_cast<int>(depth));
+    ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras-1));
+    ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses-1));
 
     int count = 0;
-    for (int i = 0; i < width; ++i) {
-        for (int j = 0; j < height; ++j) {
-            QPushButton *button = new QPushButton(this);
+    for (size_t i = 0; i < width; ++i) {
+        for (size_t j = 0; j < height; ++j) {
+            auto *button = new QPushButton(this);
             button->setText(QString::number(count));
             button->setMinimumWidth(5);
             ui->gridSelection->addWidget(button, i, j);
@@ -200,7 +195,7 @@ void NeuvisysGUI::onNetworkConfiguration(const int nbCameras, const int nbSynaps
             ++count;
 
             if (sharingType == "none") {
-                QLabel *label = new QLabel(this);
+                auto *label = new QLabel(this);
                 ui->weightLayout->addWidget(label, i, j);
                 label->show();
 
@@ -208,11 +203,11 @@ void NeuvisysGUI::onNetworkConfiguration(const int nbCameras, const int nbSynaps
         }
     }
     if (sharingType == "patch") {
-        for (int wp = 0; wp < widthPatchSize; ++wp) {
-            for (int hp = 0; hp < heightPatchSize; ++hp) {
-                for (int i = 0; i < std::sqrt(depth); ++i) {
-                    for (int j = 0; j < std::sqrt(depth); ++j) {
-                        QLabel *label = new QLabel(this);
+        for (size_t wp = 0; wp < widthPatchSize; ++wp) {
+            for (size_t hp = 0; hp < heightPatchSize; ++hp) {
+                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(depth)); ++i) {
+                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(depth)); ++j) {
+                        auto *label = new QLabel(this);
                         ui->weightLayout->addWidget(label, wp*depth+i, hp*depth+j);
                         label->show();
                     }
@@ -223,7 +218,7 @@ void NeuvisysGUI::onNetworkConfiguration(const int nbCameras, const int nbSynaps
     } else if (sharingType == "full") {
         for (int i = 0; i < std::sqrt(depth); ++i) {
             for (int j = 0; j < std::sqrt(depth); ++j) {
-                QLabel *label = new QLabel(this);
+                auto *label = new QLabel(this);
                 ui->weightLayout->addWidget(label, i, j);
                 label->show();
             }
@@ -232,28 +227,28 @@ void NeuvisysGUI::onNetworkConfiguration(const int nbCameras, const int nbSynaps
 }
 
 void NeuvisysGUI::on_button_selection_clicked() {
-    QPushButton *button = (QPushButton*) sender();
-    index = ui->spin_layer_selection->value() * button->text().toInt();
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    auto *button = dynamic_cast<QPushButton*>(sender());
+    idSimple = static_cast<size_t>(ui->spin_layer_selection->value()) * button->text().toULong();
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_spin_layer_selection_valueChanged(int arg1) {
-    layer = arg1;
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    layerSimple = static_cast<size_t>(arg1);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_spin_camera_selection_valueChanged(int arg1) {
-    camera = arg1;
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    camera = static_cast<size_t>(arg1);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
-    synapse = arg1;
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    synapse = static_cast<size_t>(arg1);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 
-void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain) {
+void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay, const std::map<size_t, cv::Mat> &weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain) {
     ui->lcd_spike_rate->display(spike_rate);
     ui->lcd_threshold->display(threshold);
     ui->progressBar->setValue(progress);
@@ -261,22 +256,22 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
     /*** Events ***/
     cv::Mat temp;
     cvtColor(leftEventDisplay, temp, cv::COLOR_BGR2RGB);
-    QImage leftEvent((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+    QImage leftEvent(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
     leftEvent.bits();
     ui->left_event_image->setPixmap(QPixmap::fromImage(leftEvent).scaled(3*346, 3*260, Qt::KeepAspectRatio));
     cvtColor(rightEventDisplay, temp, cv::COLOR_BGR2RGB);
-    QImage rightEvent((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
+    QImage rightEvent(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
     rightEvent.bits();
     ui->right_event_image->setPixmap(QPixmap::fromImage(rightEvent).scaled(3*346, 3*260, Qt::KeepAspectRatio));
 
     /*** Weights ***/
     int count = 0;
-    for (auto it = weightDisplay.begin(); it != weightDisplay.end(); ++it) {
-        cvtColor(it->second, temp, cv::COLOR_BGR2RGB);
-        QImage weight((const uchar *) temp.data, temp.cols, temp.rows, temp.step, QImage::Format_RGB888);
-        weight.bits();
-        auto label = (QLabel*) ui->weightLayout->itemAt(count)->widget();
-        label->setPixmap(QPixmap::fromImage(weight).scaled(40, 40, Qt::KeepAspectRatio));
+    for (auto &weight : weightDisplay) {
+        cvtColor(weight.second, temp, cv::COLOR_BGR2RGB);
+        QImage weightImage(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
+        weightImage.bits();
+        auto label = dynamic_cast<QLabel*>(ui->weightLayout->itemAt(count)->widget());
+        label->setPixmap(QPixmap::fromImage(weightImage).scaled(40, 40, Qt::KeepAspectRatio));
         ++count;
     }
 
@@ -288,8 +283,8 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
         last = potentialTrain.back().second;
     }
     for (auto it = potentialTrain.rbegin(); it != potentialTrain.rend(); ++it) {
-        potentialSeries->append(it->second, it->first);
-        if (last - it->second > rangePotential) {
+        potentialSeries->append(static_cast<qreal>(it->second), it->first);
+        if (last - it->second > static_cast<long>(rangePotential)) {
             break;
         }
     }
@@ -303,13 +298,16 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
     spikeSeries->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
     spikeSeries->setMarkerSize(8);
     long max = 0;
-    for (auto sTrain = spikeTrain.begin(); sTrain != spikeTrain.end(); ++sTrain) {
-        if (!sTrain->second.empty() && sTrain->second.back() > max) {
-            max = sTrain->second.back();
+    for (const auto &sTrain : spikeTrain) {
+        if (!sTrain.second.empty() && sTrain.second.back() > max) {
+            max = sTrain.second.back();
         }
-        for (auto spike = sTrain->second.rbegin(); spike != sTrain->second.rend(); ++spike) {
-            spikeSeries->append(*spike, sTrain->first);
-            if (max - *spike > rangeSpiketrain) {
+    }
+    for (const auto &sTrain : spikeTrain) {
+        for (auto spike = sTrain.second.rbegin(); spike != sTrain.second.rend(); ++spike) {
+            if (max - *spike <= static_cast<long>(rangeSpiketrain)) {
+                spikeSeries->append(static_cast<qreal>(*spike), static_cast<qreal>(sTrain.first));
+            } else {
                 break;
             }
         }
@@ -320,31 +318,25 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
 }
 
 void NeuvisysGUI::on_slider_precision_event_sliderMoved(int position) {
-    precisionEvent = position;
+    precisionEvent = static_cast<size_t>(position);
     ui->lcd_precision_event->display(static_cast<double>(precisionEvent) / 1000);
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_slider_range_potential_sliderMoved(int position) {
-    rangePotential = position;
+    rangePotential = static_cast<size_t>(position);
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_slider_precision_potential_sliderMoved(int position) {
-    precisionPotential = position;
+    precisionPotential = static_cast<size_t>(position);
     ui->lcd_precision_potential->display(static_cast<double>(precisionPotential) / 1000);
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }
 
 void NeuvisysGUI::on_slider_range_spiketrain_sliderMoved(int position) {
-    rangeSpiketrain = position;
+    rangeSpiketrain = static_cast<size_t>(position);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
-}
-
-void NeuvisysGUI::on_slider_precision_spiketrain_sliderMoved(int position) {
-    precisionSpiketrain = position;
-    ui->lcd_precision_spiktrain->display(static_cast<double>(precisionSpiketrain) / 1000);
-    emit guiInformation(index, layer, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain, precisionSpiketrain);
+    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
 }

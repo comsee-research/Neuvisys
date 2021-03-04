@@ -278,7 +278,7 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
     cnpy::npy_save(conf.NetworkPath + "weights/layout1.npy", &data[0], {conf.L1XAnchor.size() * conf.L1Width, conf.L1YAnchor.size() * conf.L1Height, conf.L1Depth}, "w");
 }
 
-void SpikingNetwork::trackNeuron(const long time, const int simpleId, const int complexId) {
+void SpikingNetwork::trackNeuron(const long time, const size_t simpleId, const size_t complexId) {
     if (m_simpleNeuronConf.TRACKING == "full") {
         if (!m_simpleNeurons.empty()) {
             for (auto &neuron : m_simpleNeurons) {
@@ -308,7 +308,7 @@ Position SpikingNetwork::findPixelComplexNeuron(ComplexNeuron &neuron) {
 
 /***** GUI Interface *****/
 
-const cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer) {
+cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer) {
     size_t sizeX = 0, sizeY = 0, sizePol = 0;
     if (neuronType == 0) {
         sizeX = conf.Neuron1Width;
