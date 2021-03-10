@@ -9,7 +9,7 @@
 #include "src/network/neurons/SimpleNeuron.hpp"
 
 class SpikingNetwork {
-    NetworkConfig &conf;
+    NetworkConfig &m_conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
 
@@ -42,7 +42,9 @@ public:
     SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
     [[nodiscard]] size_t getNumberNeurons() const { return m_nbSimpleNeurons; }
     [[nodiscard]] size_t getNumberPoolingNeurons() const { return m_nbComplexNeurons; }
-    NetworkConfig getNetworkConfig() { return conf; }
+    NetworkConfig getNetworkConfig() { return m_conf; }
+    NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
+    NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout1(uint64_t x, uint64_t y, uint64_t z) { return m_layout1[{x, y, z}]; }
     uint64_t getLayout2(uint64_t x, uint64_t y, uint64_t z) { return m_layout2[{x, y, z}]; }
     void trackNeuron(const long time, const size_t simpleId = 0, const size_t complexId = 0);

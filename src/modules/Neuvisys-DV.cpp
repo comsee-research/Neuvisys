@@ -152,7 +152,7 @@ public:
 //            std::cout << "pooling neuron display index too big" << std::endl;
 //            Selection::INDEX2 = 0;
 //        }
-//        if (Selection::LAYER > conf.L1Depth) {
+//        if (Selection::LAYER > m_conf.L1Depth) {
 //            std::cout << "neuron display layer too big" << std::endl;
 //            Selection::LAYER = 0;
 //        }

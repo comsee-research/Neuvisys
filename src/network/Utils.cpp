@@ -26,8 +26,8 @@ namespace Util {
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
                 for (long k = 0; k < p; ++k) {
+                    double weight = distribution(generator);
                     for (long l = 0; l < c; ++l) {
-                        double weight = distribution(generator);
                         for (long m = 0; m < s; ++m) {
                             mat(k, l, m, i, j) = weight;
                         }

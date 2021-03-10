@@ -24,7 +24,7 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayInformation(int progress, double spike_rate, double threshold, const cv::Mat& leftEventDisplay, const cv::Mat& rightEventDisplay, const std::map<size_t, cv::Mat>& weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
+    void onDisplayInformation(int progress, double spike_rate, double threshold, double vreset, const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay, const std::map<size_t, cv::Mat>& weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
     void onNetworkConfiguration(size_t nbCameras, size_t nbSynapses, const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
 
 signals:
@@ -53,6 +53,8 @@ protected:
     QChart *potentialChart;
     QScatterSeries *spikeSeries;
     QChart *spikeChart;
+    QGraphicsPixmapItem leftEvents;
+    QGraphicsPixmapItem rightEvents;
 
     size_t idSimple;
     size_t idComplex;

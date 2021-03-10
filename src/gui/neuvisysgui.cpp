@@ -14,12 +14,17 @@ NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::Neuv
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/thomas/Bureau/2_3.npz");
-    ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
+    ui->text_event_file->setText("/home/alphat/Desktop/pavin.npz");
+    ui->text_network_directory->setText("/home/alphat/neuvisys-dv/configuration/network");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->spin_layer_selection->setMinimum(1);
+
+    ui->left_event_video->setScene(new QGraphicsScene(this));
+    ui->left_event_video->scene()->addItem(&leftEvents);
+    ui->right_event_video->setScene(new QGraphicsScene(this));
+    ui->right_event_video->scene()->addItem(&rightEvents);
 
     /* Selection parameters */
     ui->slider_precision_event->setMaximum(100000);
@@ -189,14 +194,14 @@ void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nb
             auto *button = new QPushButton(this);
             button->setText(QString::number(count));
             button->setMinimumWidth(5);
-            ui->gridSelection->addWidget(button, i, j);
+            ui->gridSelection->addWidget(button, static_cast<int>(i), static_cast<int>(j));
             connect(button, SIGNAL(clicked()), this, SLOT(on_button_selection_clicked()));
             button->show();
             ++count;
 
             if (sharingType == "none") {
                 auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, i, j);
+                ui->weightLayout->addWidget(label, static_cast<int>(i), static_cast<int>(j));
                 label->show();
 
             }
@@ -208,13 +213,12 @@ void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nb
                 for (size_t i = 0; i < static_cast<size_t>(std::sqrt(depth)); ++i) {
                     for (size_t j = 0; j < static_cast<size_t>(std::sqrt(depth)); ++j) {
                         auto *label = new QLabel(this);
-                        ui->weightLayout->addWidget(label, wp*depth+i, hp*depth+j);
+                        ui->weightLayout->addWidget(label, static_cast<int>(hp * depth + i), static_cast<int>(wp * depth + j));
                         label->show();
                     }
                 }
             }
         }
-
     } else if (sharingType == "full") {
         for (int i = 0; i < std::sqrt(depth); ++i) {
             for (int j = 0; j < std::sqrt(depth); ++j) {
@@ -248,30 +252,26 @@ void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
 }
 
 
-void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay, const std::map<size_t, cv::Mat> &weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain) {
+void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const double vreset, const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay, const std::map<size_t, cv::Mat> &weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain) {
     ui->lcd_spike_rate->display(spike_rate);
     ui->lcd_threshold->display(threshold);
     ui->progressBar->setValue(progress);
 
     /*** Events ***/
-    cv::Mat temp;
-    cvtColor(leftEventDisplay, temp, cv::COLOR_BGR2RGB);
-    QImage leftEvent(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
-    leftEvent.bits();
-    ui->left_event_image->setPixmap(QPixmap::fromImage(leftEvent).scaled(3*346, 3*260, Qt::KeepAspectRatio));
-    cvtColor(rightEventDisplay, temp, cv::COLOR_BGR2RGB);
-    QImage rightEvent(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
-    rightEvent.bits();
-    ui->right_event_image->setPixmap(QPixmap::fromImage(rightEvent).scaled(3*346, 3*260, Qt::KeepAspectRatio));
+    QImage leftEFrame(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
+    leftEvents.setPixmap(QPixmap::fromImage(leftEFrame.rgbSwapped()).scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260)));
+    ui->left_event_video->fitInView(&leftEvents, Qt::KeepAspectRatio);
+
+    QImage rightEFrame(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
+    rightEvents.setPixmap(QPixmap::fromImage(rightEFrame.rgbSwapped()).scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260)));
+    ui->right_event_video->fitInView(&rightEvents, Qt::KeepAspectRatio);
 
     /*** Weights ***/
     int count = 0;
     for (auto &weight : weightDisplay) {
-        cvtColor(weight.second, temp, cv::COLOR_BGR2RGB);
-        QImage weightImage(static_cast<const uchar *>(temp.data), temp.cols, temp.rows, static_cast<int>(temp.step), QImage::Format_RGB888);
-        weightImage.bits();
+        QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows, static_cast<int>(weight.second.step), QImage::Format_RGB888);
         auto label = dynamic_cast<QLabel*>(ui->weightLayout->itemAt(count)->widget());
-        label->setPixmap(QPixmap::fromImage(weightImage).scaled(40, 40, Qt::KeepAspectRatio));
+        label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
         ++count;
     }
 
@@ -290,6 +290,7 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
     }
     potentialChart->addSeries(potentialSeries);
     potentialChart->createDefaultAxes();
+    potentialChart->axes(Qt::Vertical, potentialSeries)[0]->setRange(vreset, threshold);
     ui->potentialView->repaint();
 
     /*** Spike Plot ***/

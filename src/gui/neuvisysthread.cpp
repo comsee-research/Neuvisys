@@ -32,7 +32,7 @@ void NeuvisysThread::multiplePass() {
 
     main_loop(spinet);
 
-    emit displayInformation(100, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(), m_spikeTrain);
+    emit displayInformation(100, 0, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(), m_spikeTrain);
     std::cout << "Finished" << std::endl;
 }
 
@@ -132,6 +132,15 @@ inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, Event &eve
 }
 
 inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
+    for (auto xPatch : spinet.getNetworkConfig().L1XAnchor) {
+        for (auto yPatch : spinet.getNetworkConfig().L1YAnchor) {
+            auto offsetXPatch = static_cast<int>(xPatch + spinet.getNetworkConfig().L1Width * spinet.getNetworkConfig().Neuron1Width);
+            auto offsetYPatch = static_cast<int>(yPatch + spinet.getNetworkConfig().L1Height * spinet.getNetworkConfig().Neuron1Height);
+            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(xPatch), static_cast<int>(yPatch)), cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
+            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(xPatch), static_cast<int>(yPatch)), cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
+        }
+    }
+
     size_t count = 0;
     for (size_t i = 0; i < spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width; ++i) {
         for (size_t j = 0; j < spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height; ++j) {
@@ -144,7 +153,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     } if (spinet.getNetworkConfig().SharingType == "patch") {
         count = 0;
         for (size_t wp = 0; wp < spinet.getNetworkConfig().L1XAnchor.size(); ++wp) {
-            for (size_t hp = 0; hp < spinet.getNetworkConfig().L1XAnchor.size(); ++hp) {
+            for (size_t hp = 0; hp < spinet.getNetworkConfig().L1YAnchor.size(); ++hp) {
                 for (size_t i = 0; i < spinet.getNetworkConfig().L1Depth; ++i) {
                     m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout1(wp*spinet.getNetworkConfig().L1Width, hp*spinet.getNetworkConfig().L1Height, i), m_camera, m_synapse, 0, 0);
                     ++count;
@@ -156,7 +165,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
             m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout1(0, 0, i), m_camera, m_synapse, 0, 0);
         }
     }
-    emit displayInformation(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_idSimple).getSpikingRate(), spinet.getNeuron(m_idSimple).getThreshold(), m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, spinet.getPotentialNeuron(m_idSimple, 0), m_spikeTrain);
+    emit displayInformation(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_idSimple).getSpikingRate(), spinet.getNeuron(m_idSimple).getThreshold(), spinet.getSimpleNeuronConfig().VRESET, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, spinet.getPotentialNeuron(m_idSimple, 0), m_spikeTrain);
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;
 }

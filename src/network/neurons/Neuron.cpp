@@ -20,7 +20,7 @@ inline double Neuron::getPotential(const long time) {
 }
 
 inline double Neuron::potentialDecay(const long time) {
-//    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
+//    m_potential *= exp(- static_cast<double>(time) / m_conf.TAU_M);
     if (time < 1000000) {
         m_potential *= m_luts.lutM[static_cast<size_t>(time)];
     } else {
@@ -29,7 +29,7 @@ inline double Neuron::potentialDecay(const long time) {
 }
 
 inline double Neuron::refractoryPotential(const long time) {
-//    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
+//    return m_conf.DELTA_RP * exp(- static_cast<double>(time) / m_conf.TAU_RP);
     if (time < 1000000) {
         return conf.DELTA_RP * m_luts.lutRP[static_cast<size_t>(time)];
     } else {
@@ -38,7 +38,7 @@ inline double Neuron::refractoryPotential(const long time) {
 }
 
 inline double Neuron::adaptationPotentialDecay(const long time) {
-//    m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
+//    m_adaptation_potential *= exp(- static_cast<double>(time) / m_conf.TAU_SRA);
     if (time < 1000000) {
         m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(time)];
     } else {

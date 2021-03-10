@@ -23,7 +23,7 @@ public slots:
     void onGuiInformation(size_t index, size_t layer, size_t camera, size_t synapse, size_t precisionEvent, size_t rangePotential, size_t precisionPotential, size_t rangeSpiketrain);
 
 signals:
-    void displayInformation(int progress, double spike_rate, double threshold, cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
+    void displayInformation(int progress, double spike_rate, double threshold, double vreset, cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
     void networkConfiguration(size_t nbCameras, size_t nbSynapses, std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
 
 protected:
