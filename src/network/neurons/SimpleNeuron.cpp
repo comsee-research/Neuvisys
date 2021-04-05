@@ -68,7 +68,7 @@ inline void SimpleNeuron::spike(const long time) {
     }
     m_events.clear();
 
-    if (conf.TRACKING == "full" || conf.TRACKING == "partial") {
+    if (conf.TRACKING == "partial") {
         m_spikeTrain.push_back(time);
     }
 }

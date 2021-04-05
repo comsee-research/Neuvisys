@@ -112,9 +112,8 @@ void Neuron::saveState(std::string &fileName) {
     state["spiking_rate"] = m_spikingRate;
     state["recent_spikes"] = m_recentSpikes;
     state["learning_decay"] = m_learningDecay;
-
     state["spike_train"] = m_spikeTrain;
-    state["potential_train"] = m_potentialTrain;
+//    state["potential_train"] = m_potentialTrain;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -145,9 +144,9 @@ void Neuron::loadState(std::string &fileName) {
         for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(state["recent_spikes"][i]);
         }
-//        for (auto &spikes : state["spike_train"]) {
-//            m_spikeTrain.push_back(spikes);
-//        }
+        for (auto &spikes : state["spike_train"]) {
+            m_spikeTrain.push_back(spikes);
+        }
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }

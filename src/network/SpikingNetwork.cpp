@@ -226,6 +226,19 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
     }
 }
 
+void SpikingNetwork::saveNetworkLearningTrace(const size_t nbRun, const std::string& eventFileName) {
+    std::string fileName;
+    fileName = m_conf.NetworkPath + "learning_trace.txt";
+
+    std::ofstream ofs(fileName, std::ios::app);
+    if (ofs.is_open()) {
+        ofs << eventFileName << ", " << nbRun << std::endl;
+    } else {
+        std::cout << "cannot save learning trace" << std::endl;
+    }
+    ofs.close();
+}
+
 void SpikingNetwork::saveNeuronsStates() {
     size_t count = 0;
     std::string fileName;
@@ -279,24 +292,12 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
 }
 
 void SpikingNetwork::trackNeuron(const long time, const size_t simpleId, const size_t complexId) {
-    if (m_simpleNeuronConf.TRACKING == "full") {
-        if (!m_simpleNeurons.empty()) {
-            for (auto &neuron : m_simpleNeurons) {
-                neuron.trackPotential(time);
-            }
-        }
-    } else if (m_simpleNeuronConf.TRACKING == "partial") {
+    if (m_simpleNeuronConf.TRACKING == "partial") {
         if (!m_simpleNeurons.empty()) {
             m_simpleNeurons[simpleId].trackPotential(time);
         }
     }
-    if (m_complexNeuronConf.TRACKING == "full") {
-        if (!m_complexNeurons.empty()) {
-            for (auto &neuron : m_complexNeurons) {
-                neuron.trackPotential(time);
-            }
-        }
-    } else if (m_complexNeuronConf.TRACKING == "partial") {
+    if (m_complexNeuronConf.TRACKING == "partial") {
         if (!m_complexNeurons.empty()) {
             m_complexNeurons[complexId].trackPotential(time);
         }

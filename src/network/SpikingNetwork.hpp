@@ -36,7 +36,7 @@ public:
     void addComplexEvent(SimpleNeuron &neuron);
     void updateNeurons(long time);
     void updateNeuronsParameters(long time);
-    void saveNeuronsStates();
+    void saveNetworkLearningTrace(size_t nbRun, const std::string& eventFileName);
     void loadWeights(bool simpleNeuronStored, bool complexNeuronStored);
 
     SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
@@ -54,6 +54,7 @@ public:
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
 
 private:
+    void saveNeuronsStates();
     bool simpleNeuronsFilesExists() const;
     bool complexNeuronsFilesExists() const;
     void generateWeightSharing(bool simpleNeuronStored, bool complexNeuronStored);
