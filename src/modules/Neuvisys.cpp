@@ -121,10 +121,8 @@ inline void Neuvisys::runSpikingNetwork(SpikingNetwork &spinet, Event &event, si
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
-        if (strcmp(argv[2], "multi-pass") == 0) {
-            auto neuvisys = Neuvisys(argv[1], argv[2], static_cast<size_t>(std::stoi(argv[4])));
-            neuvisys.multiplePass();
-        }
+        auto neuvisys = Neuvisys(argv[1], argv[2], static_cast<size_t>(std::stoi(argv[4])));
+        neuvisys.multiplePass();
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
