@@ -33,8 +33,9 @@ protected:
 
     Luts &m_luts;
 
-    std::vector<long> m_spikeTrain;
-    std::vector<std::pair<double, long>> m_potentialTrain;
+    std::vector<double> m_trackingThresholds;
+    std::vector<long> m_trackingSpikeTrain;
+    std::vector<std::pair<double, long>> m_trackingPotentialTrain;
 public:
     Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset);
     virtual size_t getIndex() { return m_index; }
@@ -48,8 +49,10 @@ public:
     virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() { return m_outConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() { return m_inConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() { return m_inhibitionConnections; }
-    virtual const std::vector<long> &getSpikeTrain() { return m_spikeTrain; }
-    virtual const std::vector<std::pair<double, long>> &getPotentialTrain() { return m_potentialTrain; }
+
+    virtual const std::vector<double> &getTrackingThresholds() { return m_trackingThresholds; }
+    virtual const std::vector<long> &getTrackingSpikeTrain() { return m_trackingSpikeTrain; }
+    virtual const std::vector<std::pair<double, long>> &getTrackingPotentialTrain() { return m_trackingPotentialTrain; }
 
     virtual bool hasSpiked();
     virtual double getPotential(long time);

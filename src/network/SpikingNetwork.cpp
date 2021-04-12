@@ -353,16 +353,16 @@ cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t camera, size_t s
 
 const std::vector<long> &SpikingNetwork::getSpikingNeuron(size_t idNeuron, size_t neuronType) {
     if (neuronType == 0) {
-        return m_simpleNeurons[idNeuron].getSpikeTrain();
+        return m_simpleNeurons[idNeuron].getTrackingSpikeTrain();
     } else if (neuronType == 1) {
-        return m_complexNeurons[idNeuron].getSpikeTrain();
+        return m_complexNeurons[idNeuron].getTrackingSpikeTrain();
     }
 }
 
 const std::vector<std::pair<double, long>> &SpikingNetwork::getPotentialNeuron(size_t idNeuron, size_t neuronType) {
     if (neuronType == 0) {
-        return m_simpleNeurons[idNeuron].getPotentialTrain();
+        return m_simpleNeurons[idNeuron].getTrackingPotentialTrain();
     } else if (neuronType == 1) {
-        return m_complexNeurons[idNeuron].getPotentialTrain();
+        return m_complexNeurons[idNeuron].getTrackingPotentialTrain();
     }
 }
