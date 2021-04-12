@@ -47,7 +47,7 @@ void Neuvisys::main_loop(SpikingNetwork &spinet) {
         for (pass = 0; pass < static_cast<size_t>(m_nbPass); ++pass) {
             for (left = 0; left < sizeLeftArray; ++left) {
                 event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
-                runSpikingNetwork(spinet, event, m_nbPass * left);
+                runSpikingNetwork(spinet, event, m_nbPass * sizeLeftArray);
             }
             std::cout << "Finished iteration: " << pass + 1 << std::endl;
         }
@@ -88,33 +88,25 @@ void Neuvisys::main_loop(SpikingNetwork &spinet) {
 
 inline void Neuvisys::runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t sizeArray) {
     spinet.addEvent(event);
-    if (event.camera() == 0) {
-        if (m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
-            m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
-        }
-    } else {
-        if (m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
-            m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
-        }
-    }
 
 //    if (count % Conf::EVENT_FREQUENCY == 0) {
 //        spinet.updateNeurons(event.timestamp());
 //    }
 
     std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-    if (1000000 * frameElapsed.count() > m_precisionEvent) {
+    if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
         m_frameTime = std::chrono::high_resolution_clock::now();
     }
 
     std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-    if (1000000 * trackingElapsed.count() > m_precisionPotential) {
+    if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
         m_trackingTime = std::chrono::high_resolution_clock::now();
         spinet.trackNeuron(event.timestamp(), m_idSimple, m_idComplex);
     }
 
-    if (m_iterations % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+    if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
         spinet.updateNeuronsParameters(event.timestamp());
+        std::cout << static_cast<size_t>(100 * m_iterations) / sizeArray << "%" << std::endl;
     }
     ++m_iterations;
 }
@@ -126,8 +118,8 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
-        std::string networkPath = "/home/alphat/neuvisys-dv/configuration/NETWORKS/stdps/exp_sym/configs/network_config.json";
-        std::string events = "/media/alphat/SSD Games/Thesis/videos/artificial_videos/lines_npz/0.npz";
+        std::string networkPath = "/home/alphat/Desktop/Networks/network_0/configs/network_config.json";
+        std::string events = "/home/alphat/Desktop/shapes.npz";
 
         auto neuvisys = Neuvisys(networkPath, events, 1);
         neuvisys.multiplePass();

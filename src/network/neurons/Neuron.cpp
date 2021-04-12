@@ -3,13 +3,14 @@
 using json = nlohmann::json;
 
 Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset) :
-    m_index(index),
-    conf(conf),
-    m_pos(pos),
-    m_offset(offset),
-    m_recentSpikes(std::list<size_t>(Conf::TIME_WINDOW_SR)),
-    m_luts(luts),
-    m_spikeTrain(std::vector<long>(0)) {
+        m_index(index),
+        conf(conf),
+        m_pos(pos),
+        m_offset(offset),
+        m_recentSpikes(std::list<size_t>(Conf::TIME_WINDOW_SR)),
+        m_luts(luts),
+        m_trackingThresholds(std::vector<double>(0)),
+        m_trackingSpikeTrain(std::vector<long>(0)) {
     m_threshold = conf.VTHRESH;
     m_learningDecay = 1.0;
     m_spike = false;
@@ -65,6 +66,7 @@ inline void Neuron::thresholdAdaptation() {
     if (m_threshold < conf.MIN_THRESH) {
         m_threshold = conf.MIN_THRESH;
     }
+    m_trackingThresholds.push_back(m_threshold);
 }
 
 inline void Neuron::spikeRateAdaptation() {
@@ -113,8 +115,9 @@ void Neuron::saveState(std::string &fileName) {
     state["recent_spikes"] = m_recentSpikes;
     state["learning_decay"] = m_learningDecay;
 
-    state["spike_train"] = m_spikeTrain;
-    state["potential_train"] = m_potentialTrain;
+    state["thresholds_train"] = m_trackingThresholds;
+    state["spike_train"] = m_trackingSpikeTrain;
+//    state["potential_train"] = m_trackingPotentialTrain;
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -145,9 +148,6 @@ void Neuron::loadState(std::string &fileName) {
         for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
             m_recentSpikes.push_front(state["recent_spikes"][i]);
         }
-//        for (auto &spikes : state["spike_train"]) {
-//            m_spikeTrain.push_back(spikes);
-//        }
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }
@@ -156,5 +156,5 @@ void Neuron::loadState(std::string &fileName) {
 
 void Neuron::trackPotential(const long time) {
     double potential = getPotential(time);
-    m_potentialTrain.emplace_back(potential, time);
+    m_trackingPotentialTrain.emplace_back(potential, time);
 }

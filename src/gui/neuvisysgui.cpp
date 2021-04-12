@@ -14,7 +14,7 @@ NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::Neuv
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/alphat/Desktop/pavin.npz");
+    ui->text_event_file->setText("/home/alphat/Desktop/shapes.npz");
     ui->text_network_directory->setText("/home/alphat/neuvisys-dv/configuration/network");
     openConfigFiles();
     ui->number_runs->setValue(1);

@@ -33,6 +33,7 @@ void NeuvisysThread::multiplePass() {
     main_loop(spinet);
 
     emit displayInformation(100, 0, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(), m_spikeTrain);
+    spinet.saveNetworkLearningTrace(m_nbPass, m_events.toStdString());
     std::cout << "Finished" << std::endl;
 }
 
@@ -58,7 +59,7 @@ void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
         for (pass = 0; pass < m_nbPass; ++pass) {
             for (left = 0; left < sizeLeftArray; ++left) {
                 event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
-                runSpikingNetwork(spinet, event, m_nbPass * left);
+                runSpikingNetwork(spinet, event, m_nbPass * sizeLeftArray);
             }
             std::cout << "Finished iteration: " << pass + 1 << std::endl;
         }
