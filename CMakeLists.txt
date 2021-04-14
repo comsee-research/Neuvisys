@@ -65,7 +65,7 @@ set(PROJECT_SOURCES
         src/network/neurons/Neuron.cpp
         src/network/neurons/SimpleNeuron.cpp
         src/network/neurons/ComplexNeuron.cpp
-)
+        src/network/NetworkHandle.cpp src/network/NetworkHandle.hpp)
 
 set(GUI_SOURCES
         src/gui/main.cpp
@@ -100,7 +100,7 @@ target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSI
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED
-        src/modules/Neuvisys-DV.cpp
+        src/modules/NeuvisysDV.cpp
         ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} cnpy)
 install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
@@ -108,5 +108,11 @@ install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
 ##### Neuvisys Executable #####
 add_executable(neuvisys
         src/modules/Neuvisys.cpp
-        ${PROJECT_SOURCES} src/modules/Neuvisys.hpp)
+        ${PROJECT_SOURCES})
+target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+
+##### Neuvisys Ros Executable #####
+add_executable(neuvisys-ros
+        src/modules/NeuvisysRos.cpp
+        ${PROJECT_SOURCES})
 target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
