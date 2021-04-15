@@ -66,7 +66,10 @@ inline void Neuron::thresholdAdaptation() {
     if (m_threshold < conf.MIN_THRESH) {
         m_threshold = conf.MIN_THRESH;
     }
-    m_trackingThresholds.push_back(m_threshold);
+
+    if (conf.TRACKING == "partial") {
+        m_trackingThresholds.push_back(m_threshold);
+    }
 }
 
 inline void Neuron::spikeRateAdaptation() {
