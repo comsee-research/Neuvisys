@@ -12,6 +12,12 @@ class SpikingNetwork {
     NetworkConfig &m_conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
+    long m_iterations{};
+    std::chrono::time_point<std::chrono::system_clock> m_frameTime;
+    std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
+
+    size_t m_precisionEvent = 30000; // µs
+    size_t m_precisionPotential = 10000; // µs
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -32,6 +38,7 @@ public:
     explicit SpikingNetwork(NetworkConfig &conf);
 
     ~SpikingNetwork();
+    void run(const std::vector<Event>& eventPacket);
     void addEvent(Event event);
     void addComplexEvent(SimpleNeuron &neuron);
     void updateNeurons(long time);

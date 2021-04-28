@@ -7,9 +7,9 @@ project(neuvisys
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+#set(CMAKE_AUTOUIC ON)
+#set(CMAKE_AUTOMOC ON)
+#set(CMAKE_AUTORCC ON)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -34,10 +34,12 @@ IF (NOT CMAKE_INSTALL_PREFIX)
     ENDIF()
 ENDIF()
 
-find_package(OpenCV REQUIRED)
+find_package(OpenCV 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
+#find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
+#find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
+
+include_directories ("/usr/include/opencv4/")
 
 # Define installation paths
 include(GNUInstallDirs)
@@ -65,7 +67,7 @@ set(PROJECT_SOURCES
         src/network/neurons/Neuron.cpp
         src/network/neurons/SimpleNeuron.cpp
         src/network/neurons/ComplexNeuron.cpp
-        src/network/NetworkHandle.cpp src/network/NetworkHandle.hpp)
+        src/network/NetworkHandle.cpp)
 
 set(GUI_SOURCES
         src/gui/main.cpp
@@ -78,25 +80,25 @@ set_source_files_properties(src/dependencies/*
         COMPILE_OPTIONS "-w")
 
 ##### Qt GUI #####
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(qt-gui
-            ${GUI_SOURCES}
-            ${PROJECT_SOURCES}
-    )
-else()
-    if(ANDROID)
-        add_library(qt-gui SHARED
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-        )
-    else()
-        add_executable(qt-gui
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
-target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+#if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+#    qt_add_executable(qt-gui
+#            ${GUI_SOURCES}
+#            ${PROJECT_SOURCES}
+#    )
+#else()
+#    if(ANDROID)
+#        add_library(qt-gui SHARED
+#                ${GUI_SOURCES}
+#                ${PROJECT_SOURCES}
+#        )
+#    else()
+#        add_executable(qt-gui
+#                ${GUI_SOURCES}
+#                ${PROJECT_SOURCES}
+#        )
+#    endif()
+#endif()
+#target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED
@@ -106,13 +108,25 @@ target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} cnpy)
 install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
 
 ##### Neuvisys Executable #####
-add_executable(neuvisys
+add_executable(neuvisys-exe
         src/modules/Neuvisys.cpp
         ${PROJECT_SOURCES})
-target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
-##### Neuvisys Ros Executable #####
-add_executable(neuvisys-ros
-        src/modules/NeuvisysRos.cpp
-        ${PROJECT_SOURCES})
-target_link_libraries(neuvisys ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+##### Neuvisys Library #####
+add_library(neuvisys SHARED
+	${PROJECT_SOURCES})
+set_target_properties(neuvisys
+	PROPERTIES VERSION ${PROJECT_VERSION}
+	PUBLIC_HEADER include/neuvisys.h)
+
+configure_file(neuvisys.pc.in neuvisys.pc @ONLY)
+
+target_include_directories(neuvisys PRIVATE .)
+
+install(TARGETS neuvisys
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+install(FILES ${CMAKE_BINARY_DIR}/neuvisys.pc
+	DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)

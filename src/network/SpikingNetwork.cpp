@@ -1,11 +1,14 @@
 #include "SpikingNetwork.hpp"
 
+#include <utility>
+
 SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
                                                       m_simpleNeuronConf(conf.NetworkPath + "configs/simple_cell_config.json", 0),
                                                       m_complexNeuronConf(conf.NetworkPath + "configs/complex_cell_config.json", 1),
                                                       m_retina(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
                                                       m_simpleluts(m_simpleNeuronConf.TAU_M, m_simpleNeuronConf.TAU_RP, m_simpleNeuronConf.TAU_SRA),
                                                       m_complexluts(m_complexNeuronConf.TAU_M, m_complexNeuronConf.TAU_RP, m_complexNeuronConf.TAU_SRA) {
+    m_frameTime = std::chrono::high_resolution_clock::now();
 
     m_nbSimpleNeurons = conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth;
     m_nbComplexNeurons = conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth;
@@ -58,6 +61,32 @@ bool SpikingNetwork::complexNeuronsFilesExists() const {
         return true;
     } else {
         return false;
+    }
+}
+
+void SpikingNetwork::run(const std::vector<Event>& eventPacket) {
+    for (Event event : eventPacket) {
+        addEvent(event);
+
+//    if (count % Conf::EVENT_FREQUENCY == 0) {
+//        spinet.updateNeurons(event.timestamp());
+//    }
+
+        std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+        if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
+            m_frameTime = std::chrono::high_resolution_clock::now();
+        }
+
+        std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
+        if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
+            m_trackingTime = std::chrono::high_resolution_clock::now();
+        }
+
+        if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+            updateNeuronsParameters(event.timestamp());
+            std::cout << static_cast<size_t>(100 * m_iterations) / eventPacket.size() << "%" << std::endl;
+        }
+        ++m_iterations;
     }
 }
 
