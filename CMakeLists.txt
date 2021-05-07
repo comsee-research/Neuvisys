@@ -114,19 +114,19 @@ add_executable(neuvisys-exe
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 ##### Neuvisys Library #####
-add_library(neuvisys SHARED
-	${PROJECT_SOURCES})
-set_target_properties(neuvisys
-	PROPERTIES VERSION ${PROJECT_VERSION}
-	PUBLIC_HEADER include/neuvisys.h)
-
-configure_file(neuvisys.pc.in neuvisys.pc @ONLY)
-
-target_include_directories(neuvisys PRIVATE .)
-
-install(TARGETS neuvisys
-	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-
-install(FILES ${CMAKE_BINARY_DIR}/neuvisys.pc
-	DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+#add_library(neuvisys SHARED
+#	${PROJECT_SOURCES})
+#set_target_properties(neuvisys
+#	PROPERTIES VERSION ${PROJECT_VERSION}
+#	PUBLIC_HEADER include/neuvisys.h)
+#
+#configure_file(neuvisys.pc.in neuvisys.pc @ONLY)
+#
+#target_include_directories(neuvisys PRIVATE .)
+#
+#install(TARGETS neuvisys
+#	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+#	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+#
+#install(FILES ${CMAKE_BINARY_DIR}/neuvisys.pc
+#	DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)

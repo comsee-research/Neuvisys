@@ -114,9 +114,13 @@ namespace Util {
 Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
 
 std::vector<double> Luts::expLUT(double tau) {
-    std::vector<double> exponential(1000000);
-    for (size_t i = 0; i < 1000000; ++i) {
-        exponential[i] = exp(- static_cast<double>(i) / tau);
+    if (tau > 0) {
+        std::vector<double> exponential(1000000);
+        for (size_t i = 0; i < 1000000; ++i) {
+            exponential[i] = exp(- static_cast<double>(i) / tau);
+        }
+        return exponential;
+    } else {
+        throw std::runtime_error("Warning: tau parameter is not valid");
     }
-    return exponential;
 }

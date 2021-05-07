@@ -55,11 +55,11 @@ class NeuronConfig {
 public:
     NeuronConfig(const std::string& configFile, size_t type);
 /***** Neurons internal parameters *****/
-    double TAU_M{}; // μs
-    double TAU_LTP{}; // μs
-    double TAU_LTD{}; // μs
-    double TAU_RP{}; // μs
-    double TAU_SRA{}; // μs
+    double TAU_M = 1; // μs
+    double TAU_LTP = 1; // μs
+    double TAU_LTD = 1; // μs
+    double TAU_RP = 1; // μs
+    double TAU_SRA = 1; // μs
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV

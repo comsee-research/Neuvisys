@@ -31,8 +31,12 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
         loadWeights(simpleNeuronStored, complexNeuronStored);
     }
 
-    assert(m_nbSimpleNeurons == m_simpleNeurons.size());
-    assert(m_nbComplexNeurons == m_complexNeurons.size());
+    if (m_nbSimpleNeurons != m_simpleNeurons.size()) {
+        throw std::runtime_error("Warning: wrong number of simple neurons");
+    }
+    if (m_nbComplexNeurons != m_complexNeurons.size()) {
+        throw std::runtime_error("Warning: wrong number of complex neurons");
+    }
     std::cout << "Layer 1 neurons: " << m_nbSimpleNeurons << std::endl;
     std::cout << "Layer 2 neurons: " << m_nbComplexNeurons << std::endl;
 }
