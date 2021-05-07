@@ -2,13 +2,12 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset) :
+Neuron::Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
         conf(conf),
         m_pos(pos),
         m_offset(offset),
         m_recentSpikes(std::list<size_t>(Conf::TIME_WINDOW_SR)),
-        m_luts(luts),
         m_trackingThresholds(std::vector<double>(0)),
         m_trackingSpikeTrain(std::vector<long>(0)) {
     m_threshold = conf.VTHRESH;
@@ -17,34 +16,19 @@ Neuron::Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Posit
 }
 
 inline double Neuron::getPotential(const long time) {
-    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M); // TODO (use LUT)
+    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
 }
 
 inline double Neuron::potentialDecay(const long time) {
-//    m_potential *= exp(- static_cast<double>(time) / m_conf.TAU_M);
-    if (time < 1000000) {
-        m_potential *= m_luts.lutM[static_cast<size_t>(time)];
-    } else {
-        m_potential = 0;
-    }
+    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
 }
 
 inline double Neuron::refractoryPotential(const long time) {
-//    return m_conf.DELTA_RP * exp(- static_cast<double>(time) / m_conf.TAU_RP);
-    if (time < 1000000) {
-        return conf.DELTA_RP * m_luts.lutRP[static_cast<size_t>(time)];
-    } else {
-        return 0;
-    }
+    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
 }
 
 inline double Neuron::adaptationPotentialDecay(const long time) {
-//    m_adaptation_potential *= exp(- static_cast<double>(time) / m_conf.TAU_SRA);
-    if (time < 1000000) {
-        m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(time)];
-    } else {
-        m_adaptation_potential = 0;
-    }
+    m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
 }
 
 inline void Neuron::thresholdAdaptation() {

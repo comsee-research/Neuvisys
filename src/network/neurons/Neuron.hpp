@@ -31,13 +31,11 @@ protected:
     long m_creationTime{};
     double m_spikingRate{};
 
-    Luts &m_luts;
-
     std::vector<double> m_trackingThresholds;
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
 public:
-    Neuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset);
+    Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset);
     virtual size_t getIndex() { return m_index; }
     virtual Position getPos() { return m_pos; }
     virtual Position getOffset() { return m_offset; }

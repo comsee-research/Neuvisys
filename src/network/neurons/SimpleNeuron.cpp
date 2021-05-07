@@ -1,7 +1,7 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
-    Neuron(index, conf, luts, pos, offset),
+SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
+    Neuron(index, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
     m_weights(weights),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
@@ -30,16 +30,8 @@ bool SimpleNeuron::update() {
 }
 
 inline bool SimpleNeuron::membraneUpdate(Event event) {
-    if (event.timestamp() - m_timestampLastEvent < 1000000) {
-        m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
-    } else {
-        m_potential = 0;
-    }
-    if (event.timestamp() - m_timestampLastEvent < 1000000) {
-        m_adaptation_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
-    } else {
-        m_adaptation_potential = 0;
-    }
+    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
+    m_adaptation_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_SRA);
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
 //    adaptationPotentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())

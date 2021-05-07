@@ -1,7 +1,7 @@
 #include "ComplexNeuron.hpp"
 
-ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, conf, luts, pos, offset),
+ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
+    Neuron(index, conf, pos, offset),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
 }
@@ -12,11 +12,7 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
-    if (event.timestamp() - m_timestampLastEvent < 1000000) {
-        m_potential *= m_luts.lutM[static_cast<size_t>(event.timestamp() - m_timestampLastEvent)];
-    } else {
-        m_potential = 0;
-    }
+    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.x(), event.y(), event.z())
                 - refractoryPotential(event.timestamp() - m_spikingTime)

@@ -32,8 +32,8 @@ class SpikingNetwork {
     uint64_t m_nbSimpleNeurons;
     uint64_t m_nbComplexNeurons;
 
-    Luts m_simpleluts;
-    Luts m_complexluts;
+//    Luts m_simpleluts;
+//    Luts m_complexluts;
 public:
     explicit SpikingNetwork(NetworkConfig &conf);
 

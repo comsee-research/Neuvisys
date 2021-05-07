@@ -18,7 +18,7 @@ class SimpleNeuron : public Neuron {
     Eigen::Tensor<double, SIMPLEDIM> &m_weights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
-    SimpleNeuron(size_t index, NeuronConfig &conf, Luts &luts, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
+    SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
     bool newEvent(Event event) override;
     bool update() override;
     double getWeights(long p, long c, long s, long x, long y);

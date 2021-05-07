@@ -5,9 +5,7 @@
 SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
                                                       m_simpleNeuronConf(conf.NetworkPath + "configs/simple_cell_config.json", 0),
                                                       m_complexNeuronConf(conf.NetworkPath + "configs/complex_cell_config.json", 1),
-                                                      m_retina(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
-                                                      m_simpleluts(m_simpleNeuronConf.TAU_M, m_simpleNeuronConf.TAU_RP, m_simpleNeuronConf.TAU_SRA),
-                                                      m_complexluts(m_complexNeuronConf.TAU_M, m_complexNeuronConf.TAU_RP, m_complexNeuronConf.TAU_SRA) {
+                                                      m_retina(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))) {
     m_frameTime = std::chrono::high_resolution_clock::now();
 
     m_nbSimpleNeurons = conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth;
@@ -188,7 +186,7 @@ void SpikingNetwork::generateNeuronConfiguration() {
                         } else if (m_conf.SharingType == "full" || m_conf.SharingType == "patch") {
                             weightIndex = countWeightSharing * m_conf.L1Depth + k;
                         }
-                        m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, m_simpleNeuronConf, m_simpleluts, Position(x * m_conf.L1Width + i, y * m_conf.L1Height + j, k),
+                        m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, m_simpleNeuronConf, Position(x * m_conf.L1Width + i, y * m_conf.L1Height + j, k),
                                                                   Position(m_conf.L1XAnchor[x] + i * m_conf.Neuron1Width, m_conf.L1YAnchor[y] + j * m_conf.Neuron1Height),
                                                                   m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
                         m_layout1[{x * m_conf.L1Width + i, y * m_conf.L1Height + j, k}] = neuronIndex;
@@ -208,7 +206,7 @@ void SpikingNetwork::generateNeuronConfiguration() {
             for (size_t i = 0; i < m_conf.L2Width; ++i) {
                 for (size_t j = 0; j < m_conf.L2Height; ++j) {
                     for (size_t k = 0; k < m_conf.L2Depth; ++k) {
-                        m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf,m_complexluts,Position(x * m_conf.L2Width + i, y * m_conf.L2Height + j, k),
+                        m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf, Position(x * m_conf.L2Width + i, y * m_conf.L2Height + j, k),
                                                                     Position(m_conf.L2XAnchor[x] + i * m_conf.Neuron2Width, m_conf.L2YAnchor[y] + j * m_conf.Neuron2Height),
                                                                     m_sharedWeightsComplex[neuronIndex]));
                         m_layout2[{x * m_conf.L2Width + i, y * m_conf.L2Height + j, k}] = neuronIndex;
