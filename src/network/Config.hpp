@@ -20,7 +20,7 @@ namespace Conf {
 
 class NetworkConfig {
 public:
-    explicit NetworkConfig(std::string networkPath);
+    NetworkConfig(std::string networkPath);
     void loadNetworkLayout(const std::string& fileName);
 
     /***** Display parameters *****/
@@ -36,6 +36,8 @@ public:
     size_t L2Width{};
     size_t L2Height{};
     size_t L2Depth{};
+    size_t L3Width{};
+    size_t L3Height{};
 
     std::vector<size_t> L1XAnchor;
     std::vector<size_t> L1YAnchor;
@@ -44,10 +46,11 @@ public:
     size_t Neuron1Width{};
     size_t Neuron1Height{};
     size_t Neuron1Synapses{};
-
     size_t Neuron2Width{};
     size_t Neuron2Height{};
     size_t Neuron2Depth{};
+    size_t Neuron3Width{};
+    size_t Neuron3Height{};
     std::string SharingType{};
 };
 
@@ -84,6 +87,7 @@ public:
 private:
     void loadNeuronsParameters(const std::string& fileName);
     void loadPoolingNeuronsParameters(const std::string& fileName);
+    void loadMotorNeuronsParameters(const std::string& fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP

@@ -38,6 +38,7 @@ find_package(OpenCV 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 
 include_directories ("/usr/include/opencv4/")
 
@@ -53,6 +54,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
 # Basic setup
 include(dv-modules)
 include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(${catkin_INCLUDE_DIRS})
 DV_MODULE_SETUP()
 
 # Set full RPATH, modules are libraries for DV
@@ -67,6 +69,7 @@ set(PROJECT_SOURCES
         src/network/neurons/Neuron.cpp
         src/network/neurons/SimpleNeuron.cpp
         src/network/neurons/ComplexNeuron.cpp
+        src/network/neurons/MotorNeuron.cpp
         src/network/NetworkHandle.cpp)
 
 set(GUI_SOURCES
@@ -113,20 +116,6 @@ add_executable(neuvisys-exe
         ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
-##### Neuvisys Library #####
-#add_library(neuvisys SHARED
-#	${PROJECT_SOURCES})
-#set_target_properties(neuvisys
-#	PROPERTIES VERSION ${PROJECT_VERSION}
-#	PUBLIC_HEADER include/neuvisys.h)
-#
-#configure_file(neuvisys.pc.in neuvisys.pc @ONLY)
-#
-#target_include_directories(neuvisys PRIVATE .)
-#
-#install(TARGETS neuvisys
-#	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-#	PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
-#
-#install(FILES ${CMAKE_BINARY_DIR}/neuvisys.pc
-#	DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+##### Neuvisys ROS #####
+add_executable(neuvisys-ros src/NeuvisysRos.cpp ${PROJECT_SOURCES})
+target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy)

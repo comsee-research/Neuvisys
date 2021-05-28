@@ -9,6 +9,10 @@ It can be launched with command lines, via a Qt gui or via Inivation DV software
 ### Qt
 install QT 5 with the Qt Charts module.
 
+You may need to install this:
+
+``sudo apt install libqt5charts5-dev``
+
 ### Neuvisys library:
 - OpenCV
 - Python

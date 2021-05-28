@@ -23,6 +23,8 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             L2Width = conf["L2Width"];
             L2Height = conf["L2Height"];
             L2Depth = conf["L2Depth"];
+            L3Width = conf["L3Width"];
+            L3Height = conf["L3Height"];
 
             for (const auto& x : conf["L1XAnchor"]) {
                 L1XAnchor.push_back(x);
@@ -43,6 +45,9 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             Neuron2Width = conf["Neuron2Width"];
             Neuron2Height = conf["Neuron2Height"];
             Neuron2Depth = conf["Neuron2Depth"];
+
+            Neuron3Width = conf["Neuron3Width"];
+            Neuron3Height = conf["Neuron3Height"];
 
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
@@ -65,6 +70,8 @@ NeuronConfig::NeuronConfig(const std::string& configFile, size_t type) {
         loadNeuronsParameters(configFile);
     } else if (type == 1) {
         loadPoolingNeuronsParameters(configFile);
+    } else if (type == 2) {
+        loadMotorNeuronsParameters(configFile);
     }
 }
 
@@ -128,6 +135,28 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
             TAU_RP = conf["TAU_RP"];
         } catch (const std::exception& e) {
             std::cerr << "In complex cell config file" << std::endl;
+            throw;
+        }
+    } else {
+        std::cout << "cannot open neuron configuration file" << std::endl;
+    }
+    ifs.close();
+}
+
+void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
+    json conf;
+
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        try {
+            ifs >> conf;
+            TAU_M = conf["TAU_M"];
+            VTHRESH = conf["VTHRESH"];
+            DELTA_INH = conf["ETA_INH"];
+            VRESET = conf["VRESET"];
+            TRACKING = conf["TRACKING"];
+        } catch (const std::exception& e) {
+            std::cerr << "In motor cell config file" << std::endl;
             throw;
         }
     } else {
