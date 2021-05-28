@@ -1,4 +1,4 @@
-#include "src/gui/neuvisysgui.h"
+#include "neuvisysgui.h"
 
 #include <QApplication>
 

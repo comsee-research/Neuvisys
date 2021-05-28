@@ -18,7 +18,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "src/network/SpikingNetwork.hpp"
+#include "../network/SpikingNetwork.hpp"
 
 class SimulationInterface {
 

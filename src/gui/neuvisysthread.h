@@ -6,8 +6,8 @@
 #include <random>
 #include <utility>
 
-#include "src/network/SpikingNetwork.hpp"
-#include "src/dependencies/json.hpp"
+#include "../network/SpikingNetwork.hpp"
+#include "../dependencies/json.hpp"
 #include "cnpy.h"
 
 class NeuvisysThread : public QThread

@@ -6,6 +6,13 @@ It can be launched with command lines, via a Qt gui or via Inivation DV software
 
 ## Requirements
 
+### Neuvisys
+
+- OpenCV
+- Python
+
+Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
+
 ### Qt
 install QT 5 with the Qt Charts module.
 
@@ -13,30 +20,10 @@ You may need to install this:
 
 ``sudo apt install libqt5charts5-dev``
 
-### Neuvisys library:
-- OpenCV
-- Python
-
-Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
-
 ### DV software:
 install **dv-software**: https://inivation.gitlab.io/dv/dv-docs/docs/getting-started.html
 
 **Documentation**: https://inivation.gitlab.io/dv/dv-docs
-
-## Launch
-
-To compile the Neuvisys library:
-- Run ``mkdir build-release`` , ``cd build-release``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
-
-- Run ``make``
-
-
-There is 4 executables/libraries:
-- ``./qt-gui`` launches the Qt interface.
-- ``./neuvisys`` is the command line executable.
-- ``./neuvisys-test`` is a test utility.
-- ``./libneuvisys-dv.so`` is a shared library used by DV-software.
 
 ### To connect the neuvisys library with the dv-software:
 Run the dv graphical interface either in your application launcher or by running ``dv-gui``
@@ -48,3 +35,24 @@ To test the neuvisys module, you will have to set up DV first. See the following
 Once setup, you can launch the dv-software with:
 - Run ``/usr/bin/dv-runtime -b0``
 
+### Coppeliasim / ROS
+
+Download and install the Coppeliasim framework: https://www.coppeliarobotics.com/
+Install ROS Noetic (Other ROS distribution might work, but this is uncertain): http://wiki.ros.org/noetic/Installation/Ubuntu
+
+## Launch
+
+To compile the Neuvisys library:
+- Run ``mkdir build`` , ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
+
+- Run ``make`` to compile all targets
+
+or
+
+- Run ``make [target-name]`` to compile only one target. possible targets are:
+- ``neuvisys-exe`` is the command line executable.
+- ``neuvisys-qt`` is similar to neuvisys but with an added Qt interface.
+- ``neuvisys-dv.so`` is a module that can be used with dv-software.
+- ``neuvisys-ros`` is an executable that connects to Coppeliasim via ROS.
+
+compiled target are found in the "build/src" folder.

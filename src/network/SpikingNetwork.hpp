@@ -4,9 +4,9 @@
 #include <utility>
 #include <vector>
 #include <array>
-#include "src/network/neurons/SimpleNeuron.hpp"
-#include <src/network/neurons/ComplexNeuron.hpp>
-#include <src/network/neurons/MotorNeuron.hpp>
+#include "neurons/SimpleNeuron.hpp"
+#include "neurons/ComplexNeuron.hpp"
+#include "neurons/MotorNeuron.hpp"
 #include <opencv2/core/mat.hpp>
 #include <opencv2/imgproc.hpp>
 

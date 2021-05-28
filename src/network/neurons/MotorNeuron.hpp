@@ -5,7 +5,6 @@
 #ifndef NEUVISYS_DV_MOTORNEURON_HPP
 #define NEUVISYS_DV_MOTORNEURON_HPP
 
-
 #include "Neuron.hpp"
 
 class MotorNeuron : public Neuron {

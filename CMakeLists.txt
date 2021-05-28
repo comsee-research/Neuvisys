@@ -6,14 +6,8 @@ project(neuvisys
         LANGUAGES C CXX)
 
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
-
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(GCC_COVERAGE_COMPILE_FLAGS "-O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0")
@@ -36,31 +30,13 @@ ENDIF()
 
 find_package(OpenCV 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 
 include_directories ("/usr/include/opencv4/")
-
-# Define installation paths
-include(GNUInstallDirs)
-
-# Custom CMake base module
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
-        ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/dv /usr/${CMAKE_INSTALL_DATAROOTDIR}/dv
-        ${CMAKE_INSTALL_PREFIX}/share/dv /usr/share/dv
-        /usr/local/${CMAKE_INSTALL_DATAROOTDIR}/dv /usr/local/share/dv)
-
-# Basic setup
-include(dv-modules)
 include_directories(${PYTHON_INCLUDE_DIRS})
-include_directories(${catkin_INCLUDE_DIRS})
-DV_MODULE_SETUP()
-
-# Set full RPATH, modules are libraries for DV
-set(CMAKE_INSTALL_RPATH ${DV_MODULES_DIR})
-
+include(GNUInstallDirs)
 link_directories(src/dependencies)
+
+set_source_files_properties(src/dependencies/* PROPERTIES COMPILE_OPTIONS "-w")
 
 set(PROJECT_SOURCES
         src/network/SpikingNetwork.cpp
@@ -72,50 +48,9 @@ set(PROJECT_SOURCES
         src/network/neurons/MotorNeuron.cpp
         src/network/NetworkHandle.cpp)
 
-set(GUI_SOURCES
-        src/gui/main.cpp
-        src/gui/neuvisysgui.cpp
-        src/gui/neuvisysthread.cpp
-        src/gui/neuvisysgui.ui)
-
-set_source_files_properties(src/dependencies/*
-        PROPERTIES
-        COMPILE_OPTIONS "-w")
-
-##### Qt GUI #####
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
-    qt_add_executable(qt-gui
-            ${GUI_SOURCES}
-            ${PROJECT_SOURCES}
-    )
-else()
-    if(ANDROID)
-        add_library(qt-gui SHARED
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-        )
-    else()
-        add_executable(qt-gui
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-        )
-    endif()
-endif()
-target_link_libraries(qt-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
-
-##### Neuvisys DV Module #####
-add_library(neuvisys-dv SHARED
-        src/modules/NeuvisysDV.cpp
-        ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} cnpy)
-install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
-
-##### Neuvisys Executable #####
-add_executable(neuvisys-exe
-        src/modules/Neuvisys.cpp
-        ${PROJECT_SOURCES})
+add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
-##### Neuvisys ROS #####
-add_executable(neuvisys-ros src/NeuvisysRos.cpp ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy)
+add_subdirectory(src/gui)
+add_subdirectory(src/dv-modules)
+add_subdirectory(src/ros)

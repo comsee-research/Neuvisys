@@ -1,7 +1,7 @@
 #include <dv-sdk/module.hpp>
 #include <dv-sdk/processing/core.hpp>
 #include <thread>
-#include "src/network/SpikingNetwork.hpp"
+#include "../network/SpikingNetwork.hpp"
 
 #define CONFIG "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json"
 

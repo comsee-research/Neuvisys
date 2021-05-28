@@ -1,9 +1,9 @@
 #ifndef NEUVISYS_DV_NEURON_HPP
 #define NEUVISYS_DV_NEURON_HPP
 
-#include "src/network/Config.hpp"
-#include "src/network/Utils.hpp"
-#include <src/network/Event.hpp>
+#include "../Config.hpp"
+#include "../Utils.hpp"
+#include "../Event.hpp"
 #include <cmath>
 #include <list>
 #include <iomanip>
