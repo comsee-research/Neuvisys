@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <math.h>
+#include <random>
 
 #include "ros/ros.h"
 #include <cv_bridge/cv_bridge.h>
@@ -20,6 +21,33 @@
 
 #include "../network/SpikingNetwork.hpp"
 
+class Motor() {
+private:
+    ros::Publisher motorPub;
+    double x = 0;
+    std_msgs::Float32 position;
+
+    std::default_random_engine generator;
+    std::normal_distribution<double> distribution(0, 1.0);
+
+public:
+    Motor(ros::NodeHandle &n, std::string name) {
+        motorPub = n.advertise<std_msgs::Float32>(name, 1000);
+    }
+
+    void updatePosition(double dt) {
+        OrnsteinUhlenbeck(dt, 1.1, 0, 0.3);
+
+        position.data = x;
+        motorPub.publish(position);
+    }
+
+    OrnsteinUhlenbeck(double dt, double theta, double mu, double sigma) {
+        double noise = distribution(generator) * std::sqrt(dt);
+        x = x + theta * (mu - x) * dt + sigma * noise;
+    }
+}
+
 class SimulationInterface {
 
 private:
@@ -32,11 +60,9 @@ private:
     int leftCount, rightCount;
     int method;
 
-    std_msgs::Float32 position;
-
 	ros::NodeHandle n;
 	ros::Subscriber leftImageSub, rightImageSub;
-    ros::Publisher leftMotor1Pub, leftMotor2Pub, rightMotor1Pub, rightMotor2Pub;
+    Motor leftMotor1Pub(n, "leftmotor1"), leftMotor2Pub(n, "leftmotor2"), rightMotor1Pub(n, "rightmotor1"), rightMotor2Pub(n, "rightmotor2");
 
 	cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
@@ -52,11 +78,6 @@ private:
 public:
     SimulationInterface(float time_gap, int n_max=5, int blocksize=1, int log_threshold=20, float map_threshold=0.4, float adapt_thresh_coef_shift=0.05, int method=3) : time_gap(time_gap), n_max(n_max), blocksize(blocksize), map_threshold(map_threshold), log_threshold(log_threshold), adapt_thresh_coef_shift(adapt_thresh_coef_shift), method(method) {
         leftCount = 0; rightCount = 0;
-
-        leftMotor1Pub = n.advertise<std_msgs::Float32>("leftmotor1", 1000); // 0
-        leftMotor2Pub = n.advertise<std_msgs::Float32>("leftmotor2", 1000); // 1
-        rightMotor1Pub = n.advertise<std_msgs::Float32>("rightmotor1", 1000); // 3
-        rightMotor2Pub = n.advertise<std_msgs::Float32>("rightmotor2", 1000); // 4
 
         motorMapping[0] = {std::make_pair(0, -10), std::make_pair(1, -10)};
         motorMapping[1] = {std::make_pair(0, 0), std::make_pair(1, -10)};
@@ -127,7 +148,8 @@ private:
     }
 
 	void motorCommands() {
-        jitter();
+        leftMotor1Pub.updatePosition(time);
+
         for (size_t i = 0; i < motorActivation.size(); ++i) {
             if (motorActivation[i]) {
                 for (auto mapping : motorMapping[i]) {
@@ -149,18 +171,6 @@ private:
                 }
             }
         }
-    }
-
-    void jitter() {
-        position.data = 0 + 0.0005 * (rand() % 20 - 10);
-        leftMotor1Pub.publish(position);
-        position.data = 0 + 0.0005 * (rand() % 20 - 10);
-        leftMotor2Pub.publish(position);
-
-        position.data = 0 + 0.0005 * (rand() % 20 - 10);
-        rightMotor1Pub.publish(position);
-        position.data = 0 + 0.0005 * (rand() % 20 - 10);
-        rightMotor2Pub.publish(position);
     }
 
 	cv::Mat eventImage(const cv::Size& size, const std::vector<Event>& events) {
