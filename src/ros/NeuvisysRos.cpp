@@ -21,14 +21,15 @@
 
 #include "../network/SpikingNetwork.hpp"
 
-class Motor() {
+class Motor {
 private:
     ros::Publisher motorPub;
     double x = 0;
     std_msgs::Float32 position;
 
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0, 1.0);
+    std::random_device r;
+    std::default_random_engine generator = std::default_random_engine(r());
+    std::normal_distribution<double> distribution = std::normal_distribution<double>(0.0, 1.0);
 
 public:
     Motor(ros::NodeHandle &n, std::string name) {
@@ -36,22 +37,20 @@ public:
     }
 
     void updatePosition(double dt) {
-        OrnsteinUhlenbeck(dt, 1.1, 0, 0.3);
-
+        updatePosOrnsteinUhlenbeck(dt, 1, 0, 0.01);
         position.data = x;
         motorPub.publish(position);
     }
 
-    OrnsteinUhlenbeck(double dt, double theta, double mu, double sigma) {
+    void updatePosOrnsteinUhlenbeck(double dt, double theta, double mu, double sigma) {
         double noise = distribution(generator) * std::sqrt(dt);
         x = x + theta * (mu - x) * dt + sigma * noise;
     }
-}
+};
 
 class SimulationInterface {
 
 private:
-    int time_gap;
     int n_max;
     int blocksize;
     float map_threshold;
@@ -62,7 +61,12 @@ private:
 
 	ros::NodeHandle n;
 	ros::Subscriber leftImageSub, rightImageSub;
-    Motor leftMotor1Pub(n, "leftmotor1"), leftMotor2Pub(n, "leftmotor2"), rightMotor1Pub(n, "rightmotor1"), rightMotor2Pub(n, "rightmotor2");
+    Motor leftMotor1Pub = Motor(n, "leftmotor1");
+    Motor leftMotor2Pub = Motor(n, "leftmotor2");
+    Motor rightMotor1Pub = Motor(n, "rightmotor1");
+    Motor rightMotor2Pub = Motor(n, "rightmotor2");
+
+    ros::Time imageTime;
 
 	cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
@@ -76,7 +80,7 @@ private:
 	SpikingNetwork spinet = SpikingNetwork(config);
 
 public:
-    SimulationInterface(float time_gap, int n_max=5, int blocksize=1, int log_threshold=20, float map_threshold=0.4, float adapt_thresh_coef_shift=0.05, int method=3) : time_gap(time_gap), n_max(n_max), blocksize(blocksize), map_threshold(map_threshold), log_threshold(log_threshold), adapt_thresh_coef_shift(adapt_thresh_coef_shift), method(method) {
+    SimulationInterface(int n_max=5, int blocksize=1, int log_threshold=20, float map_threshold=0.4, float adapt_thresh_coef_shift=0.05, int method=3) : n_max(n_max), blocksize(blocksize), map_threshold(map_threshold), log_threshold(log_threshold), adapt_thresh_coef_shift(adapt_thresh_coef_shift), method(method) {
         leftCount = 0; rightCount = 0;
 
         motorMapping[0] = {std::make_pair(0, -10), std::make_pair(1, -10)};
@@ -108,7 +112,8 @@ public:
             std::cout << "wrong camera topic" << std::endl;
             return;
         }
-        motorCommands();
+        motorCommands((frame.getMessage()->header.stamp - imageTime).toSec());
+        imageTime = frame.getMessage()->header.stamp;
 	}
 
 private:
@@ -122,7 +127,7 @@ private:
                 thresholdmap = map_threshold;
                 reference = input.clone();
             } else {
-                convertFrameToEvent(input, reference, thresholdmap, events, count, camera);
+                convertFrameToEvent(input, reference, thresholdmap, events, frame.getMessage()->header.stamp.toSec(), camera);
 
                 if (!events.empty()) {
                     eim = eventImage(input.size(), events);
@@ -147,30 +152,33 @@ private:
         }
     }
 
-	void motorCommands() {
-        leftMotor1Pub.updatePosition(time);
+	void motorCommands(double dt) {
+        leftMotor1Pub.updatePosition(dt);
+        leftMotor2Pub.updatePosition(dt);
+        rightMotor1Pub.updatePosition(dt);
+        rightMotor2Pub.updatePosition(dt);
 
-        for (size_t i = 0; i < motorActivation.size(); ++i) {
-            if (motorActivation[i]) {
-                for (auto mapping : motorMapping[i]) {
-                    position.data = position.data + mapping.second;
-                    switch (mapping.first) {
-                        case 0:
-                            leftMotor1Pub.publish(position);
-                            break;
-                        case 1:
-                            leftMotor2Pub.publish(position);
-                            break;
-                        case 2:
-                            rightMotor1Pub.publish(position);
-                            break;
-                        case 3:
-                            rightMotor2Pub.publish(position);
-                            break;
-                    }
-                }
-            }
-        }
+//        for (size_t i = 0; i < motorActivation.size(); ++i) {
+//            if (motorActivation[i]) {
+//                for (auto mapping : motorMapping[i]) {
+//                    position.data = position.data + mapping.second;
+//                    switch (mapping.first) {
+//                        case 0:
+//                            leftMotor1Pub.publish(position);
+//                            break;
+//                        case 1:
+//                            leftMotor2Pub.publish(position);
+//                            break;
+//                        case 2:
+//                            rightMotor1Pub.publish(position);
+//                            break;
+//                        case 3:
+//                            rightMotor2Pub.publish(position);
+//                            break;
+//                    }
+//                }
+//            }
+//        }
     }
 
 	cv::Mat eventImage(const cv::Size& size, const std::vector<Event>& events) {
@@ -197,7 +205,7 @@ private:
         }
     }
 
-    int write_event(std::vector<Event> &events, float delta_B, float threshold, int frame_id, int x, int y, int polarity, int camera) const {
+    int write_event(std::vector<Event> &events, float delta_B, float threshold, long time, int x, int y, int polarity, int camera) const {
         int moddiff = delta_B / threshold;
         int evenum;
 
@@ -207,15 +215,17 @@ private:
             evenum = moddiff;
         }
 
+        auto dt = (time - imageTime.toSec()) * 1e6;
+
         for (int e = 0; e < evenum; e++) {
-            double timestamp = ((time_gap * (e + 1) * threshold) / delta_B) + time_gap * frame_id;
+            double timestamp = ((dt * (e + 1) * threshold) / delta_B) + time * 1e6;
             events.emplace_back(timestamp, x, y, polarity, camera);
         }
 
         return evenum;
     }
 
-    void convertFrameToEvent(const cv::Mat& input, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, int frame_id, int camera) {
+    void convertFrameToEvent(const cv::Mat& input, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long time, int camera) {
         for (int i = 0; i < input.rows; i = i + blocksize) {
             for (int j = 0; j < input.cols; j = j + blocksize) {
                 // Find local maxima --
@@ -239,7 +249,7 @@ private:
                 float delta_B = input.at<float>(i + i_shift, j + j_shift) - reference.at<float>(i + i_shift, j + j_shift);
 
                 if (delta_B > thresholdmap.at<float>(i + i_shift, j + j_shift)) {
-                    int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), frame_id, i + i_shift, j + j_shift, 1, camera);
+                    int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), time, i + i_shift, j + j_shift, 1, camera);
 
                     // Update reference
                     if (method == 2) {
@@ -255,7 +265,7 @@ private:
 
                 else if (delta_B < -thresholdmap.at<float>(i + i_shift, j + j_shift)) {
                     delta_B = -delta_B;
-                    int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), frame_id, i + i_shift, j + j_shift, 0, camera);
+                    int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), time, i + i_shift, j + j_shift, 0, camera);
 
                     // Update reference
                     if (method == 2) {
@@ -288,11 +298,7 @@ private:
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "listener");
-
-    float time_gap = 1000000. / 100.;
-    SimulationInterface sim(time_gap, 5, 1, 1, 0.2, 0, 3);
-
+    SimulationInterface sim(5, 1, 1, 0.2, 0, 3);
     ros::spin();
-
     return 0;
 }
