@@ -10,7 +10,9 @@ set(PROJECT_SOURCES
         ../network/neurons/SimpleNeuron.cpp
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
-        ../network/NetworkHandle.cpp)
+        ../network/NetworkHandle.cpp
+        Motor.cpp
+        FrameToEvents.cpp)
 
-add_executable(neuvisys-ros NeuvisysRos.cpp ${PROJECT_SOURCES})
+add_executable(neuvisys-ros SimulationInterface.cpp ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy)
