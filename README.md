@@ -45,6 +45,10 @@ Install ROS Noetic (Other ROS distribution might work, but this is uncertain): h
 To compile the Neuvisys library:
 - Run ``mkdir build`` , ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
 
+If there is some errors, you may have to install the following python packages:
+``pip install empy``
+``pip install catkin-pkg``
+
 - Run ``make`` to compile all targets
 
 or
