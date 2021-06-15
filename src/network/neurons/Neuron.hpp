@@ -4,6 +4,7 @@
 #include "../Config.hpp"
 #include "../Utils.hpp"
 #include "../Event.hpp"
+#include <boost/circular_buffer.hpp>
 #include <cmath>
 #include <list>
 #include <iomanip>
@@ -68,6 +69,7 @@ public:
     virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
     virtual bool newEvent(Event event) {}
     virtual bool newEvent(NeuronEvent event) {}
+    virtual bool newEvent(NeuronEvent event, double reward) {}
     virtual bool update() {}
     virtual void trackPotential(long time);
 };

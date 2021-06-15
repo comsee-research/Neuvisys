@@ -7,15 +7,16 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
                                                       m_complexNeuronConf(conf.NetworkPath + "configs/complex_cell_config.json", 1),
                                                       m_motorNeuronConf(conf.NetworkPath + "configs/motor_cell_config.json", 2),
                                                       m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
-                                                      m_motorActivations(std::vector<bool>(conf.L3Width * conf.L3Height, false)) {
+                                                      m_motorActivations(std::vector<bool>(conf.L3Size, false)) {
     m_frameTime = std::chrono::high_resolution_clock::now();
 
     m_nbSimpleNeurons = conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth;
     m_nbComplexNeurons = conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth;
-    m_nbMotorNeurons = conf.L3Width * conf.L3Height;
+    m_nbMotorNeurons = conf.L3Size;
 
     bool simpleNeuronStored = simpleNeuronsFilesExists();
     bool complexNeuronStored = complexNeuronsFilesExists();
+    bool motorNeuronStored = motorNeuronsFilesExists();
     std::cout << "Network generation: ";
     if (simpleNeuronStored) {
         std::cout << "found simple neurons files, ";
@@ -23,13 +24,16 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
     if (complexNeuronStored) {
         std::cout << "found complex neurons files";
     }
+    if (motorNeuronStored) {
+        std::cout << "found complex neurons files";
+    }
     std::cout << std::endl;
 
-    generateWeightSharing(simpleNeuronStored, complexNeuronStored);
+    generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
     generateNeuronConfiguration();
     assignNeurons();
     if (conf.SaveData) {
-        loadWeights(simpleNeuronStored, complexNeuronStored);
+        loadWeights(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
     }
 
     if (m_nbSimpleNeurons != m_simpleNeurons.size()) {
@@ -73,7 +77,18 @@ bool SpikingNetwork::complexNeuronsFilesExists() const {
     }
 }
 
-std::vector<bool> SpikingNetwork::run(const std::vector<Event>& eventPacket) {
+bool SpikingNetwork::motorNeuronsFilesExists() const {
+    std::string path = m_conf.NetworkPath + "weights/motor_cells/0.npy";
+    if (FILE *file = fopen(path.c_str(), "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+std::vector<bool> SpikingNetwork::run(const std::vector<Event>& eventPacket, const double reward) {
+    m_reward = reward;
     std::fill(m_motorActivations.begin(), m_motorActivations.end(), false);
     for (Event event : eventPacket) {
         addEvent(event);
@@ -134,7 +149,7 @@ inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
         if (motorNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
                                                      static_cast<int32_t>(neuron.getPos().posx() - motorNeuron.get().getOffset().posx()),
                                                      static_cast<int32_t>(neuron.getPos().posy() - motorNeuron.get().getOffset().posy()),
-                                                     static_cast<int32_t>(neuron.getPos().posz() - motorNeuron.get().getOffset().posz())))) {
+                                                     static_cast<int32_t>(neuron.getPos().posz() - motorNeuron.get().getOffset().posz())), m_reward)) {
             for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
                 motorNeuronToInhibit.get().inhibition();
             }
@@ -157,7 +172,8 @@ void SpikingNetwork::updateNeurons(const long time) {
     }
 }
 
-void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complexNeuronStored) {
+void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complexNeuronStored, bool motorNeuronStored) {
+    // simple cells weight matrix
     if (m_conf.SharingType == "none") {
         for (size_t i = 0; i < m_nbSimpleNeurons; ++i) {
             if (simpleNeuronStored) {
@@ -188,11 +204,22 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
             }
         }
     }
+
+    // complex cells weight matrix
     for (size_t i = 0; i < m_nbComplexNeurons; ++i) {
         if (complexNeuronStored) {
             m_sharedWeightsComplex.emplace_back(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf.Neuron2Height), static_cast<long>(m_conf.Neuron2Depth));
         } else {
             m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf.Neuron2Height), static_cast<long>(m_conf.Neuron2Depth)));
+        }
+    }
+
+    // motor cells weight matrix
+    for (size_t i = 0; i < m_nbMotorNeurons; ++i) {
+        if (motorNeuronStored) {
+            m_sharedWeightsMotor.emplace_back(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth));
+        } else {
+            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth)));
         }
     }
 }
@@ -243,13 +270,10 @@ void SpikingNetwork::generateNeuronConfiguration() {
     }
 
     neuronIndex = 0; // create motor cell neurons
-    for (size_t i = 0; i < m_conf.L3Width; ++i) {
-        for (size_t j = 0; j < m_conf.L3Height; ++j) {
-            m_motorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, Position(i, j, 0),
-                                                        Position(i * m_conf.Neuron3Width, j * m_conf.Neuron3Height)));
-            m_layout3[{i, j, 0}] = neuronIndex;
-            ++neuronIndex;
-        }
+    for (size_t i = 0; i < m_conf.L3Size; ++i) {
+        m_motorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, Position(i, 0, 0), m_sharedWeightsMotor[i]));
+        m_layout3[{i, 0, 0}] = neuronIndex;
+        ++neuronIndex;
     }
 }
 
@@ -284,17 +308,13 @@ void SpikingNetwork::assignNeurons() {
     }
 
     for (auto &motorNeuron : m_motorNeurons) {
-        for (size_t i = motorNeuron.getOffset().posx(); i < motorNeuron.getOffset().posx() + m_conf.Neuron3Width; ++i) {
-            for (size_t j = motorNeuron.getOffset().posy(); j < motorNeuron.getOffset().posy() + m_conf.Neuron3Height; ++j) {
-                for (size_t k = motorNeuron.getOffset().posz(); k < motorNeuron.getOffset().posz() + m_conf.L2Depth; ++k) {
-                    motorNeuron.addInConnection(m_complexNeurons[m_layout2[{i, j, k}]]);
-                    m_complexNeurons[m_layout2[{i, j, k}]].addOutConnection(motorNeuron);
-                }
-            }
+        for (auto &complexNeuron : m_complexNeurons) {
+                motorNeuron.addInConnection(complexNeuron);
+                complexNeuron.addOutConnection(motorNeuron);
         }
-        for (size_t i = 0; i < m_motorNeurons.size(); ++i) { // simple cell inhibition
+        for (size_t i = 0; i < m_motorNeurons.size(); ++i) { // motor cell inhibition
             if (i != motorNeuron.getIndex()) {
-//                motorNeuron.addInhibitionConnection(m_motorNeurons[m_layout1[{motorNeuron.getPos().posx(), motorNeuron.getPos().posy(), z}]]); // TODO
+                motorNeuron.addInhibitionConnection(m_motorNeurons[i]);
             }
         }
     }
@@ -335,9 +355,16 @@ void SpikingNetwork::saveNeuronsStates() {
         neuron.saveWeights(fileName);
         ++count;
     }
+    count = 0;
+    for (auto &neuron : m_motorNeurons) {
+        fileName = m_conf.NetworkPath + "weights/motor_cells/" + std::to_string(count);
+        neuron.saveState(fileName);
+        neuron.saveWeights(fileName);
+        ++count;
+    }
 }
 
-void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStored) {
+void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStored, bool motorNeuronStored) {
     std::string fileName;
     size_t count = 0;
     if (simpleNeuronStored) {
@@ -351,6 +378,15 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
     if (complexNeuronStored) {
         count = 0;
         for (auto &neuron : m_complexNeurons) {
+            fileName = m_conf.NetworkPath + "weights/complex_cells/" + std::to_string(count);
+            neuron.loadState(fileName);
+            neuron.loadWeights(fileName);
+            ++count;
+        }
+    }
+    if (motorNeuronStored) {
+        count = 0;
+        for (auto &neuron : m_motorNeurons) {
             fileName = m_conf.NetworkPath + "weights/complex_cells/" + std::to_string(count);
             neuron.loadState(fileName);
             neuron.loadWeights(fileName);

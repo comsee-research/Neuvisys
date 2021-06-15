@@ -33,9 +33,9 @@ find_package(PythonLibs REQUIRED)
 
 include_directories ("/usr/include/opencv4/")
 include_directories(${PYTHON_INCLUDE_DIRS})
+include_directories(PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/dependencies)
 include(GNUInstallDirs)
 link_directories(src/dependencies)
-
 set_source_files_properties(src/dependencies/* PROPERTIES COMPILE_OPTIONS "-w")
 
 set(PROJECT_SOURCES
@@ -49,6 +49,7 @@ set(PROJECT_SOURCES
         src/network/NetworkHandle.cpp)
 
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
+
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 add_subdirectory(src/gui)

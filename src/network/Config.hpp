@@ -36,8 +36,7 @@ public:
     size_t L2Width{};
     size_t L2Height{};
     size_t L2Depth{};
-    size_t L3Width{};
-    size_t L3Height{};
+    size_t L3Size{};
 
     std::vector<size_t> L1XAnchor;
     std::vector<size_t> L1YAnchor;
@@ -49,8 +48,6 @@ public:
     size_t Neuron2Width{};
     size_t Neuron2Height{};
     size_t Neuron2Depth{};
-    size_t Neuron3Width{};
-    size_t Neuron3Height{};
     std::string SharingType{};
 };
 

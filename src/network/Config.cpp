@@ -23,8 +23,7 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             L2Width = conf["L2Width"];
             L2Height = conf["L2Height"];
             L2Depth = conf["L2Depth"];
-            L3Width = conf["L3Width"];
-            L3Height = conf["L3Height"];
+            L3Size = conf["L3Size"];
 
             for (const auto& x : conf["L1XAnchor"]) {
                 L1XAnchor.push_back(x);
@@ -45,9 +44,6 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             Neuron2Width = conf["Neuron2Width"];
             Neuron2Height = conf["Neuron2Height"];
             Neuron2Depth = conf["Neuron2Depth"];
-
-            Neuron3Width = conf["Neuron3Width"];
-            Neuron3Height = conf["Neuron3Height"];
 
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
@@ -155,6 +151,11 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
             DELTA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
+            TAU_LTP = conf["TAU_LTP"];
+            TAU_LTD = conf["TAU_LTD"];
+            ETA_LTP = conf["ETA_LTP"];
+            ETA_LTD = conf["ETA_LTD"];
+            STDP_LEARNING = conf["STDP_LEARNING"];
         } catch (const std::exception& e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;

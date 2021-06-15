@@ -2,7 +2,6 @@
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
 #include <vector>
-#include <boost/circular_buffer.hpp>
 #include <queue>
 #include "Neuron.hpp"
 

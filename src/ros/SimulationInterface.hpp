@@ -21,6 +21,9 @@ class SimulationInterface {
     Motor rightMotor2Pub = Motor(n, "rightmotor2");
     ros::Subscriber leftSensor;
     ros::Subscriber rightSensor;
+    ros::Subscriber reward;
+
+    double rewardStored;
 
     FrameToEvents converter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
@@ -37,6 +40,7 @@ public:
     SimulationInterface();
     void motorCommands(double dt);
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
+    void rewardSignal(ros::MessageEvent<std_msgs::Float32> reward);
 };
 
 #endif //NEUVISYS_SIMULATIONINTERFACE_HPP

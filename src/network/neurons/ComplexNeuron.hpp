@@ -1,7 +1,6 @@
 #ifndef NEUVISYS_DV_COMPLEXNEURON_HPP
 #define NEUVISYS_DV_COMPLEXNEURON_HPP
 
-#include <boost/circular_buffer.hpp>
 #include "Neuron.hpp"
 
 class ComplexNeuron : public Neuron {
