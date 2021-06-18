@@ -1,4 +1,5 @@
 #include "neuvisysthread.h"
+#include "../network/NetworkHandle.hpp"
 
 NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
     m_frameTime = std::chrono::high_resolution_clock::now();
@@ -23,111 +24,60 @@ void NeuvisysThread::multiplePass() {
     NetworkConfig config = NetworkConfig(m_networkPath.toStdString());
     std::cout << "Initializing Network " << std::endl;
     SpikingNetwork spinet(config);
-    emit networkConfiguration(config.NbCameras, config.Neuron1Synapses, config.SharingType, config.L1XAnchor.size() * config.L1Width, config.L1YAnchor.size() * config.L1Height, config.L1Depth, config.L1XAnchor.size(), config.L1YAnchor.size());
 
+    emit networkConfiguration(config.NbCameras, config.Neuron1Synapses, config.SharingType, config.L1XAnchor.size() * config.L1Width, config.L1YAnchor.size() * config.L1Height, config.L1Depth, config.L1XAnchor.size(), config.L1YAnchor.size());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
 
-    main_loop(spinet);
-
+    auto eventPacket = std::vector<Event>();
+    if (spinet.getNetworkConfig().NbCameras == 1) {
+        eventPacket = mono(m_events.toStdString(), m_nbPass);
+    } else if (spinet.getNetworkConfig().NbCameras == 2) {
+        eventPacket = stereo(m_events.toStdString(), m_nbPass);
+    }
     emit displayInformation(100, 0, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(), m_spikeTrain);
-    spinet.saveNetworkLearningTrace(m_nbPass, m_events.toStdString());
+    runSpikingNetwork(spinet, eventPacket, 0);
     std::cout << "Finished" << std::endl;
 }
 
-void NeuvisysThread::main_loop(SpikingNetwork &spinet) {
-    size_t pass, left, right;
-
-    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(m_events.toStdString(), "arr_0");
-    cnpy::NpyArray l_x_array = cnpy::npz_load(m_events.toStdString(), "arr_1");
-    cnpy::NpyArray l_y_array = cnpy::npz_load(m_events.toStdString(), "arr_2");
-    cnpy::NpyArray l_polarities_array = cnpy::npz_load(m_events.toStdString(), "arr_3");
-    size_t sizeLeftArray = l_timestamps_array.shape[0];
-
-    auto *l_timestamps = l_timestamps_array.data<long>();
-    auto *l_x = l_x_array.data<int16_t>();
-    auto *l_y = l_y_array.data<int16_t>();
-    auto *l_polarities = l_polarities_array.data<bool>();
-
-    if (spinet.getNetworkConfig().NbCameras == 1) {
-        long firstTimestamp = l_timestamps[0];
-        long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray-1]);
-        auto event = Event();
-
-        for (pass = 0; pass < m_nbPass; ++pass) {
-            for (left = 0; left < sizeLeftArray; ++left) {
-                event = Event(l_timestamps[left] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[left], l_y[left], l_polarities[left], 0);
-                runSpikingNetwork(spinet, event, m_nbPass * sizeLeftArray);
+inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
+//    m_reward = reward;
+//    std::fill(m_motorActivations.begin(), m_motorActivations.end(), false);
+    for (Event event : eventPacket) {
+        // Display event-based image
+        if (event.camera() == 0) {
+            if (m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
+                m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
-            std::cout << "Finished iteration: " << pass + 1 << std::endl;
-        }
-    } else if (spinet.getNetworkConfig().NbCameras == 2) {
-        cnpy::NpyArray r_timestamps_array = cnpy::npz_load(m_events.toStdString(), "arr_4");
-        cnpy::NpyArray r_x_array = cnpy::npz_load(m_events.toStdString(), "arr_5");
-        cnpy::NpyArray r_y_array = cnpy::npz_load(m_events.toStdString(), "arr_6");
-        cnpy::NpyArray r_polarities_array = cnpy::npz_load(m_events.toStdString(), "arr_7");
-        size_t sizeRightArray = r_timestamps_array.shape[0];
-
-        auto *r_timestamps = r_timestamps_array.data<long>();
-        auto *r_x = r_x_array.data<int16_t>();
-        auto *r_y = r_y_array.data<int16_t>();
-        auto *r_polarities = r_polarities_array.data<bool>();
-
-        long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = static_cast<long>(l_timestamps[sizeLeftArray-1]), lastRightTimestamp = static_cast<long>(r_timestamps[sizeRightArray-1]);
-        long l_t, r_t;
-        auto event = Event();
-
-        for (pass = 0; pass < m_nbPass; ++pass) {
-            left = 0; right = 0;
-            while (left < sizeLeftArray && right < sizeRightArray) {
-                l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
-                r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
-                if (right >= sizeRightArray || l_t <= r_t) {
-                    event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
-                    ++left;
-                } else if (left >= sizeLeftArray || l_t > r_t) {
-                    event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
-                    ++right;
-                }
-                runSpikingNetwork(spinet, event, m_nbPass * (sizeLeftArray + sizeRightArray));
+        } else {
+            if (m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
+                m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
-            std::cout << "Finished iteration: " << pass + 1 << std::endl;
         }
-    }
-}
 
-inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t sizeArray) {
-    spinet.addEvent(event);
-    if (event.camera() == 0) {
-        if (m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
-            m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
-        }
-    } else {
-        if (m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
-            m_rightEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
-        }
-    }
+        spinet.addEvent(event);
 
 //    if (count % Conf::EVENT_FREQUENCY == 0) {
 //        spinet.updateNeurons(event.timestamp());
 //    }
 
-    std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-    if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
-        m_frameTime = std::chrono::high_resolution_clock::now();
-        display(spinet, sizeArray);
-    }
+        std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+        if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
+            m_frameTime = std::chrono::high_resolution_clock::now();
+            display(spinet, eventPacket.size());
+        }
 
-    std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-    if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
-        m_trackingTime = std::chrono::high_resolution_clock::now();
-        spinet.trackNeuron(event.timestamp(), m_idSimple, m_idComplex);
-    }
+        std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
+        if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
+            m_trackingTime = std::chrono::high_resolution_clock::now();
+            spinet.trackNeuron(event.timestamp(), m_idSimple, m_idComplex);
+        }
 
-    if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
-        spinet.updateNeuronsParameters(event.timestamp());
+        if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+            spinet.updateNeuronsParameters(event.timestamp());
+        }
+        ++m_iterations;
     }
-    ++m_iterations;
 }
 
 inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {

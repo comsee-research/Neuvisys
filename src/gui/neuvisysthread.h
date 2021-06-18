@@ -54,9 +54,8 @@ protected:
 
 private:
     void multiplePass();
-    void main_loop(SpikingNetwork &spinet);
-    void runSpikingNetwork(SpikingNetwork &spinet, Event &event, size_t sizeArray);
-    inline void display(SpikingNetwork &spinet, size_t sizeArray);
+    void runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
+    void display(SpikingNetwork &spinet, size_t sizeArray);
 };
 
 #endif // NEUVISYSTHREAD_H

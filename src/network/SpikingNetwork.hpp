@@ -47,7 +47,9 @@ class SpikingNetwork {
 public:
     SpikingNetwork(NetworkConfig &conf);
     ~SpikingNetwork();
-    std::vector<bool> run(const std::vector<Event>& eventPacket, const double reward);
+    std::vector<bool> run(const std::vector<Event> &eventPacket, const double reward);
+    void addEvent(Event event);
+    void updateNeuronsParameters(long time);
 
     SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
     [[nodiscard]] size_t getNumberNeurons() const { return m_nbSimpleNeurons; }
@@ -61,14 +63,12 @@ public:
     cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
+    void saveNetworkLearningTrace(size_t nbRun, const std::string& eventFileName);
 
 private:
-    void addEvent(Event event);
     void addComplexEvent(SimpleNeuron &neuron);
     void addMotorEvent(ComplexNeuron &neuron);
     void updateNeurons(long time);
-    void updateNeuronsParameters(long time);
-    void saveNetworkLearningTrace(size_t nbRun, const std::string& eventFileName);
     void saveNeuronsStates();
     bool simpleNeuronsFilesExists() const;
     bool complexNeuronsFilesExists() const;
