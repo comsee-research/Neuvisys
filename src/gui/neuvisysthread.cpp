@@ -41,7 +41,7 @@ void NeuvisysThread::multiplePass() {
 }
 
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
-//    m_reward = reward;
+//    m_reward = m_rewardSub;
 //    std::fill(m_motorActivations.begin(), m_motorActivations.end(), false);
     for (Event event : eventPacket) {
         // Display event-based image

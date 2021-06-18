@@ -11,19 +11,19 @@
 #include "FrameToEvents.hpp"
 
 class SimulationInterface {
-    int leftCount, rightCount;
-    ros::Time imageTime;
+    int m_leftCount, m_rightCount;
+    ros::Time m_imageTime;
 
     ros::NodeHandle n;
-    Motor leftMotor1Pub = Motor(n, "leftmotor1");
-    Motor leftMotor2Pub = Motor(n, "leftmotor2");
-    Motor rightMotor1Pub = Motor(n, "rightmotor1");
-    Motor rightMotor2Pub = Motor(n, "rightmotor2");
-    ros::Subscriber leftSensor;
-    ros::Subscriber rightSensor;
-    ros::Subscriber reward;
+    Motor m_leftMotor1Pub = Motor(n, "leftmotor1");
+    Motor m_leftMotor2Pub = Motor(n, "leftmotor2");
+    Motor m_rightMotor1Pub = Motor(n, "rightmotor1");
+    Motor m_rightMotor2Pub = Motor(n, "rightmotor2");
+    ros::Subscriber m_leftSensorSub;
+    ros::Subscriber m_rightSensorSub;
+    ros::Subscriber m_rewardSub;
 
-    double rewardStored;
+    double m_rewardStored;
 
     FrameToEvents converter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
@@ -38,9 +38,10 @@ class SimulationInterface {
 
 public:
     SimulationInterface();
+    ~SimulationInterface();
     void motorCommands(double dt);
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
-    void rewardSignal(ros::MessageEvent<std_msgs::Float32> reward);
+    void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
 };
 
 #endif //NEUVISYS_SIMULATIONINTERFACE_HPP

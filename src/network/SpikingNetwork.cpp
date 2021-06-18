@@ -22,10 +22,10 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
         std::cout << "found simple neurons files, ";
     }
     if (complexNeuronStored) {
-        std::cout << "found complex neurons files";
+        std::cout << "found complex neurons files, ";
     }
     if (motorNeuronStored) {
-        std::cout << "found complex neurons files";
+        std::cout << "found motor neurons files.";
     }
     std::cout << std::endl;
 
@@ -147,12 +147,12 @@ inline void SpikingNetwork::addComplexEvent(SimpleNeuron &neuron) {
 inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
     for (auto &motorNeuron : neuron.getOutConnections()) {
         if (motorNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
-                                                     static_cast<int32_t>(neuron.getPos().posx() - motorNeuron.get().getOffset().posx()),
-                                                     static_cast<int32_t>(neuron.getPos().posy() - motorNeuron.get().getOffset().posy()),
-                                                     static_cast<int32_t>(neuron.getPos().posz() - motorNeuron.get().getOffset().posz())), m_reward)) {
-            for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
-                motorNeuronToInhibit.get().inhibition();
-            }
+                                                     static_cast<int32_t>(neuron.getPos().posx()),
+                                                     static_cast<int32_t>(neuron.getPos().posy()),
+                                                     static_cast<int32_t>(neuron.getPos().posz())), m_reward)) {
+//            for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
+//                motorNeuronToInhibit.get().inhibition();
+//            }
             std::cout << "motor spike: " << motorNeuron.get().getIndex() << std::endl;
             m_motorActivations[motorNeuron.get().getIndex()] = true;
         }

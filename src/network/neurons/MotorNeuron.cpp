@@ -60,7 +60,7 @@ inline void MotorNeuron::updateSTDP() {
         }
     }
 
-    normalizeWeights();
+//    normalizeWeights();
 }
 
 inline void MotorNeuron::normalizeWeights() {
