@@ -24,12 +24,12 @@ SimulationInterface::SimulationInterface() {
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
         converter.frameConversion(m_leftCount, topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
-        motorActivation = spinet.run(leftEvents, m_rewardStored);
+//        motorActivation = spinet.run(leftEvents, m_rewardStored);
         leftEvents.clear();
         m_leftCount++;
     } else if (topic == "right") {
         converter.frameConversion(m_rightCount, topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
-        motorActivation = spinet.run(rightEvents, m_rewardStored);
+//        motorActivation = spinet.run(rightEvents, m_rewardStored);
         rightEvents.clear();
         m_rightCount++;
     } else {
@@ -75,19 +75,21 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
 }
 
 SimulationInterface::~SimulationInterface() {
-    spinet.saveNetworkLearningTrace(1, "ros");
+//    spinet.saveNetworkLearningTrace(1, "ros");
 }
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "listener");
     SimulationInterface sim;
 
-    auto start = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::now();
-    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 5000) {
-        time = std::chrono::system_clock::now();
-        ros::spinOnce();
-    }
+    ros::spin();
+
+//    auto start = std::chrono::system_clock::now();
+//    auto time = std::chrono::system_clock::now();
+//    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 5000) {
+//        time = std::chrono::system_clock::now();
+//        ros::spinOnce();
+//    }
 
     return 0;
 }

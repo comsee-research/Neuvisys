@@ -23,18 +23,8 @@ void FrameToEvents::frameConversion(int count, const std::string &topic, const r
             if (!events.empty()) {
                 eim = eventImage(input.size(), events);
 
-                double angle = 180;
-                cv::Point2f center((eim.cols - 1) / 2.0, (eim.rows - 1) / 2.0);
-                cv::Mat rot = cv::getRotationMatrix2D(center, angle, 1.0);
-
-                cv::Mat dst;
-                cv::warpAffine(eim, dst, rot, cv::Size(eim.cols, eim.rows));
-
-                cv::Mat dst2;
-                cv::flip(dst, dst2, 1);
-
-                cv::imshow(topic, dst2);
-                cv::waitKey(3);
+                cv::imshow(topic, eim);
+                cv::waitKey(1);
             }
             prevTime = frame.getMessage()->header.stamp.toSec();
         }
@@ -45,68 +35,68 @@ void FrameToEvents::frameConversion(int count, const std::string &topic, const r
 }
 
 void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long time, int camera) const {
-    for (int i = 0; i < input.rows; i = i + blocksize) {
-        for (int j = 0; j < input.cols; j = j + blocksize) {
+    for (int row = 0; row < input.rows; row = row + blocksize) {
+        for (int col = 0; col < input.cols; col = col + blocksize) {
             // Find local maxima --
             // Set blocksize to 0 to disable Local Inhibition
             float diff;
             float diff_ = 0;
-            int i_shift = 0;
-            int j_shift = 0;
-            for (int ii = 0; ii < blocksize; ii++) {
-                for (int jj = 0; jj < blocksize; jj++) {
-                    diff = abs(input.at<float>(i + ii, j + jj) - reference.at<float>(i + ii, j + jj));
+            int row_shift = 0;
+            int col_shift = 0;
+            for (int row_block = 0; row_block < blocksize; row_block++) {
+                for (int col_block = 0; col_block < blocksize; col_block++) {
+                    diff = abs(input.at<float>(row + row_block, col + col_block) - reference.at<float>(row + row_block, col + col_block));
                     if (diff > diff_) {
                         diff_ = diff;
-                        i_shift = ii;
-                        j_shift = jj;
+                        row_shift = row_block;
+                        col_shift = col_block;
                     }
                 }
             }
 
             // delta_B: Brightness Difference
-            float delta_B = input.at<float>(i + i_shift, j + j_shift) - reference.at<float>(i + i_shift, j + j_shift);
+            float delta_B = input.at<float>(row + row_shift, col + col_shift) - reference.at<float>(row + row_shift, col + col_shift);
 
-            if (delta_B > thresholdmap.at<float>(i + i_shift, j + j_shift)) {
-                int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), time, i + i_shift, j + j_shift, 1, camera);
+            if (delta_B > thresholdmap.at<float>(row + row_shift, col + col_shift)) {
+                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, input.rows - row + row_shift, 1, camera);
 
                 // Update reference
                 if (method == 2) {
-                    reference.at<float>(i, j) = input.at<float>(i, j);
+                    reference.at<float>(row, col) = input.at<float>(row, col);
                 }
                 if (method == 3) {
-                    reference.at<float>(i, j) = reference.at<float>(i, j) + event_num * thresholdmap.at<float>(i, j);
+                    reference.at<float>(row, col) = reference.at<float>(row, col) + event_num * thresholdmap.at<float>(row, col);
                 }
 
                 // Update threshold map (Increase)
-                thresholdmap.at<float>(i, j) = (1 + adapt_thresh_coef_shift) * thresholdmap.at<float>(i, j);
+                thresholdmap.at<float>(row, col) = (1 + adapt_thresh_coef_shift) * thresholdmap.at<float>(row, col);
             }
 
-            else if (delta_B < -thresholdmap.at<float>(i + i_shift, j + j_shift)) {
+            else if (delta_B < -thresholdmap.at<float>(row + row_shift, col + col_shift)) {
                 delta_B = -delta_B;
-                int event_num = write_event(events, delta_B, thresholdmap.at<float>(i + i_shift, j + j_shift), time, i + i_shift, j + j_shift, 0, camera);
+                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, input.rows - row + row_shift, 0, camera);
 
                 // Update reference
                 if (method == 2) {
-                    reference.at<float>(i, j) = input.at<float>(i, j);
+                    reference.at<float>(row, col) = input.at<float>(row, col);
                 }
                 if (method == 3) {
-                    reference.at<float>(i, j) = reference.at<float>(i, j) - event_num * thresholdmap.at<float>(i, j);
+                    reference.at<float>(row, col) = reference.at<float>(row, col) - event_num * thresholdmap.at<float>(row, col);
                 }
 
                 // Update threshold map (Increase)
-                thresholdmap.at<float>(i, j) = (1 + adapt_thresh_coef_shift) * thresholdmap.at<float>(i, j);
+                thresholdmap.at<float>(row, col) = (1 + adapt_thresh_coef_shift) * thresholdmap.at<float>(row, col);
             }
             else {
                 // Update threshold map (Decrease)
-                thresholdmap.at<float>(i, j) = (1 - adapt_thresh_coef_shift) * thresholdmap.at<float>(i, j);
+                thresholdmap.at<float>(row, col) = (1 - adapt_thresh_coef_shift) * thresholdmap.at<float>(row, col);
             }
 
             // Update reference (Copy Input)
             if (method == 1) {
                 for (int m = 0; m < blocksize; m++) {
                     for (int n = 0; n < blocksize; n++) {
-                        reference.at<float>(i + m, j + n) = input.at<float>(i + m, j + n);
+                        reference.at<float>(row + m, col + n) = input.at<float>(row + m, col + n);
                     }
                 }
             }
@@ -146,14 +136,14 @@ int FrameToEvents::write_event(std::vector<Event> &events, float delta_B, float 
 
 cv::Mat FrameToEvents::eventImage(const cv::Size& size, const std::vector<Event>& events) {
     cv::Mat eim = cv::Mat::zeros(size, CV_8UC3);
-    cv::Vec3b color;
+    cv::Vec3b color; // B,G,R
     for (Event event: events) {
         if (event.polarity() == 0) {
-            color = cv::Vec3b(0, 255, 0);
-        } else {
             color = cv::Vec3b(0, 0, 255);
+        } else {
+            color = cv::Vec3b(0, 255, 0);
         }
-        eim.at<cv::Vec3b>(cv::Point(event.y(), event.x())) = color;
+        eim.at<cv::Vec3b>(event.y(), event.x()) = color;
     }
     return eim;
 }
