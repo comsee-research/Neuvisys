@@ -40,10 +40,16 @@ Once setup, you can launch the dv-software with:
 Download and install the Coppeliasim framework: https://www.coppeliarobotics.com/
 Install ROS Noetic (Other ROS distribution might work, but this is uncertain): http://wiki.ros.org/noetic/Installation/Ubuntu
 
+### Create Mockup Network
+
+In the folder "generate_network", there is a python script that you can use to create and initialize a network structure:
+
+- Run ``cd  generate_network``, ``python -c 'import planner; planner.generate_network("../")'``
+
 ## Launch
 
 To compile the Neuvisys library:
-- Run ``mkdir build`` , ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
+- Run ``mkdir build``, ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
 
 If there is some errors, you may have to install the following python packages:
 ``pip install empy``
