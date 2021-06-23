@@ -18,7 +18,7 @@ void FrameToEvents::frameConversion(int count, const std::string &topic, const r
             thresholdmap = map_threshold;
             reference = input.clone();
         } else {
-            convertFrameToEvent(input, reference, thresholdmap, events, frame.getMessage()->header.stamp.toSec(), camera);
+            convertFrameToEvent(input, reference, thresholdmap, events, static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000), camera);
 
             if (!events.empty()) {
                 eim = eventImage(input.size(), events);
@@ -26,8 +26,8 @@ void FrameToEvents::frameConversion(int count, const std::string &topic, const r
                 cv::imshow(topic, eim);
                 cv::waitKey(1);
             }
-            prevTime = frame.getMessage()->header.stamp.toSec();
         }
+        prevTime = static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000);
     } catch (cv_bridge::Exception& e) {
         ROS_ERROR("cv_bridge exception: %s", e.what());
         return;
@@ -124,10 +124,10 @@ int FrameToEvents::write_event(std::vector<Event> &events, float delta_B, float 
         evenum = moddiff;
     }
 
-    auto dt = (time - prevTime) * 1e6;
+    auto dt = time - prevTime;
 
     for (int e = 0; e < evenum; e++) {
-        double timestamp = ((dt * (e + 1) * threshold) / delta_B) + time * 1e6;
+        long timestamp = static_cast<long>(((dt * (e + 1) * threshold) / delta_B) + time);
         events.emplace_back(timestamp, x, y, polarity, camera);
     }
 

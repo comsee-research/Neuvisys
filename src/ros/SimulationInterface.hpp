@@ -24,6 +24,7 @@ class SimulationInterface {
     ros::Subscriber m_rewardSub;
 
     double m_rewardStored;
+    long et = 0;
 
     FrameToEvents converter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;

@@ -7,11 +7,11 @@
 SimulationInterface::SimulationInterface() {
     m_leftCount = 0; m_rightCount = 0;
 
-    m_rewardSub = n.subscribe<std_msgs::Float32>("m_rewardSub", 1000, boost::bind(&SimulationInterface::rewardSignal, this, _1));
+    m_rewardSub = n.subscribe<std_msgs::Float32>("reward", 1000, boost::bind(&SimulationInterface::rewardSignal, this, _1));
     m_leftSensorSub = n.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "left"));
-    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
-                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
+//    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
+//                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
     motorMapping.emplace_back(std::make_pair(0, -0.1));
     motorMapping.emplace_back(std::make_pair(0, 0));
@@ -24,14 +24,14 @@ SimulationInterface::SimulationInterface() {
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
         converter.frameConversion(m_leftCount, topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
-//        motorActivation = spinet.run(leftEvents, m_rewardStored);
+        motorActivation = spinet.run(leftEvents, m_rewardStored);
         leftEvents.clear();
         m_leftCount++;
     } else if (topic == "right") {
-        converter.frameConversion(m_rightCount, topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
+//        converter.frameConversion(m_rightCount, topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
 //        motorActivation = spinet.run(rightEvents, m_rewardStored);
-        rightEvents.clear();
-        m_rightCount++;
+//        rightEvents.clear();
+//        m_rightCount++;
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;
@@ -75,21 +75,21 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
 }
 
 SimulationInterface::~SimulationInterface() {
-//    spinet.saveNetworkLearningTrace(1, "ros");
+    spinet.saveNetworkLearningTrace(1, "ros");
 }
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "listener");
     SimulationInterface sim;
 
-    ros::spin();
+//    ros::spin();
 
-//    auto start = std::chrono::system_clock::now();
-//    auto time = std::chrono::system_clock::now();
-//    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 5000) {
-//        time = std::chrono::system_clock::now();
-//        ros::spinOnce();
-//    }
+    auto start = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::now();
+    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 50000) {
+        time = std::chrono::system_clock::now();
+        ros::spinOnce();
+    }
 
     return 0;
 }

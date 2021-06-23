@@ -19,7 +19,7 @@ class FrameToEvents {
     int log_threshold;
     float adapt_thresh_coef_shift;
     int method;
-    double prevTime;
+    long prevTime{};
 
 public:
     void frameConversion(int count, const std::string &topic, const ros::MessageEvent<const sensor_msgs::Image> &frame, cv::Mat &reference, cv::Mat &input, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera);
