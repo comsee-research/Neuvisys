@@ -1,8 +1,8 @@
 # Neuvisys Project
 
-The Neuvisys project stands for Neuromorphic Vision System. It is a library offering access to a SpikingNeuralNetwork with different possible kinds of neurons.
+The Neuvisys project stands for Neuromorphic Vision System. It is a library offering access to a Spiking Neural Network (SNN) with different possible kinds of neurons.
 The library is written in c++.
-It can be launched with command lines, via a Qt gui or via Inivation DV software as a DV module.
+It can be launched with command lines, via a Qt gui or via Inivation DV software as a DV module. There is also a possible connection with the Coppeliasim simulator, also known as V-REP, via a ROS interface.
 
 ## Requirements
 
@@ -14,7 +14,7 @@ It can be launched with command lines, via a Qt gui or via Inivation DV software
 Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
 
 ### Qt
-install QT 5 with the Qt Charts module.
+install QT 5 with the **Qt Charts** module.
 
 You may need to install this:
 
@@ -40,7 +40,7 @@ Once setup, you can launch the dv-software with:
 Download and install the Coppeliasim framework: https://www.coppeliarobotics.com/
 Install ROS Noetic (Other ROS distribution might work, but this is uncertain): http://wiki.ros.org/noetic/Installation/Ubuntu
 
-### Create Mockup Network
+### Create empty Network
 
 In the folder "generate_network", there is a python script that you can use to create and initialize a network structure:
 
@@ -66,3 +66,14 @@ or
 - ``neuvisys-ros`` is an executable that connects to Coppeliasim via ROS.
 
 compiled target are found in the "build/src" folder.
+
+An example of use with the ``neuvisys-exe`` target:
+
+- ``./neuvisys-exe [networkPath] [eventPath] [nbPass]``
+
+``networkPath`` correspond to the path of the network structure. If you used the python script for creating an empty network, that would be:
+``./configuration/network/configs/network_config.json``.
+
+``eventPath`` is the relative path to an event file in the .npz format.
+
+``nbPass`` is the number of times the events will be presented to the network.
