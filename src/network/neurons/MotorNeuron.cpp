@@ -11,7 +11,9 @@ MotorNeuron::MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::
 }
 
 inline bool MotorNeuron::newEvent(NeuronEvent event, double reward) {
+    m_iter++;
     m_reward = reward;
+    m_bias += ((reward - m_bias) / m_iter); // bias = average reward
     m_events.push_back(event);
     return membraneUpdate(event);
 }
@@ -47,13 +49,16 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::updateSTDP() {
+    m_eligibilityTrace *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
+
     for (NeuronEvent &event : m_events) {
         if (static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-            m_weights(event.x(), event.y(), event.z()) += m_reward * m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_eligibilityTrace += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
         }
         if (static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            m_weights(event.x(), event.y(), event.z()) += m_reward * m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+            m_eligibilityTrace += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
         }
+        m_weights(event.x(), event.y(), event.z()) += (m_reward - m_bias) * m_eligibilityTrace;
 
         if (m_weights(event.x(), event.y(), event.z()) < 0) {
             m_weights(event.x(), event.y(), event.z()) = 0;

@@ -147,6 +147,7 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
         try {
             ifs >> conf;
             TAU_M = conf["TAU_M"];
+            TAU_E = conf["TAU_E"];
             VTHRESH = conf["VTHRESH"];
             DELTA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];

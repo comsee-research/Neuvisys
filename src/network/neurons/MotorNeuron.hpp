@@ -8,7 +8,10 @@
 #include "Neuron.hpp"
 
 class MotorNeuron : public Neuron {
-    double m_reward;
+    double m_reward{};
+    double m_bias{};
+    int m_iter{};
+    double m_eligibilityTrace{};
     boost::circular_buffer<NeuronEvent> m_events;
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 public:

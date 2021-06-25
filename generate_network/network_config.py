@@ -68,6 +68,7 @@ class NetworkConfig:
                 "VRESET": -20,
                 "TRACKING": "partial",
                 "TAU_M": 20000,
+                "TAU_E": 1000000,
                 "ETA_INH": 25,
             },
         }
