@@ -7,9 +7,8 @@
 
 class Neuvisys : public dv::ModuleBase {
 private:
-    NetworkConfig conf = NetworkConfig(CONFIG);
     dv::EventStreamSlicer slicer;
-	SpikingNetwork spinet = SpikingNetwork(conf);
+	SpikingNetwork spinet = SpikingNetwork(CONFIG);
     std::map<std::string, cv::Mat> displays;
     long lastTime;
 public:
@@ -23,14 +22,14 @@ public:
         displays["potentials"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
         outputs.getFrameOutput("spikes").setup(Conf::WIDTH, Conf::HEIGHT, "spikes");
         displays["spikes"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights").setup(20 * static_cast<int>(conf.Neuron1Width), 20 * static_cast<int>(conf.Neuron1Height), "weights");
-        displays["weights"] = cv::Mat::zeros(20 * static_cast<int>(conf.Neuron1Height), 20 * static_cast<int>(conf.Neuron1Width), CV_8UC3);
-        outputs.getFrameOutput("zoom").setup(static_cast<int>(conf.Neuron1Width), static_cast<int>(conf.Neuron1Height), "zoom");
-        displays["zoom"] = cv::Mat::zeros(static_cast<int>(conf.Neuron1Height), static_cast<int>(conf.Neuron1Width), CV_8UC3);
+        outputs.getFrameOutput("weights").setup(20 * static_cast<int>(spinet.getNetworkConfig().Neuron1Width), 20 * static_cast<int>(spinet.getNetworkConfig().Neuron1Height), "weights");
+        displays["weights"] = cv::Mat::zeros(20 * static_cast<int>(spinet.getNetworkConfig().Neuron1Height), 20 * static_cast<int>(spinet.getNetworkConfig().Neuron1Width), CV_8UC3);
+        outputs.getFrameOutput("zoom").setup(static_cast<int>(spinet.getNetworkConfig().Neuron1Width), static_cast<int>(spinet.getNetworkConfig().Neuron1Height), "zoom");
+        displays["zoom"] = cv::Mat::zeros(static_cast<int>(spinet.getNetworkConfig().Neuron1Height), static_cast<int>(spinet.getNetworkConfig().Neuron1Width), CV_8UC3);
         outputs.getFrameOutput("potentials2").setup(Conf::WIDTH, Conf::HEIGHT, "potentials2");
         displays["potentials2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
-        outputs.getFrameOutput("weights2").setup(20 * static_cast<int>(conf.Neuron2Width), 20 * static_cast<int>(conf.Neuron2Height), "weights2");
-        displays["weights2"] = cv::Mat::zeros(20 * static_cast<int>(conf.Neuron2Height), 20 * static_cast<int>(conf.Neuron2Width), CV_8UC3);
+        outputs.getFrameOutput("weights2").setup(20 * static_cast<int>(spinet.getNetworkConfig().Neuron2Width), 20 * static_cast<int>(spinet.getNetworkConfig().Neuron2Height), "weights2");
+        displays["weights2"] = cv::Mat::zeros(20 * static_cast<int>(spinet.getNetworkConfig().Neuron2Height), 20 * static_cast<int>(spinet.getNetworkConfig().Neuron2Width), CV_8UC3);
         outputs.getFrameOutput("spikes2").setup(Conf::WIDTH, Conf::HEIGHT, "spikes2");
         displays["spikes2"] = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC1);
 
@@ -104,7 +103,7 @@ public:
 
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
-            spinet.updateNeurons(lastTime);
+//            spinet.updateNeurons(lastTime);
             spinet.trackNeuron(lastTime);
         }
     }

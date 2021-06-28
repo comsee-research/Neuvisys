@@ -80,10 +80,9 @@ std::vector<Event> stereo(const std::string& events, size_t nbPass) {
     return eventPacket;
 }
 
-void multiplePass(const std::string& networkPath, const std::string& events, size_t nbPass) {
-    NetworkConfig config = NetworkConfig(networkPath);
+void multiplePass(const std::string &networkPath, const std::string& events, size_t nbPass) {
     std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
+    SpikingNetwork spinet(networkPath);
 
     auto eventPacket = std::vector<Event>();
     if (spinet.getNetworkConfig().NbCameras == 1) {

@@ -6,8 +6,9 @@
 #include <random>
 #include <utility>
 
-#include "../network/SpikingNetwork.hpp"
+#include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
+#include "../ros/SimulationInterface.hpp"
 #include "cnpy.h"
 
 class NeuvisysThread : public QThread
@@ -53,7 +54,9 @@ protected:
     void run() override;
 
 private:
-    void multiplePass();
+    void multiplePass(SpikingNetwork &spinet);
+    void rosPass(SpikingNetwork &spinet);
+
     void runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
     void display(SpikingNetwork &spinet, size_t sizeArray);
 };

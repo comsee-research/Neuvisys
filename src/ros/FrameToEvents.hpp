@@ -20,15 +20,15 @@ class FrameToEvents {
     float adapt_thresh_coef_shift;
     int method;
     long prevTime{};
+    bool first = true;
 
 public:
-    void frameConversion(int count, const std::string &topic, const ros::MessageEvent<const sensor_msgs::Image> &frame, cv::Mat &reference, cv::Mat &input, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera);
+    void frameConversion(const std::string &topic, const ros::MessageEvent<const sensor_msgs::Image> &frame, cv::Mat &reference, cv::Mat &input, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera);
     explicit FrameToEvents(int n_max=5, int blocksize=1, int log_threshold=20, float map_threshold=0.4, float adapt_thresh_coef_shift=0.05, int method=3);
     void logFrame(cv::Mat &frame) const;
     void convertFrameToEvent(const cv::Mat &input, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long time, int camera) const;
     int write_event(std::vector<Event> &events, float delta_B, float threshold, long time, int x, int y, int polarity, int camera) const;
     static cv::Mat eventImage(const cv::Size &size, const std::vector<Event> &events);
 };
-
 
 #endif //NEUVISYS_FRAMETOEVENTS_HPP

@@ -2,17 +2,17 @@
 
 #include <utility>
 
-SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
-                                                      m_simpleNeuronConf(conf.NetworkPath + "configs/simple_cell_config.json", 0),
-                                                      m_complexNeuronConf(conf.NetworkPath + "configs/complex_cell_config.json", 1),
-                                                      m_motorNeuronConf(conf.NetworkPath + "configs/motor_cell_config.json", 2),
-                                                      m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
-                                                      m_motorActivations(std::vector<bool>(conf.L3Size, false)) {
+SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(conf)),
+                                                          m_simpleNeuronConf(m_conf.NetworkPath + "configs/simple_cell_config.json", 0),
+                                                          m_complexNeuronConf(m_conf.NetworkPath + "configs/complex_cell_config.json", 1),
+                                                          m_motorNeuronConf(m_conf.NetworkPath + "configs/motor_cell_config.json", 2),
+                                                          m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
+                                                          m_motorActivation(std::vector<bool>(m_conf.L3Size, false)) {
     m_frameTime = std::chrono::high_resolution_clock::now();
 
-    m_nbSimpleNeurons = conf.L1XAnchor.size() * conf.L1YAnchor.size() * conf.L1Width * conf.L1Height * conf.L1Depth;
-    m_nbComplexNeurons = conf.L2XAnchor.size() * conf.L2YAnchor.size() * conf.L2Width * conf.L2Height * conf.L2Depth;
-    m_nbMotorNeurons = conf.L3Size;
+    m_nbSimpleNeurons = m_conf.L1XAnchor.size() * m_conf.L1YAnchor.size() * m_conf.L1Width * m_conf.L1Height * m_conf.L1Depth;
+    m_nbComplexNeurons = m_conf.L2XAnchor.size() * m_conf.L2YAnchor.size() * m_conf.L2Width * m_conf.L2Height * m_conf.L2Depth;
+    m_nbMotorNeurons = m_conf.L3Size;
 
     bool simpleNeuronStored = simpleNeuronsFilesExists();
     bool complexNeuronStored = complexNeuronsFilesExists();
@@ -32,7 +32,7 @@ SpikingNetwork::SpikingNetwork(NetworkConfig &conf) : m_conf(conf),
     generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
     generateNeuronConfiguration();
     assignNeurons();
-    if (conf.SaveData) {
+    if (m_conf.SaveData) {
         loadWeights(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
     }
 
@@ -89,7 +89,7 @@ bool SpikingNetwork::motorNeuronsFilesExists() const {
 
 std::vector<bool> SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
     m_reward = reward;
-    std::fill(m_motorActivations.begin(), m_motorActivations.end(), false);
+    std::fill(m_motorActivation.begin(), m_motorActivation.end(), false);
     for (Event event : eventPacket) {
         addEvent(event);
 
@@ -113,7 +113,7 @@ std::vector<bool> SpikingNetwork::run(const std::vector<Event> &eventPacket, con
         }
         ++m_iterations;
     }
-    return m_motorActivations;
+    return m_motorActivation;
 }
 
 void SpikingNetwork::addEvent(Event event) {
@@ -154,7 +154,7 @@ inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
 //                motorNeuronToInhibit.get().inhibition();
 //            }
             std::cout << "motor spike: " << motorNeuron.get().getIndex() << std::endl;
-            m_motorActivations[motorNeuron.get().getIndex()] = true;
+            m_motorActivation[motorNeuron.get().getIndex()] = true;
         }
     }
 }

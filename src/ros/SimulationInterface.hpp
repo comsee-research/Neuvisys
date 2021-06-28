@@ -6,13 +6,14 @@
 #define NEUVISYS_SIMULATIONINTERFACE_HPP
 
 #include <sstream>
-#include "Motor.hpp"
+
 #include "../network/SpikingNetwork.hpp"
+#include "Motor.hpp"
 #include "FrameToEvents.hpp"
 
 class SimulationInterface {
-    int m_leftCount, m_rightCount;
-    ros::Time m_imageTime;
+    SpikingNetwork &spinet;
+    ros::Time m_lastImageTime, m_imageTime;
 
     ros::NodeHandle n;
     Motor m_leftMotor1Pub = Motor(n, "leftmotor1");
@@ -26,21 +27,30 @@ class SimulationInterface {
     double m_rewardStored;
     long et = 0;
 
-    FrameToEvents converter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
+    FrameToEvents leftConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
+    FrameToEvents rightConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
     std::vector<Event> leftEvents, rightEvents;
 
     std::vector<std::pair<uint64_t, float>> motorMapping;
-    std::vector<bool> motorActivation;
-    std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
-    NetworkConfig config = NetworkConfig(networkPath);
-    SpikingNetwork spinet = SpikingNetwork(config);
+
+    bool receivedLeftImage = false, receivedRightImage = false;
 
 public:
-    SimulationInterface();
+    SimulationInterface(SpikingNetwork &spinet);
     ~SimulationInterface();
-    void motorCommands(double dt);
+    void update();
+    const std::vector<Event> &getLeftEvents() { return leftEvents; }
+    const std::vector<Event> &getRightEvents() { return rightEvents; }
+    void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }
+    void resetRight() { rightEvents.clear(); receivedRightImage = false; }
+    double getReward() const { return m_rewardStored; }
+    bool hasReceivedLeftImage() const { return receivedLeftImage; }
+    bool hasReceivedRightImage() const { return receivedRightImage; }
+    void activateMotors(std::vector<bool> motorActivation, double dt);
+
+private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
 };

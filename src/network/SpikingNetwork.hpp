@@ -11,7 +11,7 @@
 #include <opencv2/imgproc.hpp>
 
 class SpikingNetwork {
-    NetworkConfig &m_conf;
+    NetworkConfig m_conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_motorNeuronConf;
@@ -22,7 +22,7 @@ class SpikingNetwork {
     size_t m_precisionEvent = 30000; // µs
     size_t m_precisionPotential = 10000; // µs
 
-    double m_reward;
+    double m_reward{};
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -32,7 +32,7 @@ class SpikingNetwork {
     std::vector<ComplexNeuron> m_complexNeurons;
     std::vector<MotorNeuron> m_motorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
-    std::vector<bool> m_motorActivations;
+    std::vector<bool> m_motorActivation;
 
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout1;
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout2;
@@ -45,7 +45,7 @@ class SpikingNetwork {
 //    Luts m_simpleluts;
 //    Luts m_complexluts;
 public:
-    SpikingNetwork(NetworkConfig &conf);
+    SpikingNetwork(const std::string &conf);
     ~SpikingNetwork();
     std::vector<bool> run(const std::vector<Event> &eventPacket, const double reward);
     void addEvent(Event event);
@@ -64,6 +64,9 @@ public:
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
     void saveNetworkLearningTrace(size_t nbRun, const std::string& eventFileName);
+    void setReward(double reward) { m_reward = reward; }
+    void resetMotorActivation() { std::fill(m_motorActivation.begin(), m_motorActivation.end(), false); }
+    const std::vector<bool> &getMotorActivation() { return m_motorActivation; }
 
 private:
     void addComplexEvent(SimpleNeuron &neuron);

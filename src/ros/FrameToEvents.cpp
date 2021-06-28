@@ -8,15 +8,16 @@ FrameToEvents::FrameToEvents(int n_max, int blocksize, int log_threshold, float 
 
 }
 
-void FrameToEvents::frameConversion(int count, const std::string &topic, const ros::MessageEvent<sensor_msgs::Image const> &frame, cv::Mat &reference, cv::Mat &input, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera) {
+void FrameToEvents::frameConversion(const std::string &topic, const ros::MessageEvent<sensor_msgs::Image const> &frame, cv::Mat &reference, cv::Mat &input, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera) {
     try {
         cv::cvtColor(cv_bridge::toCvCopy(frame.getMessage(), sensor_msgs::image_encodings::BGR8)->image, input, CV_BGR2GRAY);
         input.convertTo(input, CV_32F);
         logFrame(input);
-        if (count == 0) {
+        if (first) {
             thresholdmap = cv::Mat(input.size(), CV_32F);
             thresholdmap = map_threshold;
             reference = input.clone();
+            first = false;
         } else {
             convertFrameToEvent(input, reference, thresholdmap, events, static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000), camera);
 

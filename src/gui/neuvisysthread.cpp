@@ -1,5 +1,4 @@
 #include "neuvisysthread.h"
-#include "../network/NetworkHandle.hpp"
 
 NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
     m_frameTime = std::chrono::high_resolution_clock::now();
@@ -8,7 +7,19 @@ NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
 }
 
 void NeuvisysThread::run() {
-    multiplePass();
+    std::cout << "Initializing Network " << std::endl;
+    SpikingNetwork spinet(m_networkPath.toStdString());
+
+    emit networkConfiguration(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNetworkConfig().SharingType, spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width, spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height, spinet.getNetworkConfig().L1Depth, spinet.getNetworkConfig().L1XAnchor.size(), spinet.getNetworkConfig().L1YAnchor.size());
+    m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
+    m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
+
+    if (1) {
+        multiplePass(spinet);
+    } else if (2) {
+        rosPass(spinet);
+    }
+
     quit();
 }
 
@@ -20,15 +31,7 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass) 
     start(HighPriority);
 }
 
-void NeuvisysThread::multiplePass() {
-    NetworkConfig config = NetworkConfig(m_networkPath.toStdString());
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(config);
-
-    emit networkConfiguration(config.NbCameras, config.Neuron1Synapses, config.SharingType, config.L1XAnchor.size() * config.L1Width, config.L1YAnchor.size() * config.L1Height, config.L1Depth, config.L1XAnchor.size(), config.L1YAnchor.size());
-    m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
-    m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
-
+void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     auto eventPacket = std::vector<Event>();
     if (spinet.getNetworkConfig().NbCameras == 1) {
         eventPacket = mono(m_events.toStdString(), m_nbPass);
@@ -40,9 +43,37 @@ void NeuvisysThread::multiplePass() {
     std::cout << "Finished" << std::endl;
 }
 
+void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
+    SimulationInterface sim(spinet);
+
+    auto start = std::chrono::system_clock::now();
+    auto time = std::chrono::system_clock::now();
+    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60000) {
+        time = std::chrono::system_clock::now();
+        ros::spinOnce();
+
+        if (sim.hasReceivedLeftImage()) {
+            auto events = sim.getLeftEvents();
+            runSpikingNetwork(spinet, events, sim.getReward());
+            sim.activateMotors(spinet.getMotorActivation(), 0);
+
+            spinet.resetMotorActivation();
+            sim.resetLeft();
+        }
+        if (sim.hasReceivedRightImage()) {
+            auto events = sim.getRightEvents();
+            runSpikingNetwork(spinet, events, sim.getReward());
+            sim.activateMotors(spinet.getMotorActivation(), 0);
+
+            spinet.resetMotorActivation();
+            sim.resetRight();
+        }
+    }
+}
+
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
-//    m_reward = m_rewardSub;
-//    std::fill(m_motorActivations.begin(), m_motorActivations.end(), false);
+    spinet.setReward(reward);
+    spinet.resetMotorActivation();
     for (Event event : eventPacket) {
         // Display event-based image
         if (event.camera() == 0) {
