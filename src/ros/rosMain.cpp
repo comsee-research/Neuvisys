@@ -17,7 +17,7 @@ int main(int argc, char **argv) {
     while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60000) {
         time = std::chrono::system_clock::now();
         ros::spinOnce();
-        sim.update();
+//        sim.update();
     }
 
     return 0;

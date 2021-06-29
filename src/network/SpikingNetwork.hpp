@@ -47,11 +47,11 @@ class SpikingNetwork {
 public:
     SpikingNetwork(const std::string &conf);
     ~SpikingNetwork();
-    std::vector<bool> run(const std::vector<Event> &eventPacket, const double reward);
+    std::vector<bool> run(const std::vector<Event> &eventPacket, double reward);
     void addEvent(Event event);
     void updateNeuronsParameters(long time);
 
-    SimpleNeuron getNeuron(unsigned long index) { return m_simpleNeurons[index]; }
+    Neuron &getNeuron(size_t index, size_t neuronType);
     [[nodiscard]] size_t getNumberNeurons() const { return m_nbSimpleNeurons; }
     [[nodiscard]] size_t getNumberPoolingNeurons() const { return m_nbComplexNeurons; }
     NetworkConfig getNetworkConfig() { return m_conf; }
@@ -59,7 +59,7 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout1(uint64_t x, uint64_t y, uint64_t z) { return m_layout1[{x, y, z}]; }
     uint64_t getLayout2(uint64_t x, uint64_t y, uint64_t z) { return m_layout2[{x, y, z}]; }
-    void trackNeuron(const long time, const size_t simpleId = 0, const size_t complexId = 0);
+    void trackNeuron(long time, size_t simpleId = 0, size_t complexId = 0);
     cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);

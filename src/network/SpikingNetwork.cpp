@@ -407,17 +407,28 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
     cnpy::npy_save(m_conf.NetworkPath + "weights/layout1.npy", &data[0], {m_conf.L1XAnchor.size() * m_conf.L1Width, m_conf.L1YAnchor.size() * m_conf.L1Height, m_conf.L1Depth}, "w");
 }
 
-void SpikingNetwork::trackNeuron(const long time, const size_t simpleId, const size_t complexId) {
-    if (m_simpleNeuronConf.TRACKING == "partial") {
-        if (!m_simpleNeurons.empty()) {
-            m_simpleNeurons[simpleId].trackPotential(time);
+void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t neuronType) {
+    if (neuronType == 0) {
+        if (m_simpleNeuronConf.TRACKING == "partial") {
+            if (!m_simpleNeurons.empty()) {
+                m_simpleNeurons[id].trackPotential(time);
+            }
+        }
+    } else if (neuronType == 1) {
+        if (m_complexNeuronConf.TRACKING == "partial") {
+            if (!m_complexNeurons.empty()) {
+                m_complexNeurons[id].trackPotential(time);
+            }
+        }
+    } else if (neuronType == 2) {
+        if (m_motorNeuronConf.TRACKING == "partial") {
+            if (!m_motorNeurons.empty()) {
+                m_complexNeurons[id].trackPotential(time);
+            }
         }
     }
-    if (m_complexNeuronConf.TRACKING == "partial") {
-        if (!m_complexNeurons.empty()) {
-            m_complexNeurons[complexId].trackPotential(time);
-        }
-    }
+
+
 }
 
 Position SpikingNetwork::findPixelComplexNeuron(ComplexNeuron &neuron) {
@@ -480,5 +491,15 @@ const std::vector<std::pair<double, long>> &SpikingNetwork::getPotentialNeuron(s
         return m_simpleNeurons[idNeuron].getTrackingPotentialTrain();
     } else if (neuronType == 1) {
         return m_complexNeurons[idNeuron].getTrackingPotentialTrain();
+    }
+}
+
+Neuron &SpikingNetwork::getNeuron(size_t index, size_t neuronType) {
+    if (neuronType == 0) {
+        return m_simpleNeurons[index];
+    } else if (neuronType == 1) {
+        return m_complexNeurons[index];
+    } else if (neuronType == 2) {
+        return m_motorNeurons[index];
     }
 }

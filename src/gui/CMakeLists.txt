@@ -50,4 +50,5 @@ else()
                 )
     endif()
 endif()
-target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${catkin_LIBRARIES} ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${catkin_LIBRARIES} ${OpenCV_LIBS}
+        ${PYTHON_LIBRARIES} cnpy)

@@ -21,11 +21,11 @@ SimulationInterface::SimulationInterface(SpikingNetwork &spinet) : spinet(spinet
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
-        leftConverter.frameConversion(topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
+        frameConverter.frameConversion(topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
         receivedLeftImage = true;
     } else if (topic == "right") {
 //        rightConverter.frameConversion(topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
-//        receivedLeftImage = true;
+//        receivedRightImage = true;
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;

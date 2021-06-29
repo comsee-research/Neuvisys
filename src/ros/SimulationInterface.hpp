@@ -24,11 +24,10 @@ class SimulationInterface {
     ros::Subscriber m_rightSensorSub;
     ros::Subscriber m_rewardSub;
 
-    double m_rewardStored;
+    double m_rewardStored{};
     long et = 0;
 
-    FrameToEvents leftConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
-    FrameToEvents rightConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
+    FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
     std::vector<Event> leftEvents, rightEvents;

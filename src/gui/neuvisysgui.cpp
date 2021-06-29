@@ -2,10 +2,8 @@
 #include "./ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI) {
-    idSimple = 0;
-    idComplex = 0;
-    layerSimple = 0;
-    layerComplex = 0;
+    id = 0;
+    layer = 0;
     camera = 0;
     synapse = 0;
     precisionEvent = 30000;
@@ -14,8 +12,8 @@ NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::Neuv
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/alphat/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/alphat/neuvisys-dv/configuration/network");
+    ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
+    ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -124,6 +122,16 @@ void NeuvisysGUI::openConfigFiles() {
     QTextStream complexText(&file);
     ui->text_complex_cell_config->setText(complexText.readAll());
     file.close();
+
+    confFile = dir + "/configs/motor_cell_config.json";
+    file.setFileName(confFile);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        return;
+    }
+    QTextStream motorText(&file);
+    ui->text_motor_cell_config->setText(complexText.readAll());
+    file.close();
 }
 
 void NeuvisysGUI::on_text_network_config_textChanged() {
@@ -166,7 +174,20 @@ void NeuvisysGUI::on_text_complex_cell_config_textChanged() {
     QString text = ui->text_complex_cell_config->toPlainText();
     out << text;
     file.close();
+}
 
+void NeuvisysGUI::on_text_motor_cell_config_textChanged() {
+    QString dir = ui->text_network_directory->text();
+    QString confFile = dir + "/configs/motor_cell_config.json";
+    QFile file(confFile);
+    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        return;
+    }
+    QTextStream out(&file);
+    QString text = ui->text_motor_cell_config->toPlainText();
+    out << text;
+    file.close();
 }
 
 void NeuvisysGUI::on_button_launch_network_clicked() {
@@ -174,19 +195,30 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<cv::Mat>("cv::Mat");
     qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
-    qRegisterMetaType<std::vector<std::pair<double,long>>>("std::vector<std::pair<double,long>>");
+    qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double,long>>");
     qRegisterMetaType<std::map<size_t, std::vector<long>>>("std::map<size_t, std::vector<long>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayInformation, this, &NeuvisysGUI::onDisplayInformation);
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
-    connect(this, &NeuvisysGUI::guiInformation, &neuvisysThread, &NeuvisysThread::onGuiInformation);
-    neuvisysThread.render(ui->text_network_directory->text()+"/configs/network_config.json", ui->text_event_file->text(),static_cast<size_t>(ui->number_runs->value()));
+
+    connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
+    connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
+    connect(this, &NeuvisysGUI::cameraChanged, &neuvisysThread, &NeuvisysThread::onCameraChanged);
+    connect(this, &NeuvisysGUI::synapseChanged, &neuvisysThread, &NeuvisysThread::onSynapseChanged);
+    connect(this, &NeuvisysGUI::precisionEventChanged, &neuvisysThread, &NeuvisysThread::onPrecisionEventChanged);
+    connect(this, &NeuvisysGUI::rangePotentialChanged, &neuvisysThread, &NeuvisysThread::onRangePotentialChanged);
+    connect(this, &NeuvisysGUI::precisionPotentialChanged, &neuvisysThread, &NeuvisysThread::onPrecisionPotentialChanged);
+    connect(this, &NeuvisysGUI::rangeSpikeTrainChanged, &neuvisysThread, &NeuvisysThread::onRangeSpikeTrainChanged);
+    connect(this, &NeuvisysGUI::cellTypeChanged, &neuvisysThread, &NeuvisysThread::onCellTypeChanged);
+    neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json", ui->text_event_file->text(),
+                          static_cast<size_t>(ui->number_runs->value()), ui->realtime->isChecked());
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nbSynapses, const std::string &sharingType, const size_t width, const size_t height, const size_t depth, const size_t widthPatchSize, const size_t heightPatchSize) {
+void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nbSynapses, const std::string &sharingType, const size_t width,
+                                         const size_t height, const size_t depth, const size_t widthPatchSize, const size_t heightPatchSize) {
     ui->spin_layer_selection->setMaximum(static_cast<int>(depth));
-    ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras-1));
-    ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses-1));
+    ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
+    ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
 
     int count = 0;
     for (size_t i = 0; i < width; ++i) {
@@ -231,46 +263,51 @@ void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nb
 }
 
 void NeuvisysGUI::on_button_selection_clicked() {
-    auto *button = dynamic_cast<QPushButton*>(sender());
-    idSimple = static_cast<size_t>(ui->spin_layer_selection->value()) * button->text().toULong();
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    auto *button = dynamic_cast<QPushButton *>(sender());
+    id = static_cast<size_t>(ui->spin_layer_selection->value()) * button->text().toULong();
 }
 
 void NeuvisysGUI::on_spin_layer_selection_valueChanged(int arg1) {
-    layerSimple = static_cast<size_t>(arg1);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    layer = static_cast<size_t>(arg1);
+    emit layerChanged(layer);
 }
 
 void NeuvisysGUI::on_spin_camera_selection_valueChanged(int arg1) {
     camera = static_cast<size_t>(arg1);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit cameraChanged(camera);
 }
 
 void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
     synapse = static_cast<size_t>(arg1);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit synapseChanged(synapse);
 }
 
 
-void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const double vreset, const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay, const std::map<size_t, cv::Mat> &weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain) {
+void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_rate, const double threshold, const double vreset,
+                                       const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay,
+                                       const std::map<size_t, cv::Mat> &weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain,
+                                       const std::map<size_t, std::vector<long>> &spikeTrain) {
     ui->lcd_spike_rate->display(spike_rate);
     ui->lcd_threshold->display(threshold);
     ui->progressBar->setValue(progress);
 
     /*** Events ***/
-    QImage leftEFrame(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
+    QImage leftEFrame(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows,
+                      static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
     leftEvents.setPixmap(QPixmap::fromImage(leftEFrame.rgbSwapped()).scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260)));
     ui->left_event_video->fitInView(&leftEvents, Qt::KeepAspectRatio);
 
-    QImage rightEFrame(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
+    QImage rightEFrame(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows,
+                       static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
     rightEvents.setPixmap(QPixmap::fromImage(rightEFrame.rgbSwapped()).scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260)));
     ui->right_event_video->fitInView(&rightEvents, Qt::KeepAspectRatio);
 
     /*** Weights ***/
     int count = 0;
     for (auto &weight : weightDisplay) {
-        QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows, static_cast<int>(weight.second.step), QImage::Format_RGB888);
-        auto label = dynamic_cast<QLabel*>(ui->weightLayout->itemAt(count)->widget());
+        QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows,
+                           static_cast<int>(weight.second.step), QImage::Format_RGB888);
+        auto label = dynamic_cast<QLabel *>(ui->weightLayout->itemAt(count)->widget());
         label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
         ++count;
     }
@@ -321,23 +358,39 @@ void NeuvisysGUI::onDisplayInformation(const int progress, const double spike_ra
 void NeuvisysGUI::on_slider_precision_event_sliderMoved(int position) {
     precisionEvent = static_cast<size_t>(position);
     ui->lcd_precision_event->display(static_cast<double>(precisionEvent) / 1000);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit precisionEventChanged(precisionEvent);
 }
 
 void NeuvisysGUI::on_slider_range_potential_sliderMoved(int position) {
     rangePotential = static_cast<size_t>(position);
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit rangePotentialChanged(rangePotential);
 }
 
 void NeuvisysGUI::on_slider_precision_potential_sliderMoved(int position) {
     precisionPotential = static_cast<size_t>(position);
     ui->lcd_precision_potential->display(static_cast<double>(precisionPotential) / 1000);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit precisionPotentialChanged(precisionPotential);
 }
 
 void NeuvisysGUI::on_slider_range_spiketrain_sliderMoved(int position) {
     rangeSpiketrain = static_cast<size_t>(position);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
-    emit guiInformation(idSimple, layerSimple, camera, synapse, precisionEvent, rangePotential, precisionPotential, rangeSpiketrain);
+    emit rangeSpikeTrainChanged(rangeSpiketrain);
 }
+
+void NeuvisysGUI::on_radio_button_simple_cell_clicked() {
+    cellType = 0;
+    emit cellTypeChanged(cellType);
+}
+
+void NeuvisysGUI::on_radio_button_complex_cell_clicked() {
+    cellType = 1;
+    emit cellTypeChanged(cellType);
+}
+
+void NeuvisysGUI::on_radio_button_motor_cell_clicked() {
+    cellType = 2;
+    emit cellTypeChanged(cellType);
+}
+
