@@ -65,14 +65,15 @@ inline void MotorNeuron::updateSTDP() {
         }
     }
 
-//    normalizeWeights();
+    normalizeWeights();
 }
 
 inline void MotorNeuron::normalizeWeights() {
-    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
+    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
+    double norm = normT(0);
 
-    if (norm(0) != 0) {
-        m_weights = conf.NORM_FACTOR * m_weights / norm(0);
+    if (norm != 0) {
+        m_weights = conf.NORM_FACTOR * m_weights / norm;
     }
 }
 

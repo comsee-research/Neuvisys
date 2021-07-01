@@ -157,6 +157,7 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
             ETA_LTP = conf["ETA_LTP"];
             ETA_LTD = conf["ETA_LTD"];
             STDP_LEARNING = conf["STDP_LEARNING"];
+            NORM_FACTOR = conf["NORM_FACTOR"];
         } catch (const std::exception& e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;

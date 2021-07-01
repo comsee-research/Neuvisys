@@ -11,12 +11,12 @@ SimulationInterface::SimulationInterface(SpikingNetwork &spinet) : spinet(spinet
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
-    motorMapping.emplace_back(std::make_pair(0, -0.1));
+    motorMapping.emplace_back(std::make_pair(0, -0.04));
     motorMapping.emplace_back(std::make_pair(0, 0));
-    motorMapping.emplace_back(std::make_pair(0, 0.1));
-    motorMapping.emplace_back(std::make_pair(1, -0.1));
+    motorMapping.emplace_back(std::make_pair(0, 0.04));
+    motorMapping.emplace_back(std::make_pair(1, -0.04));
     motorMapping.emplace_back(std::make_pair(1, 0));
-    motorMapping.emplace_back(std::make_pair(1, 0.1));
+    motorMapping.emplace_back(std::make_pair(1, 0.04));
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -45,15 +45,15 @@ void SimulationInterface::activateMotors(std::vector<bool> motorActivation, doub
                 case 0:
                     m_leftMotor1Pub.move(motorMapping[i].second);
                     break;
-                case 1:
-                    m_leftMotor2Pub.move(motorMapping[i].second);
-                    break;
-                case 2:
-                    m_rightMotor1Pub.move(motorMapping[i].second);
-                    break;
-                case 3:
-                    m_rightMotor2Pub.move(motorMapping[i].second);
-                    break;
+//                case 1:
+//                    m_leftMotor2Pub.move(motorMapping[i].second);
+//                    break;
+//                case 2:
+//                    m_rightMotor1Pub.move(motorMapping[i].second);
+//                    break;
+//                case 3:
+//                    m_rightMotor2Pub.move(motorMapping[i].second);
+//                    break;
             }
         }
     }

@@ -387,7 +387,7 @@ void SpikingNetwork::loadWeights(bool simpleNeuronStored, bool complexNeuronStor
     if (motorNeuronStored) {
         count = 0;
         for (auto &neuron : m_motorNeurons) {
-            fileName = m_conf.NetworkPath + "weights/complex_cells/" + std::to_string(count);
+            fileName = m_conf.NetworkPath + "weights/motor_cells/" + std::to_string(count);
             neuron.loadState(fileName);
             neuron.loadWeights(fileName);
             ++count;
