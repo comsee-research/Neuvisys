@@ -12,34 +12,28 @@
 #include "FrameToEvents.hpp"
 
 class SimulationInterface {
-    SpikingNetwork &spinet;
-    ros::Time m_lastImageTime, m_imageTime;
-
-    ros::NodeHandle n;
-    Motor m_leftMotor1Pub = Motor(n, "leftmotor1");
-    Motor m_leftMotor2Pub = Motor(n, "leftmotor2");
-    Motor m_rightMotor1Pub = Motor(n, "rightmotor1");
-    Motor m_rightMotor2Pub = Motor(n, "rightmotor2");
+    ros::NodeHandle nh;
     ros::Subscriber m_leftSensorSub;
     ros::Subscriber m_rightSensorSub;
     ros::Subscriber m_rewardSub;
+    Motor m_leftMotor1Pub = Motor(nh, "leftmotor1");
+    Motor m_leftMotor2Pub = Motor(nh, "leftmotor2");
+    Motor m_rightMotor1Pub = Motor(nh, "rightmotor1");
+    Motor m_rightMotor2Pub = Motor(nh, "rightmotor2");
+    ros::Time m_lastImageTime, m_imageTime;
 
     double m_rewardStored{};
     long et = 0;
-
+    bool receivedLeftImage = false, receivedRightImage = false;
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
     std::vector<Event> leftEvents, rightEvents;
-
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
-    bool receivedLeftImage = false, receivedRightImage = false;
-
 public:
-    SimulationInterface(SpikingNetwork &spinet);
-    ~SimulationInterface();
-    void update();
+    SimulationInterface();
+    double update();
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }

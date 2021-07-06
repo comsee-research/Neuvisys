@@ -94,7 +94,7 @@ std::vector<bool> SpikingNetwork::run(const std::vector<Event> &eventPacket, con
         addEvent(event);
 
 //    if (count % Conf::EVENT_FREQUENCY == 0) {
-//        spinet.updateNeurons(event.timestamp());
+//        m_spinet.updateNeurons(event.timestamp());
 //    }
 
         std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
@@ -150,9 +150,9 @@ inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
                                                      static_cast<int32_t>(neuron.getPos().posx()),
                                                      static_cast<int32_t>(neuron.getPos().posy()),
                                                      static_cast<int32_t>(neuron.getPos().posz())), m_reward)) {
-//            for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
-//                motorNeuronToInhibit.get().inhibition();
-//            }
+            for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
+                motorNeuronToInhibit.get().inhibition();
+            }
             std::cout << "motor spike: " << motorNeuron.get().getIndex() << std::endl;
             m_motorActivation[motorNeuron.get().getIndex()] = true;
         }

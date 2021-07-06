@@ -62,7 +62,7 @@ public:
 	}
 
 //    void computeDisplays(const dv::EventStore &events) {
-//        spinet.updateDisplay(lastTime, displays);
+//        m_spinet.updateDisplay(lastTime, displays);
 
 //        auto frame = outputs.getFrameOutput("frames").frame();
 //        frame << displays["frames"];
@@ -103,13 +103,13 @@ public:
 
                 displays["frames"].at<cv::Vec3b>(event.y(), event.x())[2-event.polarity()] = 255;
             }
-//            spinet.updateNeurons(lastTime);
+//            m_spinet.updateNeurons(lastTime);
             spinet.trackNeuron(lastTime);
         }
     }
 
 //    void computeParameters() {
-//        spinet.updateNeuronsParameters(lastTime);
+//        m_spinet.updateNeuronsParameters(lastTime);
 
 //        json gui;
 
@@ -131,7 +131,7 @@ public:
 //        Selection::LAYER = gui["layer"];
 //        Selection::LAYER2 = gui["layer2"];
 //        if (gui["save"]) {
-//            spinet.saveNeuronsStates();
+//            m_spinet.saveNeuronsStates();
 //            gui["save"] = false;
 
 //            std::ofstream ofs(Conf::GUI_FILE);
@@ -143,11 +143,11 @@ public:
 //            ofs.close();
 //        }
 
-//        if (Selection::INDEX > spinet.getNumberNeurons()) {
+//        if (Selection::INDEX > m_spinet.getNumberNeurons()) {
 //            std::cout << "neuron display index too big" << std::endl;
 //            Selection::INDEX = 0;
 //        }
-//        if (Selection::INDEX2 > spinet.getNumberPoolingNeurons()) {
+//        if (Selection::INDEX2 > m_spinet.getNumberPoolingNeurons()) {
 //            std::cout << "pooling neuron display index too big" << std::endl;
 //            Selection::INDEX2 = 0;
 //        }
@@ -156,10 +156,10 @@ public:
 //            Selection::LAYER = 0;
 //        }
 
-//        config.setLong("spiking_rate", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getSpikingRate()));
-//        config.setLong("threshold", static_cast<long>(spinet.getNeuron(Selection::INDEX).getThreshold()));
-//        config.setLong("adaptation_potential", static_cast<long>(1000 * spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
-//        config.setLong("learning_decay", static_cast<long>(100 * spinet.getNeuron(Selection::INDEX).getLearningDecay()));
+//        config.setLong("spiking_rate", static_cast<long>(1000 * m_spinet.getNeuron(Selection::INDEX).getSpikingRate()));
+//        config.setLong("threshold", static_cast<long>(m_spinet.getNeuron(Selection::INDEX).getThreshold()));
+//        config.setLong("adaptation_potential", static_cast<long>(1000 * m_spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
+//        config.setLong("learning_decay", static_cast<long>(100 * m_spinet.getNeuron(Selection::INDEX).getLearningDecay()));
 //    }
 
 	void run() override {

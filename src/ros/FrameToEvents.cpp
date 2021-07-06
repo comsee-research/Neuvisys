@@ -21,12 +21,12 @@ void FrameToEvents::frameConversion(const std::string &topic, const ros::Message
         } else {
             convertFrameToEvent(input, reference, thresholdmap, events, static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000), camera);
 
-            if (!events.empty()) {
-                eim = eventImage(input.size(), events);
-
-                cv::imshow(topic, eim);
-                cv::waitKey(1);
-            }
+//            if (!events.empty()) {
+//                eim = eventImage(input.size(), events);
+//
+//                cv::imshow(topic, eim);
+//                cv::waitKey(1);
+//            }
         }
         prevTime = static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000);
     } catch (cv_bridge::Exception& e) {

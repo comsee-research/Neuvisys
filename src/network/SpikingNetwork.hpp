@@ -38,14 +38,15 @@ class SpikingNetwork {
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout2;
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout3;
 
-    uint64_t m_nbSimpleNeurons;
-    uint64_t m_nbComplexNeurons;
-    uint64_t m_nbMotorNeurons;
+    uint64_t m_nbSimpleNeurons{};
+    uint64_t m_nbComplexNeurons{};
+    uint64_t m_nbMotorNeurons{};
 
 //    Luts m_simpleluts;
 //    Luts m_complexluts;
 public:
-    SpikingNetwork(const std::string &conf);
+    SpikingNetwork();
+    explicit SpikingNetwork(const std::string &conf);
     ~SpikingNetwork();
     std::vector<bool> run(const std::vector<Event> &eventPacket, double reward);
     void addEvent(Event event);

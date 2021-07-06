@@ -1,13 +1,10 @@
 #include "neuvisysgui.h"
-
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
-    ros::init(argc, argv, "listener");
-
-    QApplication a(argc, argv);
-    NeuvisysGUI w;
+    QApplication app(argc, argv);
+    NeuvisysGUI w(argc, argv);
     w.setFixedSize(0.9 * QDesktopWidget().availableGeometry().size());
     w.show();
-    return a.exec();
+    return app.exec();
 }

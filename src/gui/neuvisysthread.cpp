@@ -1,14 +1,34 @@
 #include "neuvisysthread.h"
 
-NeuvisysThread::NeuvisysThread(QObject *parent) : QThread(parent) {
+#include <utility>
+
+NeuvisysThread::NeuvisysThread(int argc, char** argv, QObject *parent) : QThread(parent), m_initArgc(argc), m_initArgv(argv){
     m_frameTime = std::chrono::high_resolution_clock::now();
     m_iterations = 0;
     m_nbPass = 0;
 }
 
+bool NeuvisysThread::init() {
+    ros::init(m_initArgc, m_initArgv, "neuvisysRos");
+    if (!ros::master::check()) {
+        return false;
+    }
+    ros::start();
+    ros::Time::init();
+    return true;
+}
+
+void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, bool realtime) {
+    m_networkPath = std::move(networkPath);
+    m_events = std::move(events);
+    m_nbPass = nbPass;
+    m_iterations = 0;
+    m_realtime = realtime;
+    start(HighPriority);
+}
+
 void NeuvisysThread::run() {
-    std::cout << "Initializing Network " << std::endl;
-    SpikingNetwork spinet(m_networkPath.toStdString());
+    auto spinet = SpikingNetwork(m_networkPath.toStdString());
 
     emit networkConfiguration(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNetworkConfig().SharingType,
                               spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width,
@@ -19,19 +39,11 @@ void NeuvisysThread::run() {
 
     if (m_realtime) {
         rosPass(spinet);
+        spinet.saveNetworkLearningTrace(1, "ros");
     } else {
         multiplePass(spinet);
     }
     quit();
-}
-
-void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, bool realtime) {
-    m_networkPath = std::move(networkPath);
-    m_events = std::move(events);
-    m_nbPass = nbPass;
-    m_iterations = 0;
-    m_realtime = realtime;
-    start(HighPriority);
 }
 
 void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
@@ -48,31 +60,18 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 }
 
 void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
-    SimulationInterface sim(spinet);
+    SimulationInterface sim;
 
-    auto start = std::chrono::system_clock::now();
-    auto time = std::chrono::system_clock::now();
+    while (!m_stop) {
+        ros::spinOnce();
 
-    ros::spin();
-
-//    while (std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60000) {
-//        time = std::chrono::system_clock::now();
-//
-//        ros::spinOnce();
-//
-//        if (sim.hasReceivedLeftImage()) {
-//            auto events = sim.getLeftEvents();
-//            runSpikingNetwork(spinet, events, sim.getReward());
-//            sim.activateMotors(spinet.getMotorActivation(), 0);
-//            sim.resetLeft();
-//        }
-//        if (sim.hasReceivedRightImage()) {
-//            auto events = sim.getRightEvents();
-//            runSpikingNetwork(spinet, events, sim.getReward());
-//            sim.activateMotors(spinet.getMotorActivation(), 0);
-//            sim.resetRight();
-//        }
-//    }
+        if (sim.hasReceivedLeftImage()) {
+            auto dt = sim.update();
+            runSpikingNetwork(spinet, sim.getLeftEvents(), sim.getReward());
+            sim.activateMotors(spinet.getMotorActivation(), dt);
+            sim.resetLeft();
+        }
+    }
 }
 
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
@@ -196,4 +195,8 @@ void NeuvisysThread::onRangeSpikeTrainChanged(size_t rangeSpiketrain) {
 
 void NeuvisysThread::onCellTypeChanged(size_t cellType) {
     m_cellType = cellType;
+}
+
+void NeuvisysThread::onStopNetwork() {
+    m_stop = true;
 }

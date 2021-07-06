@@ -14,11 +14,10 @@ int main(int argc, char **argv) {
 
     auto start = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
-    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60000) {
+    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 300 * 1000) {
         time = std::chrono::system_clock::now();
         ros::spinOnce();
         sim.update();
     }
-
     return 0;
 }

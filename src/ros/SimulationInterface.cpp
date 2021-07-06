@@ -4,19 +4,19 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface(SpikingNetwork &spinet) : spinet(spinet) {
-    m_rewardSub = n.subscribe<std_msgs::Float32>("reward", 1000, boost::bind(&SimulationInterface::rewardSignal, this, _1));
-    m_leftSensorSub = n.subscribe<sensor_msgs::Image>("leftimage", 1000,
-                                                      boost::bind(&SimulationInterface::visionCallBack, this, _1, "left"));
+SimulationInterface::SimulationInterface() {
+    m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignal(std::forward<decltype(PH1)>(PH1)); });
+    m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
+                                                      [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
-    motorMapping.emplace_back(std::make_pair(0, -0.04));
-    motorMapping.emplace_back(std::make_pair(0, 0));
-    motorMapping.emplace_back(std::make_pair(0, 0.04));
-    motorMapping.emplace_back(std::make_pair(1, -0.04));
-    motorMapping.emplace_back(std::make_pair(1, 0));
-    motorMapping.emplace_back(std::make_pair(1, 0.04));
+    motorMapping.emplace_back(std::make_pair(0, -0.01)); // left horizontal -> left movement
+    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
+    motorMapping.emplace_back(std::make_pair(0, 0.01)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(1, -0.01)); // left vertical  -> left movement
+    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
+    motorMapping.emplace_back(std::make_pair(1, 0.01)); // left vertical -> right movement
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -31,6 +31,10 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
         return;
     }
     m_imageTime = frame.getMessage()->header.stamp;
+}
+
+void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward) {
+    m_rewardStored = reward.getMessage()->data;
 }
 
 void SimulationInterface::activateMotors(std::vector<bool> motorActivation, double dt) {
@@ -59,26 +63,19 @@ void SimulationInterface::activateMotors(std::vector<bool> motorActivation, doub
     }
 }
 
-void SimulationInterface::update() {
+double SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
 
-    if (hasReceivedLeftImage()) {
-        auto motorActivation = spinet.run(leftEvents, m_rewardStored);
-        activateMotors(motorActivation, dt);
-        resetLeft();
-    }
-    if (hasReceivedRightImage()) {
-        auto motorActivation = spinet.run(rightEvents, m_rewardStored);
-        activateMotors(motorActivation, dt);
-        resetRight();
-    }
+//    if (hasReceivedLeftImage()) {
+//        auto motorActivation = m_spinet.run(leftEvents, m_rewardStored);
+//        activateMotors(motorActivation, dt);
+//        resetLeft();
+//    }
+//    if (hasReceivedRightImage()) {
+//        auto motorActivation = m_spinet.run(rightEvents, m_rewardStored);
+//        activateMotors(motorActivation, dt);
+//        resetRight();
+//    }
     m_lastImageTime = m_imageTime;
-}
-
-void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward) {
-    m_rewardStored = reward.getMessage()->data;
-}
-
-SimulationInterface::~SimulationInterface() {
-    spinet.saveNetworkLearningTrace(1, "ros");
+    return dt;
 }

@@ -11,14 +11,13 @@
 #include "../ros/SimulationInterface.hpp"
 #include "cnpy.h"
 
-class NeuvisysThread : public QThread
-{
+class NeuvisysThread : public QThread {
     Q_OBJECT
 
 public:
-    explicit NeuvisysThread(QObject *parent = nullptr);
-
+    NeuvisysThread(int argc, char** argv, QObject *parent = nullptr);
     void render(QString networkPath, QString events, size_t nbPass, bool realtime);
+    bool init();
 
 public slots:
     void onIndexChanged(size_t index);
@@ -30,12 +29,15 @@ public slots:
     void onPrecisionPotentialChanged(size_t precisionPotential);
     void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
     void onCellTypeChanged(size_t cellType);
+    void onStopNetwork();
 
 signals:
     void displayInformation(int progress, double spike_rate, double threshold, double vreset, cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
     void networkConfiguration(size_t nbCameras, size_t nbSynapses, std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
 
 protected:
+    int m_initArgc;
+    char** m_initArgv;
     QString m_networkPath;
     QString m_events;
     size_t m_nbPass;
@@ -47,6 +49,7 @@ protected:
     std::chrono::time_point<std::chrono::system_clock> m_frameTime;
     std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
     bool m_realtime = false;
+    bool m_stop = false;
 
     size_t m_id = 0;
     size_t m_layer = 0;
@@ -64,7 +67,6 @@ protected:
 private:
     void multiplePass(SpikingNetwork &spinet);
     void rosPass(SpikingNetwork &spinet);
-
     void runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
     void display(SpikingNetwork &spinet, size_t sizeArray);
 };

@@ -4,6 +4,8 @@
 
 using json = nlohmann::json;
 
+NetworkConfig::NetworkConfig() = default;
+
 NetworkConfig::NetworkConfig(std::string networkPath) {
     NETWORK_CONFIG = std::move(networkPath);
     loadNetworkLayout(NETWORK_CONFIG);
@@ -60,6 +62,9 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
     }
     ifs.close();
 }
+
+NeuronConfig::NeuronConfig() = default;
+
 
 NeuronConfig::NeuronConfig(const std::string& configFile, size_t type) {
     if (type == 0) {

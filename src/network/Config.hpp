@@ -20,7 +20,8 @@ namespace Conf {
 
 class NetworkConfig {
 public:
-    NetworkConfig(std::string networkPath);
+    NetworkConfig();
+    explicit NetworkConfig(std::string networkPath);
     void loadNetworkLayout(const std::string& fileName);
 
     /***** Display parameters *****/
@@ -53,6 +54,7 @@ public:
 
 class NeuronConfig {
 public:
+    NeuronConfig();
     NeuronConfig(const std::string& configFile, size_t type);
 /***** Neurons internal parameters *****/
     double TAU_M = 1; // μs

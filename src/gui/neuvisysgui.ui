@@ -36,7 +36,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="launch_options">
        <property name="sizePolicy">
@@ -49,13 +49,6 @@
         <string>Launch Options</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="3" column="0">
-         <widget class="QPushButton" name="button_launch_network">
-          <property name="text">
-           <string>Launch Network</string>
-          </property>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QTabWidget" name="tabWidget_3">
           <property name="currentIndex">
@@ -102,6 +95,24 @@
            </layout>
           </widget>
          </widget>
+        </item>
+        <item row="3" column="0">
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QPushButton" name="button_launch_network">
+            <property name="text">
+             <string>Launch Network</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_stop_network">
+            <property name="text">
+             <string>Stop Network</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </item>
         <item row="0" column="0">
          <layout class="QGridLayout" name="gridLayout">
@@ -607,7 +618,6 @@
   <tabstop>text_network_config</tabstop>
   <tabstop>text_simple_cell_config</tabstop>
   <tabstop>text_complex_cell_config</tabstop>
-  <tabstop>button_launch_network</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>text_event_rate</tabstop>
   <tabstop>text_on_off_ratio</tabstop>

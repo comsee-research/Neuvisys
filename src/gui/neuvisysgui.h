@@ -20,7 +20,7 @@ class NeuvisysGUI : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit NeuvisysGUI(QWidget *parent = nullptr);
+    NeuvisysGUI(int argc, char** argv, QWidget *parent = nullptr);
     ~NeuvisysGUI() override;
 
 public slots:
@@ -37,6 +37,7 @@ signals:
     void precisionPotentialChanged(size_t precisionPotential);
     void rangeSpikeTrainChanged(size_t rangeSpiketrain);
     void cellTypeChanged(size_t cellType);
+    void stopNetwork();
 
 private slots:
     void on_button_event_file_clicked();
@@ -57,6 +58,8 @@ private slots:
     void on_radio_button_simple_cell_clicked();
     void on_radio_button_complex_cell_clicked();
     void on_radio_button_motor_cell_clicked();
+
+    void on_button_stop_network_clicked();
 
 protected:
     NeuvisysThread neuvisysThread;

@@ -1,11 +1,12 @@
 #include "neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
-NeuvisysGUI::NeuvisysGUI(QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI) {
+NeuvisysGUI::NeuvisysGUI(int argc, char** argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI), neuvisysThread(argc, argv) {
     id = 0;
     layer = 0;
     camera = 0;
     synapse = 0;
+    cellType = 0;
     precisionEvent = 30000;
     precisionPotential = 10000;
     rangePotential = 1000000;
@@ -72,6 +73,11 @@ NeuvisysGUI::~NeuvisysGUI() {
     free(potentialChart);
     free(spikeSeries);
     free(spikeChart);
+
+    if (ros::isStarted()) {
+        ros::shutdown();
+        ros::waitForShutdown();
+    }
 }
 
 void NeuvisysGUI::on_button_event_file_clicked() {
@@ -200,6 +206,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
 
     connect(&neuvisysThread, &NeuvisysThread::displayInformation, this, &NeuvisysGUI::onDisplayInformation);
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
+    neuvisysThread.init();
 
     connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
     connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
@@ -210,8 +217,14 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(this, &NeuvisysGUI::precisionPotentialChanged, &neuvisysThread, &NeuvisysThread::onPrecisionPotentialChanged);
     connect(this, &NeuvisysGUI::rangeSpikeTrainChanged, &neuvisysThread, &NeuvisysThread::onRangeSpikeTrainChanged);
     connect(this, &NeuvisysGUI::cellTypeChanged, &neuvisysThread, &NeuvisysThread::onCellTypeChanged);
+    connect(this, &NeuvisysGUI::stopNetwork, &neuvisysThread, &NeuvisysThread::onStopNetwork);
+
     neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json", ui->text_event_file->text(),
                           static_cast<size_t>(ui->number_runs->value()), ui->realtime->isChecked());
+}
+
+void NeuvisysGUI::on_button_stop_network_clicked() {
+    emit stopNetwork();
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const size_t nbCameras, const size_t nbSynapses, const std::string &sharingType, const size_t width,
@@ -393,4 +406,3 @@ void NeuvisysGUI::on_radio_button_motor_cell_clicked() {
     cellType = 2;
     emit cellTypeChanged(cellType);
 }
-
