@@ -8,6 +8,15 @@ MotorNeuron::MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::
     Neuron(index, conf, pos, Position()),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = m_weights.dimensions();
+    m_eligibilityTrace = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
+    for (long i = 0; i < d[0]; ++i) {
+        for (long j = 0; j < d[1]; ++j) {
+            for (long k = 0; k < d[2]; ++k) {
+                m_eligibilityTrace(i, j, k) = 0;
+            }
+        }
+    }
 }
 
 inline bool MotorNeuron::newEvent(NeuronEvent event, double reward) {
@@ -49,16 +58,16 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::updateSTDP() {
-    m_eligibilityTrace *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
-
     for (NeuronEvent &event : m_events) {
-        if (static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-            m_eligibilityTrace += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+        m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
+
+        m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+        m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+        if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
+            m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
         }
-        if (static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            m_eligibilityTrace += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
-        }
-        m_weights(event.x(), event.y(), event.z()) += (m_reward - m_bias) * m_eligibilityTrace;
+
+        m_weights(event.x(), event.y(), event.z()) += (m_reward - m_bias) * m_eligibilityTrace(event.x(), event.y(), event.z());
 
         if (m_weights(event.x(), event.y(), event.z()) < 0) {
             m_weights(event.x(), event.y(), event.z()) = 0;
