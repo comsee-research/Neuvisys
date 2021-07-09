@@ -50,13 +50,6 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
     std::cout << "Layer 3 neurons: " << m_nbMotorNeurons << std::endl;
 }
 
-SpikingNetwork::~SpikingNetwork() {
-    std::cout << "Network reset" << std::endl << std::endl;
-    if (m_conf.SaveData) {
-        saveNeuronsStates();
-    }
-}
-
 bool SpikingNetwork::simpleNeuronsFilesExists() const {
     std::string path = m_conf.NetworkPath + "weights/simple_cells/0.npy";
     if (FILE *file = fopen(path.c_str(), "r")) {
@@ -87,7 +80,7 @@ bool SpikingNetwork::motorNeuronsFilesExists() const {
     }
 }
 
-std::vector<bool> SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
+void SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
     m_reward = reward;
     std::fill(m_motorActivation.begin(), m_motorActivation.end(), false);
     for (Event event : eventPacket) {
@@ -113,7 +106,6 @@ std::vector<bool> SpikingNetwork::run(const std::vector<Event> &eventPacket, con
         }
         ++m_iterations;
     }
-    return m_motorActivation;
 }
 
 void SpikingNetwork::addEvent(Event event) {
@@ -326,17 +318,27 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
     }
 }
 
-void SpikingNetwork::saveNetworkLearningTrace(const size_t nbRun, const std::string& eventFileName) {
-    std::string fileName;
-    fileName = m_conf.NetworkPath + "learning_trace.txt";
+void SpikingNetwork::saveNetwork(size_t nbRun, const std::string& eventFileName) {
+    if (m_conf.SaveData) {
+        std::cout << "Saving Network..." << std::endl;
+        std::string fileName;
+        fileName = m_conf.NetworkPath + "networkState";
 
-    std::ofstream ofs(fileName, std::ios::app);
-    if (ofs.is_open()) {
-        ofs << eventFileName << ", " << nbRun << std::endl;
-    } else {
-        std::cout << "cannot save learning trace" << std::endl;
+        json state;
+        state["event_file_name"] = eventFileName;
+        state["nb_run"] = nbRun;
+        state["rewards"] = m_listReward;
+
+        std::ofstream ofs(fileName + ".json");
+        if (ofs.is_open()) {
+            ofs << std::setw(4) << state << std::endl;
+        } else {
+            std::cout << "cannot save network state file" << std::endl;
+        }
+        ofs.close();
+
+        saveNeuronsStates();
     }
-    ofs.close();
 }
 
 void SpikingNetwork::saveNeuronsStates() {
@@ -502,4 +504,9 @@ Neuron &SpikingNetwork::getNeuron(size_t index, size_t neuronType) {
     } else if (neuronType == 2) {
         return m_motorNeurons[index];
     }
+}
+
+void SpikingNetwork::setReward(double reward) {
+    m_reward = reward;
+    m_listReward.push_back(reward);
 }

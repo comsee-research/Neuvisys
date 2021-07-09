@@ -23,6 +23,7 @@ class SpikingNetwork {
     size_t m_precisionPotential = 10000; // µs
 
     double m_reward{};
+    std::vector<double> m_listReward;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -47,8 +48,7 @@ class SpikingNetwork {
 public:
     SpikingNetwork();
     explicit SpikingNetwork(const std::string &conf);
-    ~SpikingNetwork();
-    std::vector<bool> run(const std::vector<Event> &eventPacket, double reward);
+    void run(const std::vector<Event> &eventPacket, double reward);
     void addEvent(Event event);
     void updateNeuronsParameters(long time);
 
@@ -64,8 +64,8 @@ public:
     cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
-    void saveNetworkLearningTrace(size_t nbRun, const std::string& eventFileName);
-    void setReward(double reward) { m_reward = reward; }
+    void saveNetwork(size_t nbRun, const std::string& eventFileName);
+    void setReward(double reward);
     void resetMotorActivation() { std::fill(m_motorActivation.begin(), m_motorActivation.end(), false); }
     const std::vector<bool> &getMotorActivation() { return m_motorActivation; }
 

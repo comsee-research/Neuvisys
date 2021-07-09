@@ -39,7 +39,6 @@ void NeuvisysThread::run() {
 
     if (m_realtime) {
         rosPass(spinet);
-        spinet.saveNetworkLearningTrace(1, "ros");
     } else {
         multiplePass(spinet);
     }
@@ -56,6 +55,7 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     emit displayInformation(100, 0, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(),
                             m_spikeTrain);
     runSpikingNetwork(spinet, eventPacket, 0);
+    spinet.saveNetwork(m_nbPass, m_events.toStdString());
     std::cout << "Finished" << std::endl;
 }
 
@@ -72,6 +72,8 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             sim.resetLeft();
         }
     }
+    spinet.saveNetwork(1, "Simulation");
+    std::cout << "Finished" << std::endl;
 }
 
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {

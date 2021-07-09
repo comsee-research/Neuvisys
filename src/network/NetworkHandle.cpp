@@ -91,6 +91,6 @@ void multiplePass(const std::string &networkPath, const std::string& events, siz
         eventPacket = stereo(events, nbPass);
     }
     spinet.run(eventPacket, 0);
-    spinet.saveNetworkLearningTrace(nbPass, events);
+    spinet.saveNetwork(nbPass, events);
     std::cout << "Finished" << std::endl;
 }
