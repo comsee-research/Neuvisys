@@ -79,6 +79,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
     spinet.setReward(reward);
     spinet.resetMotorActivation();
+
     for (Event event : eventPacket) {
         // Display event-based image
         if (event.camera() == 0) {

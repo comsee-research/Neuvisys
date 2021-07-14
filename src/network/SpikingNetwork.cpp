@@ -81,8 +81,9 @@ bool SpikingNetwork::motorNeuronsFilesExists() const {
 }
 
 void SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
-    m_reward = reward;
-    std::fill(m_motorActivation.begin(), m_motorActivation.end(), false);
+    setReward(reward);
+    resetMotorActivation();
+
     for (Event event : eventPacket) {
         addEvent(event);
 
