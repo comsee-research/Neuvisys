@@ -8695,15 +8695,15 @@ class parser
     {
         /// the parser read `{` and started to process a JSON object
         object_start,
-        /// the parser read `}` and finished processing a JSON object
+        /// the parser read `}` and networkDestruction processing a JSON object
         object_end,
         /// the parser read `[` and started to process a JSON array
         array_start,
-        /// the parser read `]` and finished processing a JSON array
+        /// the parser read `]` and networkDestruction processing a JSON array
         array_end,
         /// the parser read a key of a value in an object
         key,
-        /// the parser finished reading a JSON value
+        /// the parser networkDestruction reading a JSON value
         value
     };
 
@@ -14242,7 +14242,7 @@ class serializer
             }
         }
 
-        // we finished processing the string
+        // we networkDestruction processing the string
         if (JSON_HEDLEY_LIKELY(state == UTF8_ACCEPT))
         {
             // write buffer
@@ -15649,10 +15649,10 @@ class basic_json
     The parser callback distinguishes the following events:
     - `object_start`: the parser read `{` and started to process a JSON object
     - `key`: the parser read a key of a value in an object
-    - `object_end`: the parser read `}` and finished processing a JSON object
+    - `object_end`: the parser read `}` and networkDestruction processing a JSON object
     - `array_start`: the parser read `[` and started to process a JSON array
-    - `array_end`: the parser read `]` and finished processing a JSON array
-    - `value`: the parser finished reading a JSON value
+    - `array_end`: the parser read `]` and networkDestruction processing a JSON array
+    - `value`: the parser networkDestruction reading a JSON value
 
     @image html callback_events.png "Example when certain parse events are triggered"
 
@@ -15678,10 +15678,10 @@ class basic_json
     ------------------ | ----------- | ------------------ | -------------------
     parse_event_t::object_start | the parser read `{` and started to process a JSON object | depth of the parent of the JSON object | a JSON value with type discarded
     parse_event_t::key | the parser read a key of a value in an object | depth of the currently parsed JSON object | a JSON string containing the key
-    parse_event_t::object_end | the parser read `}` and finished processing a JSON object | depth of the parent of the JSON object | the parsed JSON object
+    parse_event_t::object_end | the parser read `}` and networkDestruction processing a JSON object | depth of the parent of the JSON object | the parsed JSON object
     parse_event_t::array_start | the parser read `[` and started to process a JSON array | depth of the parent of the JSON array | a JSON value with type discarded
-    parse_event_t::array_end | the parser read `]` and finished processing a JSON array | depth of the parent of the JSON array | the parsed JSON array
-    parse_event_t::value | the parser finished reading a JSON value | depth of the value | the parsed JSON value
+    parse_event_t::array_end | the parser read `]` and networkDestruction processing a JSON array | depth of the parent of the JSON array | the parsed JSON array
+    parse_event_t::value | the parser networkDestruction reading a JSON value | depth of the value | the parsed JSON value
 
     @image html callback_events.png "Example when certain parse events are triggered"
 

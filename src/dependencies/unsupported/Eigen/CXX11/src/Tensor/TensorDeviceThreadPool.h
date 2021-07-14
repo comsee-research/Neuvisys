@@ -311,7 +311,7 @@ struct ThreadPoolDevice {
   typedef TensorCostModel<ThreadPoolDevice> CostModel;
 
   // For parallelForAsync we must keep passed in closures on the heap, and
-  // delete them only after `done` callback finished.
+  // delete them only after `done` callback networkDestruction.
   struct ParallelForAsyncContext {
     ParallelForAsyncContext(Index block_count,
                             std::function<void(Index, Index)> block_f,

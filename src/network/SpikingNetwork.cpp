@@ -146,23 +146,8 @@ inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
             for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
                 motorNeuronToInhibit.get().inhibition();
             }
-            displayMotorActivations(motorNeuron.get());
             m_motorActivation[motorNeuron.get().getIndex()] = true;
         }
-    }
-}
-
-inline void SpikingNetwork::displayMotorActivations(Neuron &neuron) {
-    switch (neuron.getIndex()) {
-        case 0:
-            std::cout << "Left" << std::endl;
-            break;
-        case 1:
-            std::cout << "Nothing" << std::endl;
-            break;
-        case 2:
-            std::cout << "Right" << std::endl;
-            break;
     }
 }
 

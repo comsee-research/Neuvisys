@@ -30,10 +30,11 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, 
 void NeuvisysThread::run() {
     auto spinet = SpikingNetwork(m_networkPath.toStdString());
 
-    emit networkConfiguration(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNetworkConfig().SharingType,
-                              spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width,
+    emit networkConfiguration(spinet.getNetworkConfig().SharingType, spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width,
                               spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height, spinet.getNetworkConfig().L1Depth,
                               spinet.getNetworkConfig().L1XAnchor.size(), spinet.getNetworkConfig().L1YAnchor.size());
+    emit networkCreation(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNumberSimpleNeurons(),
+                         spinet.getNumberComplexNeurons(), spinet.getNumberMotorNeurons());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
 
@@ -52,11 +53,10 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     } else if (spinet.getNetworkConfig().NbCameras == 2) {
         eventPacket = stereo(m_events.toStdString(), m_nbPass);
     }
-    emit displayInformation(100, 0, 0, 0, m_leftEventDisplay, m_rightEventDisplay, m_weightDisplay, std::vector<std::pair<double, long>>(),
-                            m_spikeTrain);
+    emit displayProgress(100, 0, 0);
     runSpikingNetwork(spinet, eventPacket, 0);
     spinet.saveNetwork(m_nbPass, m_events.toStdString());
-    std::cout << "Finished" << std::endl;
+    emit networkDestruction();
 }
 
 void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
@@ -73,7 +73,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
         }
     }
     spinet.saveNetwork(1, "Simulation");
-    std::cout << "Finished" << std::endl;
+    emit networkDestruction();
 }
 
 inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
@@ -118,6 +118,9 @@ inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std:
 }
 
 inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
+    emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_id, m_cellType).getSpikingRate(),
+                         spinet.getNeuron(m_id, m_cellType).getThreshold());
+
     for (auto xPatch : spinet.getNetworkConfig().L1XAnchor) {
         for (auto yPatch : spinet.getNetworkConfig().L1YAnchor) {
             auto offsetXPatch = static_cast<int>(xPatch + spinet.getNetworkConfig().L1Width * spinet.getNetworkConfig().Neuron1Width);
@@ -128,6 +131,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
                           cv::Scalar(255, 0, 0));
         }
     }
+    emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
 
     size_t count = 0;
     for (size_t i = 0; i < spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width; ++i) {
@@ -156,9 +160,12 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
             m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout1(0, 0, i), m_camera, m_synapse, 0, 0);
         }
     }
-    emit displayInformation(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_id, m_cellType).getSpikingRate(),
-                            spinet.getNeuron(m_id, m_cellType).getThreshold(), spinet.getSimpleNeuronConfig().VRESET, m_leftEventDisplay,
-                            m_rightEventDisplay, m_weightDisplay, spinet.getPotentialNeuron(m_id, m_cellType), m_spikeTrain);
+    emit displayWeights(m_weightDisplay);
+    emit displaySpike(m_spikeTrain);
+    emit displayPotential(spinet.getSimpleNeuronConfig().VRESET, spinet.getNeuron(m_id, m_cellType).getThreshold(), spinet.getPotentialNeuron(m_id,
+                                                                                                                                 m_cellType));
+    emit displayReward(spinet.getRewards());
+    emit displayAction(spinet.getMotorActivation());
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;
 }

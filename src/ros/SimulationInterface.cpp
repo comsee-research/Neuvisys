@@ -11,12 +11,12 @@ SimulationInterface::SimulationInterface() {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
-    motorMapping.emplace_back(std::make_pair(0, -0.01)); // left horizontal -> left movement
+    motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
     motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, 0.01)); // left horizontal  -> right movement
-    motorMapping.emplace_back(std::make_pair(1, -0.01)); // left vertical  -> left movement
+    motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
     motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
-    motorMapping.emplace_back(std::make_pair(1, 0.01)); // left vertical -> right movement
+    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {

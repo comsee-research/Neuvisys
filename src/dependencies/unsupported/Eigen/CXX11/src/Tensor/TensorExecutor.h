@@ -216,11 +216,11 @@ class TensorExecutor<Expression, DefaultDevice, Vectorizable,
  * executed on a single core.
  *
  * (1) TensorExecutor will submit work to the ThreadPoolDevice managed thread
- *     pool, and will block the caller thread until all tasks are finished.
+ *     pool, and will block the caller thread until all tasks are networkDestruction.
  *
  * (2) TensorAsyncExecutor is a non-blocking version, that will submit work to
  *     the ThreadPoolDevice managed thread pool, and will return immediately.
- *     It will call 'done' callback after all tasks are finished.
+ *     It will call 'done' callback after all tasks are networkDestruction.
  */
 #ifdef EIGEN_USE_THREADS
 

@@ -32,8 +32,16 @@ public slots:
     void onStopNetwork();
 
 signals:
-    void displayInformation(int progress, double spike_rate, double threshold, double vreset, cv::Mat leftEventDisplay, cv::Mat rightEventDisplay, std::map<size_t, cv::Mat> weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
-    void networkConfiguration(size_t nbCameras, size_t nbSynapses, std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
+    void displayProgress(int progress, double spike_rate, double threshold);
+    void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
+    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
+    void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
+    void displayReward(const std::vector<double> &rewardTrain);
+    void displayAction(const std::vector<bool> &motorActivation);
+    void networkConfiguration(std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
+    void networkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void networkDestruction();
 
 protected:
     int m_initArgc;

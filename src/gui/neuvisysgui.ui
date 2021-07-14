@@ -15,6 +15,215 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_9">
+    <item row="1" column="0" colspan="2">
+     <widget class="QProgressBar" name="progressBar">
+      <property name="value">
+       <number>24</number>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QTabWidget" name="tabWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="QWidget" name="event_viz">
+       <attribute name="title">
+        <string>Event Viz</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_6">
+        <item row="0" column="0">
+         <widget class="QScrollArea" name="scrollArea_3">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollAreaWidgetContents">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>854</width>
+             <height>580</height>
+            </rect>
+           </property>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <property name="sizeConstraint">
+             <enum>QLayout::SetMinAndMaxSize</enum>
+            </property>
+            <item>
+             <widget class="QGraphicsView" name="left_event_video"/>
+            </item>
+            <item>
+             <widget class="QGraphicsView" name="right_event_video"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="actionGroup">
+          <property name="title">
+           <string>Action viz</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_21">
+           <item row="0" column="0">
+            <layout class="QGridLayout" name="actionGrid">
+             <property name="sizeConstraint">
+              <enum>QLayout::SetMinAndMaxSize</enum>
+             </property>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="statistics">
+       <attribute name="title">
+        <string>Statistics</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_3">
+        <item row="0" column="0">
+         <widget class="QGroupBox" name="groupBox">
+          <property name="title">
+           <string>Event statistics</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_4">
+           <item row="0" column="0">
+            <layout class="QFormLayout" name="event_stats">
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_event_rate">
+               <property name="text">
+                <string>Event rate</string>
+               </property>
+              </widget>
+             </item>
+             <item row="0" column="1">
+              <widget class="QLineEdit" name="text_event_rate">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_on_off_ratio">
+               <property name="text">
+                <string>ON/OFF ratio</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="1">
+              <widget class="QLineEdit" name="text_on_off_ratio">
+               <property name="readOnly">
+                <bool>true</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+        <item row="1" column="0">
+         <widget class="QGroupBox" name="network_stats">
+          <property name="title">
+           <string>Network statistics</string>
+          </property>
+          <layout class="QGridLayout" name="gridLayout_5">
+           <item row="0" column="0">
+            <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="spike_rate">
+               <property name="text">
+                <string>Spike rate (spike/s):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcd_spike_rate"/>
+             </item>
+             <item>
+              <widget class="QLabel" name="threshold">
+               <property name="text">
+                <string>Threshold (mV):</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcd_threshold"/>
+             </item>
+            </layout>
+           </item>
+          </layout>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="weights">
+       <attribute name="title">
+        <string>Weights</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_7">
+        <item row="0" column="0">
+         <widget class="QScrollArea" name="scrollArea">
+          <property name="widgetResizable">
+           <bool>true</bool>
+          </property>
+          <widget class="QWidget" name="scrollArea_2">
+           <property name="geometry">
+            <rect>
+             <x>0</x>
+             <y>0</y>
+             <width>854</width>
+             <height>632</height>
+            </rect>
+           </property>
+           <layout class="QGridLayout" name="gridLayout_15">
+            <item row="0" column="0">
+             <layout class="QGridLayout" name="weightLayout">
+              <property name="sizeConstraint">
+               <enum>QLayout::SetMinAndMaxSize</enum>
+              </property>
+             </layout>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="potential">
+       <attribute name="title">
+        <string>Potential</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_8">
+        <item row="0" column="0">
+         <widget class="QChartView" name="potentialView"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="spiketrain">
+       <attribute name="title">
+        <string>Spiketrain</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_10">
+        <item row="0" column="0">
+         <widget class="QChartView" name="spikeView"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="reward">
+       <attribute name="title">
+        <string>Reward</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout_20">
+        <item row="0" column="0">
+         <widget class="QChartView" name="rewardView"/>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QTabWidget" name="tabWidget_2">
       <property name="sizePolicy">
@@ -36,7 +245,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="launch_options">
        <property name="sizePolicy">
@@ -49,6 +258,72 @@
         <string>Launch Options</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="1" column="0">
+           <widget class="QPushButton" name="button_event_file">
+            <property name="text">
+             <string>Select Event File</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="button_network_directory">
+            <property name="text">
+             <string>Select Network Directory</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="2">
+           <widget class="QLineEdit" name="text_event_file"/>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_number_runs">
+            <property name="text">
+             <string>Number of runs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="3">
+           <widget class="QCheckBox" name="realtime">
+            <property name="text">
+             <string>Realtime</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2" colspan="2">
+           <widget class="QLineEdit" name="text_network_directory"/>
+          </item>
+          <item row="3" column="2" colspan="2">
+           <widget class="QSpinBox" name="number_runs"/>
+          </item>
+         </layout>
+        </item>
+        <item row="3" column="0">
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QPushButton" name="button_launch_network">
+            <property name="text">
+             <string>Launch Network</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="button_stop_network">
+            <property name="text">
+             <string>Stop Network</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTextEdit" name="console">
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
         <item row="1" column="0">
          <widget class="QTabWidget" name="tabWidget_3">
           <property name="currentIndex">
@@ -95,65 +370,6 @@
            </layout>
           </widget>
          </widget>
-        </item>
-        <item row="3" column="0">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
-          <item>
-           <widget class="QPushButton" name="button_launch_network">
-            <property name="text">
-             <string>Launch Network</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QPushButton" name="button_stop_network">
-            <property name="text">
-             <string>Stop Network</string>
-            </property>
-           </widget>
-          </item>
-         </layout>
-        </item>
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QPushButton" name="button_event_file">
-            <property name="text">
-             <string>Select Event File</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="button_network_directory">
-            <property name="text">
-             <string>Select Network Directory</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="text_event_file"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_number_runs">
-            <property name="text">
-             <string>Number of runs</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QCheckBox" name="realtime">
-            <property name="text">
-             <string>Realtime</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QLineEdit" name="text_network_directory"/>
-          </item>
-          <item row="3" column="2" colspan="2">
-           <widget class="QSpinBox" name="number_runs"/>
-          </item>
-         </layout>
         </item>
        </layout>
       </widget>
@@ -392,189 +608,6 @@
            </item>
           </layout>
          </widget>
-        </item>
-       </layout>
-      </widget>
-     </widget>
-    </item>
-    <item row="1" column="0" colspan="2">
-     <widget class="QProgressBar" name="progressBar">
-      <property name="value">
-       <number>24</number>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="1">
-     <widget class="QTabWidget" name="tabWidget">
-      <property name="currentIndex">
-       <number>4</number>
-      </property>
-      <widget class="QWidget" name="event_viz">
-       <attribute name="title">
-        <string>Event Viz</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_6">
-        <item row="0" column="0">
-         <widget class="QScrollArea" name="scrollArea_3">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>854</width>
-             <height>632</height>
-            </rect>
-           </property>
-           <layout class="QHBoxLayout" name="horizontalLayout">
-            <property name="sizeConstraint">
-             <enum>QLayout::SetMinAndMaxSize</enum>
-            </property>
-            <item>
-             <widget class="QGraphicsView" name="left_event_video"/>
-            </item>
-            <item>
-             <widget class="QGraphicsView" name="right_event_video"/>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="statistics">
-       <attribute name="title">
-        <string>Statistics</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_3">
-        <item row="0" column="0">
-         <widget class="QGroupBox" name="groupBox">
-          <property name="title">
-           <string>Event statistics</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_4">
-           <item row="0" column="0">
-            <layout class="QFormLayout" name="event_stats">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_event_rate">
-               <property name="text">
-                <string>Event rate</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="text_event_rate">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_on_off_ratio">
-               <property name="text">
-                <string>ON/OFF ratio</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="text_on_off_ratio">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QGroupBox" name="network_stats">
-          <property name="title">
-           <string>Network statistics</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_5">
-           <item row="0" column="0">
-            <layout class="QVBoxLayout" name="verticalLayout_2">
-             <item>
-              <widget class="QLabel" name="spike_rate">
-               <property name="text">
-                <string>Spike rate (spike/s):</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLCDNumber" name="lcd_spike_rate"/>
-             </item>
-             <item>
-              <widget class="QLabel" name="threshold">
-               <property name="text">
-                <string>Threshold (mV):</string>
-               </property>
-              </widget>
-             </item>
-             <item>
-              <widget class="QLCDNumber" name="lcd_threshold"/>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="weights">
-       <attribute name="title">
-        <string>Weights</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_7">
-        <item row="0" column="0">
-         <widget class="QScrollArea" name="scrollArea">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollArea_2">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>854</width>
-             <height>632</height>
-            </rect>
-           </property>
-           <layout class="QGridLayout" name="gridLayout_15">
-            <item row="0" column="0">
-             <layout class="QGridLayout" name="weightLayout">
-              <property name="sizeConstraint">
-               <enum>QLayout::SetMinAndMaxSize</enum>
-              </property>
-             </layout>
-            </item>
-           </layout>
-          </widget>
-         </widget>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="potential">
-       <attribute name="title">
-        <string>Potential</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_8">
-        <item row="0" column="0">
-         <widget class="QChartView" name="potentialView"/>
-        </item>
-       </layout>
-      </widget>
-      <widget class="QWidget" name="spiketrain">
-       <attribute name="title">
-        <string>Spiketrain</string>
-       </attribute>
-       <layout class="QGridLayout" name="gridLayout_10">
-        <item row="0" column="0">
-         <widget class="QChartView" name="spikeView"/>
         </item>
        </layout>
       </widget>

@@ -52,13 +52,15 @@ public:
     void updateNeuronsParameters(long time);
 
     Neuron &getNeuron(size_t index, size_t neuronType);
-    [[nodiscard]] size_t getNumberNeurons() const { return m_nbSimpleNeurons; }
-    [[nodiscard]] size_t getNumberPoolingNeurons() const { return m_nbComplexNeurons; }
+    [[nodiscard]] size_t getNumberSimpleNeurons() const { return m_nbSimpleNeurons; }
+    [[nodiscard]] size_t getNumberComplexNeurons() const { return m_nbComplexNeurons; }
+    [[nodiscard]] size_t getNumberMotorNeurons() const { return m_nbMotorNeurons; }
     NetworkConfig getNetworkConfig() { return m_conf; }
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout1(uint64_t x, uint64_t y, uint64_t z) { return m_layout1[{x, y, z}]; }
     uint64_t getLayout2(uint64_t x, uint64_t y, uint64_t z) { return m_layout2[{x, y, z}]; }
+    std::vector<double> &getRewards() { return m_listReward; }
     void trackNeuron(long time, size_t simpleId = 0, size_t complexId = 0);
     cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
@@ -81,8 +83,6 @@ private:
     void generateNeuronConfiguration();
     void assignNeurons();
     Position findPixelComplexNeuron(ComplexNeuron &neuron);
-
-    void displayMotorActivations(Neuron &neuron);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

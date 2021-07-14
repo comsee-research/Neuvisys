@@ -24,8 +24,17 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayInformation(int progress, double spike_rate, double threshold, double vreset, const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay, const std::map<size_t, cv::Mat>& weightDisplay, const std::vector<std::pair<double, long>> &potentialTrain, const std::map<size_t, std::vector<long>> &spikeTrain);
-    void onNetworkConfiguration(size_t nbCameras, size_t nbSynapses, const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
+    void onDisplayProgress(int progress, double spike_rate, double threshold);
+    void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
+    void onDisplayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
+    void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
+    void onDisplayReward(const std::vector<double> &rewardTrain);
+    void onDisplayAction(const std::vector<bool> &motorActivation);
+    void onNetworkConfiguration(const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t
+    heightPatchSize);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void onFinished();
 
 signals:
     void indexChanged(size_t index);
@@ -68,6 +77,8 @@ protected:
     QChart *potentialChart;
     QScatterSeries *spikeSeries;
     QChart *spikeChart;
+    QLineSeries *rewardSeries;
+    QChart *rewardChart;
     QGraphicsPixmapItem leftEvents;
     QGraphicsPixmapItem rightEvents;
 

@@ -22,7 +22,7 @@ namespace Eigen {
   * the return type of MatrixBase::operator<<, and most of the time this is the only
   * way it is used.
   *
-  * \sa \blank \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::finished()
+  * \sa \blank \ref MatrixBaseCommaInitRef "MatrixBase::operator<<", CommaInitializer::networkDestruction()
   */
 template<typename XprType>
 struct CommaInitializer
@@ -54,7 +54,7 @@ struct CommaInitializer
   EIGEN_DEVICE_FUNC
   inline CommaInitializer(const CommaInitializer& o)
   : m_xpr(o.m_xpr), m_row(o.m_row), m_col(o.m_col), m_currentBlockRows(o.m_currentBlockRows) {
-    // Mark original object as finished. In absence of R-value references we need to const_cast:
+    // Mark original object as networkDestruction. In absence of R-value references we need to const_cast:
     const_cast<CommaInitializer&>(o).m_row = m_xpr.rows();
     const_cast<CommaInitializer&>(o).m_col = m_xpr.cols();
     const_cast<CommaInitializer&>(o).m_currentBlockRows = 0;
@@ -111,10 +111,10 @@ struct CommaInitializer
   }
 
   /** \returns the built matrix once all its coefficients have been set.
-    * Calling finished is 100% optional. Its purpose is to write expressions
+    * Calling networkDestruction is 100% optional. Its purpose is to write expressions
     * like this:
     * \code
-    * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).finished());
+    * quaternion.fromRotationMatrix((Matrix3f() << axis0, axis1, axis2).networkDestruction());
     * \endcode
     */
   EIGEN_DEVICE_FUNC
@@ -142,7 +142,7 @@ struct CommaInitializer
   * 
   * \note According the c++ standard, the argument expressions of this comma initializer are evaluated in arbitrary order.
   *
-  * \sa CommaInitializer::finished(), class CommaInitializer
+  * \sa CommaInitializer::networkDestruction(), class CommaInitializer
   */
 template<typename Derived>
 EIGEN_DEVICE_FUNC inline CommaInitializer<Derived> DenseBase<Derived>::operator<< (const Scalar& s)

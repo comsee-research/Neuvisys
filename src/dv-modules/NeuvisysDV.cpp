@@ -143,11 +143,11 @@ public:
 //            ofs.close();
 //        }
 
-//        if (Selection::INDEX > m_spinet.getNumberNeurons()) {
+//        if (Selection::INDEX > m_spinet.getNumberSimpleNeurons()) {
 //            std::cout << "neuron display index too big" << std::endl;
 //            Selection::INDEX = 0;
 //        }
-//        if (Selection::INDEX2 > m_spinet.getNumberPoolingNeurons()) {
+//        if (Selection::INDEX2 > m_spinet.getNumberComplexNeurons()) {
 //            std::cout << "pooling neuron display index too big" << std::endl;
 //            Selection::INDEX2 = 0;
 //        }

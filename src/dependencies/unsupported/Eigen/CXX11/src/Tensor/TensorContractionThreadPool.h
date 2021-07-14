@@ -587,7 +587,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     //  - lhs packing (m, k) has finished
     //  - rhs packing (n, k) has finished
     // Lhs/rhs packing can start when:
-    //  - all k-1 packing has finished (artificially imposed to limit amount of
+    //  - all k-1 packing has networkDestruction (artificially imposed to limit amount of
     //  parallel packing)
     //
     // On top of that we limit runnable tasks to two consecutive k slices.
