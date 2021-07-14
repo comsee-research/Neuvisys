@@ -45,7 +45,6 @@ class SpikingNetwork {
 //    Luts m_simpleluts;
 //    Luts m_complexluts;
 public:
-    SpikingNetwork();
     explicit SpikingNetwork(const std::string &conf);
     ~SpikingNetwork();
     std::vector<bool> run(const std::vector<Event> &eventPacket, double reward);
@@ -82,6 +81,8 @@ private:
     void generateNeuronConfiguration();
     void assignNeurons();
     Position findPixelComplexNeuron(ComplexNeuron &neuron);
+
+    void displayMotorActivations(Neuron &neuron);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP
