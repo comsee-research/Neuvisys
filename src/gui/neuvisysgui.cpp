@@ -411,7 +411,7 @@ void NeuvisysGUI::onDisplaySpike(const std::map<size_t, std::vector<long>> &spik
 void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain) {
     rewardChart->removeSeries(rewardSeries);
     rewardSeries = new QLineSeries();
-    long count = 1000;
+    long count = 10000;
     for (auto it = rewardTrain.rbegin(); it != rewardTrain.rend(); ++it) {
         if (count < 0) {
             break;
@@ -425,7 +425,7 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain) {
 }
 
 void NeuvisysGUI::onDisplayAction(const std::vector<bool> &motorActivation) {
-    size_t count = 0;
+    int count = 0;
     for (auto action : motorActivation) {
         if (action) {
             auto label = ui->actionGrid->itemAt(count)->widget();

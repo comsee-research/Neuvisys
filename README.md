@@ -23,6 +23,8 @@ You may need to install this:
 ### DV software:
 install **dv-software**: https://inivation.gitlab.io/dv/dv-docs/docs/getting-started.html
 
+Don't forget to install the dv-runtime-dev package for it to work.
+
 **Documentation**: https://inivation.gitlab.io/dv/dv-docs
 
 ### To connect the neuvisys library with the dv-software:
@@ -30,42 +32,50 @@ Run the dv graphical interface either in your application launcher or by running
 
 #### Set up DV
 
-To test the neuvisys module, you will have to set up DV first. See the following documentation: https://inivation.gitlab.io/dv/dv-docs/docs/first-module/
+To test the neuvisys module, you will have to set up DV first. See the following documentation: https://inivation.gitlab.io/dv/dv-docs/docs/first-module/ on the **Set up DV** paragraph.
 
-Once setup, you can launch the dv-software with:
-- Run ``/usr/bin/dv-runtime -b0``
+Once setup, you can launch the dv-software runtime with:
+- ``/usr/bin/dv-runtime``
+
+and the GUI with:
+- ``/usr/bin/dv-gui``
 
 ### Coppeliasim / ROS
 
 Download and install the Coppeliasim framework: https://www.coppeliarobotics.com/
+
+There is 3 available versions, **player**, **edu** and **pro**. Player is enough to work with neuvisys, but you will not be able to save the scene if you change it.
+
 Install ROS Noetic (Other ROS distribution might work, but this is uncertain): http://wiki.ros.org/noetic/Installation/Ubuntu
+
+It is advised to use the **Desktop-Full Install**, though other lighter version may also work.
 
 ### Create empty Network
 
 In the folder "generate_network", there is a python script that you can use to create and initialize a network structure:
 
-- Run ``cd  generate_network``, ``python -c 'import planner; planner.generate_network("../")'``
+- Run ``cd  generate_network``, ``python -c 'import planner; planner.generate_network("../configuration")'``
 
 ## Launch
 
-To compile the Neuvisys library:
+To compile the Neuvisys library, in the root folder:
 - Run ``mkdir build``, ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
 
 If there is some errors, you may have to install the following python packages:
 ``pip install empy``
 ``pip install catkin-pkg``
 
-- Run ``make`` to compile all targets
+- Run ``make -j`` to compile all targets
 
 or
 
 - Run ``make [target-name]`` to compile only one target. possible targets are:
 - ``neuvisys-exe`` is the command line executable.
 - ``neuvisys-qt`` is similar to neuvisys but with an added Qt interface.
-- ``neuvisys-dv.so`` is a module that can be used with dv-software.
+- ``neuvisys-dv`` is a module that can be used with dv-software.
 - ``neuvisys-ros`` is an executable that connects to Coppeliasim via ROS.
 
-compiled target are found in the "build/src" folder.
+Compiled target are found in the "build/src" folder.
 
 An example of use with the ``neuvisys-exe`` target:
 

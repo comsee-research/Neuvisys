@@ -14,9 +14,9 @@ SimulationInterface::SimulationInterface() {
     motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
     motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
     motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
-    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
-    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
-    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
+//    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
+//    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
+//    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {

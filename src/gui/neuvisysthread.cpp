@@ -2,7 +2,8 @@
 
 #include <utility>
 
-NeuvisysThread::NeuvisysThread(int argc, char** argv, QObject *parent) : QThread(parent), m_initArgc(argc), m_initArgv(argv){
+NeuvisysThread::NeuvisysThread(int argc, char** argv, QObject *parent) : QThread(parent), m_initArgc(argc), m_initArgv(argv), m_motorDisplay
+(std::vector<bool>(3, false)) {
     m_frameTime = std::chrono::high_resolution_clock::now();
     m_iterations = 0;
     m_nbPass = 0;
@@ -68,6 +69,15 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
         if (sim.hasReceivedLeftImage()) {
             auto dt = sim.update();
             runSpikingNetwork(spinet, sim.getLeftEvents(), sim.getReward());
+
+            size_t count = 0;
+            for (auto action : spinet.getMotorActivation()) {
+                if (action) {
+                    m_motorDisplay[count] = true;
+                }
+                ++count;
+            }
+
             sim.activateMotors(spinet.getMotorActivation(), dt);
             sim.resetLeft();
         }
@@ -165,7 +175,8 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     emit displayPotential(spinet.getSimpleNeuronConfig().VRESET, spinet.getNeuron(m_id, m_cellType).getThreshold(), spinet.getPotentialNeuron(m_id,
                                                                                                                                  m_cellType));
     emit displayReward(spinet.getRewards());
-    emit displayAction(spinet.getMotorActivation());
+    emit displayAction(m_motorDisplay);
+    m_motorDisplay = std::vector<bool>(3, false);
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;
 }

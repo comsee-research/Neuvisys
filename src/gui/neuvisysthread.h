@@ -54,6 +54,7 @@ protected:
     cv::Mat m_rightEventDisplay;
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::map<size_t, std::vector<long>> m_spikeTrain;
+    std::vector<bool> m_motorDisplay;
     std::chrono::time_point<std::chrono::system_clock> m_frameTime;
     std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
     bool m_realtime = false;
