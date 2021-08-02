@@ -37,29 +37,25 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
     m_rewardStored = reward.getMessage()->data;
 }
 
-void SimulationInterface::activateMotors(std::vector<bool> motorActivation, double dt) {
+void SimulationInterface::activateMotors(uint64_t motor, double dt) {
     //    m_leftMotor1Pub.jitter(dt);
     //    m_leftMotor2Pub.jitter(dt);
     //    m_rightMotor1Pub.jitter(dt);
     //    m_rightMotor2Pub.jitter(dt);
 
-    for (size_t i = 0; i < motorActivation.size(); ++i) {
-        if (motorActivation[i]) {
-            switch (motorMapping[i].first) {
-                case 0:
-                    m_leftMotor1Pub.move(motorMapping[i].second);
-                    break;
-//                case 1:
-//                    m_leftMotor2Pub.move(motorMapping[i].second);
-//                    break;
-//                case 2:
-//                    m_rightMotor1Pub.move(motorMapping[i].second);
-//                    break;
-//                case 3:
-//                    m_rightMotor2Pub.move(motorMapping[i].second);
-//                    break;
-            }
-        }
+    switch (motorMapping[motor].first) {
+        case 0:
+            m_leftMotor1Pub.move(motorMapping[motor].second);
+            break;
+//        case 1:
+//            m_leftMotor2Pub.move(motorMapping[motor].second);
+//            break;
+//        case 2:
+//            m_rightMotor1Pub.move(motorMapping[motor].second);
+//            break;
+//        case 3:
+//            m_rightMotor2Pub.move(motorMapping[motor].second);
+//            break;
     }
 }
 

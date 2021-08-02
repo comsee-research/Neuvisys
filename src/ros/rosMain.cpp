@@ -18,8 +18,11 @@ int main(int argc, char **argv) {
 
         if (sim.hasReceivedLeftImage()) {
             auto dt = sim.update();
-            spinet.run(sim.getLeftEvents(), sim.getReward());
-            sim.activateMotors(spinet.getMotorActivation(), dt);
+            auto motor = spinet.run(sim.getLeftEvents(), sim.getReward());
+
+            if (motor != -1) {
+                sim.activateMotors(motor, dt);
+            }
             sim.resetLeft();
         }
     }

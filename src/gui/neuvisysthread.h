@@ -57,6 +57,7 @@ protected:
     std::vector<bool> m_motorDisplay;
     std::chrono::time_point<std::chrono::system_clock> m_frameTime;
     std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
+    std::chrono::time_point<std::chrono::system_clock> m_motorTime;
     bool m_realtime = false;
     bool m_stop = false;
 
@@ -76,7 +77,7 @@ protected:
 private:
     void multiplePass(SpikingNetwork &spinet);
     void rosPass(SpikingNetwork &spinet);
-    void runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
+    int runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
     void display(SpikingNetwork &spinet, size_t sizeArray);
 };
 

@@ -41,7 +41,7 @@ public:
     double getReward() const { return m_rewardStored; }
     bool hasReceivedLeftImage() const { return receivedLeftImage; }
     bool hasReceivedRightImage() const { return receivedRightImage; }
-    void activateMotors(std::vector<bool> motorActivation, double dt);
+    void activateMotors(uint64_t motor, double dt);
 
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);

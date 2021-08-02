@@ -109,6 +109,30 @@ namespace Util {
 
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
+
+    int randomArgmax(std::vector<size_t> v) {
+        std::vector<size_t> argsmax;
+        size_t max = v[0];
+
+        for (size_t i = 0; i < v.size(); ++i) {
+            if (v[i] > max) {
+                max = v[i];
+                argsmax.clear();
+            }
+
+            if (v[i] == max) {
+                argsmax.push_back(i);
+            }
+        }
+
+        if (max == 0) {
+            return -1;
+        } else {
+            std::vector<int> randomArgmax;
+            std::sample(argsmax.begin(), argsmax.end(), std::back_inserter(randomArgmax), 1, std::mt19937{std::random_device{}()});
+            return randomArgmax[0];
+        }
+    }
 }
 
 Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}

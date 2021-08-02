@@ -7,7 +7,7 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_complexNeuronConf(m_conf.NetworkPath + "configs/complex_cell_config.json", 1),
                                                           m_motorNeuronConf(m_conf.NetworkPath + "configs/motor_cell_config.json", 2),
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
-                                                          m_motorActivation(std::vector<bool>(m_conf.L3Size, false)) {
+                                                          m_motorActivation(std::vector<uint64_t>(m_conf.L3Size, 0)) {
     m_frameTime = std::chrono::high_resolution_clock::now();
 
     m_nbSimpleNeurons = m_conf.L1XAnchor.size() * m_conf.L1YAnchor.size() * m_conf.L1Width * m_conf.L1Height * m_conf.L1Depth;
@@ -80,25 +80,24 @@ bool SpikingNetwork::motorNeuronsFilesExists() const {
     }
 }
 
-void SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
+int SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
+    int motor = -1;
     setReward(reward);
     resetMotorActivation();
 
     for (Event event : eventPacket) {
         addEvent(event);
 
-//    if (count % Conf::EVENT_FREQUENCY == 0) {
-//        m_spinet.updateNeurons(event.timestamp());
-//    }
+//        if (static_cast<size_t>(m_iterations) % Conf::EVENT_FREQUENCY == 0) {
+//            updateNeurons(event.timestamp());
+//        }
 
-        std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-        if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
-            m_frameTime = std::chrono::high_resolution_clock::now();
-        }
+        std::chrono::duration<double> motorElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
+        if (1000000 * motorElapsed.count() > static_cast<double>(100000)) {
+            m_motorTime = std::chrono::high_resolution_clock::now();
 
-        std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-        if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
-            m_trackingTime = std::chrono::high_resolution_clock::now();
+            auto motorActivations = getMotorActivation();
+            motor = Util::randomArgmax(motorActivations);
         }
 
         if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
@@ -107,6 +106,7 @@ void SpikingNetwork::run(const std::vector<Event> &eventPacket, const double rew
         }
         ++m_iterations;
     }
+    return motor;
 }
 
 void SpikingNetwork::addEvent(Event event) {
@@ -146,7 +146,7 @@ inline void SpikingNetwork::addMotorEvent(ComplexNeuron &neuron) {
             for (auto &motorNeuronToInhibit : motorNeuron.get().getInhibitionConnections()) {
                 motorNeuronToInhibit.get().inhibition();
             }
-            m_motorActivation[motorNeuron.get().getIndex()] = true;
+            m_motorActivation[motorNeuron.get().getIndex()] += 1;
         }
     }
 }
@@ -437,7 +437,7 @@ Position SpikingNetwork::findPixelComplexNeuron(ComplexNeuron &neuron) {
     size_t x = neuron.getOffset().posx();
     size_t y = neuron.getOffset().posy();
     size_t z = neuron.getOffset().posz();
-    return Position(m_simpleNeurons[m_layout1[{x, y, z}]].getOffset().posx(), m_simpleNeurons[m_layout1[{x, y, z}]].getOffset().posy());
+    return {m_simpleNeurons[m_layout1[{x, y, z}]].getOffset().posx(), m_simpleNeurons[m_layout1[{x, y, z}]].getOffset().posy()};
 }
 
 /***** GUI Interface *****/

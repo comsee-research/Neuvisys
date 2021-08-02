@@ -68,17 +68,13 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 
         if (sim.hasReceivedLeftImage()) {
             auto dt = sim.update();
-            runSpikingNetwork(spinet, sim.getLeftEvents(), sim.getReward());
+            auto motor = runSpikingNetwork(spinet, sim.getLeftEvents(), sim.getReward());
 
-            size_t count = 0;
-            for (auto action : spinet.getMotorActivation()) {
-                if (action) {
-                    m_motorDisplay[count] = true;
-                }
-                ++count;
+            if (motor != -1) {
+                sim.activateMotors(motor, dt);
+                m_motorDisplay[motor] = true;
             }
-
-            sim.activateMotors(spinet.getMotorActivation(), dt);
+            spinet.resetMotorActivation();
             sim.resetLeft();
         }
     }
@@ -86,9 +82,9 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     emit networkDestruction();
 }
 
-inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, const double reward) {
+inline int NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward) {
+    int motor = -1;
     spinet.setReward(reward);
-    spinet.resetMotorActivation();
 
     for (Event event : eventPacket) {
         // Display event-based image
@@ -104,10 +100,6 @@ inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std:
 
         spinet.addEvent(event);
 
-//    if (count % Conf::EVENT_FREQUENCY == 0) {
-//        spinet.updateNeurons(event.timestamp());
-//    }
-
         std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
         if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
             m_frameTime = std::chrono::high_resolution_clock::now();
@@ -120,11 +112,19 @@ inline void NeuvisysThread::runSpikingNetwork(SpikingNetwork &spinet, const std:
             spinet.trackNeuron(event.timestamp(), m_id, m_cellType);
         }
 
+        std::chrono::duration<double> motorElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
+        if (1000000 * motorElapsed.count() > static_cast<double>(100000)) {
+            m_motorTime = std::chrono::high_resolution_clock::now();
+
+            motor = Util::randomArgmax(spinet.getMotorActivation());
+        }
+
         if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
             spinet.updateNeuronsParameters(event.timestamp());
         }
         ++m_iterations;
     }
+    return motor;
 }
 
 inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {

@@ -18,6 +18,7 @@ class SpikingNetwork {
     long m_iterations{};
     std::chrono::time_point<std::chrono::system_clock> m_frameTime;
     std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
+    std::chrono::time_point<std::chrono::system_clock> m_motorTime;
 
     size_t m_precisionEvent = 30000; // µs
     size_t m_precisionPotential = 10000; // µs
@@ -33,7 +34,7 @@ class SpikingNetwork {
     std::vector<ComplexNeuron> m_complexNeurons;
     std::vector<MotorNeuron> m_motorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
-    std::vector<bool> m_motorActivation;
+    std::vector<uint64_t> m_motorActivation;
 
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout1;
     std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout2;
@@ -47,7 +48,7 @@ class SpikingNetwork {
 //    Luts m_complexluts;
 public:
     explicit SpikingNetwork(const std::string &conf);
-    void run(const std::vector<Event> &eventPacket, double reward);
+    int run(const std::vector<Event> &eventPacket, double reward);
     void addEvent(Event event);
     void updateNeuronsParameters(long time);
 
@@ -67,8 +68,8 @@ public:
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
     void setReward(double reward);
-    void resetMotorActivation() { std::fill(m_motorActivation.begin(), m_motorActivation.end(), false); }
-    const std::vector<bool> &getMotorActivation() { return m_motorActivation; }
+    void resetMotorActivation() { std::fill(m_motorActivation.begin(), m_motorActivation.end(), 0); }
+    const std::vector<uint64_t> &getMotorActivation() { return m_motorActivation; }
 
 private:
     void addComplexEvent(SimpleNeuron &neuron);
