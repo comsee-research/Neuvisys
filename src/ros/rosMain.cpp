@@ -12,17 +12,18 @@ int main(int argc, char **argv) {
 
     auto start = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
-    while(std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60 * 1000) {
+
+    while (std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 180 * 1000) {
         time = std::chrono::system_clock::now();
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
             auto dt = sim.update();
-            auto motor = spinet.run(sim.getLeftEvents(), sim.getReward());
+            spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
-            if (motor != -1) {
-                sim.activateMotors(motor, dt);
-            }
+            auto activations = spinet.getMotorActivation();
+            sim.activateMotors(activations);
+            spinet.resetMotorActivation();
             sim.resetLeft();
         }
     }

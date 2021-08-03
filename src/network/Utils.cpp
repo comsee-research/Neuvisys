@@ -110,7 +110,7 @@ namespace Util {
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
 
-    int randomArgmax(std::vector<size_t> v) {
+    int winnerTakeAll(std::vector<size_t> v) {
         std::vector<size_t> argsmax;
         size_t max = v[0];
 

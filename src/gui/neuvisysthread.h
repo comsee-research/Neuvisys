@@ -77,8 +77,8 @@ protected:
 private:
     void multiplePass(SpikingNetwork &spinet);
     void rosPass(SpikingNetwork &spinet);
-    int runSpikingNetwork(SpikingNetwork &spinet, const std::vector<Event> &eventPacket, double reward);
     void display(SpikingNetwork &spinet, size_t sizeArray);
+    void addEventToDisplay(Event &event);
 };
 
 #endif // NEUVISYSTHREAD_H

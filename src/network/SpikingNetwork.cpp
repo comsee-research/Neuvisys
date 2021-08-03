@@ -8,7 +8,6 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_motorNeuronConf(m_conf.NetworkPath + "configs/motor_cell_config.json", 2),
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))),
                                                           m_motorActivation(std::vector<uint64_t>(m_conf.L3Size, 0)) {
-    m_frameTime = std::chrono::high_resolution_clock::now();
 
     m_nbSimpleNeurons = m_conf.L1XAnchor.size() * m_conf.L1YAnchor.size() * m_conf.L1Width * m_conf.L1Height * m_conf.L1Depth;
     m_nbComplexNeurons = m_conf.L2XAnchor.size() * m_conf.L2YAnchor.size() * m_conf.L2Width * m_conf.L2Height * m_conf.L2Depth;
@@ -80,25 +79,11 @@ bool SpikingNetwork::motorNeuronsFilesExists() const {
     }
 }
 
-int SpikingNetwork::run(const std::vector<Event> &eventPacket, const double reward) {
-    int motor = -1;
+void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
     setReward(reward);
-    resetMotorActivation();
 
     for (Event event : eventPacket) {
         addEvent(event);
-
-//        if (static_cast<size_t>(m_iterations) % Conf::EVENT_FREQUENCY == 0) {
-//            updateNeurons(event.timestamp());
-//        }
-
-        std::chrono::duration<double> motorElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
-        if (1000000 * motorElapsed.count() > static_cast<double>(100000)) {
-            m_motorTime = std::chrono::high_resolution_clock::now();
-
-            auto motorActivations = getMotorActivation();
-            motor = Util::randomArgmax(motorActivations);
-        }
 
         if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
             updateNeuronsParameters(event.timestamp());
@@ -106,10 +91,19 @@ int SpikingNetwork::run(const std::vector<Event> &eventPacket, const double rewa
         }
         ++m_iterations;
     }
-    return motor;
 }
 
-void SpikingNetwork::addEvent(Event event) {
+void SpikingNetwork::runEvent(const Event &event, const double reward) {
+    setReward(reward);
+    addEvent(event);
+
+    if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+        updateNeuronsParameters(event.timestamp());
+    }
+    ++m_iterations;
+}
+
+inline void SpikingNetwork::addEvent(const Event &event) {
     for (size_t ind : m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT + static_cast<uint32_t>(event.y())]) {
         if (m_simpleNeurons[ind].newEvent(Event(event.timestamp(),
                                                 event.x() - static_cast<int16_t>(m_simpleNeurons[ind].getOffset().posx()),

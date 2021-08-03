@@ -16,12 +16,6 @@ class SpikingNetwork {
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_motorNeuronConf;
     long m_iterations{};
-    std::chrono::time_point<std::chrono::system_clock> m_frameTime;
-    std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
-    std::chrono::time_point<std::chrono::system_clock> m_motorTime;
-
-    size_t m_precisionEvent = 30000; // µs
-    size_t m_precisionPotential = 10000; // µs
 
     double m_reward{};
     std::vector<double> m_listReward;
@@ -48,8 +42,9 @@ class SpikingNetwork {
 //    Luts m_complexluts;
 public:
     explicit SpikingNetwork(const std::string &conf);
-    int run(const std::vector<Event> &eventPacket, double reward);
-    void addEvent(Event event);
+    void runEvents(const std::vector<Event> &eventPacket, double reward);
+    void runEvent(const Event &event, double reward);
+    void addEvent(const Event &event);
     void updateNeuronsParameters(long time);
 
     Neuron &getNeuron(size_t index, size_t neuronType);

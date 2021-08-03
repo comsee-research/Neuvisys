@@ -90,7 +90,7 @@ void multiplePass(const std::string &networkPath, const std::string& events, siz
     } else if (spinet.getNetworkConfig().NbCameras == 2) {
         eventPacket = stereo(events, nbPass);
     }
-    spinet.run(eventPacket, 0);
+    spinet.runEvents(eventPacket, 0);
     spinet.saveNetwork(nbPass, events);
     std::cout << "Finished" << std::endl;
 }
