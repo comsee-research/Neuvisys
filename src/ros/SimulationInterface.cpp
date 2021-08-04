@@ -11,9 +11,9 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
-    motorMapping.emplace_back(std::make_pair(0, -0.02)); // left horizontal -> left movement
+    motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
     motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, 0.02)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
 //    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
 //    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
 //    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
@@ -52,9 +52,31 @@ int SimulationInterface::update() {
         activateMotor(motor);
         return motor;
     }
-
     return -1;
 //    motorsJitter(dt);
+}
+
+int SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation) {
+    int selectedMotor = -1;
+    size_t sum = 0;
+    for (auto &ele : motorActivation) {
+        sum += ele;
+    }
+
+    if (sum > 0) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> distReal(0.0, 1.0);
+        std::uniform_int_distribution<> distInt(0, 2);
+
+        if (distReal(gen) >= 0.1) {
+            selectedMotor = Util::winnerTakeAll(motorActivation);
+        } else {
+            selectedMotor = distInt(gen);
+        }
+        activateMotor(selectedMotor);
+    }
+    return selectedMotor;
 }
 
 void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) {
@@ -64,15 +86,15 @@ void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) 
                 case 0:
                     m_leftMotor1Pub.move(motorMapping[i].second);
                     break;
-                    //                case 1:
-                    //                    m_leftMotor2Pub.move(motorMapping[i].second);
-                    //                    break;
-                    //                case 2:
-                    //                    m_rightMotor1Pub.move(motorMapping[i].second);
-                    //                    break;
-                    //                case 3:
-                    //                    m_rightMotor2Pub.move(motorMapping[i].second);
-                    //                    break;
+                case 1:
+                    m_leftMotor2Pub.move(motorMapping[i].second);
+                    break;
+                case 2:
+                    m_rightMotor1Pub.move(motorMapping[i].second);
+                    break;
+                case 3:
+                    m_rightMotor2Pub.move(motorMapping[i].second);
+                    break;
             }
         }
     }
@@ -85,7 +107,6 @@ bool SimulationInterface::poissonProcess() {
 
     double random = dist(gen);
     double F = 1 - std::exp(- m_lambda * m_elapsedTime);
-    std::cout << F << std::endl;
 
     if (random < F) {
         m_elapsedTime = 0;
@@ -106,14 +127,14 @@ void SimulationInterface::activateMotor(uint64_t motor) {
         case 0:
             m_leftMotor1Pub.move(motorMapping[motor].second);
             break;
-            //        case 1:
-            //            m_leftMotor2Pub.move(motorMapping[motor].second);
-            //            break;
-            //        case 2:
-            //            m_rightMotor1Pub.move(motorMapping[motor].second);
-            //            break;
-            //        case 3:
-            //            m_rightMotor2Pub.move(motorMapping[motor].second);
-            //            break;
+        case 1:
+            m_leftMotor2Pub.move(motorMapping[motor].second);
+            break;
+        case 2:
+            m_rightMotor1Pub.move(motorMapping[motor].second);
+            break;
+        case 3:
+            m_rightMotor2Pub.move(motorMapping[motor].second);
+            break;
     }
 }

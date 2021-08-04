@@ -29,14 +29,13 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
     std::cout << std::endl;
 
     generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
+
     addLayer("SimpleCell", m_conf.SharingType, { m_conf.L1XAnchor, m_conf.L1YAnchor, { 0 } },{ m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth }, {
         m_conf.Neuron1Width, m_conf.Neuron1Height, 0 });
     addLayer("ComplexCell", "none", { m_conf.L2XAnchor, m_conf.L2YAnchor, { 0 } }, { m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth }, {
         m_conf.Neuron2Width, m_conf.Neuron2Height, m_conf.Neuron2Depth } );
     addLayer("MotorCell", "none", { { 0 }, { 0 }, { 0 } }, { m_conf.L3Size, 1, 1 }, { 0, 0, 0 });
 
-//    generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
-//    generateNeuronConfiguration();
     assignNeurons();
 
     if (m_conf.SaveData) {
@@ -170,10 +169,11 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
     if (m_conf.SharingType == "none") {
         for (size_t i = 0; i < m_nbSimpleNeurons; ++i) {
             if (simpleNeuronStored) {
-                m_sharedWeightsSimple.emplace_back(NBPOLARITY, m_conf.NbCameras, static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height));
+                m_sharedWeightsSimple.emplace_back(NBPOLARITY, m_conf.NbCameras, static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>
+                (m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height));
             } else {
-                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_conf.NbCameras),
-                                                                          static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height)));
+                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_conf.NbCameras),static_cast<long>(m_conf
+                .Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height)));
             }
         }
     } else {
@@ -189,10 +189,11 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
         for (size_t patch = 0; patch < patch_size; ++patch) {
             for (size_t j = 0; j < m_conf.L1Depth; ++j) {
                 if (simpleNeuronStored) {
-                    m_sharedWeightsSimple.emplace_back(NBPOLARITY, m_conf.NbCameras, static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height));
+                    m_sharedWeightsSimple.emplace_back(NBPOLARITY, m_conf.NbCameras, static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>
+                    (m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height));
                 } else {
-                    m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_conf.NbCameras),
-                                                                              static_cast<long>(m_conf.Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height)));
+                    m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_conf.NbCameras), static_cast<long>
+                    (m_conf.Neuron1Synapses), static_cast<long>(m_conf.Neuron1Width), static_cast<long>(m_conf.Neuron1Height)));
                 }
             }
         }
@@ -201,18 +202,22 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
     // complex cells weight matrix
     for (size_t i = 0; i < m_nbComplexNeurons; ++i) {
         if (complexNeuronStored) {
-            m_sharedWeightsComplex.emplace_back(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf.Neuron2Height), static_cast<long>(m_conf.Neuron2Depth));
+            m_sharedWeightsComplex.emplace_back(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf.Neuron2Height), static_cast<long>
+            (m_conf.Neuron2Depth));
         } else {
-            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf.Neuron2Height), static_cast<long>(m_conf.Neuron2Depth)));
+            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.Neuron2Width), static_cast<long>(m_conf
+            .Neuron2Height),static_cast<long>(m_conf.Neuron2Depth)));
         }
     }
 
     // motor cells weight matrix
     for (size_t i = 0; i < m_nbMotorNeurons; ++i) {
         if (motorNeuronStored) {
-            m_sharedWeightsMotor.emplace_back(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth));
+            m_sharedWeightsMotor.emplace_back(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size
+            () * m_conf.L2Height), static_cast<long>(m_conf.L2Depth));
         } else {
-            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth)));
+            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width),
+                                                                      static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth)));
         }
     }
 }
