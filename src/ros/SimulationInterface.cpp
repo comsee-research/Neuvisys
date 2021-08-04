@@ -4,7 +4,7 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface() {
+SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignal(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
@@ -37,21 +37,24 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
     m_rewardStored = reward.getMessage()->data;
 }
 
-double SimulationInterface::update() {
+int SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
 
-//    if (hasReceivedLeftImage()) {
-//        auto motorActivation = m_spinet.run(leftEvents, m_rewardStored);
-//        activateMotors(motorActivation, dt);
-//        resetLeft();
-//    }
-//    if (hasReceivedRightImage()) {
-//        auto motorActivation = m_spinet.run(rightEvents, m_rewardStored);
-//        activateMotors(motorActivation, dt);
-//        resetRight();
-//    }
     m_lastImageTime = m_imageTime;
-    return dt;
+    m_elapsedTime += dt;
+
+    if (poissonProcess()) {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> dist(0, 2);
+
+        auto motor = dist(gen);
+        activateMotor(motor);
+        return motor;
+    }
+
+    return -1;
+//    motorsJitter(dt);
 }
 
 void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) {
@@ -73,7 +76,22 @@ void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) 
             }
         }
     }
+}
 
+bool SimulationInterface::poissonProcess() {
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+    double random = dist(gen);
+    double F = 1 - std::exp(- m_lambda * m_elapsedTime);
+    std::cout << F << std::endl;
+
+    if (random < F) {
+        m_elapsedTime = 0;
+        return true;
+    }
+    return false;
 }
 
 void SimulationInterface::motorsJitter(double dt) {

@@ -78,13 +78,16 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 }
 
 void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
-    SimulationInterface sim;
+    SimulationInterface sim(1. / 150);
 
     while (!m_stop) {
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
-            auto dt = sim.update();
+            auto motor = sim.update();
+            if (motor != -1) {
+                m_motorDisplay[motor] = true;
+            }
 
             spinet.setReward(sim.getReward());
             for (const Event &event : sim.getLeftEvents()) {

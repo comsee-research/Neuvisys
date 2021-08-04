@@ -8,7 +8,7 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
     std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     SpikingNetwork spinet(networkPath);
-    SimulationInterface sim;
+    SimulationInterface sim(1. / 150);
 
     auto start = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();

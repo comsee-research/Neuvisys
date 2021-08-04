@@ -29,8 +29,16 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
     std::cout << std::endl;
 
     generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
-    generateNeuronConfiguration();
+    addLayer("SimpleCell", m_conf.SharingType, { m_conf.L1XAnchor, m_conf.L1YAnchor, { 0 } },{ m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth }, {
+        m_conf.Neuron1Width, m_conf.Neuron1Height, 0 });
+    addLayer("ComplexCell", "none", { m_conf.L2XAnchor, m_conf.L2YAnchor, { 0 } }, { m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth }, {
+        m_conf.Neuron2Width, m_conf.Neuron2Height, m_conf.Neuron2Depth } );
+    addLayer("MotorCell", "none", { { 0 }, { 0 }, { 0 } }, { m_conf.L3Size, 1, 1 }, { 0, 0, 0 });
+
+//    generateWeightSharing(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
+//    generateNeuronConfiguration();
     assignNeurons();
+
     if (m_conf.SaveData) {
         loadWeights(simpleNeuronStored, complexNeuronStored, motorNeuronStored);
     }
@@ -209,56 +217,50 @@ void SpikingNetwork::generateWeightSharing(bool simpleNeuronStored, bool complex
     }
 }
 
-void SpikingNetwork::generateNeuronConfiguration() {
+void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
+                              const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     size_t neuronIndex = 0;
     size_t weightIndex;
-    size_t countWeightSharing = 0; // create simple cell neurons
-    for (size_t x = 0; x < m_conf.L1XAnchor.size(); ++x) {
-        for (size_t y = 0; y < m_conf.L1YAnchor.size(); ++y) {
-            for (size_t i = 0; i < m_conf.L1Width; ++i) {
-                for (size_t j = 0; j < m_conf.L1Height; ++j) {
-                    for (size_t k = 0; k < m_conf.L1Depth; ++k) {
-                        if (m_conf.SharingType == "none") {
-                            weightIndex = neuronIndex;
-                        } else if (m_conf.SharingType == "full" || m_conf.SharingType == "patch") {
-                            weightIndex = countWeightSharing * m_conf.L1Depth + k;
+    size_t countWeightSharing = 0;
+
+    for (size_t x = 0; x < layerPatches[0].size(); ++x) {
+        for (size_t y = 0; y < layerPatches[1].size(); ++y) {
+            for (size_t z = 0; z < layerPatches[2].size(); ++z) {
+                for (size_t i = 0; i < layerSizes[0]; ++i) {
+                    for (size_t j = 0; j < layerSizes[1]; ++j) {
+                        for (size_t k = 0; k < layerSizes[2]; ++k) {
+                            if (sharingType == "none") {
+                                weightIndex = neuronIndex;
+                            } else if (sharingType == "full" || sharingType == "patch") {
+                                weightIndex = countWeightSharing * layerSizes[2] + k;
+                            }
+
+                            auto pos = Position(x * layerSizes[0] + i, y * layerSizes[1] + j, z * layerSizes[2] + k);
+                            auto offset = Position(layerPatches[0][x] + i * neuronSizes[0], layerPatches[1][y] + j * neuronSizes[1]);
+
+                            if (neuronType == "SimpleCell") {
+                                m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, m_simpleNeuronConf, pos, offset,
+                                                                          m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
+                                m_layout1[{pos.posx(), pos.posy(), pos.posz()}] = neuronIndex;
+                            } else if (neuronType == "ComplexCell") {
+                                m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf, pos, offset,
+                                                                            m_sharedWeightsComplex[neuronIndex]));
+                                m_layout2[{pos.posx(), pos.posy(), pos.posz()}] = neuronIndex;
+                            } else if (neuronType == "MotorCell") {
+                                m_motorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsMotor[neuronIndex]));
+                                m_layout3[{pos.posx(), pos.posy(), pos.posz()}] = neuronIndex;
+                            } else {
+                                std::cout << "No matching cell type" << std::endl;
+                            }
+                            ++neuronIndex;
                         }
-                        m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, m_simpleNeuronConf, Position(x * m_conf.L1Width + i, y * m_conf.L1Height + j, k),
-                                                                  Position(m_conf.L1XAnchor[x] + i * m_conf.Neuron1Width, m_conf.L1YAnchor[y] + j * m_conf.Neuron1Height),
-                                                                  m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
-                        m_layout1[{x * m_conf.L1Width + i, y * m_conf.L1Height + j, k}] = neuronIndex;
-                        ++neuronIndex;
                     }
                 }
-            }
-            if (m_conf.SharingType == "patch") {
-                ++countWeightSharing;
-            }
-        }
-    }
-
-    neuronIndex = 0; // create complex cell neurons
-    for (size_t x = 0; x < m_conf.L2XAnchor.size(); ++x) {
-        for (size_t y = 0; y < m_conf.L2YAnchor.size(); ++y) {
-            for (size_t i = 0; i < m_conf.L2Width; ++i) {
-                for (size_t j = 0; j < m_conf.L2Height; ++j) {
-                    for (size_t k = 0; k < m_conf.L2Depth; ++k) {
-                        m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf, Position(x * m_conf.L2Width + i, y * m_conf.L2Height + j, k),
-                                                                    Position(m_conf.L2XAnchor[x] + i * m_conf.Neuron2Width, m_conf.L2YAnchor[y] + j * m_conf.Neuron2Height),
-                                                                    m_sharedWeightsComplex[neuronIndex]));
-                        m_layout2[{x * m_conf.L2Width + i, y * m_conf.L2Height + j, k}] = neuronIndex;
-                        ++neuronIndex;
-                    }
+                if (sharingType == "patch") {
+                    ++countWeightSharing;
                 }
             }
         }
-    }
-
-    neuronIndex = 0; // create motor cell neurons
-    for (size_t i = 0; i < m_conf.L3Size; ++i) {
-        m_motorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, Position(i, 0, 0), m_sharedWeightsMotor[i]));
-        m_layout3[{i, 0, 0}] = neuronIndex;
-        ++neuronIndex;
     }
 }
 

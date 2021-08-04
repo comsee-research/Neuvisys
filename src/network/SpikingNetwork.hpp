@@ -24,6 +24,8 @@ class SpikingNetwork {
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsMotor;
 
+    std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
+
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
     std::vector<MotorNeuron> m_motorNeurons;
@@ -79,6 +81,11 @@ private:
     void generateNeuronConfiguration();
     void assignNeurons();
     Position findPixelComplexNeuron(ComplexNeuron &neuron);
+
+    void addLayer(const std::string &neuronType, const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
+                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+    void connectLayer(std::vector<Neuron> &prevLayer, std::vector<Neuron> &currLayer, const std::string &neuronType, bool inhibition,
+                      size_t xSize, size_t ySize, size_t zSize);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

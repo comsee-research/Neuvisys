@@ -21,9 +21,10 @@ class SimulationInterface {
     Motor m_rightMotor1Pub = Motor(nh, "rightmotor1");
     Motor m_rightMotor2Pub = Motor(nh, "rightmotor2");
     ros::Time m_lastImageTime, m_imageTime;
+    double m_elapsedTime{};
+    double m_lambda{};
 
     double m_rewardStored{};
-    long et = 0;
     bool receivedLeftImage = false, receivedRightImage = false;
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
@@ -32,8 +33,8 @@ class SimulationInterface {
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
 public:
-    SimulationInterface();
-    double update();
+    SimulationInterface(double lambda);
+    int update();
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }
@@ -48,6 +49,7 @@ public:
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
+    bool poissonProcess();
 };
 
 #endif //NEUVISYS_SIMULATIONINTERFACE_HPP
