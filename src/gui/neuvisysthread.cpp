@@ -2,8 +2,7 @@
 
 #include <utility>
 
-NeuvisysThread::NeuvisysThread(int argc, char** argv, QObject *parent) : QThread(parent), m_initArgc(argc), m_initArgv(argv), m_motorDisplay
-(std::vector<bool>(3, false)) {
+NeuvisysThread::NeuvisysThread(int argc, char** argv, QObject *parent) : QThread(parent), m_initArgc(argc), m_initArgv(argv) {
     m_frameTime = std::chrono::high_resolution_clock::now();
     m_iterations = 0;
     m_nbPass = 0;
@@ -38,6 +37,7 @@ void NeuvisysThread::run() {
                          spinet.getNumberComplexNeurons(), spinet.getNumberMotorNeurons());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
+    m_motorDisplay = std::vector<bool>(spinet.getNetworkConfig().L3Size, false);
 
     if (m_realtime) {
         rosPass(spinet);
@@ -58,7 +58,7 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 
     for (auto event : eventPacket) {
         addEventToDisplay(event);
-        spinet.runEvent(event, 0);
+        spinet.runEvent(event);
 
         std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
         if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
@@ -86,26 +86,13 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
         if (sim.hasReceivedLeftImage()) {
             auto dt = sim.update();
 
-            for (auto event : sim.getLeftEvents()) {
+            spinet.setReward(sim.getReward());
+            for (const Event &event : sim.getLeftEvents()) {
                 addEventToDisplay(event);
-
-                spinet.runEvent(event, sim.getReward());
-
-                std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-                if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
-                    m_frameTime = std::chrono::high_resolution_clock::now();
-                    display(spinet, sim.getLeftEvents().size());
-                }
-
-                std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-                if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
-                    m_trackingTime = std::chrono::high_resolution_clock::now();
-                    spinet.trackNeuron(event.timestamp(), m_id, m_cellType);
-                }
+                spinet.runEvent(event);
             }
 
             auto activations = spinet.getMotorActivation();
-
             size_t count = 0;
             for (auto action : spinet.getMotorActivation()) {
                 if (action > 0) {
@@ -113,6 +100,18 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 }
                 ++count;
             }
+
+            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+            if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
+                m_frameTime = std::chrono::high_resolution_clock::now();
+                display(spinet, 0);
+            }
+
+//            std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
+//            if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
+//                m_trackingTime = std::chrono::high_resolution_clock::now();
+//                spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_cellType);
+//            }
 
             sim.activateMotors(activations);
             spinet.resetMotorActivation();
@@ -123,7 +122,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     emit networkDestruction();
 }
 
-inline void NeuvisysThread::addEventToDisplay(Event &event) {
+inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     if (event.camera() == 0) {
         if (m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[1] == 0 && m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2] == 0) {
             m_leftEventDisplay.at<cv::Vec3b>(event.y(), event.x())[2 - event.polarity()] = 255;
@@ -136,8 +135,12 @@ inline void NeuvisysThread::addEventToDisplay(Event &event) {
 }
 
 inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
-    emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_id, m_cellType).getSpikingRate(),
-                         spinet.getNeuron(m_id, m_cellType).getThreshold());
+    if (sizeArray == 0) {
+        emit displayProgress(0, 1000 * spinet.getNeuron(m_id, m_cellType).getSpikingRate(), spinet.getNeuron(m_id, m_cellType).getThreshold());
+    } else {
+        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), 1000 * spinet.getNeuron(m_id, m_cellType).getSpikingRate(), spinet
+        .getNeuron(m_id, m_cellType).getThreshold());
+    }
 
     for (auto xPatch : spinet.getNetworkConfig().L1XAnchor) {
         for (auto yPatch : spinet.getNetworkConfig().L1YAnchor) {
@@ -184,7 +187,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
                                                                                                                                  m_cellType));
     emit displayReward(spinet.getRewards());
     emit displayAction(m_motorDisplay);
-    m_motorDisplay = std::vector<bool>(3, false);
+    m_motorDisplay = std::vector<bool>(spinet.getNetworkConfig().L3Size, false);
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;
 }

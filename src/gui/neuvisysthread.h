@@ -78,7 +78,7 @@ private:
     void multiplePass(SpikingNetwork &spinet);
     void rosPass(SpikingNetwork &spinet);
     void display(SpikingNetwork &spinet, size_t sizeArray);
-    void addEventToDisplay(Event &event);
+    void addEventToDisplay(const Event &event);
 };
 
 #endif // NEUVISYSTHREAD_H

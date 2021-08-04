@@ -93,8 +93,7 @@ void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const doub
     }
 }
 
-void SpikingNetwork::runEvent(const Event &event, const double reward) {
-    setReward(reward);
+void SpikingNetwork::runEvent(const Event &event) {
     addEvent(event);
 
     if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {

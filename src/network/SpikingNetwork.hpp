@@ -43,7 +43,7 @@ class SpikingNetwork {
 public:
     explicit SpikingNetwork(const std::string &conf);
     void runEvents(const std::vector<Event> &eventPacket, double reward);
-    void runEvent(const Event &event, double reward);
+    void runEvent(const Event &event);
     void addEvent(const Event &event);
     void updateNeuronsParameters(long time);
 
