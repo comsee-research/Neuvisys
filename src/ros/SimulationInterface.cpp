@@ -37,46 +37,31 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
     m_rewardStored = reward.getMessage()->data;
 }
 
-int SimulationInterface::update() {
+void SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
-
     m_lastImageTime = m_imageTime;
-    m_elapsedTime += dt;
 
-    if (poissonProcess()) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_int_distribution<> dist(0, 2);
-
-        auto motor = dist(gen);
-        activateMotor(motor);
-        return motor;
-    }
-    return -1;
 //    motorsJitter(dt);
 }
 
-int SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation) {
-    int selectedMotor = -1;
-    size_t sum = 0;
-    for (auto &ele : motorActivation) {
-        sum += ele;
-    }
+size_t SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation) {
+    int selectedMotor;
 
-    if (sum > 0) {
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<double> distReal(0.0, 1.0);
-        std::uniform_int_distribution<> distInt(0, 2);
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distReal(0.0, 1.0);
+    std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
 
-        if (distReal(gen) >= 0.1) {
-            selectedMotor = Util::winnerTakeAll(motorActivation);
-        } else {
-            selectedMotor = distInt(gen);
-        }
-        activateMotor(selectedMotor);
+    auto real = distReal(gen);
+    if (real >= 0.1) {
+        selectedMotor = Util::winnerTakeAll(motorActivation);
     }
-    return selectedMotor;
+    if (real < 0.1 || selectedMotor == -1) {
+        selectedMotor = distInt(gen);
+    }
+    activateMotor(static_cast<size_t>(selectedMotor));
+
+    return static_cast<size_t>(selectedMotor);
 }
 
 void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) {

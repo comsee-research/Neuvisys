@@ -125,7 +125,7 @@ namespace Util {
             }
         }
 
-        if (max == 0) {
+        if (argsmax.empty()) {
             return -1;
         } else {
             std::vector<int> randomArgmax;

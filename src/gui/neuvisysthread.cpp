@@ -84,7 +84,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
-            auto selectedMotor = sim.update();
+            sim.update();
 
             spinet.setReward(sim.getReward());
             for (const Event &event : sim.getLeftEvents()) {
@@ -92,12 +92,12 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 spinet.runEvent(event);
             }
 
-            if (!sim.getLeftEvents().empty() && selectedMotor == -1) {
-                selectedMotor = sim.motorAction(spinet.getMotorActivation());
-                if (selectedMotor != -1) {
-                    m_motorDisplay[selectedMotor] = true;
-                }
-            } else if (selectedMotor != -1) {
+            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
+            if (1000000 * frameElapsed.count() > static_cast<double>(100000)) {
+                m_motorTime = std::chrono::high_resolution_clock::now();
+
+                auto selectedMotor = sim.motorAction(spinet.getMotorActivation());
+                auto motorNeuron = spinet.getNeuron(selectedMotor, 2);
                 m_motorDisplay[selectedMotor] = true;
             }
 
