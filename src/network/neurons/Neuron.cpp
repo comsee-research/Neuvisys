@@ -34,7 +34,7 @@ inline double Neuron::adaptationPotentialDecay(const long time) {
 inline void Neuron::thresholdAdaptation() {
     m_recentSpikes.pop_back();
     m_recentSpikes.push_front(m_countSpike);
-    m_countSpike = 0;
+    resetSpikeCounter();
 
     for (size_t count : m_recentSpikes) {
         m_spikingRate += static_cast<double>(count);

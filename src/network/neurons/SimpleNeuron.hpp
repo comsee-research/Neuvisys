@@ -21,8 +21,8 @@ public:
     bool newEvent(Event event) override;
     bool update() override;
     double getWeights(long p, long c, long s, long x, long y);
-    void saveWeights(std::string &saveFile);
-    void loadWeights(std::string &filePath);
+    void saveWeights(std::string &saveFile) override;
+    void loadWeights(std::string &filePath) override;
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 private:
     bool membraneUpdate(Event event);

@@ -38,15 +38,17 @@ protected:
 public:
     Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset);
     virtual size_t getIndex() { return m_index; }
-    virtual Position getPos() { return m_pos; }
+    virtual Position getPos() const { return m_pos; }
     virtual Position getOffset() { return m_offset; }
     virtual double getThreshold() { return m_threshold; }
     virtual double getSpikingRate() { return m_spikingRate; }
     virtual double getLearningDecay() { return m_learningDecay; }
-    virtual long getSpikingTime() { return m_spikingTime; }
+    virtual long getSpikingTime() const { return m_spikingTime; }
     virtual double getAdaptationPotential() { return m_adaptation_potential; }
-    virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() { return m_outConnections; }
-    virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() { return m_inConnections; }
+    virtual size_t getSpikeCount() { return m_countSpike; }
+    virtual void resetSpikeCounter() { m_countSpike = 0; }
+    virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
+    virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() { return m_inhibitionConnections; }
 
     virtual const std::vector<double> &getTrackingThresholds() { return m_trackingThresholds; }
@@ -61,6 +63,8 @@ public:
     virtual void inhibition();
     virtual void saveState(std::string &fileName);
     virtual void loadState(std::string &fileName);
+    virtual void saveWeights(std::string &fileName) {};
+    virtual void loadWeights(std::string &fileName) {};
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
 

@@ -9,10 +9,10 @@ protected:
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 public:
     ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, COMPLEXDIM> &weights);
-    bool newEvent(NeuronEvent event) override;
+    bool newEvent(NeuronEvent event, double reward) override;
     double getWeights(long x, long y, long z);
-    void saveWeights(std::string &saveFile);
-    void loadWeights(std::string &filePath);
+    void saveWeights(std::string &saveFile) override;
+    void loadWeights(std::string &filePath) override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void spike(long time);

@@ -133,6 +133,15 @@ namespace Util {
             return randomArgmax[0];
         }
     }
+
+    bool fileExist(std::string &path) {
+        if (FILE *file = fopen(path.c_str(), "r")) {
+            fclose(file);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }
 
 Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}

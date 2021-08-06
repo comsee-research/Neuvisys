@@ -18,8 +18,8 @@ public:
     bool newEvent(NeuronEvent event, double reward) override;
     MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
     void spike(long time);
-    void saveWeights(std::string &saveFile);
-    void loadWeights(std::string &filePath);
+    void saveWeights(std::string &saveFile) override;
+    void loadWeights(std::string &filePath) override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void updateSTDP();

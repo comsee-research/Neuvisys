@@ -96,7 +96,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             if (1000000 * frameElapsed.count() > static_cast<double>(100000)) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
-                auto selectedMotor = sim.motorAction(spinet.getMotorActivation());
+                auto selectedMotor = sim.motorAction(spinet.resolveMotor());
                 auto motorNeuron = spinet.getNeuron(selectedMotor, 2);
                 m_motorDisplay[selectedMotor] = true;
             }
@@ -113,7 +113,6 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 //                spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_cellType);
 //            }
 
-            spinet.resetMotorActivation();
             sim.resetLeft();
         }
     }
