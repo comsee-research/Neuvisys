@@ -92,7 +92,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     }
 }
 
-inline std::vector<uint64_t> SpikingNetwork::resolveMotor() {
+std::vector<uint64_t> SpikingNetwork::resolveMotor() {
     std::vector<uint64_t> motorActivations(m_neurons[m_neurons.size() - 1].size(), 0);
     for (auto &neuron : m_neurons[m_neurons.size() - 1]) {
         motorActivations[neuron.get().getIndex()] = neuron.get().getSpikeCount();
@@ -108,7 +108,7 @@ void SpikingNetwork::updateNeurons(const long time) {
                 for (auto &simpleNeuronToInhibit : simpleNeuron.getInhibitionConnections()) {
                     simpleNeuronToInhibit.get().inhibition();
                 }
-//                addComplexEvent(simpleNeuron);
+                addNeuronEvent(simpleNeuron);
             }
         }
     }
@@ -169,8 +169,8 @@ void SpikingNetwork::generateWeightSharing() {
             m_sharedWeightsMotor.emplace_back(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width), static_cast<long>(m_conf.L2YAnchor.size
             () * m_conf.L2Height), static_cast<long>(m_conf.L2Depth));
         } else {
-            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.L2XAnchor.size() * m_conf.L2Width),
-                                                                      static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth)));
+            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(m_conf.L2XAnchor.size() *
+            m_conf.L2Width),static_cast<long>(m_conf.L2YAnchor.size() * m_conf.L2Height), static_cast<long>(m_conf.L2Depth)));
         }
     }
 }
@@ -180,8 +180,6 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
     size_t neuronIndex = 0;
     size_t weightIndex;
     size_t countWeightSharing = 0;
-
-    size_t index = m_neurons.size();
     m_layout.emplace_back();
 
     for (size_t x = 0; x < layerPatches[0].size(); ++x) {
@@ -210,7 +208,7 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                             } else {
                                 std::cout << "No matching cell type" << std::endl;
                             }
-                            m_layout[index][{pos.posx(), pos.posy(), pos.posz()}] = neuronIndex;
+                            m_layout[m_neurons.size()][{pos.posx(), pos.posy(), pos.posz()}] = neuronIndex;
                             ++neuronIndex;
                         }
                     }

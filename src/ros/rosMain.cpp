@@ -19,13 +19,12 @@ int main(int argc, char **argv) {
         if (sim.hasReceivedLeftImage()) {
             time = std::chrono::system_clock::now();
 
-            auto selectedMotor = sim.update();
+            sim.update();
 
             spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
-            selectedMotor = sim.motorAction(spinet.getMotorActivation());
+            auto selectedMotor = sim.motorAction(spinet.resolveMotor());
 
-            spinet.resetMotorActivation();
             sim.resetLeft();
         }
     }
