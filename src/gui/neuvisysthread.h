@@ -40,7 +40,7 @@ signals:
     void displayReward(const std::vector<double> &rewardTrain);
     void displayAction(const std::vector<bool> &motorActivation);
     void networkConfiguration(std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
-    void networkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();
 
 protected:

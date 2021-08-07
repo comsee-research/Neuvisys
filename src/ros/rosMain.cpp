@@ -13,6 +13,9 @@ int main(int argc, char **argv) {
     auto start = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
 
+    std::chrono::time_point<std::chrono::system_clock> motorTime;
+    motorTime = std::chrono::high_resolution_clock::now();
+
     while (std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 180 * 1000) {
         ros::spinOnce();
 
@@ -23,7 +26,12 @@ int main(int argc, char **argv) {
 
             spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
-            auto selectedMotor = sim.motorAction(spinet.resolveMotor());
+            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - motorTime;
+            if (1000000 * frameElapsed.count() > static_cast<double>(100000)) {
+                motorTime = std::chrono::high_resolution_clock::now();
+
+                auto selectedMotor = sim.motorAction(spinet.resolveMotor());
+            }
 
             sim.resetLeft();
         }

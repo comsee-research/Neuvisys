@@ -216,6 +216,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::map<size_t, std::vector<long>>>("std::map<size_t, std::vector<long>>");
     qRegisterMetaType<std::vector<double>>("std::vector<double>");
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
+    qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
     connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);
@@ -296,17 +297,20 @@ widthPatchSize, const size_t heightPatchSize) {
     }
 }
 
-void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses, const size_t nbSimpleNeurons, const size_t nbComplexNeurons,
-                                    const size_t nbMotorNeurons) {
+void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses, const std::vector<size_t> &networkStructure) {
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
 
-    QString message = QString("Network structure: ") % QString::number(nbSimpleNeurons) % QString(" / ") % QString::number(nbComplexNeurons) %
-                      QString(" / ") % QString::number(nbMotorNeurons) % QString("\n");
+    QString message = QString("Network structure: ");
+    for (auto structure : networkStructure) {
+        message.append(QString::number(structure));
+        message.append(QString(" / "));
+    }
+    message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
     std::vector<QString> labels = { QString("Left"), QString("Nothing"), QString("Right") };
-    for (size_t i = 0; i < nbMotorNeurons; ++i) {
+    for (size_t i = 0; i < networkStructure[networkStructure.size()-1]; ++i) {
         auto *label = new QLabel(this);
         label->setText(QString(labels[i]));
 

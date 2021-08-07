@@ -33,8 +33,7 @@ void NeuvisysThread::run() {
     emit networkConfiguration(spinet.getNetworkConfig().SharingType, spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width,
                               spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height, spinet.getNetworkConfig().L1Depth,
                               spinet.getNetworkConfig().L1XAnchor.size(), spinet.getNetworkConfig().L1YAnchor.size());
-    emit networkCreation(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNumberSimpleNeurons(),
-                         spinet.getNumberComplexNeurons(), spinet.getNumberMotorNeurons());
+    emit networkCreation(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNetworkStructure());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_motorDisplay = std::vector<bool>(spinet.getNetworkConfig().L3Size, false);
@@ -79,6 +78,7 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 
 void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     SimulationInterface sim(1. / 150);
+    std::chrono::duration<double> timeElapsed{};
 
     while (!m_stop) {
         ros::spinOnce();
@@ -92,23 +92,23 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 spinet.runEvent(event);
             }
 
-            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
-            if (1000000 * frameElapsed.count() > static_cast<double>(100000)) {
+            timeElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
+            if (1000000 * timeElapsed.count() > static_cast<double>(100000)) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
                 auto selectedMotor = sim.motorAction(spinet.resolveMotor());
-                auto motorNeuron = spinet.getNeuron(selectedMotor, 2);
+                auto motorNeuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
                 m_motorDisplay[selectedMotor] = true;
             }
 
-            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
-            if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
+            timeElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+            if (1000000 * timeElapsed.count() > static_cast<double>(m_precisionEvent)) {
                 m_frameTime = std::chrono::high_resolution_clock::now();
                 display(spinet, 0);
             }
 
-//            std::chrono::duration<double> trackingElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
-//            if (1000000 * trackingElapsed.count() > static_cast<double>(m_precisionPotential)) {
+//            timeElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
+//            if (1000000 * timeElapsed.count() > static_cast<double>(m_precisionPotential)) {
 //                m_trackingTime = std::chrono::high_resolution_clock::now();
 //                spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_cellType);
 //            }
@@ -155,9 +155,9 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     size_t count = 0;
     for (size_t i = 0; i < spinet.getNetworkConfig().L1XAnchor.size() * spinet.getNetworkConfig().L1Width; ++i) {
         for (size_t j = 0; j < spinet.getNetworkConfig().L1YAnchor.size() * spinet.getNetworkConfig().L1Height; ++j) {
-            m_spikeTrain[count] = spinet.getSpikingNeuron(spinet.getLayout1(i, j, m_layer), 0);
+            m_spikeTrain[count] = spinet.getSpikingNeuron(spinet.getLayout(0, i, j, m_layer), 0);
             if (spinet.getNetworkConfig().SharingType == "none") {
-                m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout1(i, j, m_layer), m_camera, m_synapse, 0, 0);
+                m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(0, i, j, m_layer), m_camera, m_synapse);
             }
             ++count;
         }
@@ -168,15 +168,15 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
             for (size_t hp = 0; hp < spinet.getNetworkConfig().L1YAnchor.size(); ++hp) {
                 for (size_t i = 0; i < spinet.getNetworkConfig().L1Depth; ++i) {
                     m_weightDisplay[count] = spinet.getWeightNeuron(
-                            spinet.getLayout1(wp * spinet.getNetworkConfig().L1Width, hp * spinet.getNetworkConfig().L1Height, i), m_camera,
-                            m_synapse, 0, 0);
+                            spinet.getLayout(0, wp * spinet.getNetworkConfig().L1Width, hp * spinet.getNetworkConfig().L1Height, i), m_camera,
+                            m_synapse);
                     ++count;
                 }
             }
         }
     } else if (spinet.getNetworkConfig().SharingType == "full") {
         for (size_t i = 0; i < spinet.getNetworkConfig().L1Depth; ++i) {
-            m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout1(0, 0, i), m_camera, m_synapse, 0, 0);
+            m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout(0, 0, 0, i), m_camera, m_synapse);
         }
     }
     emit displayWeights(m_weightDisplay);

@@ -14,6 +14,7 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event, double reward) {
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
+
     m_potential += m_weights(event.x(), event.y(), event.z())
                 - refractoryPotential(event.timestamp() - m_spikingTime)
                 - m_adaptation_potential;

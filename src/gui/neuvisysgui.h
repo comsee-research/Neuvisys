@@ -33,7 +33,7 @@ public slots:
     void onDisplayAction(const std::vector<bool> &motorActivation);
     void onNetworkConfiguration(const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t
     heightPatchSize);
-    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
     void onFinished();
 
 signals:

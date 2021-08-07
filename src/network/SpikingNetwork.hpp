@@ -32,10 +32,6 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_motorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
-    uint64_t m_nbSimpleNeurons{};
-    uint64_t m_nbComplexNeurons{};
-    uint64_t m_nbMotorNeurons{};
-
 public:
     explicit SpikingNetwork(const std::string &conf);
     void runEvents(const std::vector<Event> &eventPacket, double reward);
@@ -44,16 +40,14 @@ public:
     void updateNeuronsParameters(long time);
 
     Neuron &getNeuron(size_t index, size_t layer);
-    [[nodiscard]] size_t getNumberSimpleNeurons() const { return m_nbSimpleNeurons; }
-    [[nodiscard]] size_t getNumberComplexNeurons() const { return m_nbComplexNeurons; }
-    [[nodiscard]] size_t getNumberMotorNeurons() const { return m_nbMotorNeurons; }
+    std::vector<size_t> getNetworkStructure();
     NetworkConfig getNetworkConfig() { return m_conf; }
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout(size_t layer, uint64_t x, uint64_t y, uint64_t z) { return m_layout[layer][{x, y, z}]; }
     std::vector<double> &getRewards() { return m_listReward; }
     void trackNeuron(long time, size_t simpleId = 0, size_t complexId = 0);
-    cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
+    cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse);
     const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
     const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
@@ -64,7 +58,7 @@ private:
     void updateNeurons(long time);
     void saveNeuronsStates();
     void loadWeights();
-    void generateWeightSharing();
+    void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes);
     Position findPixelComplexNeuron(ComplexNeuron &neuron);
     void addLayer(const std::string &neuronType, const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
