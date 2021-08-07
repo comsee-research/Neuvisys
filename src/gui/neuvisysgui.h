@@ -38,14 +38,14 @@ public slots:
 
 signals:
     void indexChanged(size_t index);
-    void layerChanged(size_t layer);
+    void depthChanged(size_t depth);
     void cameraChanged(size_t camera);
     void synapseChanged(size_t synapse);
     void precisionEventChanged(size_t precisionEvent);
     void rangePotentialChanged(size_t rangePotential);
     void precisionPotentialChanged(size_t precisionPotential);
     void rangeSpikeTrainChanged(size_t rangeSpiketrain);
-    void cellTypeChanged(size_t cellType);
+    void layerChanged(size_t layer);
     void stopNetwork();
 
 private slots:
@@ -64,10 +64,7 @@ private slots:
     void on_slider_range_potential_sliderMoved(int position);
     void on_slider_precision_potential_sliderMoved(int position);
     void on_slider_range_spiketrain_sliderMoved(int position);
-    void on_radio_button_simple_cell_clicked();
-    void on_radio_button_complex_cell_clicked();
-    void on_radio_button_motor_cell_clicked();
-
+    void on_slider_layer_sliderMoved(int position);
     void on_button_stop_network_clicked();
 
 protected:
@@ -83,10 +80,10 @@ protected:
     QGraphicsPixmapItem rightEvents;
 
     size_t id;
-    size_t layer;
+    size_t depthViz;
     size_t camera;
     size_t synapse;
-    size_t cellType;
+    size_t layer;
     size_t precisionEvent;
     size_t precisionPotential;
     size_t rangePotential;

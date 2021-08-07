@@ -3,10 +3,10 @@
 
 NeuvisysGUI::NeuvisysGUI(int argc, char** argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI), neuvisysThread(argc, argv) {
     id = 0;
-    layer = 0;
+    depthViz = 0;
     camera = 0;
     synapse = 0;
-    cellType = 0;
+    layer = 0;
     precisionEvent = 30000;
     precisionPotential = 10000;
     rangePotential = 1000000;
@@ -231,14 +231,14 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     neuvisysThread.init();
 
     connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
-    connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
+    connect(this, &NeuvisysGUI::depthChanged, &neuvisysThread, &NeuvisysThread::onDepthChanged);
     connect(this, &NeuvisysGUI::cameraChanged, &neuvisysThread, &NeuvisysThread::onCameraChanged);
     connect(this, &NeuvisysGUI::synapseChanged, &neuvisysThread, &NeuvisysThread::onSynapseChanged);
     connect(this, &NeuvisysGUI::precisionEventChanged, &neuvisysThread, &NeuvisysThread::onPrecisionEventChanged);
     connect(this, &NeuvisysGUI::rangePotentialChanged, &neuvisysThread, &NeuvisysThread::onRangePotentialChanged);
     connect(this, &NeuvisysGUI::precisionPotentialChanged, &neuvisysThread, &NeuvisysThread::onPrecisionPotentialChanged);
     connect(this, &NeuvisysGUI::rangeSpikeTrainChanged, &neuvisysThread, &NeuvisysThread::onRangeSpikeTrainChanged);
-    connect(this, &NeuvisysGUI::cellTypeChanged, &neuvisysThread, &NeuvisysThread::onCellTypeChanged);
+    connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
     connect(this, &NeuvisysGUI::stopNetwork, &neuvisysThread, &NeuvisysThread::onStopNetwork);
 
     neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json", ui->text_event_file->text(),
@@ -317,6 +317,8 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
         ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
         label->show();
     }
+
+    ui->slider_layer->setMaximum(static_cast<int>(networkStructure.size()-1));
 }
 
 void NeuvisysGUI::on_button_selection_clicked() {
@@ -325,8 +327,8 @@ void NeuvisysGUI::on_button_selection_clicked() {
 }
 
 void NeuvisysGUI::on_spin_layer_selection_valueChanged(int arg1) {
-    layer = static_cast<size_t>(arg1);
-    emit layerChanged(layer);
+    depthViz = static_cast<size_t>(arg1);
+    emit depthChanged(depthViz);
 }
 
 void NeuvisysGUI::on_spin_camera_selection_valueChanged(int arg1) {
@@ -466,21 +468,11 @@ void NeuvisysGUI::on_slider_range_spiketrain_sliderMoved(int position) {
     emit rangeSpikeTrainChanged(rangeSpiketrain);
 }
 
-void NeuvisysGUI::on_radio_button_simple_cell_clicked() {
-    cellType = 0;
-    emit cellTypeChanged(cellType);
-}
-
-void NeuvisysGUI::on_radio_button_complex_cell_clicked() {
-    cellType = 1;
-    emit cellTypeChanged(cellType);
-}
-
-void NeuvisysGUI::on_radio_button_motor_cell_clicked() {
-    cellType = 2;
-    emit cellTypeChanged(cellType);
-}
-
 void NeuvisysGUI::onFinished() {
     ui->console->insertPlainText(QString("Finished."));
+}
+
+void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
+    layer = position;
+    emit layerChanged(layer);
 }

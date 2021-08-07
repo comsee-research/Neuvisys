@@ -174,8 +174,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>854</width>
+             <height>632</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
@@ -245,7 +245,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="launch_options">
        <property name="sizePolicy">
@@ -327,7 +327,7 @@
         <item row="1" column="0">
          <widget class="QTabWidget" name="tabWidget_3">
           <property name="currentIndex">
-           <number>0</number>
+           <number>2</number>
           </property>
           <widget class="QWidget" name="network_config">
            <attribute name="title">
@@ -395,7 +395,7 @@
              <item row="1" column="0">
               <widget class="QLabel" name="label_layer">
                <property name="text">
-                <string>Layer map</string>
+                <string>Depth</string>
                </property>
               </widget>
              </item>
@@ -428,24 +428,13 @@
                 <string>Cell selection</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_19">
-                <item row="0" column="1">
-                 <widget class="QRadioButton" name="radio_button_complex_cell">
-                  <property name="text">
-                   <string>Complex cells</string>
-                  </property>
-                 </widget>
-                </item>
                 <item row="0" column="0">
-                 <widget class="QRadioButton" name="radio_button_simple_cell">
-                  <property name="text">
-                   <string>Simple cells</string>
+                 <widget class="QSlider" name="slider_layer">
+                  <property name="orientation">
+                   <enum>Qt::Horizontal</enum>
                   </property>
-                 </widget>
-                </item>
-                <item row="0" column="2">
-                 <widget class="QRadioButton" name="radio_button_motor_cell">
-                  <property name="text">
-                   <string>Motor cells</string>
+                  <property name="tickPosition">
+                   <enum>QSlider::TicksAbove</enum>
                   </property>
                  </widget>
                 </item>

@@ -316,24 +316,10 @@ void SpikingNetwork::loadWeights() {
                    {m_conf.L1XAnchor.size() * m_conf.L1Width, m_conf.L1YAnchor.size() * m_conf.L1Height, m_conf.L1Depth}, "w");
 }
 
-void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t neuronType) {
-    if (neuronType == 0) {
-        if (m_simpleNeuronConf.TRACKING == "partial") {
-            if (!m_simpleNeurons.empty()) {
-                m_simpleNeurons[id].trackPotential(time);
-            }
-        }
-    } else if (neuronType == 1) {
-        if (m_complexNeuronConf.TRACKING == "partial") {
-            if (!m_complexNeurons.empty()) {
-                m_complexNeurons[id].trackPotential(time);
-            }
-        }
-    } else if (neuronType == 2) {
-        if (m_motorNeuronConf.TRACKING == "partial") {
-            if (!m_motorNeurons.empty()) {
-                m_complexNeurons[id].trackPotential(time);
-            }
+void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t layer) {
+    if (m_simpleNeuronConf.TRACKING == "partial") {
+        if (!m_neurons[layer].empty()) {
+            m_neurons[layer][id].get().trackPotential(time);
         }
     }
 }
@@ -371,24 +357,13 @@ cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t camera, size_t s
     return weightImage;
 }
 
-const std::vector<long> &SpikingNetwork::getSpikingNeuron(size_t idNeuron, size_t neuronType) {
-    if (neuronType == 0) {
-        return m_simpleNeurons[idNeuron].getTrackingSpikeTrain();
-    } else if (neuronType == 1) {
-        return m_complexNeurons[idNeuron].getTrackingSpikeTrain();
-    }
-}
-
-const std::vector<std::pair<double, long>> &SpikingNetwork::getPotentialNeuron(size_t idNeuron, size_t neuronType) {
-    if (neuronType == 0) {
-        return m_simpleNeurons[idNeuron].getTrackingPotentialTrain();
-    } else if (neuronType == 1) {
-        return m_complexNeurons[idNeuron].getTrackingPotentialTrain();
-    }
-}
-
 Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
-    return m_neurons[layer][index];
+    if (layer < m_neurons.size()) {
+        if (index < m_neurons[layer].size()) {
+            return m_neurons[layer][index];
+        }
+    }
+    throw std::runtime_error("Wrong layer or index for neuron selection");
 }
 
 void SpikingNetwork::setReward(double reward) {

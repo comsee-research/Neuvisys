@@ -21,14 +21,14 @@ public:
 
 public slots:
     void onIndexChanged(size_t index);
-    void onLayerChanged(size_t layer);
+    void onDepthChanged(size_t depth);
     void onCameraChanged(size_t camera);
     void onSynapseChanged(size_t synapse);
     void onPrecisionEventChanged(size_t precisionEvent);
     void onRangePotentialChanged(size_t rangePotential);
     void onPrecisionPotentialChanged(size_t precisionPotential);
     void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
-    void onCellTypeChanged(size_t cellType);
+    void onLayerChanged(size_t layer);
     void onStopNetwork();
 
 signals:
@@ -62,10 +62,10 @@ protected:
     bool m_stop = false;
 
     size_t m_id = 0;
-    size_t m_layer = 0;
+    size_t m_depth = 0;
     size_t m_camera = 0;
     size_t m_synapse = 0;
-    size_t m_cellType = 0;
+    size_t m_layer = 0;
 
     size_t m_precisionEvent = 30000; // µs
     size_t m_rangePotential = 10000; // µs

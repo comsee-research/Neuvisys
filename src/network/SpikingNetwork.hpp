@@ -46,10 +46,8 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout(size_t layer, uint64_t x, uint64_t y, uint64_t z) { return m_layout[layer][{x, y, z}]; }
     std::vector<double> &getRewards() { return m_listReward; }
-    void trackNeuron(long time, size_t simpleId = 0, size_t complexId = 0);
+    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse);
-    const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
-    const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
     void setReward(double reward);
     std::vector<uint64_t> resolveMotor();
