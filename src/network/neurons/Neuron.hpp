@@ -46,6 +46,9 @@ public:
     virtual long getSpikingTime() const { return m_spikingTime; }
     virtual double getAdaptationPotential() { return m_adaptation_potential; }
     virtual size_t getSpikeCount() { return m_countSpike; }
+    virtual double getWeights(long x, long y, long z) {};
+    virtual double getWeights(long p, long c, long s, long x, long y) {};
+    virtual std::vector<long> getWeightsDimension() {};
     virtual void resetSpikeCounter() { m_countSpike = 0; }
     virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
     virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }

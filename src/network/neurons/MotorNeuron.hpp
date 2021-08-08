@@ -18,6 +18,8 @@ public:
     bool newEvent(NeuronEvent event, double reward) override;
     MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
     void spike(long time);
+    double getWeights(long x, long y, long z) override;
+    std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
 private:

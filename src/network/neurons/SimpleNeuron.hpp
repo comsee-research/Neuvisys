@@ -20,7 +20,8 @@ public:
     SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
     bool newEvent(Event event) override;
     bool update() override;
-    double getWeights(long p, long c, long s, long x, long y);
+    double getWeights(long p, long c, long s, long x, long y) override;
+    std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }

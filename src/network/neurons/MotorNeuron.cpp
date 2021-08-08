@@ -93,3 +93,13 @@ void MotorNeuron::saveWeights(std::string &saveFile) {
 void MotorNeuron::loadWeights(std::string &filePath) {
     Util::loadNumpyFileToComplexTensor(filePath, m_weights);
 }
+
+double MotorNeuron::getWeights(long x, long y, long z) {
+    return m_weights(x, y, z);
+}
+
+std::vector<long> MotorNeuron::getWeightsDimension() {
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
+    std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
+    return dim;
+}

@@ -26,13 +26,12 @@ public:
 public slots:
     void onDisplayProgress(int progress, double spike_rate, double threshold);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void onDisplayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void onDisplayReward(const std::vector<double> &rewardTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
-    void onNetworkConfiguration(const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t
-    heightPatchSize);
+    void onNetworkConfiguration(const std::string& sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes);
     void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
     void onFinished();
 
@@ -57,7 +56,7 @@ private slots:
     void on_text_complex_cell_config_textChanged();
     void on_text_motor_cell_config_textChanged();
     void on_button_selection_clicked();
-    void on_spin_layer_selection_valueChanged(int arg1);  
+    void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
     void on_spin_synapse_selection_valueChanged(int arg1);
     void on_slider_precision_event_sliderMoved(int position);

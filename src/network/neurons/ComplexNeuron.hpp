@@ -10,7 +10,8 @@ protected:
 public:
     ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, COMPLEXDIM> &weights);
     bool newEvent(NeuronEvent event, double reward) override;
-    double getWeights(long x, long y, long z);
+    double getWeights(long x, long y, long z) override;
+    std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
 private:

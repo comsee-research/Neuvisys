@@ -108,3 +108,9 @@ void SimpleNeuron::loadWeights(std::string &filePath) {
 double SimpleNeuron::getWeights(long p, long c, long s, long x, long y) {
     return m_weights(p, c, s, x, y);
 }
+
+std::vector<long> SimpleNeuron::getWeightsDimension() {
+    const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& dimensions = m_weights.dimensions();
+    std::vector<long> dim = { dimensions[3], dimensions[4] };
+    return dim;
+}

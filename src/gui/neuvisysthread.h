@@ -34,12 +34,12 @@ public slots:
 signals:
     void displayProgress(int progress, double spike_rate, double threshold);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void displayReward(const std::vector<double> &rewardTrain);
     void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
+    void networkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes);
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();
 
@@ -60,6 +60,7 @@ protected:
     std::chrono::time_point<std::chrono::system_clock> m_motorTime;
     bool m_realtime = false;
     bool m_stop = false;
+    bool m_change = false;
 
     size_t m_id = 0;
     size_t m_depth = 0;
@@ -79,6 +80,7 @@ private:
     void rosPass(SpikingNetwork &spinet);
     void display(SpikingNetwork &spinet, size_t sizeArray);
     void addEventToDisplay(const Event &event);
+    void prepareWeights(SpikingNetwork &spinet);
 };
 
 #endif // NEUVISYSTHREAD_H

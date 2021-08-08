@@ -18,7 +18,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char** argv, QWidget *parent) : QMainWindow(p
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
-    ui->spin_layer_selection->setMinimum(1);
+    ui->spin_depth_selection->setMinimum(0);
 
     ui->left_event_video->setScene(new QGraphicsScene(this));
     ui->left_event_video->scene()->addItem(&leftEvents);
@@ -251,13 +251,21 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType, const size_t width, const size_t height, const size_t depth, const size_t
-widthPatchSize, const size_t heightPatchSize) {
-    ui->spin_layer_selection->setMaximum(static_cast<int>(depth));
+void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes) {
+    ui->spin_depth_selection->setMaximum(static_cast<int>(layerSizes[2])-1);
+
+    while (QLayoutItem* item = ui->gridSelection->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+    while (QLayoutItem* item = ui->weightLayout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
 
     int count = 0;
-    for (size_t i = 0; i < width; ++i) {
-        for (size_t j = 0; j < height; ++j) {
+    for (size_t i = 0; i < patchSizes[0] * layerSizes[0]; ++i) {
+        for (size_t j = 0; j < patchSizes[1] * layerSizes[1]; ++j) {
             auto *button = new QPushButton(this);
             button->setText(QString::number(count));
             button->setMinimumWidth(5);
@@ -270,25 +278,24 @@ widthPatchSize, const size_t heightPatchSize) {
                 auto *label = new QLabel(this);
                 ui->weightLayout->addWidget(label, static_cast<int>(i), static_cast<int>(j));
                 label->show();
-
             }
         }
     }
     if (sharingType == "patch") {
-        for (size_t wp = 0; wp < widthPatchSize; ++wp) {
-            for (size_t hp = 0; hp < heightPatchSize; ++hp) {
-                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(depth)); ++i) {
-                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(depth)); ++j) {
+        for (size_t wp = 0; wp < patchSizes[0]; ++wp) {
+            for (size_t hp = 0; hp < patchSizes[1]; ++hp) {
+                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
+                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
                         auto *label = new QLabel(this);
-                        ui->weightLayout->addWidget(label, static_cast<int>(hp * depth + i), static_cast<int>(wp * depth + j));
+                        ui->weightLayout->addWidget(label, static_cast<int>(hp * layerSizes[2] + i), static_cast<int>(wp * layerSizes[2] + j));
                         label->show();
                     }
                 }
             }
         }
     } else if (sharingType == "full") {
-        for (int i = 0; i < std::sqrt(depth); ++i) {
-            for (int j = 0; j < std::sqrt(depth); ++j) {
+        for (int i = 0; i < std::sqrt(layerSizes[2]); ++i) {
+            for (int j = 0; j < std::sqrt(layerSizes[2]); ++j) {
                 auto *label = new QLabel(this);
                 ui->weightLayout->addWidget(label, i, j);
                 label->show();
@@ -323,10 +330,10 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
 
 void NeuvisysGUI::on_button_selection_clicked() {
     auto *button = dynamic_cast<QPushButton *>(sender());
-    id = static_cast<size_t>(ui->spin_layer_selection->value()) * button->text().toULong();
+    id = static_cast<size_t>(ui->spin_depth_selection->value()) * button->text().toULong();
 }
 
-void NeuvisysGUI::on_spin_layer_selection_valueChanged(int arg1) {
+void NeuvisysGUI::on_spin_depth_selection_valueChanged(int arg1) {
     depthViz = static_cast<size_t>(arg1);
     emit depthChanged(depthViz);
 }
@@ -359,13 +366,19 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
     ui->right_event_video->fitInView(&rightEvents, Qt::KeepAspectRatio);
 }
 
-void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat>& weightDisplay) {
+void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
     int count = 0;
     for (auto &weight : weightDisplay) {
         QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows,
                            static_cast<int>(weight.second.step), QImage::Format_RGB888);
-        auto label = dynamic_cast<QLabel *>(ui->weightLayout->itemAt(count)->widget());
-        label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
+        if (count < ui->weightLayout->count()) {
+            auto label = dynamic_cast<QLabel *>(ui->weightLayout->itemAt(count)->widget());
+            if (layer == 0) {
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
+            } else {
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(500, 500, Qt::KeepAspectRatio));
+            }
+        }
         ++count;
     }
 }

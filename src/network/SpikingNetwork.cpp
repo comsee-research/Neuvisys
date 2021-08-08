@@ -334,27 +334,32 @@ Position SpikingNetwork::findPixelComplexNeuron(ComplexNeuron &neuron) {
 
 /***** GUI Interface *****/
 
-cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse) {
-    size_t sizeX = 0, sizeY = 0, sizePol = 0;
-    sizeX = m_conf.Neuron1Width;
-    sizeY = m_conf.Neuron1Height;
-    sizePol = NBPOLARITY;
+cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
+    if (!m_neurons[layer].empty()) {
+        auto dim = m_neurons[layer][0].get().getWeightsDimension();
+        cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
 
-    cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(sizeX), static_cast<int>(sizeY), CV_8UC3);
-    if (!m_neurons[0].empty()) {
         double weight;
-        for (size_t x = 0; x < sizeX; ++x) {
-            for (size_t y = 0; y < sizeY; ++y) {
-                for (size_t p = 0; p < sizePol; p++) {
-                    weight = m_simpleNeurons[idNeuron].getWeights(p, camera, synapse, x, y) * 255;
+        for (size_t x = 0; x < dim[0]; ++x) {
+            for (size_t y = 0; y < dim[1]; ++y) {
+                if (layer == 0) {
+                    for (size_t p = 0; p < NBPOLARITY; p++) {
+                        weight = m_neurons[layer][idNeuron].get().getWeights(p, camera, synapse, x, y) * 255;
+                        if (weight > 255) { weight = 255; }
+                        if (weight < 0) { weight = 0; }
+                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
+                    }
+                } else {
+                    weight = m_neurons[layer][idNeuron].get().getWeights(x, y, z) * 255;
                     if (weight > 255) { weight = 255; }
                     if (weight < 0) { weight = 0; }
-                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
+                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
                 }
             }
         }
+        return weightImage;
     }
-    return weightImage;
+    return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
 Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
