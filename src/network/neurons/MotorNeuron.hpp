@@ -10,18 +10,18 @@
 class MotorNeuron : public Neuron {
     double m_reward{};
     double m_bias{};
-    int m_iter{};
     boost::circular_buffer<NeuronEvent> m_events;
     Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTrace;
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 public:
-    bool newEvent(NeuronEvent event, double reward) override;
+    bool newEvent(NeuronEvent event) override;
     MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
-    void spike(long time);
+    void spike(long time) override;
     double getWeights(long x, long y, long z) override;
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
+    void setReward(double reward, double bias) override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void updateSTDP();

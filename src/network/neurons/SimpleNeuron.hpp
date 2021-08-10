@@ -27,7 +27,7 @@ public:
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 private:
     bool membraneUpdate(Event event);
-    void spike(long time);
+    void spike(long time) override;
     void updateSTDP();
     void normalizeWeights();
 };

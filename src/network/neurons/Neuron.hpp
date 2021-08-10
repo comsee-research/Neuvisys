@@ -30,34 +30,37 @@ protected:
     long m_timestampLastEvent{};
     bool m_spike;
     long m_creationTime{};
-    double m_spikingRate{};
+    double m_recentSpikeRate{};
+    double m_spikeRate{};
+    long m_lifeSpan{};
+    long m_referenceTime{};
 
     std::vector<double> m_trackingThresholds;
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
 public:
     Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset);
-    virtual size_t getIndex() { return m_index; }
-    virtual Position getPos() const { return m_pos; }
-    virtual Position getOffset() { return m_offset; }
-    virtual double getThreshold() { return m_threshold; }
-    virtual double getSpikingRate() { return m_spikingRate; }
-    virtual double getLearningDecay() { return m_learningDecay; }
-    virtual long getSpikingTime() const { return m_spikingTime; }
-    virtual double getAdaptationPotential() { return m_adaptation_potential; }
-    virtual size_t getSpikeCount() { return m_countSpike; }
+    [[nodiscard]] virtual size_t getIndex() const { return m_index; }
+    [[nodiscard]] virtual Position getPos() const { return m_pos; }
+    [[nodiscard]] virtual Position getOffset() const { return m_offset; }
+    [[nodiscard]] virtual double getThreshold() const { return m_threshold; }
+    [[nodiscard]] virtual double getSpikeRate() const { return m_spikeRate; }
+    [[nodiscard]] virtual long getSpikingTime() const { return m_spikingTime; }
+    [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
+    [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptation_potential; }
+    [[nodiscard]] virtual size_t getSpikeCount() const { return m_countSpike; }
     virtual double getWeights(long x, long y, long z) {};
     virtual double getWeights(long p, long c, long s, long x, long y) {};
     virtual std::vector<long> getWeightsDimension() {};
-    virtual void resetSpikeCounter() { m_countSpike = 0; }
-    virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
-    virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }
-    virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() { return m_inhibitionConnections; }
 
+    virtual void resetSpikeCounter() { m_countSpike = 0; }
+    virtual void resetSpike() { m_spike = false; }
+    [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
+    [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }
+    [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() const { return m_inhibitionConnections; }
     virtual const std::vector<double> &getTrackingThresholds() { return m_trackingThresholds; }
     virtual const std::vector<long> &getTrackingSpikeTrain() { return m_trackingSpikeTrain; }
     virtual const std::vector<std::pair<double, long>> &getTrackingPotentialTrain() { return m_trackingPotentialTrain; }
-
     virtual bool hasSpiked();
     virtual double getPotential(long time);
     virtual double potentialDecay(long time);
@@ -70,15 +73,20 @@ public:
     virtual void loadWeights(std::string &fileName) {};
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
-
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
     virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
     virtual bool newEvent(Event event) {}
     virtual bool newEvent(NeuronEvent event) {}
-    virtual bool newEvent(NeuronEvent event, double reward) {}
     virtual bool update() {}
+    virtual void setReward(double reward, double bias) {}
     virtual void trackPotential(long time);
+    virtual void updateState(long time);
+    virtual void spike(long time) {};
+
+protected:
+    void writeJson(json &state);
+    void readJson(const json &state);
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

@@ -8,7 +8,7 @@ MotorNeuron::MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::
     Neuron(index, conf, pos, Position()),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = m_weights.dimensions();
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = m_weights.dimensions();
     m_eligibilityTrace = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
     for (long i = 0; i < d[0]; ++i) {
         for (long j = 0; j < d[1]; ++j) {
@@ -19,10 +19,7 @@ MotorNeuron::MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::
     }
 }
 
-inline bool MotorNeuron::newEvent(NeuronEvent event, double reward) {
-    m_iter++;
-    m_reward = reward;
-    m_bias += ((reward - m_bias) / m_iter); // bias = average reward
+inline bool MotorNeuron::newEvent(NeuronEvent event) {
     m_events.push_back(event);
     return membraneUpdate(event);
 }
@@ -102,4 +99,9 @@ std::vector<long> MotorNeuron::getWeightsDimension() {
     const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
     std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
     return dim;
+}
+
+inline void MotorNeuron::setReward(double reward, double bias) {
+    m_reward = reward;
+    m_bias = bias;
 }

@@ -6,7 +6,7 @@ ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Pos
     m_weights(weights) {
 }
 
-inline bool ComplexNeuron::newEvent(NeuronEvent event, double reward) {
+inline bool ComplexNeuron::newEvent(NeuronEvent event) {
     m_events.push_back(event);
     return membraneUpdate(event);
 }

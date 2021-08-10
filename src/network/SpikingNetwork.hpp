@@ -18,6 +18,8 @@ class SpikingNetwork {
     long m_iterations{};
 
     double m_reward{};
+    double m_bias{};
+    size_t m_rewadIter{};
     std::vector<double> m_listReward;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
@@ -38,6 +40,11 @@ public:
     void runEvent(const Event &event);
     void addEvent(const Event &event);
     void updateNeuronsParameters(long time);
+    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
+    void loadNetwork();
+    void saveNetwork(size_t nbRun, const std::string& eventFileName);
+    void updateReward(double reward);
+    std::vector<uint64_t> resolveMotor();
 
     Neuron &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
@@ -46,11 +53,8 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout(size_t layer, uint64_t x, uint64_t y, uint64_t z) { return m_layout[layer][{x, y, z}]; }
     std::vector<double> &getRewards() { return m_listReward; }
-    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
-    void saveNetwork(size_t nbRun, const std::string& eventFileName);
-    void setReward(double reward);
-    std::vector<uint64_t> resolveMotor();
+    [[nodiscard]] double getBias() const { return m_bias; };
 
 private:
     void updateNeurons(long time);

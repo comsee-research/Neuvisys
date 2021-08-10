@@ -31,20 +31,27 @@ inline double Neuron::adaptationPotentialDecay(const long time) {
     m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
 }
 
-inline void Neuron::thresholdAdaptation() {
+void Neuron::updateState(const long time) {
+    auto dt = time - m_referenceTime;
+    m_referenceTime = time;
+    m_lifeSpan += dt;
+    m_spikeRate = 1000000 * static_cast<double>(m_totalSpike) / static_cast<double>(m_lifeSpan);
+}
+
+inline void Neuron::thresholdAdaptation() { // TODO: weird use of time here
     m_recentSpikes.pop_back();
     m_recentSpikes.push_front(m_countSpike);
     resetSpikeCounter();
 
     for (size_t count : m_recentSpikes) {
-        m_spikingRate += static_cast<double>(count);
+        m_recentSpikeRate += static_cast<double>(count);
     }
-    m_spikingRate /= Conf::TIME_WINDOW_SR;
+    m_recentSpikeRate /= Conf::TIME_WINDOW_SR;
 
-    if (m_spikingRate > conf.TARGET_SPIKE_RATE) {
-        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRate));
+    if (m_recentSpikeRate > conf.TARGET_SPIKE_RATE) {
+        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_recentSpikeRate));
     } else {
-        m_threshold -= conf.ETA_SR * (1 - exp(m_spikingRate - conf.TARGET_SPIKE_RATE));
+        m_threshold -= conf.ETA_SR * (1 - exp(m_recentSpikeRate - conf.TARGET_SPIKE_RATE));
     }
 
     if (m_threshold < conf.MIN_THRESH) {
@@ -75,6 +82,35 @@ inline void Neuron::inhibition() {
 void Neuron::saveState(std::string &fileName) {
     json state;
 
+    writeJson(state);
+
+    std::ofstream ofs(fileName + ".json");
+    if (ofs.is_open()) {
+        ofs << std::setw(4) << state << std::endl;
+    } else {
+        std::cout << "cannot save neuron state file" << std::endl;
+    }
+    ofs.close();
+}
+
+void Neuron::loadState(std::string &fileName) {
+    json state;
+    std::ifstream ifs(fileName + ".json");
+    if (ifs.is_open()) {
+        try {
+            ifs >> state;
+        } catch (const std::exception& e) {
+            std::cerr << "In Neuron state file: " << fileName + ".json" << std::endl;
+            throw;
+        }
+        readJson(state);
+    } else {
+        std::cout << "cannot open neuron state file" << std::endl;
+    }
+    ifs.close();
+}
+
+void Neuron::writeJson(json &state) {
     std::vector<size_t> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
     std::vector<size_t> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
     std::vector<size_t> inIndex;
@@ -97,48 +133,26 @@ void Neuron::saveState(std::string &fileName) {
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;
-    state["creation_time"] = m_creationTime;
-    state["spiking_rate"] = m_spikingRate;
+    state["lifespan"] = m_lifeSpan;
+    state["spiking_rate"] = m_spikeRate;
     state["recent_spikes"] = m_recentSpikes;
     state["learning_decay"] = m_learningDecay;
-
     state["thresholds_train"] = m_trackingThresholds;
     state["spike_train"] = m_trackingSpikeTrain;
-//    state["potential_train"] = m_trackingPotentialTrain;
-
-    std::ofstream ofs(fileName + ".json");
-    if (ofs.is_open()) {
-        ofs << std::setw(4) << state << std::endl;
-    } else {
-        std::cout << "cannot save neuron state file" << std::endl;
-    }
-    ofs.close();
+    //    state["potential_train"] = m_trackingPotentialTrain;
 }
 
-void Neuron::loadState(std::string &fileName) {
-    json state;
-    std::ifstream ifs(fileName + ".json");
-    if (ifs.is_open()) {
-        try {
-            ifs >> state;
-        } catch (const std::exception& e) {
-            std::cerr << "In Neuron state file: " << fileName + ".json" << std::endl;
-            throw;
-        }
-        m_totalSpike = state["count_spike"];
-        m_threshold = state["threshold"];
-        m_creationTime = state["creation_time"];
-        m_spikingRate = state["spiking_rate"];
-        m_learningDecay = state["learning_decay"];
-//        m_potential = state["potential"];
-        m_recentSpikes.clear();
-        for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
-            m_recentSpikes.push_front(state["recent_spikes"][i]);
-        }
-    } else {
-        std::cout << "cannot open neuron state file" << std::endl;
+void Neuron::readJson(const json &state) {
+    m_totalSpike = state["count_spike"];
+    m_threshold = state["threshold"];
+    m_lifeSpan = state["lifespan"];
+    m_recentSpikeRate = state["spiking_rate"];
+    m_learningDecay = state["learning_decay"];
+//    m_potential = state["potential"];
+    m_recentSpikes.clear();
+    for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
+        m_recentSpikes.push_front(state["recent_spikes"][i]);
     }
-    ifs.close();
 }
 
 void Neuron::trackPotential(const long time) {

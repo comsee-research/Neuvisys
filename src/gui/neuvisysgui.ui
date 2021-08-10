@@ -25,7 +25,7 @@
     <item row="0" column="1">
      <widget class="QTabWidget" name="tabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="event_viz">
        <attribute name="title">
@@ -132,6 +132,16 @@
           <layout class="QGridLayout" name="gridLayout_5">
            <item row="0" column="0">
             <layout class="QVBoxLayout" name="verticalLayout_2">
+             <item>
+              <widget class="QLabel" name="bias">
+               <property name="text">
+                <string>Bias</string>
+               </property>
+              </widget>
+             </item>
+             <item>
+              <widget class="QLCDNumber" name="lcd_bias"/>
+             </item>
              <item>
               <widget class="QLabel" name="spike_rate">
                <property name="text">
@@ -245,7 +255,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="launch_options">
        <property name="sizePolicy">
@@ -327,7 +337,7 @@
         <item row="1" column="0">
          <widget class="QTabWidget" name="tabWidget_3">
           <property name="currentIndex">
-           <number>2</number>
+           <number>0</number>
           </property>
           <widget class="QWidget" name="network_config">
            <attribute name="title">
@@ -392,16 +402,6 @@
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
             <layout class="QFormLayout" name="formLayout">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_layer">
-               <property name="text">
-                <string>Depth</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QSpinBox" name="spin_depth_selection"/>
-             </item>
              <item row="2" column="0">
               <widget class="QLabel" name="label_camera">
                <property name="text">
@@ -425,7 +425,7 @@
              <item row="0" column="0" colspan="2">
               <widget class="QGroupBox" name="groupBox_5">
                <property name="title">
-                <string>Cell selection</string>
+                <string>Layer selection</string>
                </property>
                <layout class="QGridLayout" name="gridLayout_19">
                 <item row="0" column="0">
@@ -441,6 +441,16 @@
                </layout>
               </widget>
              </item>
+             <item row="1" column="1">
+              <widget class="QSpinBox" name="spin_depth_selection"/>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLabel" name="label_depth">
+               <property name="text">
+                <string>Depth</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </item>
           </layout>
@@ -451,8 +461,18 @@
           <property name="title">
            <string>Neuron Selection</string>
           </property>
-          <layout class="QVBoxLayout" name="verticalLayout_5">
-           <item>
+          <layout class="QFormLayout" name="formLayout_2">
+           <item row="0" column="0">
+            <widget class="QLabel" name="label_zcell">
+             <property name="text">
+              <string>Z</string>
+             </property>
+            </widget>
+           </item>
+           <item row="0" column="1">
+            <widget class="QSpinBox" name="spin_zcell_selection"/>
+           </item>
+           <item row="1" column="0" colspan="2">
             <layout class="QGridLayout" name="gridSelection"/>
            </item>
           </layout>

@@ -24,19 +24,21 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayProgress(int progress, double spike_rate, double threshold);
+    void onDisplayProgress(int progress, double spike_rate, double threshold, double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void onDisplayReward(const std::vector<double> &rewardTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
-    void onNetworkConfiguration(const std::string& sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes);
+    void onNetworkConfiguration(const std::string& sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes, const
+    std::vector<size_t> &neuronSizes);
     void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
     void onFinished();
 
 signals:
     void indexChanged(size_t index);
+    void zcellChanged(size_t zcell);
     void depthChanged(size_t depth);
     void cameraChanged(size_t camera);
     void synapseChanged(size_t synapse);
@@ -56,6 +58,7 @@ private slots:
     void on_text_complex_cell_config_textChanged();
     void on_text_motor_cell_config_textChanged();
     void on_button_selection_clicked();
+    void on_spin_zcell_selection_valueChanged(int arg1);
     void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
     void on_spin_synapse_selection_valueChanged(int arg1);
@@ -78,15 +81,16 @@ protected:
     QGraphicsPixmapItem leftEvents;
     QGraphicsPixmapItem rightEvents;
 
-    size_t id;
-    size_t depthViz;
-    size_t camera;
-    size_t synapse;
-    size_t layer;
-    size_t precisionEvent;
-    size_t precisionPotential;
-    size_t rangePotential;
-    size_t rangeSpiketrain;
+    size_t m_id{};
+    size_t m_zcell{};
+    size_t m_camera{};
+    size_t m_synapse{};
+    size_t m_layer{};
+    size_t m_depth{};
+    size_t precisionEvent{};
+    size_t precisionPotential{};
+    size_t rangePotential{};
+    size_t rangeSpiketrain{};
 
 private:
     void openConfigFiles();

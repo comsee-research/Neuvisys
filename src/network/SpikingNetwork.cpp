@@ -22,7 +22,7 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
              {m_conf.L3Size, 1, 1}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth});
 
     if (m_conf.SaveData) {
-        loadWeights();
+        loadNetwork();
     }
 
     for (size_t i = 0; i < m_neurons.size(); ++i) {
@@ -31,12 +31,12 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
 }
 
 void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
-    setReward(reward);
+    updateReward(reward);
 
     for (Event event : eventPacket) {
         addEvent(event);
 
-        if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+        if (static_cast<size_t>(m_iterations) % 10000 == 0) {
             updateNeuronsParameters(event.timestamp());
             std::cout << static_cast<size_t>(m_iterations) << " / " << eventPacket.size() << std::endl;
         }
@@ -47,7 +47,7 @@ void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const doub
 void SpikingNetwork::runEvent(const Event &event) {
     addEvent(event);
 
-    if (static_cast<size_t>(m_iterations) % Conf::UPDATE_PARAMETER_FREQUENCY == 0) {
+    if (static_cast<size_t>(m_iterations) % 10000 == 0) {
         updateNeuronsParameters(event.timestamp());
     }
     ++m_iterations;
@@ -70,11 +70,11 @@ inline void SpikingNetwork::addEvent(const Event &event) {
 
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     for (auto &nextNeuron : neuron.getOutConnections()) {
+        nextNeuron.get().setReward(m_reward, m_bias);
         if (nextNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
                                                   static_cast<int32_t>(neuron.getPos().posx() - nextNeuron.get().getOffset().posx()),
                                                   static_cast<int32_t>(neuron.getPos().posy() - nextNeuron.get().getOffset().posy()),
-                                                  static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())),
-                                      m_reward)) {
+                                                  static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
             }
@@ -237,8 +237,14 @@ void SpikingNetwork::connectLayer(const bool inhibition, const std::vector<size_
 }
 
 void SpikingNetwork::updateNeuronsParameters(const long time) {
-    for (auto &neuron : m_neurons[0]) {
-        neuron.get().thresholdAdaptation();
+    size_t layer;
+    for (auto &neurons : m_neurons) {
+        for (auto &neuron : neurons) {
+            if (layer == 0) {
+//                neuron.get().thresholdAdaptation();
+            }
+            neuron.get().updateState(time);
+        }
     }
 }
 
@@ -252,6 +258,8 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         state["event_file_name"] = eventFileName;
         state["nb_run"] = nbRun;
         state["rewards"] = m_listReward;
+        state["bias"] = m_bias;
+        state["reward_iter"] = m_rewadIter;
 
         std::ofstream ofs(fileName + ".json");
         if (ofs.is_open()) {
@@ -263,6 +271,32 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
 
         saveNeuronsStates();
     }
+}
+
+void SpikingNetwork::loadNetwork() {
+    std::string fileName;
+    fileName = m_conf.NetworkPath + "networkState";
+
+    json state;
+    std::ifstream ifs(fileName + ".json");
+    if (ifs.is_open()) {
+        try {
+            ifs >> state;
+        } catch (const std::exception& e) {
+            std::cerr << "In Network state file: " << fileName + ".json" << std::endl;
+            throw;
+        }
+        m_bias = state["bias"];
+        m_rewadIter = state["reward_iter"];
+        for (auto &reward : state["rewards"]) {
+            m_listReward.push_back(reward);
+        }
+    } else {
+        std::cout << "Cannot open network state file" << std::endl;
+    }
+    ifs.close();
+
+    loadWeights();
 }
 
 void SpikingNetwork::saveNeuronsStates() {
@@ -371,8 +405,10 @@ Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
     throw std::runtime_error("Wrong layer or index for neuron selection");
 }
 
-void SpikingNetwork::setReward(double reward) {
+void SpikingNetwork::updateReward(double reward) {
     m_reward = reward;
+    ++m_rewadIter;
+    m_bias += ((reward - m_bias) / static_cast<double>(m_rewadIter)); // Average reward
     m_listReward.push_back(reward);
 }
 

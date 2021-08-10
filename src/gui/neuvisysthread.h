@@ -21,6 +21,7 @@ public:
 
 public slots:
     void onIndexChanged(size_t index);
+    void onZcellChanged(size_t zcell);
     void onDepthChanged(size_t depth);
     void onCameraChanged(size_t camera);
     void onSynapseChanged(size_t synapse);
@@ -32,14 +33,15 @@ public slots:
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress, double spike_rate, double threshold);
+    void displayProgress(int progress, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void displayReward(const std::vector<double> &rewardTrain);
     void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes);
+    void networkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes, const
+    std::vector<size_t> &neuronSizes);
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();
 
@@ -63,6 +65,7 @@ protected:
     bool m_change = false;
 
     size_t m_id = 0;
+    size_t m_zcell = 0;
     size_t m_depth = 0;
     size_t m_camera = 0;
     size_t m_synapse = 0;
