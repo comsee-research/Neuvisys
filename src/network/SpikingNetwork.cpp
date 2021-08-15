@@ -16,9 +16,9 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
 //    addLayer("MotorCell", "none", {{0}, {0}, {0}}, {m_conf.L3Size, 1, 1},
 //             {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth});
 
-    motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
-    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal -> left movement
+//    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
+    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal  -> right movement
 
     addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
         m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
@@ -80,28 +80,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().posy() - nextNeuron.get().getOffset().posy()),
                                                   static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
 
-            int reward;
-            auto action = motorMapping[nextNeuron.get().getIndex()];
-            if (action.second < 0) {
-                if (m_reward < 0) {
-                    reward = 1;
-                } else {
-                    reward = -1;
-                }
-            } else if (action.second > 0) {
-                if (m_reward > 0) {
-                    reward = 1;
-                } else {
-                    reward = -1;
-                }
-            } else {
-                if (m_reward == 0) {
-                    reward = 1;
-                } else {
-                    reward = -1;
-                }
-            }
-            nextNeuron.get().setReward(reward, m_bias);
+            nextNeuron.get().setReward(critic(nextNeuron.get().getIndex()), m_bias);
             nextNeuron.get().weightUpdate();
 
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
@@ -110,6 +89,25 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
             addNeuronEvent(nextNeuron.get());
         }
     }
+}
+
+int SpikingNetwork::critic(size_t index) {
+    int reward;
+    auto action = motorMapping[index];
+    if (action.second < 0) {
+        if (m_ballPosition < 0) {
+            reward = 1;
+        } else {
+            reward = -1;
+        }
+    } else if (action.second > 0) {
+        if (m_ballPosition > 0) {
+            reward = 1;
+        } else {
+            reward = -1;
+        }
+    }
+    return reward;
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
@@ -435,7 +433,7 @@ Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
 }
 
 void SpikingNetwork::updateReward(double reward) {
-    m_reward = reward;
+    m_ballPosition = reward;
     ++m_rewadIter;
     m_bias += ((reward - m_bias) / static_cast<double>(m_rewadIter)); // Average reward
     m_listReward.push_back(reward);

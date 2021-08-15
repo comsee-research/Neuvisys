@@ -11,9 +11,9 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
-    motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
-    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
+//    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
+    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
 //    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
 //    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
 //    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
@@ -44,25 +44,25 @@ void SimulationInterface::update() {
 //    motorsJitter(dt);
 }
 
-size_t SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation) {
-    int selectedMotor;
-
+bool SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
+    bool exploration = false;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> distReal(0.0, 1.0);
     std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
 
     auto real = distReal(gen);
-    double explorationFactor = 0;
     if (real >= explorationFactor) {
         selectedMotor = Util::winnerTakeAll(motorActivation);
-    }
-    if (real < explorationFactor || selectedMotor == -1) {
+    } else {
         selectedMotor = distInt(gen);
+        exploration = true;
     }
-    activateMotor(static_cast<size_t>(selectedMotor));
 
-    return static_cast<size_t>(selectedMotor);
+    if (selectedMotor != -1) {
+        activateMotor(selectedMotor);
+    }
+    return exploration;
 }
 
 void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) {

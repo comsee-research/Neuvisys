@@ -35,7 +35,7 @@ class SimulationInterface {
 public:
     SimulationInterface(double lambda);
     void update();
-    size_t motorAction(const std::vector<uint64_t> &motorActivation);
+    bool motorAction(const std::vector<uint64_t> &motorActivation, double explorationFactor, int &selectedMotor);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }

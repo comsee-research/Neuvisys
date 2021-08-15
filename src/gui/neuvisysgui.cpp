@@ -315,7 +315,7 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
-    std::vector<QString> labels = { QString("Left"), QString("Nothing"), QString("Right") };
+    std::vector<QString> labels = { QString("Left"), QString("Right") };
     for (size_t i = 0; i < networkStructure[networkStructure.size()-1]; ++i) {
         auto *label = new QLabel(this);
         label->setText(QString(labels[i]));

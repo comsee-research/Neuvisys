@@ -112,7 +112,7 @@ namespace Util {
 
     int winnerTakeAll(std::vector<size_t> v) {
         std::vector<size_t> argsmax;
-        size_t max = v[0];
+        size_t max = 0;
 
         for (size_t i = 0; i < v.size(); ++i) {
             if (v[i] > max) {
@@ -120,7 +120,7 @@ namespace Util {
                 argsmax.clear();
             }
 
-            if (v[i] == max) {
+            if (max != 0 && v[i] == max) {
                 argsmax.push_back(i);
             }
         }
