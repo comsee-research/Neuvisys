@@ -17,6 +17,8 @@ class SpikingNetwork {
     NeuronConfig m_motorNeuronConf;
     long m_iterations{};
 
+    std::vector<std::pair<uint64_t, float>> motorMapping;
+
     double m_reward{};
     double m_bias{};
     size_t m_rewadIter{};

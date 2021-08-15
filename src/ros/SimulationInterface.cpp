@@ -53,10 +53,11 @@ size_t SimulationInterface::motorAction(const std::vector<uint64_t> &motorActiva
     std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
 
     auto real = distReal(gen);
-    if (real >= 0.1) {
+    double explorationFactor = 0;
+    if (real >= explorationFactor) {
         selectedMotor = Util::winnerTakeAll(motorActivation);
     }
-    if (real < 0.1 || selectedMotor == -1) {
+    if (real < explorationFactor || selectedMotor == -1) {
         selectedMotor = distInt(gen);
     }
     activateMotor(static_cast<size_t>(selectedMotor));

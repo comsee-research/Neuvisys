@@ -14,10 +14,10 @@ public:
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
+    void weightUpdate() override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void spike(long time) override;
-    void updateSTDP();
     void normalizeWeights();
 };
 

@@ -54,29 +54,26 @@ inline void SimpleNeuron::spike(const long time) {
     ++m_totalSpike;
     m_potential = conf.VRESET;
 
-    spikeRateAdaptation();
-    if (conf.STDP_LEARNING) {
-        updateSTDP();
-    }
-    m_events.clear();
-
     if (conf.TRACKING == "partial") {
         m_trackingSpikeTrain.push_back(time);
     }
 }
 
-inline void SimpleNeuron::updateSTDP() {
-    for (Event &event : m_events) {
-        m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-        m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+inline void SimpleNeuron::weightUpdate() {
+    if (conf.STDP_LEARNING) {
+        for (Event &event : m_events) {
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
-        if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
+            if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
+                m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
+            }
         }
-    }
 
-    normalizeWeights();
-//    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+        normalizeWeights();
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+    }
+    m_events.clear();
 }
 
 inline void SimpleNeuron::normalizeWeights() {

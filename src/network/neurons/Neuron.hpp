@@ -53,6 +53,7 @@ public:
     virtual double getWeights(long p, long c, long s, long x, long y) {};
     virtual std::vector<long> getWeightsDimension() {};
 
+    virtual void weightUpdate() {};
     virtual void resetSpikeCounter() { m_countSpike = 0; }
     virtual void resetSpike() { m_spike = false; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }

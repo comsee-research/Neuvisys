@@ -16,6 +16,10 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
 //    addLayer("MotorCell", "none", {{0}, {0}, {0}}, {m_conf.L3Size, 1, 1},
 //             {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth});
 
+    motorMapping.emplace_back(std::make_pair(0, -0.1)); // left horizontal -> left movement
+    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
+    motorMapping.emplace_back(std::make_pair(0, 0.1)); // left horizontal  -> right movement
+
     addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
         m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
     addLayer("MotorCell", "none", {{0}, {0}, {0}},
@@ -58,6 +62,7 @@ inline void SpikingNetwork::addEvent(const Event &event) {
         if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), event.x() - static_cast<int16_t>
         (m_neurons[0][ind].get().getOffset().posx()), event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset()
                 .posy()), event.polarity(), event.camera()))) {
+            m_neurons[0][ind].get().weightUpdate();
             for (auto &neuronToInhibit : m_neurons[0][ind].get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
             }
@@ -70,11 +75,35 @@ inline void SpikingNetwork::addEvent(const Event &event) {
 
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     for (auto &nextNeuron : neuron.getOutConnections()) {
-        nextNeuron.get().setReward(m_reward, m_bias);
         if (nextNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
                                                   static_cast<int32_t>(neuron.getPos().posx() - nextNeuron.get().getOffset().posx()),
                                                   static_cast<int32_t>(neuron.getPos().posy() - nextNeuron.get().getOffset().posy()),
                                                   static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
+
+            int reward;
+            auto action = motorMapping[nextNeuron.get().getIndex()];
+            if (action.second < 0) {
+                if (m_reward < 0) {
+                    reward = 1;
+                } else {
+                    reward = -1;
+                }
+            } else if (action.second > 0) {
+                if (m_reward > 0) {
+                    reward = 1;
+                } else {
+                    reward = -1;
+                }
+            } else {
+                if (m_reward == 0) {
+                    reward = 1;
+                } else {
+                    reward = -1;
+                }
+            }
+            nextNeuron.get().setReward(reward, m_bias);
+            nextNeuron.get().weightUpdate();
+
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
             }

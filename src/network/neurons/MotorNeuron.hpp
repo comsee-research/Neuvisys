@@ -22,9 +22,9 @@ public:
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
     void setReward(double reward, double bias) override;
+    void weightUpdate() override;
 private:
     bool membraneUpdate(NeuronEvent event);
-    void updateSTDP();
     void normalizeWeights();
 };
 

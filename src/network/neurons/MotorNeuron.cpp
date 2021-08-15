@@ -44,34 +44,32 @@ inline void MotorNeuron::spike(long time) {
     ++m_totalSpike;
     m_potential = conf.VRESET;
 
-    if (conf.STDP_LEARNING) {
-        updateSTDP();
-    }
-    m_events.clear();
-
     if (conf.TRACKING == "partial") {
         m_trackingSpikeTrain.push_back(time);
     }
 }
 
-inline void MotorNeuron::updateSTDP() {
-    for (NeuronEvent &event : m_events) {
-        m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
+inline void MotorNeuron::weightUpdate() {
+    if (conf.STDP_LEARNING) {
+        for (NeuronEvent &event : m_events) {
+            m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
 
-        m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-        m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
-        if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
-            m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
+            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+            if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
+                m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
+            }
+
+            m_weights(event.x(), event.y(), event.z()) += m_reward * m_eligibilityTrace(event.x(), event.y(), event.z());
+
+            if (m_weights(event.x(), event.y(), event.z()) < 0) {
+                m_weights(event.x(), event.y(), event.z()) = 0;
+            }
         }
 
-        m_weights(event.x(), event.y(), event.z()) += (m_reward - m_bias) * m_eligibilityTrace(event.x(), event.y(), event.z());
-
-        if (m_weights(event.x(), event.y(), event.z()) < 0) {
-            m_weights(event.x(), event.y(), event.z()) = 0;
-        }
+        normalizeWeights();
     }
-
-    normalizeWeights();
+    m_events.clear();
 }
 
 inline void MotorNeuron::normalizeWeights() {
