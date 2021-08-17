@@ -9,21 +9,21 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>
                                                                                  (Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))) {
 
-//    addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
-//            m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
-//    addLayer("ComplexCell", "none", {m_conf.L2XAnchor, m_conf.L2YAnchor, {0}}, {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth}, {
-//            m_conf.Neuron2Width, m_conf.Neuron2Height, m_conf.Neuron2Depth});
-//    addLayer("MotorCell", "none", {{0}, {0}, {0}}, {m_conf.L3Size, 1, 1},
-//             {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth});
+    addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
+            m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
+    addLayer("ComplexCell", "none", {m_conf.L2XAnchor, m_conf.L2YAnchor, {0}}, {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth}, {
+            m_conf.Neuron2Width, m_conf.Neuron2Height, m_conf.Neuron2Depth});
+    addLayer("MotorCell", "none", {{0}, {0}, {0}}, {m_conf.L3Size, 1, 1},
+             {m_conf.L2Width, m_conf.L2Height, m_conf.L2Depth});
 
     motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal -> left movement
 //    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
     motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal  -> right movement
 
-    addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
-        m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
-    addLayer("MotorCell", "none", {{0}, {0}, {0}},
-             {m_conf.L3Size, 1, 1}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth});
+//    addLayer("SimpleCell", m_conf.SharingType, {m_conf.L1XAnchor, m_conf.L1YAnchor, {0}}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth}, {
+//        m_conf.Neuron1Width, m_conf.Neuron1Height, 1});
+//    addLayer("MotorCell", "none", {{0}, {0}, {0}},
+//             {m_conf.L3Size, 1, 1}, {m_conf.L1Width, m_conf.L1Height, m_conf.L1Depth});
 
     if (m_conf.SaveData) {
         loadNetwork();
