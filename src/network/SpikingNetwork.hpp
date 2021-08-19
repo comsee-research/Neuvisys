@@ -38,6 +38,8 @@ class SpikingNetwork {
 
 public:
     explicit SpikingNetwork(const std::string &conf);
+    void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>>& layerPatches,
+                  const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, size_t layerToConnect);
     void runEvents(const std::vector<Event> &eventPacket, double reward);
     void runEvent(const Event &event);
     void addEvent(const Event &event);
@@ -45,8 +47,9 @@ public:
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     void loadNetwork();
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
-    void updateReward(double reward);
+    void transmitReward(double reward);
     std::vector<uint64_t> resolveMotor();
+
 
     Neuron &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
@@ -59,16 +62,14 @@ public:
     [[nodiscard]] double getBias() const { return m_bias; };
     int critic(size_t index);
 
+
 private:
     void updateNeurons(long time);
     void saveNeuronsStates();
     void loadWeights();
-    void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes);
-    Position findPixelComplexNeuron(ComplexNeuron &neuron);
-    void addLayer(const std::string &neuronType, const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
-                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
-    void connectLayer(bool inhibition, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+    void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
     void addNeuronEvent(const Neuron &neuron);
+    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

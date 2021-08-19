@@ -31,25 +31,12 @@ public:
 
     /***** Spiking Neural Network layout parameters *****/
     size_t NbCameras{};
-    size_t L1Width{};
-    size_t L1Height{};
-    size_t L1Depth{};
-    size_t L2Width{};
-    size_t L2Height{};
-    size_t L2Depth{};
-    size_t L3Size{};
-
-    std::vector<size_t> L1XAnchor;
-    std::vector<size_t> L1YAnchor;
-    std::vector<size_t> L2XAnchor;
-    std::vector<size_t> L2YAnchor;
-    size_t Neuron1Width{};
-    size_t Neuron1Height{};
     size_t Neuron1Synapses{};
-    size_t Neuron2Width{};
-    size_t Neuron2Height{};
-    size_t Neuron2Depth{};
     std::string SharingType{};
+
+    std::vector<std::vector<std::vector<size_t>>> layerPatches;
+    std::vector<std::vector<size_t>> layerSizes;
+    std::vector<std::vector<size_t>> neuronSizes;
 };
 
 class NeuronConfig {

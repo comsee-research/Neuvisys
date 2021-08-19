@@ -212,6 +212,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<double>>("std::vector<double>");
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
     qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
+    qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
     connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);
@@ -247,7 +248,7 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes, const
+void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
 std::vector<size_t> &neuronSizes) {
     ui->spin_depth_selection->setMaximum(static_cast<int>(neuronSizes[2]-1));
     ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2]-1));
@@ -262,8 +263,8 @@ std::vector<size_t> &neuronSizes) {
     }
 
     int count = 0;
-    for (size_t i = 0; i < patchSizes[0] * layerSizes[0]; ++i) {
-        for (size_t j = 0; j < patchSizes[1] * layerSizes[1]; ++j) {
+    for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
+        for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
             auto *button = new QPushButton(this);
             button->setText(QString::number(count));
             button->setMinimumWidth(5);
@@ -280,8 +281,8 @@ std::vector<size_t> &neuronSizes) {
         }
     }
     if (sharingType == "patch") {
-        for (size_t wp = 0; wp < patchSizes[0]; ++wp) {
-            for (size_t hp = 0; hp < patchSizes[1]; ++hp) {
+        for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
+            for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
                 for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
                     for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
                         auto *label = new QLabel(this);

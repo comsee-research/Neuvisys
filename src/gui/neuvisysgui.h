@@ -31,7 +31,7 @@ public slots:
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void onDisplayReward(const std::vector<double> &rewardTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
-    void onNetworkConfiguration(const std::string& sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes, const
+    void onNetworkConfiguration(const std::string& sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);
     void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
     void onFinished();

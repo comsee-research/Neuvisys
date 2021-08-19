@@ -40,7 +40,7 @@ signals:
     void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void displayReward(const std::vector<double> &rewardTrain);
     void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(const std::string &sharingType, const std::vector<size_t> &patchSizes, const std::vector<size_t> &layerSizes, const
+    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();

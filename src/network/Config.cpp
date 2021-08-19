@@ -19,34 +19,18 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
         try {
             ifs >> conf;
             NbCameras = conf["NbCameras"];
-            L1Width = conf["L1Width"];
-            L1Height = conf["L1Height"];
-            L1Depth = conf["L1Depth"];
-            L2Width = conf["L2Width"];
-            L2Height = conf["L2Height"];
-            L2Depth = conf["L2Depth"];
-            L3Size = conf["L3Size"];
 
-            for (const auto& x : conf["L1XAnchor"]) {
-                L1XAnchor.push_back(x);
+            for (const auto &size : conf["layerPatches"]) {
+                layerPatches.push_back(size);
             }
-            for (const auto& y : conf["L1YAnchor"]) {
-                L1YAnchor.push_back(y);
+            for (const auto &size : conf["layerSizes"]) {
+                layerSizes.push_back(size);
             }
-            for (const auto& x2 : conf["L2XAnchor"]) {
-                L2XAnchor.push_back(x2);
+            for (const auto &size : conf["neuronSizes"]) {
+                neuronSizes.push_back(size);
             }
-            for (const auto& y2 : conf["L2YAnchor"]) {
-                L2YAnchor.push_back(y2);
-            }
-            Neuron1Width = conf["Neuron1Width"];
-            Neuron1Height = conf["Neuron1Height"];
+
             Neuron1Synapses = conf["Neuron1Synapses"];
-
-            Neuron2Width = conf["Neuron2Width"];
-            Neuron2Height = conf["Neuron2Height"];
-            Neuron2Depth = conf["Neuron2Depth"];
-
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
 
