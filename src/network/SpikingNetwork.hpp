@@ -26,14 +26,16 @@ class SpikingNetwork {
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsMotor;
+    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsCritic;
+    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsActor;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<std::vector<std::reference_wrapper<Neuron>>> m_neurons;
 
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
-    std::vector<MotorNeuron> m_motorNeurons;
+    std::vector<MotorNeuron> m_criticNeurons;
+    std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
 public:

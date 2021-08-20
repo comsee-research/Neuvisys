@@ -318,11 +318,11 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
 
     std::vector<QString> labels = { QString("Left"), QString("Right") };
     for (size_t i = 0; i < networkStructure[networkStructure.size()-1]; ++i) {
-        auto *label = new QLabel(this);
-        label->setText(QString(labels[i]));
-
-        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-        label->show();
+//        auto *label = new QLabel(this);
+//        label->setText(QString(labels[i]));
+//
+//        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
+//        label->show();
     }
 }
 
@@ -450,14 +450,14 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain) {
 void NeuvisysGUI::onDisplayAction(const std::vector<bool> &motorActivation) {
     int count = 0;
     for (auto action : motorActivation) {
-        if (action) {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
-        } else {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
-        }
-        ++count;
+//        if (action) {
+//            auto label = ui->actionGrid->itemAt(count)->widget();
+//            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
+//        } else {
+//            auto label = ui->actionGrid->itemAt(count)->widget();
+//            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
+//        }
+//        ++count;
     }
 }
 

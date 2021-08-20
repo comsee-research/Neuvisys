@@ -32,8 +32,8 @@ void NeuvisysThread::run() {
 
     spinet.addLayer("SimpleCell", spinet.getNetworkConfig().SharingType, true, spinet.getNetworkConfig().layerPatches[0], spinet.getNetworkConfig().layerSizes[0], spinet.getNetworkConfig().neuronSizes[0], 0);
     spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().layerPatches[1], spinet.getNetworkConfig().layerSizes[1], spinet.getNetworkConfig().neuronSizes[1], 0);
-    spinet.addLayer("MotorCell", "none", false, spinet.getNetworkConfig().layerPatches[2], spinet.getNetworkConfig().layerSizes[2], spinet.getNetworkConfig().neuronSizes[2], 1);
-    spinet.addLayer("MotorCell", "none", false, spinet.getNetworkConfig().layerPatches[3], spinet.getNetworkConfig().layerSizes[3], spinet.getNetworkConfig().neuronSizes[3], 1);
+    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().layerPatches[2], spinet.getNetworkConfig().layerSizes[2], spinet.getNetworkConfig().neuronSizes[2], 1);
+    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().layerPatches[3], spinet.getNetworkConfig().layerSizes[3], spinet.getNetworkConfig().neuronSizes[3], 1);
 
     spinet.loadNetwork();
 
@@ -118,7 +118,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             timeElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
             if (1000000 * timeElapsed.count() > static_cast<double>(m_precisionEvent)) {
                 m_frameTime = std::chrono::high_resolution_clock::now();
-                display(spinet, 0);
+//                display(spinet, 0);
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
@@ -175,6 +175,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
                           cv::Scalar(255, 0, 0));
         }
     }
+
     emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
 
     prepareWeights(spinet);
@@ -193,7 +194,7 @@ inline void NeuvisysThread::prepareWeights(SpikingNetwork &spinet) {
     m_weightDisplay.clear();
     size_t count = 0;
     if (m_layer == 0) {
-        for (size_t i = 0; i < spinet.getNetworkConfig().layerPatches[m_layer][0].size() * spinet.getNetworkConfig().layerSizes[m_layer][1]; ++i) {
+        for (size_t i = 0; i < spinet.getNetworkConfig().layerPatches[m_layer][0].size() * spinet.getNetworkConfig().layerSizes[m_layer][0]; ++i) {
             for (size_t j = 0; j < spinet.getNetworkConfig().layerPatches[m_layer][1].size() * spinet.getNetworkConfig().layerSizes[m_layer][1]; ++j) {
                 m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(0, i, j, m_zcell), 0).getTrackingSpikeTrain();
                 if (spinet.getNetworkConfig().SharingType == "none") {

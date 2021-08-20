@@ -141,9 +141,15 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
             (neuronSizes[2])));
         }
     }
-    if (neuronType == "MotorCell") { // TODO : actor and critic share the same weights
+    if (neuronType == "CriticCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
-            m_sharedWeightsMotor.push_back(Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]), static_cast<long>
+            m_sharedWeightsCritic.push_back(Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]), static_cast<long>
+            (neuronSizes[2])));
+        }
+    }
+    if (neuronType == "ActorCell") {
+        for (size_t i = 0; i < nbNeurons; ++i) {
+            m_sharedWeightsActor.push_back(Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]), static_cast<long>
             (neuronSizes[2])));
         }
     }
@@ -158,10 +164,7 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
     m_conf.layerSizes.push_back(layerSizes);
     m_conf.neuronSizes.push_back(neuronSizes);
 
-    size_t nbNeurons = 0;
-    for (size_t i = 0; i < layerPatches.size(); ++i) {
-        nbNeurons += layerPatches[i].size() * layerSizes[i];
-    }
+    auto nbNeurons = layerPatches[0].size() * layerSizes[0] * layerPatches[1].size() * layerSizes[1] * layerPatches[2].size() * layerSizes[2];
     generateWeightSharing(neuronType, neuronSizes, nbNeurons);
 
     size_t neuronIndex = 0;
@@ -188,8 +191,10 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                                         SimpleNeuron(neuronIndex, m_simpleNeuronConf, pos, offset, m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
                             } else if (neuronType == "ComplexCell") {
                                 m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf, pos, offset, m_sharedWeightsComplex[neuronIndex]));
-                            } else if (neuronType == "MotorCell") {
-                                m_motorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsMotor[neuronIndex]));
+                            } else if (neuronType == "CriticCell") {
+                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
+                            } else if (neuronType == "ActorCell") {
+                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
                             } else {
                                 std::cout << "No matching cell type" << std::endl;
                             }
@@ -209,8 +214,10 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
         m_neurons.emplace_back(m_simpleNeurons.begin(), m_simpleNeurons.end());
     } else if (neuronType == "ComplexCell") {
         m_neurons.emplace_back(m_complexNeurons.begin(), m_complexNeurons.end());
-    } else if (neuronType == "MotorCell") {
-        m_neurons.emplace_back(m_motorNeurons.begin(), m_motorNeurons.end());
+    } else if (neuronType == "CriticCell") {
+        m_neurons.emplace_back(m_criticNeurons.begin(), m_criticNeurons.end());
+    } else if (neuronType == "ActorCell") {
+        m_neurons.emplace_back(m_actorNeurons.begin(), m_actorNeurons.end());
     } else {
         std::cout << "No matching cell type" << std::endl;
     }
@@ -277,6 +284,22 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         ofs.close();
 
         saveNeuronsStates();
+    }
+
+    size_t count;
+    for (size_t layer = 0; layer < m_neurons.size(); ++layer) {
+        std::vector<size_t> data(static_cast<size_t>(m_conf.layerPatches[layer][0].size() * m_conf.layerSizes[layer][0] * m_conf.layerPatches[layer][1].size() * m_conf.layerSizes[layer][1] * m_conf.layerPatches[layer][2].size() * m_conf.layerSizes[layer][2]));
+        count = 0;
+        for (size_t i = 0; i < m_conf.layerPatches[layer][0].size() * m_conf.layerSizes[layer][0]; ++i) {
+            for (size_t j = 0; j < m_conf.layerPatches[layer][1].size() * m_conf.layerSizes[layer][1]; ++j) {
+                for (size_t k = 0; k < m_conf.layerPatches[layer][2].size() * m_conf.layerSizes[layer][2]; ++k) {
+                    data[count] = m_layout[layer][{i, j, k}];
+                    ++count;
+                }
+            }
+        }
+        cnpy::npy_save(m_conf.NetworkPath + "weights/layout_" + std::to_string(layer) + ".npy", &data[0],
+                       {m_conf.layerPatches[layer][0].size() * m_conf.layerSizes[layer][0], m_conf.layerPatches[layer][1].size() * m_conf.layerSizes[layer][1], m_conf.layerPatches[layer][2].size() * m_conf.layerSizes[layer][2]}, "w");
     }
 }
 
