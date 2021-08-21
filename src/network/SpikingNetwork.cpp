@@ -58,8 +58,8 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().posx() - nextNeuron.get().getOffset().posx()),
                                                   static_cast<int32_t>(neuron.getPos().posy() - nextNeuron.get().getOffset().posy()),
                                                   static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
-
-            nextNeuron.get().setReward(critic(nextNeuron.get().getIndex()), m_bias);
+            auto td_error = updateValue();
+            nextNeuron.get().setNeuromodulator(td_error);
             nextNeuron.get().weightUpdate();
 
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
@@ -68,6 +68,17 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
             addNeuronEvent(nextNeuron.get());
         }
     }
+}
+
+double SpikingNetwork::updateValue() { // TODO : only for critic updates
+    double value = 0;
+    double valueDerivative = 0;
+    for (const auto &critic : m_neurons[3]) {
+        auto values = critic.get().kernelSpikingRate();
+        value += values.first;
+        valueDerivative += values.second;
+    }
+    return (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_ballPosition;
 }
 
 int SpikingNetwork::critic(size_t index) {

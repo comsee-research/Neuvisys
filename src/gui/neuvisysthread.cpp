@@ -106,7 +106,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 if (!sim.getLeftEvents().empty() && exploration) {
                     auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
                     neuron.spike(sim.getLeftEvents().back().timestamp());
-                    neuron.setReward(spinet.critic(neuron.getIndex()), 0);
+                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()), 0);
                     neuron.weightUpdate();
                     neuron.resetSpike();
                 }
@@ -159,9 +159,10 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     }
 
     if (sizeArray == 0) {
-        emit displayProgress(0, spinet.getNeuron(m_id, m_layer).getSpikeRate(), spinet.getNeuron(m_id, m_layer).getThreshold(), spinet.getBias());
+        emit displayProgress(0, spinet.getNeuron(m_id, m_layer).getSpikingRate(), spinet.getNeuron(m_id, m_layer).getThreshold(), spinet.getBias());
     } else {
-        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), spinet.getNeuron(m_id, m_layer).getSpikeRate(), spinet
+        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray),
+                             spinet.getNeuron(m_id, m_layer).getSpikingRate(), spinet
         .getNeuron(m_id, m_layer).getThreshold(), spinet.getBias());
     }
 

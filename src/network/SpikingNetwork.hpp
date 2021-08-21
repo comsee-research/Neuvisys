@@ -72,6 +72,7 @@ private:
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
     void addNeuronEvent(const Neuron &neuron);
     void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+    double updateValue();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

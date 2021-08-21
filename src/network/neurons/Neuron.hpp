@@ -31,7 +31,7 @@ protected:
     bool m_spike;
     long m_creationTime{};
     double m_recentSpikeRate{};
-    double m_spikeRate{};
+    double m_spikingRate{};
     long m_lifeSpan{};
     long m_referenceTime{};
 
@@ -44,7 +44,7 @@ public:
     [[nodiscard]] virtual Position getPos() const { return m_pos; }
     [[nodiscard]] virtual Position getOffset() const { return m_offset; }
     [[nodiscard]] virtual double getThreshold() const { return m_threshold; }
-    [[nodiscard]] virtual double getSpikeRate() const { return m_spikeRate; }
+    [[nodiscard]] virtual double getSpikingRate() const { return m_spikingRate; }
     [[nodiscard]] virtual long getSpikingTime() const { return m_spikingTime; }
     [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptation_potential; }
@@ -80,10 +80,12 @@ public:
     virtual bool newEvent(Event event) {}
     virtual bool newEvent(NeuronEvent event) {}
     virtual bool update() {}
-    virtual void setReward(double reward, double bias) {}
+    virtual void setNeuromodulator(double reward) {}
     virtual void trackPotential(long time);
     virtual void updateState(long time);
     virtual void spike(long time) {};
+
+    virtual std::pair<double, double> kernelSpikingRate() {};
 
 protected:
     void writeJson(json &state);

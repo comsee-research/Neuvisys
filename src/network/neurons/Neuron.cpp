@@ -35,7 +35,7 @@ void Neuron::updateState(const long time) {
     auto dt = time - m_referenceTime;
     m_referenceTime = time;
     m_lifeSpan += dt;
-    m_spikeRate = 1000000 * static_cast<double>(m_totalSpike) / static_cast<double>(m_lifeSpan);
+    m_spikingRate = 1000000 * static_cast<double>(m_totalSpike) / static_cast<double>(m_lifeSpan);
 }
 
 inline void Neuron::thresholdAdaptation() { // TODO: weird use of time here
@@ -134,7 +134,7 @@ void Neuron::writeJson(json &state) {
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;
     state["lifespan"] = m_lifeSpan;
-    state["spiking_rate"] = m_spikeRate;
+    state["spiking_rate"] = m_spikingRate;
     state["recent_spikes"] = m_recentSpikes;
     state["learning_decay"] = m_learningDecay;
     state["thresholds_train"] = m_trackingThresholds;
