@@ -23,8 +23,10 @@ namespace Conf {
 
     inline constexpr long tau_k = 200000;
     inline constexpr long nu_k = 50000;
+    inline constexpr long tau_r = 4000000;
+    inline constexpr long tau_e = 500000;
 
-    inline constexpr double tau_r = 4000000;
+    inline constexpr double eta = 0.0025;
 }
 
 class NetworkConfig {

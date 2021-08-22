@@ -50,7 +50,16 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::weightUpdate() {
+    if (conf.STDP_LEARNING) {
+        for (NeuronEvent &event : m_events) {
+            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(m_spikingTime - event.timestamp());
+            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(event.timestamp() - m_lastSpikingTime);
 
+            if (m_weights(event.x(), event.y(), event.z()) < 0) {
+                m_weights(event.x(), event.y(), event.z()) = 0;
+            }
+        }
+    }
 }
 
 std::pair<double, double> MotorNeuron::kernelSpikingRate() {
@@ -63,11 +72,15 @@ std::pair<double, double> MotorNeuron::kernelSpikingRate() {
 }
 
 inline double MotorNeuron::kernel(long time) {
-    return (exp(- time / Conf::tau_k) - exp(- time / Conf::nu_k)) / (Conf::tau_k - Conf::nu_k);
+    return (exp(-time / Conf::tau_k) - exp(-time / Conf::nu_k)) / (Conf::tau_k - Conf::nu_k);
 }
 
 inline double MotorNeuron::kernelDerivative(long time) {
-    return (((exp(- time / Conf::nu_k)) / Conf::nu_k) - (exp(- time / Conf::tau_k) / Conf::tau_k)) / (Conf::tau_k - Conf::nu_k);
+    return (((exp(-time / Conf::nu_k)) / Conf::nu_k) - (exp(-time / Conf::tau_k) / Conf::tau_k)) / (Conf::tau_k - Conf::nu_k);
+}
+
+inline double MotorNeuron::eligibilityKernel(long time) {
+    return exp(-time / Conf::tau_e);
 }
 
 //inline void MotorNeuron::weightUpdate() {
