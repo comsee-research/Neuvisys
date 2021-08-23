@@ -59,6 +59,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
             if (nextNeuron.get().getLayer() > 1) {
                 auto td_error = updateValue();
+                std::cout << td_error << std::endl;
                 nextNeuron.get().setNeuromodulator(td_error);
             }
             nextNeuron.get().weightUpdate();
@@ -79,7 +80,6 @@ double SpikingNetwork::updateValue() { // TODO : only for critic updates
         value += values.first;
         valueDerivative += values.second;
     }
-    std::cout << (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward << std::endl;
     return (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward;
 }
 

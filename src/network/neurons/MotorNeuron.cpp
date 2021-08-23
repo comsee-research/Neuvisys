@@ -50,8 +50,8 @@ inline void MotorNeuron::spike(long time) {
 inline void MotorNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (NeuronEvent &event : m_events) {
-            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(m_spikingTime - event.timestamp());
-            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(event.timestamp() - m_lastSpikingTime);
+            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(static_cast<double>(m_spikingTime - event.timestamp()) / 1000000);
+            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(static_cast<double>(event.timestamp() - m_lastSpikingTime)  / 1000000);
 
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
