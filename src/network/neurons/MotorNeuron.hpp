@@ -14,8 +14,8 @@ class MotorNeuron : public Neuron {
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 
 public:
+    MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
     bool newEvent(NeuronEvent event) override;
-    MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
     void spike(long time) override;
     double getWeights(long x, long y, long z) override;
     std::vector<long> getWeightsDimension() override;
@@ -23,13 +23,13 @@ public:
     void loadWeights(std::string &filePath) override;
     void setNeuromodulator(double reward) override;
     void weightUpdate() override;
-    std::pair<double, double> kernelSpikingRate() override;
+    std::pair<double, double> updateKernelSpikingRate() override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void normalizeWeights();
-    static double kernel(long time);
-    static double kernelDerivative(long time);
-    static double eligibilityKernel(long time);
+    static double kernel(double time);
+    static double kernelDerivative(double time);
+    static double eligibilityKernel(double time);
 };
 
 

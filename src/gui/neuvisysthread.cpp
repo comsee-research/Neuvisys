@@ -106,7 +106,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 if (!sim.getLeftEvents().empty() && exploration) {
                     auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
                     neuron.spike(sim.getLeftEvents().back().timestamp());
-                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()), 0);
+                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()));
                     neuron.weightUpdate();
                     neuron.resetSpike();
                 }

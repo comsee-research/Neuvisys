@@ -1,7 +1,7 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
-    Neuron(index, conf, pos, offset),
+SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
+    Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
     m_weights(weights),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {

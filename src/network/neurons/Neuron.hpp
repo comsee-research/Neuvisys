@@ -12,6 +12,7 @@
 class Neuron {
 protected:
     size_t m_index;
+    size_t m_layer;
     NeuronConfig &conf;
     Position m_pos{};
     Position m_offset{};
@@ -39,8 +40,9 @@ protected:
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
 public:
-    Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset);
+    Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset);
     [[nodiscard]] virtual size_t getIndex() const { return m_index; }
+    [[nodiscard]] virtual size_t getLayer() const { return m_layer; }
     [[nodiscard]] virtual Position getPos() const { return m_pos; }
     [[nodiscard]] virtual Position getOffset() const { return m_offset; }
     [[nodiscard]] virtual double getThreshold() const { return m_threshold; }
@@ -84,8 +86,7 @@ public:
     virtual void trackPotential(long time);
     virtual void updateState(long time);
     virtual void spike(long time) {};
-
-    virtual std::pair<double, double> kernelSpikingRate() {};
+    virtual std::pair<double, double> updateKernelSpikingRate() {};
 
 protected:
     void writeJson(json &state);

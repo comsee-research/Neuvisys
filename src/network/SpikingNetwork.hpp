@@ -19,7 +19,7 @@ class SpikingNetwork {
 
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
-    double m_ballPosition{};
+    double m_reward{};
     double m_bias{};
     size_t m_rewadIter{};
     std::vector<double> m_listReward;

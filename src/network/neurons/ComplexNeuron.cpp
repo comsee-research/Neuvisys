@@ -1,7 +1,7 @@
 #include "ComplexNeuron.hpp"
 
-ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, conf, pos, offset),
+ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
+    Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
 }

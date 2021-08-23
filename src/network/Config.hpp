@@ -18,15 +18,15 @@ namespace Conf {
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
 
     /***** TD-LTP *****/
-    inline constexpr double nu = 2;
-    inline constexpr double V0 = -40;
+    inline constexpr double nu = 2; //
+    inline constexpr double V0 = -40; // mV
 
-    inline constexpr long tau_k = 200000;
-    inline constexpr long nu_k = 50000;
-    inline constexpr long tau_r = 4000000;
-    inline constexpr long tau_e = 500000;
+    inline constexpr double tau_k = 0.2; // s
+    inline constexpr double nu_k = 0.05; // s
+    inline constexpr double tau_r = 4; // s
+    inline constexpr double tau_e = 0.5; // s
 
-    inline constexpr double eta = 0.0025;
+    inline constexpr double eta = 0.0025; //
 }
 
 class NetworkConfig {

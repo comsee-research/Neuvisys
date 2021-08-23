@@ -2,8 +2,9 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset) :
+Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
+        m_layer(layer),
         conf(conf),
         m_pos(pos),
         m_offset(offset),

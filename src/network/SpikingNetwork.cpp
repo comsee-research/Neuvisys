@@ -21,7 +21,6 @@ void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const doub
 
         if (static_cast<size_t>(m_iterations) % 10000 == 0) {
             updateNeuronsParameters(event.timestamp());
-            std::cout << static_cast<size_t>(m_iterations) << " / " << eventPacket.size() << std::endl;
         }
         ++m_iterations;
     }
@@ -58,8 +57,10 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().posx() - nextNeuron.get().getOffset().posx()),
                                                   static_cast<int32_t>(neuron.getPos().posy() - nextNeuron.get().getOffset().posy()),
                                                   static_cast<int32_t>(neuron.getPos().posz() - nextNeuron.get().getOffset().posz())))) {
-            auto td_error = updateValue();
-            nextNeuron.get().setNeuromodulator(td_error);
+            if (nextNeuron.get().getLayer() > 1) {
+                auto td_error = updateValue();
+                nextNeuron.get().setNeuromodulator(td_error);
+            }
             nextNeuron.get().weightUpdate();
 
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
@@ -74,31 +75,32 @@ double SpikingNetwork::updateValue() { // TODO : only for critic updates
     double value = 0;
     double valueDerivative = 0;
     for (const auto &critic : m_neurons[3]) {
-        auto values = critic.get().kernelSpikingRate();
+        auto values = critic.get().updateKernelSpikingRate();
         value += values.first;
         valueDerivative += values.second;
     }
-    return (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_ballPosition;
+    std::cout << (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward << std::endl;
+    return (Conf::nu / static_cast<double>(m_neurons[3].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward;
 }
 
-int SpikingNetwork::critic(size_t index) {
-    int reward;
-    auto action = motorMapping[index];
-    if (action.second < 0) {
-        if (m_ballPosition < 0) {
-            reward = 1;
-        } else {
-            reward = -1;
-        }
-    } else if (action.second > 0) {
-        if (m_ballPosition > 0) {
-            reward = 1;
-        } else {
-            reward = -1;
-        }
-    }
-    return reward;
-}
+//int SpikingNetwork::critic(size_t index) {
+//    int reward;
+//    auto action = motorMapping[index];
+//    if (action.second < 0) {
+//        if (m_reward < 0) {
+//            reward = 1;
+//        } else {
+//            reward = -1;
+//        }
+//    } else if (action.second > 0) {
+//        if (m_reward > 0) {
+//            reward = 1;
+//        } else {
+//            reward = -1;
+//        }
+//    }
+//    return reward;
+//}
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
     std::vector<uint64_t> motorActivations(m_neurons[m_neurons.size() - 1].size(), 0);
@@ -198,14 +200,13 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                             auto pos = Position(x * layerSizes[0] + i, y * layerSizes[1] + j, z * layerSizes[2] + k);
                             auto offset = Position(layerPatches[0][x] + i * neuronSizes[0], layerPatches[1][y] + j * neuronSizes[1]);
                             if (neuronType == "SimpleCell") {
-                                m_simpleNeurons.emplace_back(
-                                        SimpleNeuron(neuronIndex, m_simpleNeuronConf, pos, offset, m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
+                                m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, m_neurons.size(), m_simpleNeuronConf, pos, offset, m_sharedWeightsSimple[weightIndex], m_conf.Neuron1Synapses));
                             } else if (neuronType == "ComplexCell") {
-                                m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_complexNeuronConf, pos, offset, m_sharedWeightsComplex[neuronIndex]));
+                                m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, m_neurons.size(), m_complexNeuronConf, pos, offset, m_sharedWeightsComplex[neuronIndex]));
                             } else if (neuronType == "CriticCell") {
-                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
+                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, m_neurons.size(), m_motorNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
                             } else if (neuronType == "ActorCell") {
-                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, m_motorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
+                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, m_neurons.size(), m_motorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
                             } else {
                                 std::cout << "No matching cell type" << std::endl;
                             }
@@ -426,7 +427,7 @@ Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
 }
 
 void SpikingNetwork::transmitReward(double reward) {
-    m_ballPosition = reward;
+    m_reward = reward;
     ++m_rewadIter;
     m_bias += ((reward - m_bias) / static_cast<double>(m_rewadIter)); // Average reward
     m_listReward.push_back(reward);

@@ -4,8 +4,8 @@
 
 #include "MotorNeuron.hpp"
 
-MotorNeuron::MotorNeuron(size_t index, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, conf, pos, Position()),
+MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights) :
+    Neuron(index, layer, conf, pos, Position()),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
     const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = m_weights.dimensions();
@@ -44,9 +44,7 @@ inline void MotorNeuron::spike(long time) {
     ++m_totalSpike;
     m_potential = conf.VRESET;
 
-    if (conf.TRACKING == "partial") {
-        m_trackingSpikeTrain.push_back(time);
-    }
+    m_trackingSpikeTrain.push_back(time);
 }
 
 inline void MotorNeuron::weightUpdate() {
@@ -59,27 +57,38 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
+        normalizeWeights();
     }
+    m_events.clear();
 }
 
-std::pair<double, double> MotorNeuron::kernelSpikingRate() {
+std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
     double kernelSpikingRate = 0, kernelDerivativeSpikingRate = 0;
-    for (const auto &spikeTime: m_trackingSpikeTrain) {
-        kernelSpikingRate += kernel(m_spikingTime - spikeTime);
-        kernelDerivativeSpikingRate += kernelDerivative(m_spikingTime - spikeTime);
+    size_t count = 0;
+    for (auto rit = m_trackingSpikeTrain.rbegin(); rit != m_trackingSpikeTrain.rend(); ++rit) {
+        if (count == 0) {
+            ++count;
+            continue;
+        } else if (count > 50) {
+            break;
+        } else {
+            kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / 1000000);
+            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
+            ++count;
+        }
     }
     return { kernelSpikingRate, kernelDerivativeSpikingRate };
 }
 
-inline double MotorNeuron::kernel(long time) {
+inline double MotorNeuron::kernel(double time) {
     return (exp(-time / Conf::tau_k) - exp(-time / Conf::nu_k)) / (Conf::tau_k - Conf::nu_k);
 }
 
-inline double MotorNeuron::kernelDerivative(long time) {
-    return (((exp(-time / Conf::nu_k)) / Conf::nu_k) - (exp(-time / Conf::tau_k) / Conf::tau_k)) / (Conf::tau_k - Conf::nu_k);
+inline double MotorNeuron::kernelDerivative(double time) {
+    return (exp(-time / Conf::nu_k) / Conf::nu_k - exp(-time / Conf::tau_k) / Conf::tau_k) / (Conf::tau_k - Conf::nu_k);
 }
 
-inline double MotorNeuron::eligibilityKernel(long time) {
+inline double MotorNeuron::eligibilityKernel(double time) {
     return exp(-time / Conf::tau_e);
 }
 

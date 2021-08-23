@@ -37,15 +37,15 @@ int main(int argc, char **argv) {
             if (1000000 * frameElapsed.count() > static_cast<double>(100000)) {
                 motorTime = std::chrono::high_resolution_clock::now();
 
-                int selectedMotor;
-                auto exploration = sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
-                if (!sim.getLeftEvents().empty() && exploration) {
-                    auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
-                    neuron.spike(sim.getLeftEvents().back().timestamp());
-                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()), 0);
-                    neuron.weightUpdate();
-                    neuron.resetSpike();
-                }
+//                int selectedMotor;
+//                auto exploration = sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
+//                if (!sim.getLeftEvents().empty() && exploration) {
+//                    auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
+//                    neuron.spike(sim.getLeftEvents().back().timestamp());
+//                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()));
+//                    neuron.weightUpdate();
+//                    neuron.resetSpike();
+//                }
             }
 
             sim.resetLeft();
