@@ -82,7 +82,7 @@ public:
     virtual bool newEvent(Event event) {}
     virtual bool newEvent(NeuronEvent event) {}
     virtual bool update() {}
-    virtual void setNeuromodulator(double reward) {}
+    virtual void setNeuromodulator(double neuromodulator) {}
     virtual void trackPotential(long time);
     virtual void updateState(long time);
     virtual void spike(long time) {};

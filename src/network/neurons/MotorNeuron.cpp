@@ -69,7 +69,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
         if (count == 0) {
             ++count;
             continue;
-        } else if (count > 50) {
+        } else if (count > 100) {
             break;
         } else {
             kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / 1000000);
@@ -142,6 +142,6 @@ std::vector<long> MotorNeuron::getWeightsDimension() {
     return dim;
 }
 
-inline void MotorNeuron::setNeuromodulator(double reward) {
-    m_neuromodulator = reward;
+inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
+    m_neuromodulator = neuromodulator;
 }

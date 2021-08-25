@@ -112,8 +112,8 @@ void Neuron::loadState(std::string &fileName) {
 }
 
 void Neuron::writeJson(json &state) {
-    std::vector<size_t> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
-    std::vector<size_t> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
+    std::vector<size_t> position = {m_pos.x(), m_pos.y(), m_pos.z()};
+    std::vector<size_t> offset = {m_offset.x(), m_offset.y(), m_offset.z()};
     std::vector<size_t> inIndex;
     std::vector<size_t> outIndex;
     std::vector<size_t> inhibIndex;

@@ -21,7 +21,7 @@ public:
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
-    void setNeuromodulator(double reward) override;
+    void setNeuromodulator(double neuromodulator) override;
     void weightUpdate() override;
     std::pair<double, double> updateKernelSpikingRate() override;
 private:
