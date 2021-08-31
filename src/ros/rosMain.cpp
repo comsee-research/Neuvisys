@@ -9,10 +9,10 @@ int main(int argc, char **argv) {
     std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     SpikingNetwork spinet(networkPath);
 
-    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().SharingType, true, spinet.getNetworkConfig().layerPatches[0], spinet.getNetworkConfig().layerSizes[0], spinet.getNetworkConfig().neuronSizes[0], 0);
-    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().layerPatches[1], spinet.getNetworkConfig().layerSizes[1], spinet.getNetworkConfig().neuronSizes[1], 0);
-    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().layerPatches[2], spinet.getNetworkConfig().layerSizes[2], spinet.getNetworkConfig().neuronSizes[2], 1);
-    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().layerPatches[3], spinet.getNetworkConfig().layerSizes[3], spinet.getNetworkConfig().neuronSizes[3], 1);
+    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true, spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0], spinet.getNetworkConfig().getNeuronSizes()[0], 0);
+    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1], spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1], 0);
+    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2], spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2], 1);
+    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[3], spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
     spinet.loadNetwork();
 
     SimulationInterface sim(1. / 150);

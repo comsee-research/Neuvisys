@@ -85,9 +85,9 @@ void multiplePass(const std::string &networkPath, const std::string& events, siz
     SpikingNetwork spinet(networkPath);
 
     auto eventPacket = std::vector<Event>();
-    if (spinet.getNetworkConfig().NbCameras == 1) {
+    if (spinet.getNetworkConfig().getNbCameras() == 1) {
         eventPacket = mono(events, nbPass);
-    } else if (spinet.getNetworkConfig().NbCameras == 2) {
+    } else if (spinet.getNetworkConfig().getNbCameras() == 2) {
         eventPacket = stereo(events, nbPass);
     }
     spinet.runEvents(eventPacket, 0);

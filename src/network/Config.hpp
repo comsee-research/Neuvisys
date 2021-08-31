@@ -19,22 +19,17 @@ namespace Conf {
 
     /***** TD-LTP *****/
     inline constexpr double nu = 2; //
-    inline constexpr double V0 = -40; // mV
+    inline constexpr double V0 = 0; // mV
 
     inline constexpr double tau_k = 0.2; // s
     inline constexpr double nu_k = 0.05; // s
-    inline constexpr double tau_r = 4; // s
+    inline constexpr double tau_r = 1; // s
     inline constexpr double tau_e = 0.5; // s
 
-    inline constexpr double eta = 0.0025; //
+    inline constexpr double eta = 0.025; //
 }
 
 class NetworkConfig {
-public:
-    NetworkConfig();
-    explicit NetworkConfig(std::string networkPath);
-    void loadNetworkLayout(const std::string& fileName);
-
     /***** Display parameters *****/
     std::string NETWORK_CONFIG;
     bool SaveData{};
@@ -48,6 +43,21 @@ public:
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
+
+public:
+    NetworkConfig();
+    explicit NetworkConfig(std::string networkPath);
+    void loadNetworkLayout(const std::string& fileName);
+
+    [[nodiscard]] std::string getNetworkPath() const { return NetworkPath; }
+    [[nodiscard]] size_t getNbCameras() const { return NbCameras; }
+    [[nodiscard]] size_t getNeuron1Synapses() const { return Neuron1Synapses; }
+    [[nodiscard]] bool getSaveData() const { return SaveData; }
+    std::string &getNetworkPath() { return NetworkPath; }
+    std::string &getSharingType() { return SharingType; }
+    std::vector<std::vector<std::vector<size_t>>> &getLayerPatches() { return layerPatches; }
+    std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
+    std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }
 };
 
 class NeuronConfig {

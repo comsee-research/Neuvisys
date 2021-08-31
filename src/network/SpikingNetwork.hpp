@@ -55,7 +55,7 @@ public:
 
     Neuron &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
-    NetworkConfig getNetworkConfig() { return m_conf; }
+    NetworkConfig getNetworkConfig() { return m_conf; };
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout(size_t layer, Position pos) { return m_layout[layer][{ pos.x(), pos.y(), pos.z() }]; }

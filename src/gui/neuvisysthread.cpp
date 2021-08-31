@@ -30,15 +30,15 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, 
 void NeuvisysThread::run() {
     auto spinet = SpikingNetwork(m_networkPath.toStdString());
 
-    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().SharingType, true, spinet.getNetworkConfig().layerPatches[0], spinet.getNetworkConfig().layerSizes[0], spinet.getNetworkConfig().neuronSizes[0], 0);
-    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().layerPatches[1], spinet.getNetworkConfig().layerSizes[1], spinet.getNetworkConfig().neuronSizes[1], 0);
-    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().layerPatches[2], spinet.getNetworkConfig().layerSizes[2], spinet.getNetworkConfig().neuronSizes[2], 1);
-    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().layerPatches[3], spinet.getNetworkConfig().layerSizes[3], spinet.getNetworkConfig().neuronSizes[3], 1);
+    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true, spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0], spinet.getNetworkConfig().getNeuronSizes()[0], 0);
+    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1], spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1], 0);
+    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2], spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2], 1);
+    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[3], spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
 
     spinet.loadNetwork();
 
-    emit networkConfiguration(spinet.getNetworkConfig().SharingType, spinet.getNetworkConfig().layerPatches[0], spinet.getNetworkConfig().layerSizes[0], spinet.getNetworkConfig().neuronSizes[0]);
-    emit networkCreation(spinet.getNetworkConfig().NbCameras, spinet.getNetworkConfig().Neuron1Synapses, spinet.getNetworkStructure());
+    emit networkConfiguration(spinet.getNetworkConfig().getSharingType(), spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0], spinet.getNetworkConfig().getNeuronSizes()[0]);
+    emit networkCreation(spinet.getNetworkConfig().getNbCameras(), spinet.getNetworkConfig().getNeuron1Synapses(), spinet.getNetworkStructure());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_motorDisplay = std::vector<bool>(2, false);
@@ -53,9 +53,9 @@ void NeuvisysThread::run() {
 
 void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     auto eventPacket = std::vector<Event>();
-    if (spinet.getNetworkConfig().NbCameras == 1) {
+    if (spinet.getNetworkConfig().getNbCameras() == 1) {
         eventPacket = mono(m_events.toStdString(), m_nbPass);
-    } else if (spinet.getNetworkConfig().NbCameras == 2) {
+    } else if (spinet.getNetworkConfig().getNbCameras() == 2) {
         eventPacket = stereo(m_events.toStdString(), m_nbPass);
     }
     emit displayProgress(100, 0, 0, 0);
@@ -119,7 +119,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             timeElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
             if (1000000 * timeElapsed.count() > static_cast<double>(m_precisionEvent)) {
                 m_frameTime = std::chrono::high_resolution_clock::now();
-//                display(spinet, 0);
+                display(spinet, 0);
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_trackingTime;
@@ -156,7 +156,7 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
         if (m_layer == 0) {
             sharing = "patch";
         }
-        emit networkConfiguration(sharing, spinet.getNetworkConfig().layerPatches[m_layer], spinet.getNetworkConfig().layerSizes[m_layer], spinet.getNetworkConfig().neuronSizes[m_layer]);
+        emit networkConfiguration(sharing, spinet.getNetworkConfig().getLayerPatches()[m_layer], spinet.getNetworkConfig().getLayerSizes()[m_layer], spinet.getNetworkConfig().getNeuronSizes()[m_layer]);
     }
 
     if (sizeArray == 0) {
@@ -167,13 +167,13 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
         .getNeuron(m_id, m_layer).getThreshold(), spinet.getBias());
     }
 
-    for (auto xPatch : spinet.getNetworkConfig().layerPatches[0][0]) {
-        for (auto yPatch : spinet.getNetworkConfig().layerPatches[0][1]) {
-            auto offsetXPatch = static_cast<int>(xPatch + spinet.getNetworkConfig().layerSizes[0][0] * spinet.getNetworkConfig().neuronSizes[0][0]);
-            auto offsetYPatch = static_cast<int>(yPatch + spinet.getNetworkConfig().layerSizes[0][1] * spinet.getNetworkConfig().neuronSizes[0][1]);
-            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(xPatch), static_cast<int>(yPatch)), cv::Point(offsetXPatch, offsetYPatch),
+    for (size_t i = 0; i < spinet.getNetworkConfig().getLayerPatches()[0][0].size(); ++i) {
+        for (size_t j = 0; j < spinet.getNetworkConfig().getLayerPatches()[0][1].size(); ++j) {
+            auto offsetXPatch = static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][0][i] + spinet.getNetworkConfig().getLayerSizes()[0][0] * spinet.getNetworkConfig().getNeuronSizes()[0][0]);
+            auto offsetYPatch = static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][1][j] + spinet.getNetworkConfig().getLayerSizes()[0][1] * spinet.getNetworkConfig().getNeuronSizes()[0][1]);
+            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][0][i]), static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][1][j])), cv::Point(offsetXPatch, offsetYPatch),
                           cv::Scalar(255, 0, 0));
-            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(xPatch), static_cast<int>(yPatch)), cv::Point(offsetXPatch, offsetYPatch),
+            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][0][i]), static_cast<int>(spinet.getNetworkConfig().getLayerPatches()[0][1][j])), cv::Point(offsetXPatch, offsetYPatch),
                           cv::Scalar(255, 0, 0));
         }
     }
@@ -196,34 +196,34 @@ inline void NeuvisysThread::prepareWeights(SpikingNetwork &spinet) {
     m_weightDisplay.clear();
     size_t count = 0;
     if (m_layer == 0) {
-        for (size_t i = 0; i < spinet.getNetworkConfig().layerPatches[m_layer][0].size() * spinet.getNetworkConfig().layerSizes[m_layer][0]; ++i) {
-            for (size_t j = 0; j < spinet.getNetworkConfig().layerPatches[m_layer][1].size() * spinet.getNetworkConfig().layerSizes[m_layer][1]; ++j) {
+        for (size_t i = 0; i < spinet.getNetworkConfig().getLayerPatches()[m_layer][0].size() * spinet.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
+            for (size_t j = 0; j < spinet.getNetworkConfig().getLayerPatches()[m_layer][1].size() * spinet.getNetworkConfig().getLayerSizes()[m_layer][1]; ++j) {
                 m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(0, Position(i, j, m_zcell)), 0).getTrackingSpikeTrain();
-                if (spinet.getNetworkConfig().SharingType == "none") {
+                if (spinet.getNetworkConfig().getSharingType() == "none") {
                     m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(0, Position(i, j, m_zcell)), m_layer, m_camera, m_synapse, m_zcell);
                 }
                 ++count;
             }
         }
-        if (spinet.getNetworkConfig().SharingType == "patch") {
+        if (spinet.getNetworkConfig().getSharingType() == "patch") {
             count = 0;
-            for (size_t wp = 0; wp < spinet.getNetworkConfig().layerPatches[m_layer][0].size(); ++wp) {
-                for (size_t hp = 0; hp < spinet.getNetworkConfig().layerPatches[m_layer][1].size(); ++hp) {
-                    for (size_t i = 0; i < spinet.getNetworkConfig().layerSizes[m_layer][2]; ++i) {
+            for (size_t wp = 0; wp < spinet.getNetworkConfig().getLayerPatches()[m_layer][0].size(); ++wp) {
+                for (size_t hp = 0; hp < spinet.getNetworkConfig().getLayerPatches()[m_layer][1].size(); ++hp) {
+                    for (size_t i = 0; i < spinet.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
                         m_weightDisplay[count] = spinet.getWeightNeuron(
-                                spinet.getLayout(0, Position(wp * spinet.getNetworkConfig().layerSizes[m_layer][0], hp * spinet.getNetworkConfig().layerSizes[m_layer][1], i)), m_layer, m_camera,
+                                spinet.getLayout(0, Position(wp * spinet.getNetworkConfig().getLayerSizes()[m_layer][0], hp * spinet.getNetworkConfig().getLayerSizes()[m_layer][1], i)), m_layer, m_camera,
                                 m_synapse, m_zcell);
                         ++count;
                     }
                 }
             }
-        } else if (spinet.getNetworkConfig().SharingType == "full") {
-            for (size_t i = 0; i < spinet.getNetworkConfig().layerSizes[m_layer][2]; ++i) {
+        } else if (spinet.getNetworkConfig().getSharingType() == "full") {
+            for (size_t i = 0; i < spinet.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
                 m_weightDisplay[i] = spinet.getWeightNeuron(spinet.getLayout(0, Position(0, 0, i)), m_layer, m_camera, m_synapse, m_zcell);
             }
         }
     } else {
-        for (size_t i = 0; i < spinet.getNetworkConfig().layerSizes[m_layer][0]; ++i) {
+        for (size_t i = 0; i < spinet.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
             m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer).getTrackingSpikeTrain();
             m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer, m_camera, m_synapse, m_depth);
             ++count;

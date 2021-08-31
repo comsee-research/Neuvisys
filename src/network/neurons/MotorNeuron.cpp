@@ -57,7 +57,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-        normalizeWeights();
+//        normalizeWeights();
     }
     m_events.clear();
 }
