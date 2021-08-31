@@ -101,7 +101,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 m_motorDisplay[selectedMotor] = true;
             }
 
-            std::chrono::duration<double> frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
+            frameElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
             if (1000000 * frameElapsed.count() > static_cast<double>(m_precisionEvent)) {
                 m_frameTime = std::chrono::high_resolution_clock::now();
                 display(spinet, 0);

@@ -14,10 +14,9 @@ It can be launched with command lines, via a Qt gui or via Inivation DV software
 Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
 
 ### Qt
-install QT 5 with the **Qt Charts** module.
+install QT 5 with the **Qt Charts** module:
 
-You may need to install this:
-
+``sudo apt install qt5-default``
 ``sudo apt install libqt5charts5-dev``
 
 ### DV software:
