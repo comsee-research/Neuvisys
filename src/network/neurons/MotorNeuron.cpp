@@ -50,8 +50,8 @@ inline void MotorNeuron::spike(long time) {
 inline void MotorNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (NeuronEvent &event : m_events) {
-            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(static_cast<double>(m_spikingTime - event.timestamp()) / 1000000);
-            m_weights(event.x(), event.y(), event.z()) += Conf::eta * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(static_cast<double>(event.timestamp() - m_lastSpikingTime)  / 1000000);
+            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(static_cast<double>(m_spikingTime - event.timestamp()) / 1000000);
+            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(static_cast<double>(event.timestamp() - m_lastSpikingTime)  / 1000000);
 
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
@@ -81,15 +81,15 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
 }
 
 inline double MotorNeuron::kernel(double time) {
-    return (exp(-time / Conf::tau_k) - exp(-time / Conf::nu_k)) / (Conf::tau_k - Conf::nu_k);
+    return (exp(-time / conf.TAU_K) - exp(-time / conf.NU_K)) / (conf.TAU_K - conf.NU_K);
 }
 
 inline double MotorNeuron::kernelDerivative(double time) {
-    return (exp(-time / Conf::nu_k) / Conf::nu_k - exp(-time / Conf::tau_k) / Conf::tau_k) / (Conf::tau_k - Conf::nu_k);
+    return (exp(-time / conf.NU_K) / conf.NU_K - exp(-time / conf.TAU_K) / conf.TAU_K) / (conf.TAU_K - conf.NU_K);
 }
 
 inline double MotorNeuron::eligibilityKernel(double time) {
-    return exp(-time / Conf::tau_e);
+    return exp(-time / conf.TAU_E);
 }
 
 //inline void MotorNeuron::weightUpdate() {

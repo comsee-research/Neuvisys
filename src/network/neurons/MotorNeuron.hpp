@@ -27,9 +27,9 @@ public:
 private:
     bool membraneUpdate(NeuronEvent event);
     void normalizeWeights();
-    static double kernel(double time);
-    static double kernelDerivative(double time);
-    static double eligibilityKernel(double time);
+    double kernel(double time);
+    double kernelDerivative(double time);
+     double eligibilityKernel(double time);
 };
 
 

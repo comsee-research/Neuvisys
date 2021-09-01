@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true, spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0], spinet.getNetworkConfig().getNeuronSizes()[0], 0);
     spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1], spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1], 0);
     spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2], spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2], 1);
-    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[3], spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
+    spinet.addLayer("ActorCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[3], spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
 
     spinet.loadNetwork();
 
@@ -102,18 +102,18 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
                 spinet.pushTDError(static_cast<double>(m_motorTime.time_since_epoch().count()));
-//                int selectedMotor;
-//                auto exploration = sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
-//                if (!sim.getLeftEvents().empty() && exploration) {
-//                    auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
-//                    neuron.spike(sim.getLeftEvents().back().timestamp());
-//                    neuron.setNeuromodulator(spinet.critic(neuron.getIndex()));
-//                    neuron.weightUpdate();
-//                    neuron.resetSpike();
-//                }
-//                if (selectedMotor != -1) {
-//                    m_motorDisplay[selectedMotor] = true;
-//                }
+                int selectedMotor;
+                sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
+                if (!sim.getLeftEvents().empty()) {
+                    auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
+                    neuron.spike(sim.getLeftEvents().back().timestamp());
+                    neuron.setNeuromodulator(spinet.updateTDError());
+                    neuron.weightUpdate();
+                    neuron.resetSpike();
+                }
+                if (selectedMotor != -1) {
+                    m_motorDisplay[selectedMotor] = true;
+                }
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;

@@ -63,7 +63,9 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
             if (nextNeuron.get().getLayer() > 1) {
                 nextNeuron.get().setNeuromodulator(updateTDError());
             }
-            nextNeuron.get().weightUpdate();
+            if (nextNeuron.get().getLayer() != 3) {
+                nextNeuron.get().weightUpdate();
+            }
 
             for (auto &neuronToInhibit : nextNeuron.get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
@@ -81,7 +83,7 @@ double SpikingNetwork::updateTDError() {
         value += values.first;
         valueDerivative += values.second;
     }
-    auto td_error = (Conf::nu / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward;
+    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
     return td_error;
 }
 
@@ -93,9 +95,9 @@ double SpikingNetwork::pushTDError(double time) {
         value += values.first;
         valueDerivative += values.second;
     }
-    auto td_error = (Conf::nu / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / Conf::tau_r)) - (Conf::V0 / Conf::tau_r) + m_reward;
+    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
 
-    m_listTD.push_back({ time, m_reward, Conf::nu * value / static_cast<double>(m_neurons[2].size()) + Conf::V0, Conf::nu * valueDerivative / static_cast<double>(m_neurons[2].size()), td_error });
+    m_listTD.push_back({ time, m_reward, m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0(), m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()), td_error });
     return td_error;
 }
 

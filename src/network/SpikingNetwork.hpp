@@ -63,6 +63,7 @@ public:
     cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
     [[nodiscard]] double getBias() const { return m_bias; };
     double pushTDError(double time);
+    double updateTDError();
 
 private:
     void updateNeurons(long time);
@@ -71,7 +72,6 @@ private:
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
     void addNeuronEvent(const Neuron &neuron);
     void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
-    double updateTDError();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

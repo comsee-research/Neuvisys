@@ -33,6 +33,8 @@ def generate_list_params(params):
 
 
 def create_directories(directory, list_params):
+	n_layer = 4
+
     os.mkdir(directory + "network")
     os.mkdir(directory + "network/configs")
     os.mkdir(directory + "network/figures")
@@ -45,13 +47,13 @@ def create_directories(directory, list_params):
     os.mkdir(directory + "network/gabors/data")
     os.mkdir(directory + "network/gabors/figures")
     os.mkdir(directory + "network/gabors/hists")
+
     os.mkdir(directory + "network/images")
-    os.mkdir(directory + "network/images/simple_cells")
-    os.mkdir(directory + "network/images/complex_cells")
+	for i in range(n_layer):
+		os.mkdir(directory + "network/images/"+str(i))
     os.mkdir(directory + "network/weights")
-    os.mkdir(directory + "network/weights/simple_cells")
-    os.mkdir(directory + "network/weights/complex_cells")
-    os.mkdir(directory + "network/weights/motor_cells")
+	for i in range(n_layer):
+		os.mkdir(directory + "network/weights/"+str(i))
 
     with open(
         directory + "network/configs/network_config.json", "w"
