@@ -33,6 +33,9 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             Neuron1Synapses = conf["Neuron1Synapses"];
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
+            NU = conf["NU"];
+            V0 = conf["V0"];
+            TAU_R = conf["TAU_R"];
 
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
@@ -137,6 +140,9 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
             ifs >> conf;
             TAU_M = conf["TAU_M"];
             TAU_E = conf["TAU_E"];
+            TAU_K = conf["TAU_K"];
+            NU_K = conf["NU_K"];
+            ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             DELTA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];

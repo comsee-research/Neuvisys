@@ -101,25 +101,6 @@ double SpikingNetwork::pushTDError(double time) {
     return td_error;
 }
 
-//int SpikingNetwork::critic(size_t index) {
-//    int reward;
-//    auto action = motorMapping[index];
-//    if (action.second < 0) {
-//        if (m_reward < 0) {
-//            reward = 1;
-//        } else {
-//            reward = -1;
-//        }
-//    } else if (action.second > 0) {
-//        if (m_reward > 0) {
-//            reward = 1;
-//        } else {
-//            reward = -1;
-//        }
-//    }
-//    return reward;
-//}
-
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
     std::vector<uint64_t> motorActivations(m_neurons[m_neurons.size() - 1].size(), 0);
     for (auto &neuron : m_neurons[m_neurons.size() - 1]) {
@@ -440,7 +421,7 @@ cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t ca
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
-Neuron &SpikingNetwork::getNeuron(size_t index, size_t layer) {
+std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(size_t index, size_t layer) {
     if (layer < m_neurons.size()) {
         if (index < m_neurons[layer].size()) {
             return m_neurons[layer][index];

@@ -53,7 +53,7 @@ public:
     void transmitReward(double reward);
     std::vector<uint64_t> resolveMotor();
 
-    Neuron &getNeuron(size_t index, size_t layer);
+    std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
     NetworkConfig getNetworkConfig() { return m_conf; };
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }

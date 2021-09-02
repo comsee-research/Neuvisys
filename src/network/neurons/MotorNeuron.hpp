@@ -29,7 +29,7 @@ private:
     void normalizeWeights();
     double kernel(double time);
     double kernelDerivative(double time);
-     double eligibilityKernel(double time);
+    double eligibilityKernel(double time);
 };
 
 

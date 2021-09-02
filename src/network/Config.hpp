@@ -65,7 +65,7 @@ public:
     double TAU_LTD{}; // μs
     double TAU_RP{}; // μs
     double TAU_SRA{}; // μs
-    double TAU_E{}; // μs
+    double TAU_E{}; // s
     double TAU_K{}; // s
 
     double ETA_LTP{}; // mV
