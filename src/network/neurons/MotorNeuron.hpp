@@ -11,6 +11,7 @@ class MotorNeuron : public Neuron {
     double m_neuromodulator{};
     boost::circular_buffer<NeuronEvent> m_events;
     Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTrace;
+    Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTiming;
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 
 public:

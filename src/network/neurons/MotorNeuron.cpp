@@ -10,10 +10,12 @@ MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Positio
     m_weights(weights) {
     const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = m_weights.dimensions();
     m_eligibilityTrace = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
+    m_eligibilityTiming = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
     for (long i = 0; i < d[0]; ++i) {
         for (long j = 0; j < d[1]; ++j) {
             for (long k = 0; k < d[2]; ++k) {
                 m_eligibilityTrace(i, j, k) = 0;
+                m_eligibilityTiming(i, j, k) = 0;
             }
         }
     }
@@ -50,9 +52,15 @@ inline void MotorNeuron::spike(long time) {
 inline void MotorNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (NeuronEvent &event : m_events) {
-            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP) * eligibilityKernel(static_cast<double>(m_spikingTime - event.timestamp()) / 1000000);
-            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD) * eligibilityKernel(static_cast<double>(event.timestamp() - m_lastSpikingTime)  / 1000000);
+            m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- (static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / conf.TAU_E);
+            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+            if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
+                m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
+            }
+            m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
 
+            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
