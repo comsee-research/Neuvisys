@@ -38,7 +38,7 @@ signals:
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
-    void displayReward(const std::vector<double> &rewardTrain);
+    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void displayAction(const std::vector<bool> &motorActivation);
     void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);

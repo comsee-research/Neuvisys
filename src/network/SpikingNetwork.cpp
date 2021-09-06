@@ -87,7 +87,7 @@ double SpikingNetwork::updateTDError() {
     return td_error;
 }
 
-double SpikingNetwork::pushTDError(double time) {
+void SpikingNetwork::pushTDError() {
     double value = 0;
     double valueDerivative = 0;
     for (const auto &critic : m_neurons[2]) {
@@ -97,8 +97,9 @@ double SpikingNetwork::pushTDError(double time) {
     }
     auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
 
-    m_listTD.push_back({ time, m_reward, m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0(), m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()), td_error });
-    return td_error;
+    m_listValue.push_back(m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
+    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
+    m_listTDError.push_back(td_error);
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
@@ -288,8 +289,6 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         state["rewards"] = m_listReward;
         state["bias"] = m_bias;
         state["reward_iter"] = m_rewardIter;
-
-        state["td"] = m_listTD;
 
         std::ofstream ofs(fileName + ".json");
         if (ofs.is_open()) {

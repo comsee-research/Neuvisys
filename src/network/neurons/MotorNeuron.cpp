@@ -65,7 +65,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-//        normalizeWeights();
+        normalizeWeights();
     }
     m_events.clear();
 }
@@ -94,10 +94,6 @@ inline double MotorNeuron::kernel(double time) {
 
 inline double MotorNeuron::kernelDerivative(double time) {
     return (exp(-time / conf.NU_K) / conf.NU_K - exp(-time / conf.TAU_K) / conf.TAU_K) / (conf.TAU_K - conf.NU_K);
-}
-
-inline double MotorNeuron::eligibilityKernel(double time) {
-    return exp(-time / conf.TAU_E);
 }
 
 //inline void MotorNeuron::weightUpdate() {

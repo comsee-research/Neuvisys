@@ -92,16 +92,17 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             sim.update();
 
             spinet.transmitReward(sim.getReward());
+            spinet.pushTDError();
             for (const Event &event : sim.getLeftEvents()) {
                 addEventToDisplay(event);
                 spinet.runEvent(event);
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
-            if (1000000 * timeElapsed.count() > static_cast<double>(20000)) {
+            if (1000000 * timeElapsed.count() > static_cast<double>(10000)) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
-                spinet.pushTDError(static_cast<double>(m_motorTime.time_since_epoch().count()));
+//                spinet.pushTDError(static_cast<double>(m_motorTime.time_since_epoch().count()));
 //                int selectedMotor;
 //                sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
 //                if (!sim.getLeftEvents().empty() && selectedMotor != -1) {
@@ -185,8 +186,8 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     emit displaySpike(m_spikeTrain);
     emit displayPotential(spinet.getSimpleNeuronConfig().VRESET, spinet.getNeuron(m_id, m_layer).get().getThreshold(), spinet.getNeuron(m_id, m_layer)
     .get().getTrackingPotentialTrain());
-    emit displayReward(spinet.getRewards());
-    emit displayAction(m_motorDisplay);
+    emit displayReward(spinet.getRewards(), spinet.getListValue(), spinet.getListValueDot(), spinet.getListTDError());
+//    emit displayAction(m_motorDisplay);
     m_motorDisplay = std::vector<bool>(2, false);
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;

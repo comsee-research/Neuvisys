@@ -62,9 +62,15 @@ NeuvisysGUI::NeuvisysGUI(int argc, char** argv, QWidget *parent) : QMainWindow(p
     ui->spikeView->setRenderHint(QPainter::Antialiasing);
 
     rewardSeries = new QLineSeries();
+    valueSeries = new QLineSeries();
+    valueDotSeries = new QLineSeries();
+    tdSeries = new QLineSeries();
     rewardChart = new QChart();
     rewardChart->legend()->hide();
     rewardChart->addSeries(rewardSeries);
+    rewardChart->addSeries(valueSeries);
+    rewardChart->addSeries(valueDotSeries);
+    rewardChart->addSeries(tdSeries);
     rewardChart->createDefaultAxes();
     rewardChart->setTitle("Reward plot");
     ui->rewardView->setChart(rewardChart);
@@ -78,6 +84,7 @@ NeuvisysGUI::~NeuvisysGUI() {
     free(spikeSeries);
     free(spikeChart);
     free(rewardSeries);
+    free(valueSeries);
     free(rewardChart);
 
     if (ros::isStarted()) {
@@ -431,33 +438,42 @@ void NeuvisysGUI::onDisplaySpike(const std::map<size_t, std::vector<long>> &spik
     ui->spikeView->repaint();
 }
 
-void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain) {
+void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain) {
     rewardChart->removeSeries(rewardSeries);
+    rewardChart->removeSeries(valueSeries);
+    rewardChart->removeSeries(valueDotSeries);
+    rewardChart->removeSeries(tdSeries);
     rewardSeries = new QLineSeries();
-    long count = 10000;
-    for (auto it = rewardTrain.rbegin(); it != rewardTrain.rend(); ++it) {
-        if (count < 0) {
-            break;
-        }
-        rewardSeries->append(static_cast<qreal>(count), *it);
-        --count;
+    valueSeries = new QLineSeries();
+    valueDotSeries = new QLineSeries();
+    tdSeries = new QLineSeries();
+    auto end = rewardTrain.size();
+    for (auto i = 1; i < 1000; ++i) {
+        if (i >= end) { break; }
+        rewardSeries->append(static_cast<qreal>(end - i), rewardTrain[end - i]);
+        valueSeries->append(static_cast<qreal>(end - i), valueTrain[end - i]);
+        valueDotSeries->append(static_cast<qreal>(end - i), valueDotTrain[end - i]);
+        tdSeries->append(static_cast<qreal>(end - i), tdTrain[end - i]);
     }
     rewardChart->addSeries(rewardSeries);
+    rewardChart->addSeries(valueSeries);
+    rewardChart->addSeries(valueDotSeries);
+    rewardChart->addSeries(tdSeries);
     rewardChart->createDefaultAxes();
-    ui->rewardView->repaint();
+    ui->rewardView->update();
 }
 
 void NeuvisysGUI::onDisplayAction(const std::vector<bool> &motorActivation) {
     int count = 0;
     for (auto action : motorActivation) {
-//        if (action) {
-//            auto label = ui->actionGrid->itemAt(count)->widget();
-//            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
-//        } else {
-//            auto label = ui->actionGrid->itemAt(count)->widget();
-//            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
-//        }
-//        ++count;
+        if (action) {
+            auto label = ui->actionGrid->itemAt(count)->widget();
+            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
+        } else {
+            auto label = ui->actionGrid->itemAt(count)->widget();
+            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
+        }
+        ++count;
     }
 }
 

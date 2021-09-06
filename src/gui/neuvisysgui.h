@@ -29,7 +29,7 @@ public slots:
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
-    void onDisplayReward(const std::vector<double> &rewardTrain);
+    void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
     void onNetworkConfiguration(const std::string& sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);
@@ -77,6 +77,9 @@ protected:
     QScatterSeries *spikeSeries;
     QChart *spikeChart;
     QLineSeries *rewardSeries;
+    QLineSeries *valueSeries;
+    QLineSeries *valueDotSeries;
+    QLineSeries *tdSeries;
     QChart *rewardChart;
     QGraphicsPixmapItem leftEvents;
     QGraphicsPixmapItem rightEvents;
