@@ -99,22 +99,23 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_motorTime;
-            if (1000000 * timeElapsed.count() > static_cast<double>(10000)) {
+            if (1000000 * timeElapsed.count() > static_cast<double>(100000)) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
-//                spinet.pushTDError(static_cast<double>(m_motorTime.time_since_epoch().count()));
-//                int selectedMotor;
-//                sim.motorAction(spinet.resolveMotor(), 0, selectedMotor);
-//                if (!sim.getLeftEvents().empty() && selectedMotor != -1) {
-//                    auto neuron = spinet.getNeuron(selectedMotor, spinet.getNetworkStructure().size()-1);
-//                    neuron.get().spike(sim.getLeftEvents().back().timestamp());
-//                    neuron.get().setNeuromodulator(spinet.updateTDError());
-//                    neuron.get().weightUpdate();
-//                    neuron.get().resetSpike();
-//                }
-//                if (selectedMotor != -1) {
-//                    m_motorDisplay[selectedMotor] = true;
-//                }
+                if (m_actor != -1) {
+                    std::cout << m_actor << " / " << spinet.getListValue().back() - m_value << std::endl;
+                    auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size()-1);
+                    neuron.get().setNeuromodulator(spinet.getListValue().back() - m_value);
+                    neuron.get().weightUpdate();
+                }
+                sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+                if (!spinet.getListValue().empty()) {
+                    m_value = spinet.getListValue().back();
+                }
+
+                if (m_actor != -1) {
+                    m_motorDisplay[m_actor] = true;
+                }
             }
 
             timeElapsed = std::chrono::high_resolution_clock::now() - m_frameTime;
@@ -199,7 +200,7 @@ inline void NeuvisysThread::prepareWeights(SpikingNetwork &spinet) {
     if (m_layer == 0) {
         for (size_t i = 0; i < spinet.getNetworkConfig().getLayerPatches()[m_layer][0].size() * spinet.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
             for (size_t j = 0; j < spinet.getNetworkConfig().getLayerPatches()[m_layer][1].size() * spinet.getNetworkConfig().getLayerSizes()[m_layer][1]; ++j) {
-                m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(0, Position(i, j, m_zcell)), 0).get().getTrackingSpikeTrain();
+//                m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(0, Position(i, j, m_zcell)), 0).get().getTrackingSpikeTrain();
                 if (spinet.getNetworkConfig().getSharingType() == "none") {
                     m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(0, Position(i, j, m_zcell)), m_layer, m_camera, m_synapse, m_zcell);
                 }
@@ -225,7 +226,7 @@ inline void NeuvisysThread::prepareWeights(SpikingNetwork &spinet) {
         }
     } else {
         for (size_t i = 0; i < spinet.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
-            m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer).get().getTrackingSpikeTrain();
+//            m_spikeTrain[count] = spinet.getNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer).get().getTrackingSpikeTrain();
             m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer, m_camera, m_synapse, m_depth);
             ++count;
         }

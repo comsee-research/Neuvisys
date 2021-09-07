@@ -64,6 +64,9 @@ protected:
     bool m_stop = false;
     bool m_change = false;
 
+    int m_actor = -1;
+    double m_value = 0;
+
     size_t m_id = 0;
     size_t m_zcell = 0;
     size_t m_depth = 0;

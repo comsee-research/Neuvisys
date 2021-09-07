@@ -8,9 +8,6 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_motorNeuronConf(m_conf.getNetworkPath() + "configs/motor_cell_config.json", 2),
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>
                                                                                  (Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))) {
-    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal -> left movement
-//    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal  -> right movement
 }
 
 void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
@@ -81,9 +78,10 @@ double SpikingNetwork::updateTDError() {
     for (const auto &critic : m_neurons[2]) {
         auto values = critic.get().updateKernelSpikingRate();
         value += values.first;
-        valueDerivative += values.second;
+//        valueDerivative += values.second;
     }
-    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
+    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
+//    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
     return td_error;
 }
 
@@ -95,11 +93,12 @@ void SpikingNetwork::pushTDError() {
         value += values.first;
         valueDerivative += values.second;
     }
-    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
+//    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
 
     m_listValue.push_back(m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
-    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
-    m_listTDError.push_back(td_error);
+    m_listValueDot.push_back(0);
+//    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
+    m_listTDError.push_back(m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0()));
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
@@ -333,9 +332,6 @@ void SpikingNetwork::loadNetwork() {
         }
         m_bias = state["bias"];
         m_rewardIter = state["reward_iter"];
-        for (auto &reward : state["rewards"]) {
-            m_listReward.push_back(reward);
-        }
     } else {
         std::cout << "Cannot open network state file" << std::endl;
     }

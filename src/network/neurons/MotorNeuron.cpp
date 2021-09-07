@@ -50,7 +50,7 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::weightUpdate() {
-    if (conf.STDP_LEARNING) {
+    if (conf.STDP_LEARNING && m_layer == 3) {
         for (NeuronEvent &event : m_events) {
             m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- (static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / conf.TAU_E);
             m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
@@ -60,12 +60,12 @@ inline void MotorNeuron::weightUpdate() {
             }
             m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
 
-            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
+            m_weights(event.x(), event.y(), event.z()) += 0.025 * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-        normalizeWeights();
+//        normalizeWeights();
     }
     m_events.clear();
 }
@@ -81,7 +81,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
             break;
         } else {
             kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / 1000000);
-            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
+//            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
             ++count;
         }
     }
