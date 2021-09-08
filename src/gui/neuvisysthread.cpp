@@ -103,15 +103,18 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 m_motorTime = std::chrono::high_resolution_clock::now();
 
                 if (m_actor != -1) {
-                    std::cout << m_actor << " / " << spinet.getListValue().back() - m_value << std::endl;
                     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size()-1);
-                    neuron.get().setNeuromodulator(spinet.getListValue().back() - m_value);
+                    neuron.get().spike(sim.getLeftEvents().back().timestamp());
+                    
+                    if (spinet.getRewards().back() - m_value >= 0) {
+                        neuron.get().setNeuromodulator(1);
+                    } else {
+                        neuron.get().setNeuromodulator(-1);
+                    }
                     neuron.get().weightUpdate();
                 }
                 sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-                if (!spinet.getListValue().empty()) {
-                    m_value = spinet.getListValue().back();
-                }
+                m_value = spinet.getRewards().back();
 
                 if (m_actor != -1) {
                     m_motorDisplay[m_actor] = true;
