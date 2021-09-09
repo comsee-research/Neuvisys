@@ -6,6 +6,7 @@
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
+
     std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     SpikingNetwork spinet(networkPath);
 
@@ -16,6 +17,8 @@ int main(int argc, char **argv) {
     spinet.loadNetwork();
 
     SimulationInterface sim(1. / 150);
+    sim.enableSyncMode(true);
+    sim.startSimulation();
 
     auto start = std::chrono::system_clock::now();
     auto time = std::chrono::system_clock::now();
@@ -23,13 +26,13 @@ int main(int argc, char **argv) {
     std::chrono::time_point<std::chrono::system_clock> motorTime;
     motorTime = std::chrono::high_resolution_clock::now();
 
-    while (std::chrono::duration_cast<std::chrono::milliseconds>(time - start).count() < 60 * 1000) {
+    while (ros::ok()) {
+        sim.triggerNextTimeStep();
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
-            time = std::chrono::system_clock::now();
-
             sim.update();
+            time = std::chrono::system_clock::now();
 
             spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
@@ -47,11 +50,11 @@ int main(int argc, char **argv) {
 //                    neuron.resetSpike();
 //                }
             }
-
             sim.resetLeft();
         }
     }
 
+    sim.stopSimulation();
     spinet.saveNetwork(1, "Simulation");
     std::cout << "Finished" << std::endl;
     return 0;

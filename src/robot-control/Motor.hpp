@@ -6,6 +6,7 @@
 #define NEUVISYS_MOTOR_H
 
 #include <std_msgs/Float32.h>
+#include <std_msgs/Bool.h>
 #include "ros/ros.h"
 #include <cstdlib>
 #include <cmath>

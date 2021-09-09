@@ -16,6 +16,10 @@ class SimulationInterface {
     ros::Subscriber m_leftSensorSub;
     ros::Subscriber m_rightSensorSub;
     ros::Subscriber m_rewardSub;
+    ros::Publisher m_startSimulation;
+    ros::Publisher m_stopSimulation;
+    ros::Publisher m_enableSyncMode;
+    ros::Publisher m_triggerNextStep;
     Motor m_leftMotor1Pub = Motor(nh, "leftmotor1");
     Motor m_leftMotor2Pub = Motor(nh, "leftmotor2");
     Motor m_rightMotor1Pub = Motor(nh, "rightmotor1");
@@ -46,6 +50,10 @@ public:
     void activateMotors(std::vector<uint64_t> motorActivation);
     void motorsJitter(double dt);
     void activateMotor(uint64_t motor);
+    void enableSyncMode(bool enable);
+    void triggerNextTimeStep();
+    void startSimulation();
+    void stopSimulation();
 
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);

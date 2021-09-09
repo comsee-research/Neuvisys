@@ -19,9 +19,9 @@ set(PROJECT_SOURCES
         ../network/NetworkHandle.cpp)
 
 set(ROS_SOURCES
-        ../ros/SimulationInterface.cpp
-        ../ros/FrameToEvents.cpp
-        ../ros/Motor.cpp)
+        ../robot-control/SimulationInterface.cpp
+        ../robot-control/FrameToEvents.cpp
+        ../robot-control/Motor.cpp)
 
 set(GUI_SOURCES
         main.cpp

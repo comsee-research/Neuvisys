@@ -8,7 +8,7 @@
 
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
-#include "../ros/SimulationInterface.hpp"
+#include "../robot-control/SimulationInterface.hpp"
 #include "cnpy.h"
 
 class NeuvisysThread : public QThread {

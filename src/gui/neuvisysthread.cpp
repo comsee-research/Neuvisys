@@ -83,9 +83,12 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 
 void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     SimulationInterface sim(1. / 150);
+    sim.enableSyncMode(true);
+    sim.startSimulation();
     std::chrono::duration<double> timeElapsed{};
 
     while (!m_stop) {
+        sim.triggerNextTimeStep();
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
@@ -105,7 +108,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 if (m_actor != -1) {
                     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size()-1);
                     neuron.get().spike(sim.getLeftEvents().back().timestamp());
-                    
+
                     if (spinet.getRewards().back() - m_value >= 0) {
                         neuron.get().setNeuromodulator(1);
                     } else {
@@ -138,6 +141,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             sim.resetLeft();
         }
     }
+    sim.stopSimulation();
     spinet.saveNetwork(1, "Simulation");
     emit networkDestruction();
 }

@@ -11,6 +11,16 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
 
+    m_startSimulation = nh.advertise<std_msgs::Bool>("startSimulation", 1000);
+    m_stopSimulation = nh.advertise<std_msgs::Bool>("stopSimulation", 1000);
+    m_enableSyncMode = nh.advertise<std_msgs::Bool>("enableSyncMode", 1000);
+    m_triggerNextStep = nh.advertise<std_msgs::Bool>("triggerNextStep", 1000);
+
+    while (m_startSimulation.getNumSubscribers() < 1 && m_stopSimulation.getNumSubscribers() < 1 && m_enableSyncMode.getNumSubscribers() < 1 && m_triggerNextStep.getNumSubscribers() < 1) {
+        ros::WallDuration sleep_t(0.5);
+        sleep_t.sleep();
+    }
+
     motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
 //    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
     motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
@@ -123,4 +133,28 @@ void SimulationInterface::activateMotor(uint64_t motor) {
             m_rightMotor2Pub.move(motorMapping[motor].second);
             break;
     }
+}
+
+void SimulationInterface::startSimulation() {
+    std_msgs::Bool msg{};
+    msg.data = true;
+    m_startSimulation.publish(msg);
+}
+
+void SimulationInterface::stopSimulation() {
+    std_msgs::Bool msg{};
+    msg.data = true;
+    m_stopSimulation.publish(msg);
+}
+
+void SimulationInterface::enableSyncMode(bool enable) {
+    std_msgs::Bool msg{};
+    msg.data = enable;
+    m_enableSyncMode.publish(msg);
+}
+
+void SimulationInterface::triggerNextTimeStep() {
+    std_msgs::Bool msg{};
+    msg.data = true;
+    m_triggerNextStep.publish(msg);
 }
