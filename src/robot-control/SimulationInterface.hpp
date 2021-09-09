@@ -16,6 +16,7 @@ class SimulationInterface {
     ros::Subscriber m_leftSensorSub;
     ros::Subscriber m_rightSensorSub;
     ros::Subscriber m_rewardSub;
+    ros::Subscriber m_timeSub;
     ros::Publisher m_startSimulation;
     ros::Publisher m_stopSimulation;
     ros::Publisher m_enableSyncMode;
@@ -27,6 +28,7 @@ class SimulationInterface {
     ros::Time m_lastImageTime, m_imageTime;
     double m_elapsedTime{};
     double m_lambda{};
+    double m_time{};
 
     double m_rewardStored{};
     bool receivedLeftImage = false, receivedRightImage = false;
@@ -45,6 +47,7 @@ public:
     void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }
     void resetRight() { rightEvents.clear(); receivedRightImage = false; }
     double getReward() const { return m_rewardStored; }
+    double getSimulationTime() const { return m_time; }
     bool hasReceivedLeftImage() const { return receivedLeftImage; }
     bool hasReceivedRightImage() const { return receivedRightImage; }
     void activateMotors(std::vector<uint64_t> motorActivation);
@@ -57,6 +60,7 @@ public:
 
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
+    void timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time);
     void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
     bool poissonProcess();
 };

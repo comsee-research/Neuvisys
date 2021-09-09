@@ -10,11 +10,13 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
+    m_timeSub = nh.subscribe<std_msgs::Float32>("simulationTime", 1000, [this](auto && PH1) { timeCallBack(std::forward<decltype(PH1)>(PH1)); });
 
     m_startSimulation = nh.advertise<std_msgs::Bool>("startSimulation", 1000);
     m_stopSimulation = nh.advertise<std_msgs::Bool>("stopSimulation", 1000);
     m_enableSyncMode = nh.advertise<std_msgs::Bool>("enableSyncMode", 1000);
     m_triggerNextStep = nh.advertise<std_msgs::Bool>("triggerNextStep", 1000);
+
 
     while (m_startSimulation.getNumSubscribers() < 1 && m_stopSimulation.getNumSubscribers() < 1 && m_enableSyncMode.getNumSubscribers() < 1 && m_triggerNextStep.getNumSubscribers() < 1) {
         ros::WallDuration sleep_t(0.5);
@@ -45,6 +47,10 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
 
 void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward) {
     m_rewardStored = reward.getMessage()->data;
+}
+
+void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time) {
+    m_time = time.getMessage()->data;
 }
 
 void SimulationInterface::update() {
