@@ -24,7 +24,6 @@ int main(int argc, char **argv) {
     int actor = 0, value = 0;
     while (ros::ok() && sim.getSimulationTime() < 200) {
         sim.triggerNextTimeStep();
-
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {

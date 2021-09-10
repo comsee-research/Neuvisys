@@ -388,6 +388,8 @@ void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t 
 
 /***** GUI Interface *****/
 
+#include <opencv2/core/eigen.hpp>
+
 cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
     if (!m_neurons[layer].empty()) {
         auto dim = m_neurons[layer][0].get().getWeightsDimension();
@@ -399,19 +401,18 @@ cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t ca
                 if (layer == 0) {
                     for (size_t p = 0; p < NBPOLARITY; p++) {
                         weight = m_neurons[layer][idNeuron].get().getWeights(p, camera, synapse, x, y) * 255;
-                        if (weight > 255) { weight = 255; }
-                        if (weight < 0) { weight = 0; }
                         weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
                     }
                 } else {
                     weight = m_neurons[layer][idNeuron].get().getWeights(x, y, z) * 255;
-                    if (weight > 255) { weight = 255; }
-                    if (weight < 0) { weight = 0; }
                     weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
                 }
             }
         }
-        return weightImage;
+        double min, max;
+        minMaxIdx(weightImage, &min, &max);
+        cv::Mat Weights = weightImage * 255 / max;
+        return Weights;
     }
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }

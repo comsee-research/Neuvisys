@@ -24,7 +24,7 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayProgress(int progress, double spike_rate, double threshold, double bias);
+    void onDisplayProgress(int progress, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
@@ -81,8 +81,6 @@ protected:
     QLineSeries *valueDotSeries;
     QLineSeries *tdSeries;
     QChart *rewardChart;
-    QGraphicsPixmapItem leftEvents;
-    QGraphicsPixmapItem rightEvents;
 
     size_t m_id{};
     size_t m_zcell{};

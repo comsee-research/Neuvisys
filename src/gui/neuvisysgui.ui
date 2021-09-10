@@ -42,8 +42,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>854</width>
-             <height>580</height>
+             <width>98</width>
+             <height>33</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -51,10 +51,18 @@
              <enum>QLayout::SetMinAndMaxSize</enum>
             </property>
             <item>
-             <widget class="QGraphicsView" name="left_event_video"/>
+             <widget class="QLabel" name="left_event_video">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
             <item>
-             <widget class="QGraphicsView" name="right_event_video"/>
+             <widget class="QLabel" name="right_event_video">
+              <property name="text">
+               <string/>
+              </property>
+             </widget>
             </item>
            </layout>
           </widget>
@@ -90,34 +98,26 @@
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="0" column="0">
-            <layout class="QFormLayout" name="event_stats">
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_event_rate">
-               <property name="text">
-                <string>Event rate</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLineEdit" name="text_event_rate">
-               <property name="readOnly">
-                <bool>true</bool>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="0">
+            <layout class="QGridLayout" name="gridLayout_22">
+             <item row="2" column="0">
               <widget class="QLabel" name="label_on_off_ratio">
                <property name="text">
                 <string>ON/OFF ratio</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="1">
-              <widget class="QLineEdit" name="text_on_off_ratio">
-               <property name="readOnly">
-                <bool>true</bool>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_event_rate">
+               <property name="text">
+                <string>Event rate (event/s)</string>
                </property>
               </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLCDNumber" name="lcd_event_rate"/>
+             </item>
+             <item row="3" column="0">
+              <widget class="QLCDNumber" name="lcd_on_off_ratio"/>
              </item>
             </layout>
            </item>
@@ -184,8 +184,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>854</width>
-             <height>632</height>
+             <width>98</width>
+             <height>28</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
@@ -661,8 +661,6 @@
   <tabstop>text_simple_cell_config</tabstop>
   <tabstop>text_complex_cell_config</tabstop>
   <tabstop>tabWidget</tabstop>
-  <tabstop>text_event_rate</tabstop>
-  <tabstop>text_on_off_ratio</tabstop>
   <tabstop>potentialView</tabstop>
   <tabstop>spikeView</tabstop>
  </tabstops>

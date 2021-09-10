@@ -25,15 +25,15 @@ public slots:
     void onDepthChanged(size_t depth);
     void onCameraChanged(size_t camera);
     void onSynapseChanged(size_t synapse);
-    void onPrecisionEventChanged(size_t precisionEvent);
+    void onPrecisionEventChanged(size_t displayRate);
     void onRangePotentialChanged(size_t rangePotential);
-    void onPrecisionPotentialChanged(size_t precisionPotential);
+    void onPrecisionPotentialChanged(size_t trackRate);
     void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
     void onLayerChanged(size_t layer);
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress, double spike_rate, double threshold, double bias);
+    void displayProgress(int progress, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
@@ -57,12 +57,11 @@ protected:
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::map<size_t, std::vector<long>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
-    std::chrono::time_point<std::chrono::system_clock> m_frameTime;
-    std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
-    std::chrono::time_point<std::chrono::system_clock> m_motorTime;
+    double m_eventRate;
     bool m_realtime = false;
     bool m_stop = false;
     bool m_change = false;
+    size_t m_on_count = 0, m_off_count = 0;
 
     int m_actor = -1;
     double m_value = 0;
@@ -74,9 +73,10 @@ protected:
     size_t m_synapse = 0;
     size_t m_layer = 0;
 
-    size_t m_precisionEvent = 30000; // µs
+    double m_displayRate = 30000; // µs
+    double m_trackRate = 10000; // µs
+    double m_actionRate = 100000; // µs
     size_t m_rangePotential = 10000; // µs
-    size_t m_precisionPotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
     void run() override;

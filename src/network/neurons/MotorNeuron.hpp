@@ -25,6 +25,7 @@ public:
     void setNeuromodulator(double neuromodulator) override;
     void weightUpdate() override;
     std::pair<double, double> updateKernelSpikingRate() override;
+
 private:
     bool membraneUpdate(NeuronEvent event);
     void normalizeWeights();
