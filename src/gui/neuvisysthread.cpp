@@ -183,14 +183,14 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
 
     emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
 
-    prepareWeights(spinet);
-    emit displayWeights(m_weightDisplay, m_layer);
-    emit displaySpike(m_spikeTrain);
-    emit displayPotential(spinet.getSimpleNeuronConfig().VRESET, spinet.getNeuron(m_id, m_layer).get().getThreshold(), spinet.getNeuron(m_id, m_layer)
-    .get().getTrackingPotentialTrain());
-    emit displayReward(spinet.getRewards(), spinet.getListValue(), spinet.getListValueDot(), spinet.getListTDError());
+//    prepareWeights(spinet);
+//    emit displayWeights(m_weightDisplay, m_layer);
+//    emit displaySpike(m_spikeTrain);
+//    emit displayPotential(spinet.getSimpleNeuronConfig().VRESET, spinet.getNeuron(m_id, m_layer).get().getThreshold(), spinet.getNeuron(m_id, m_layer)
+//    .get().getTrackingPotentialTrain());
+//    emit displayReward(spinet.getRewards(), spinet.getListValue(), spinet.getListValueDot(), spinet.getListTDError());
 //    emit displayAction(m_motorDisplay);
-    m_motorDisplay = std::vector<bool>(2, false);
+//    m_motorDisplay = std::vector<bool>(2, false);
     m_leftEventDisplay = 0;
     m_rightEventDisplay = 0;
 }

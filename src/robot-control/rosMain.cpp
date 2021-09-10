@@ -20,13 +20,34 @@ int main(int argc, char **argv) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
-    while (ros::ok() && sim.getSimulationTime() < 5) {
+    double simTime = 0;
+    int actor = 0, value = 0;
+    while (ros::ok() && sim.getSimulationTime() < 200) {
         sim.triggerNextTimeStep();
+
         ros::spinOnce();
 
         if (sim.hasReceivedLeftImage()) {
             sim.update();
             spinet.runEvents(sim.getLeftEvents(), sim.getReward());
+
+            if (sim.getSimulationTime() - simTime > 0.1) {
+                simTime = sim.getSimulationTime();
+                if (actor != -1) {
+                    auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size()-1);
+                    neuron.get().spike(sim.getLeftEvents().back().timestamp());
+
+                    if (spinet.getRewards().back() - value >= 0) {
+                        neuron.get().setNeuromodulator(1);
+                    } else {
+                        neuron.get().setNeuromodulator(-1);
+                    }
+                    neuron.get().weightUpdate();
+                }
+                sim.motorAction(spinet.resolveMotor(), 0, actor);
+                value = spinet.getRewards().back();
+            }
+
             sim.resetLeft();
         }
     }

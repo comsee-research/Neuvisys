@@ -39,17 +39,17 @@ class SimulationInterface {
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
 public:
-    SimulationInterface(double lambda);
+    explicit SimulationInterface(double lambda);
     void update();
     bool motorAction(const std::vector<uint64_t> &motorActivation, double explorationFactor, int &selectedMotor);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }
     void resetRight() { rightEvents.clear(); receivedRightImage = false; }
-    double getReward() const { return m_rewardStored; }
-    double getSimulationTime() const { return m_time; }
-    bool hasReceivedLeftImage() const { return receivedLeftImage; }
-    bool hasReceivedRightImage() const { return receivedRightImage; }
+    [[nodiscard]] double getReward() const { return m_rewardStored; }
+    [[nodiscard]] double getSimulationTime() const { return m_time; }
+    [[nodiscard]] bool hasReceivedLeftImage() const { return receivedLeftImage; }
+    [[nodiscard]] bool hasReceivedRightImage() const { return receivedRightImage; }
     void activateMotors(std::vector<uint64_t> motorActivation);
     void motorsJitter(double dt);
     void activateMotor(uint64_t motor);

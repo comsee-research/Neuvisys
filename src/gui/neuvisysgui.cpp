@@ -365,7 +365,7 @@ void NeuvisysGUI::onDisplayProgress(int progress, double spike_rate, double thre
     ui->progressBar->setValue(progress);
 }
 
-void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay) {
+void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
     QImage leftEFrame(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows,
                       static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
     leftEvents.setPixmap(QPixmap::fromImage(leftEFrame.rgbSwapped()).scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260)));
