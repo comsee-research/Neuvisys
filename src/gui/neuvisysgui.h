@@ -24,28 +24,29 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayProgress(int progress, double spike_rate, double threshold);
+    void onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void onDisplayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
-    void onDisplayReward(const std::vector<double> &rewardTrain);
+    void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
-    void onNetworkConfiguration(const std::string& sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t
-    heightPatchSize);
-    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void onNetworkConfiguration(const std::string& sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
+    std::vector<size_t> &neuronSizes);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
     void onFinished();
 
 signals:
     void indexChanged(size_t index);
-    void layerChanged(size_t layer);
+    void zcellChanged(size_t zcell);
+    void depthChanged(size_t depth);
     void cameraChanged(size_t camera);
     void synapseChanged(size_t synapse);
     void precisionEventChanged(size_t precisionEvent);
     void rangePotentialChanged(size_t rangePotential);
     void precisionPotentialChanged(size_t precisionPotential);
     void rangeSpikeTrainChanged(size_t rangeSpiketrain);
-    void cellTypeChanged(size_t cellType);
+    void layerChanged(size_t layer);
     void stopNetwork();
 
 private slots:
@@ -55,19 +56,18 @@ private slots:
     void on_text_network_config_textChanged();
     void on_text_simple_cell_config_textChanged();
     void on_text_complex_cell_config_textChanged();
-    void on_text_motor_cell_config_textChanged();
+    void on_text_critic_cell_config_textChanged();
+    void on_text_actor_cell_config_textChanged();
     void on_button_selection_clicked();
-    void on_spin_layer_selection_valueChanged(int arg1);  
+    void on_spin_zcell_selection_valueChanged(int arg1);
+    void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
     void on_spin_synapse_selection_valueChanged(int arg1);
     void on_slider_precision_event_sliderMoved(int position);
     void on_slider_range_potential_sliderMoved(int position);
     void on_slider_precision_potential_sliderMoved(int position);
     void on_slider_range_spiketrain_sliderMoved(int position);
-    void on_radio_button_simple_cell_clicked();
-    void on_radio_button_complex_cell_clicked();
-    void on_radio_button_motor_cell_clicked();
-
+    void on_slider_layer_sliderMoved(int position);
     void on_button_stop_network_clicked();
 
 protected:
@@ -78,21 +78,25 @@ protected:
     QScatterSeries *spikeSeries;
     QChart *spikeChart;
     QLineSeries *rewardSeries;
+    QLineSeries *valueSeries;
+    QLineSeries *valueDotSeries;
+    QLineSeries *tdSeries;
     QChart *rewardChart;
-    QGraphicsPixmapItem leftEvents;
-    QGraphicsPixmapItem rightEvents;
 
-    size_t id;
-    size_t layer;
-    size_t camera;
-    size_t synapse;
-    size_t cellType;
-    size_t precisionEvent;
-    size_t precisionPotential;
-    size_t rangePotential;
-    size_t rangeSpiketrain;
+    size_t m_id{};
+    size_t m_zcell{};
+    size_t m_camera{};
+    size_t m_synapse{};
+    size_t m_layer{};
+    size_t m_depth{};
+    size_t precisionEvent{};
+    size_t precisionPotential{};
+    size_t rangePotential{};
+    size_t rangeSpiketrain{};
 
 private:
     void openConfigFiles();
+    QString readConfFile(QString &directory);
+    void modifyConfFile(QString &directory, QString &text);
 };
 #endif // NEUVISYSGUI_H

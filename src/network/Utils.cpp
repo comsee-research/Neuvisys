@@ -112,7 +112,7 @@ namespace Util {
 
     int winnerTakeAll(std::vector<size_t> v) {
         std::vector<size_t> argsmax;
-        size_t max = v[0];
+        size_t max = 0;
 
         for (size_t i = 0; i < v.size(); ++i) {
             if (v[i] > max) {
@@ -120,7 +120,7 @@ namespace Util {
                 argsmax.clear();
             }
 
-            if (v[i] == max) {
+            if (max != 0 && v[i] == max) {
                 argsmax.push_back(i);
             }
         }
@@ -131,6 +131,15 @@ namespace Util {
             std::vector<int> randomArgmax;
             std::sample(argsmax.begin(), argsmax.end(), std::back_inserter(randomArgmax), 1, std::mt19937{std::random_device{}()});
             return randomArgmax[0];
+        }
+    }
+
+    bool fileExist(std::string &path) {
+        if (FILE *file = fopen(path.c_str(), "r")) {
+            fclose(file);
+            return true;
+        } else {
+            return false;
         }
     }
 }

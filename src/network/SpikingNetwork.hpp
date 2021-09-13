@@ -14,78 +14,70 @@ class SpikingNetwork {
     NetworkConfig m_conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
-    NeuronConfig m_motorNeuronConf;
+    NeuronConfig m_criticNeuronConf;
+    NeuronConfig m_actorNeuronConf;
     long m_iterations{};
 
+    std::vector<std::pair<uint64_t, float>> motorMapping;
+
     double m_reward{};
+    double m_bias{};
+    size_t m_rewardIter{};
     std::vector<double> m_listReward;
+    std::vector<double> m_listValue;
+    std::vector<double> m_listValueDot;
+    std::vector<double> m_listTDError;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsMotor;
+    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsCritic;
+    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsActor;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
+    std::vector<std::vector<std::reference_wrapper<Neuron>>> m_neurons;
 
     std::vector<SimpleNeuron> m_simpleNeurons;
     std::vector<ComplexNeuron> m_complexNeurons;
-    std::vector<MotorNeuron> m_motorNeurons;
+    std::vector<MotorNeuron> m_criticNeurons;
+    std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
-    std::vector<uint64_t> m_motorActivation;
 
-    std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout1;
-    std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout2;
-    std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t> m_layout3;
-
-    uint64_t m_nbSimpleNeurons{};
-    uint64_t m_nbComplexNeurons{};
-    uint64_t m_nbMotorNeurons{};
-
-//    Luts m_simpleluts;
-//    Luts m_complexluts;
 public:
     explicit SpikingNetwork(const std::string &conf);
+    void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>>& layerPatches,
+                  const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, size_t layerToConnect);
     void runEvents(const std::vector<Event> &eventPacket, double reward);
     void runEvent(const Event &event);
     void addEvent(const Event &event);
     void updateNeuronsParameters(long time);
+    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
+    void loadNetwork();
+    void saveNetwork(size_t nbRun, const std::string& eventFileName);
+    void transmitReward(double reward);
+    std::vector<uint64_t> resolveMotor();
+    void pushTDError();
+    double updateTDError();
 
-    Neuron &getNeuron(size_t index, size_t neuronType);
-    [[nodiscard]] size_t getNumberSimpleNeurons() const { return m_nbSimpleNeurons; }
-    [[nodiscard]] size_t getNumberComplexNeurons() const { return m_nbComplexNeurons; }
-    [[nodiscard]] size_t getNumberMotorNeurons() const { return m_nbMotorNeurons; }
-    NetworkConfig getNetworkConfig() { return m_conf; }
+    std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
+    std::vector<size_t> getNetworkStructure();
+    NetworkConfig getNetworkConfig() { return m_conf; };
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
-    uint64_t getLayout1(uint64_t x, uint64_t y, uint64_t z) { return m_layout1[{x, y, z}]; }
-    uint64_t getLayout2(uint64_t x, uint64_t y, uint64_t z) { return m_layout2[{x, y, z}]; }
+    uint64_t getLayout(size_t layer, Position pos) { return m_layout[layer][{ pos.x(), pos.y(), pos.z() }]; }
+    cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
+    [[nodiscard]] double getBias() const { return m_bias; }
     std::vector<double> &getRewards() { return m_listReward; }
-    void trackNeuron(long time, size_t simpleId = 0, size_t complexId = 0);
-    cv::Mat getWeightNeuron(size_t idNeuron, size_t camera, size_t synapse, size_t neuronType, size_t layer);
-    const std::vector<long> &getSpikingNeuron(size_t idNeuron, size_t neuronType);
-    const std::vector<std::pair<double, long>> &getPotentialNeuron(size_t idNeuron, size_t neuronType);
-    void saveNetwork(size_t nbRun, const std::string& eventFileName);
-    void setReward(double reward);
-    void resetMotorActivation() { std::fill(m_motorActivation.begin(), m_motorActivation.end(), 0); }
-    const std::vector<uint64_t> &getMotorActivation() { return m_motorActivation; }
+    std::vector<double> &getListValue() { return m_listValue; }
+    std::vector<double> &getListValueDot() { return m_listValueDot; }
+    std::vector<double> &getListTDError() { return m_listTDError; }
 
 private:
-    void addComplexEvent(SimpleNeuron &neuron);
-    void addMotorEvent(ComplexNeuron &neuron);
     void updateNeurons(long time);
     void saveNeuronsStates();
-    bool simpleNeuronsFilesExists() const;
-    bool complexNeuronsFilesExists() const;
-    bool motorNeuronsFilesExists() const;
-    void loadWeights(bool simpleNeuronStored, bool complexNeuronStored, bool motorNeuronStored);
-    void generateWeightSharing(bool simpleNeuronStored, bool complexNeuronStored, bool motorNeuronStored);
-    void generateNeuronConfiguration();
-    void assignNeurons();
-    Position findPixelComplexNeuron(ComplexNeuron &neuron);
-
-    void addLayer(const std::string &neuronType, const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
-                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
-    void connectLayer(std::vector<Neuron> &prevLayer, std::vector<Neuron> &currLayer, const std::string &neuronType, bool inhibition,
-                      size_t xSize, size_t ySize, size_t zSize);
+    void loadWeights();
+    void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
+    void addNeuronEvent(const Neuron &neuron);
+    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

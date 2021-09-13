@@ -1,7 +1,7 @@
 #include "SimpleNeuron.hpp"
 
-SimpleNeuron::SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
-    Neuron(index, conf, pos, offset),
+SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
+    Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
     m_weights(weights),
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
@@ -54,29 +54,26 @@ inline void SimpleNeuron::spike(const long time) {
     ++m_totalSpike;
     m_potential = conf.VRESET;
 
-    spikeRateAdaptation();
-    if (conf.STDP_LEARNING) {
-        updateSTDP();
-    }
-    m_events.clear();
-
     if (conf.TRACKING == "partial") {
-        m_trackingSpikeTrain.push_back(time);
+//        m_trackingSpikeTrain.push_back(time);
     }
 }
 
-inline void SimpleNeuron::updateSTDP() {
-    for (Event &event : m_events) {
-        m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-        m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+inline void SimpleNeuron::weightUpdate() {
+    if (conf.STDP_LEARNING) {
+        for (Event &event : m_events) {
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
-        if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
+            if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
+                m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
+            }
         }
-    }
 
-    normalizeWeights();
-//    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+        normalizeWeights();
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+    }
+    m_events.clear();
 }
 
 inline void SimpleNeuron::normalizeWeights() {
@@ -107,4 +104,10 @@ void SimpleNeuron::loadWeights(std::string &filePath) {
 
 double SimpleNeuron::getWeights(long p, long c, long s, long x, long y) {
     return m_weights(p, c, s, x, y);
+}
+
+std::vector<long> SimpleNeuron::getWeightsDimension() {
+    const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& dimensions = m_weights.dimensions();
+    std::vector<long> dim = { dimensions[3], dimensions[4] };
+    return dim;
 }

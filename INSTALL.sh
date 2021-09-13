@@ -59,4 +59,5 @@ cd ..
 cd neuvisys-analysis
 conda env create --file environment.yml
 conda activate neuvisys-analysis
+pip install pycryptodomex
 spyder

@@ -1,7 +1,7 @@
 #include "ComplexNeuron.hpp"
 
-ComplexNeuron::ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, conf, pos, offset),
+ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
+    Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights) {
 }
@@ -14,6 +14,7 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
+
     m_potential += m_weights(event.x(), event.y(), event.z())
                 - refractoryPotential(event.timestamp() - m_spikingTime)
                 - m_adaptation_potential;
@@ -35,59 +36,58 @@ inline void ComplexNeuron::spike(const long time) {
     m_potential = conf.VRESET;
 
     spikeRateAdaptation();
-    if (conf.STDP_LEARNING) {
-        updateSTDP();
-    }
-    m_events.clear();
 
     if (conf.TRACKING == "partial") {
         m_trackingSpikeTrain.push_back(time);
     }
 }
 
-inline void ComplexNeuron::updateSTDP() {
-    for (NeuronEvent &event : m_events) {
-        if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
-            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTP;
-        }
-        if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
-            m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTD;
-        }
-        // Step Window
-//        if (m_conf.STDP == "step_sym") {
-//            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP;
-//            }
-//            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD;
-//            }
-//        } else if (m_conf.STDP == "step_left") {
-//            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD;
-//            }
-//        } else if (m_conf.STDP == "lin_sym") {
-//            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP  && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP * (1 - static_cast<double>(m_spikingTime - event.timestamp()));
-//            }
-//            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD * (1 - static_cast<double>(event.timestamp() - m_lastSpikingTime));
-//            }
-//        } else if (m_conf.STDP == "exp_sym") {
-//            if (static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
-//            }
-//            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-//                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-//            }
-//        }
+inline void ComplexNeuron::weightUpdate() {
+    if (conf.STDP_LEARNING) {
+        for (NeuronEvent &event : m_events) {
+            if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
+                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTP;
+            }
+            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
+                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTD;
+            }
+            // Step Window
+            //        if (m_conf.STDP == "step_sym") {
+            //            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP;
+            //            }
+            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD;
+            //            }
+            //        } else if (m_conf.STDP == "step_left") {
+            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD;
+            //            }
+            //        } else if (m_conf.STDP == "lin_sym") {
+            //            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP  && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP * (1 - static_cast<double>(m_spikingTime - event.timestamp()));
+            //            }
+            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD * (1 - static_cast<double>(event.timestamp() - m_lastSpikingTime));
+            //            }
+            //        } else if (m_conf.STDP == "exp_sym") {
+            //            if (static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
+            //            }
+            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
+            //                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * m_conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
+            //            }
+            //        }
 
-        if (m_weights(event.x(), event.y(), event.z()) < 0) {
-            m_weights(event.x(), event.y(), event.z()) = 0;
+            if (m_weights(event.x(), event.y(), event.z()) < 0) {
+                m_weights(event.x(), event.y(), event.z()) = 0;
+            }
         }
+
+        normalizeWeights();
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
     }
-
-    normalizeWeights();
-//    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+    m_events.clear();
 }
 
 inline void ComplexNeuron::normalizeWeights() {
@@ -108,4 +108,10 @@ void ComplexNeuron::loadWeights(std::string &filePath) {
 
 double ComplexNeuron::getWeights(long x, long y, long z) {
     return m_weights(x, y, z);
+}
+
+std::vector<long> ComplexNeuron::getWeightsDimension() {
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
+    std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
+    return dim;
 }

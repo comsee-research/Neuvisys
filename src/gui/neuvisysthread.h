@@ -8,7 +8,7 @@
 
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
-#include "../ros/SimulationInterface.hpp"
+#include "../robot-control/SimulationInterface.hpp"
 #include "cnpy.h"
 
 class NeuvisysThread : public QThread {
@@ -21,26 +21,28 @@ public:
 
 public slots:
     void onIndexChanged(size_t index);
-    void onLayerChanged(size_t layer);
+    void onZcellChanged(size_t zcell);
+    void onDepthChanged(size_t depth);
     void onCameraChanged(size_t camera);
     void onSynapseChanged(size_t synapse);
-    void onPrecisionEventChanged(size_t precisionEvent);
+    void onPrecisionEventChanged(size_t displayRate);
     void onRangePotentialChanged(size_t rangePotential);
-    void onPrecisionPotentialChanged(size_t precisionPotential);
+    void onPrecisionPotentialChanged(size_t trackRate);
     void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
-    void onCellTypeChanged(size_t cellType);
+    void onLayerChanged(size_t layer);
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress, double spike_rate, double threshold);
+    void displayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay);
+    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
     void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
-    void displayReward(const std::vector<double> &rewardTrain);
+    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(std::string sharingType, size_t width, size_t height, size_t depth, size_t widthPatchSize, size_t heightPatchSize);
-    void networkCreation(size_t nbCameras, size_t nbSynapses, size_t nbSimpleNeurons, size_t nbComplexNeurons, size_t nbMotorNeurons);
+    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
+    std::vector<size_t> &neuronSizes);
+    void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();
 
 protected:
@@ -55,21 +57,27 @@ protected:
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::map<size_t, std::vector<long>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
-    std::chrono::time_point<std::chrono::system_clock> m_frameTime;
-    std::chrono::time_point<std::chrono::system_clock> m_trackingTime;
-    std::chrono::time_point<std::chrono::system_clock> m_motorTime;
+    double m_simTime{};
+    double m_eventRate{};
     bool m_realtime = false;
     bool m_stop = false;
+    bool m_change = false;
+    size_t m_on_count = 0, m_off_count = 0;
+
+    int m_actor = -1;
+    double m_value = 0;
 
     size_t m_id = 0;
-    size_t m_layer = 0;
+    size_t m_zcell = 0;
+    size_t m_depth = 0;
     size_t m_camera = 0;
     size_t m_synapse = 0;
-    size_t m_cellType = 0;
+    size_t m_layer = 0;
 
-    size_t m_precisionEvent = 30000; // µs
+    double m_displayRate = 30000; // µs
+    double m_trackRate = 10000; // µs
+    double m_actionRate = 100000; // µs
     size_t m_rangePotential = 10000; // µs
-    size_t m_precisionPotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
     void run() override;
@@ -79,6 +87,7 @@ private:
     void rosPass(SpikingNetwork &spinet);
     void display(SpikingNetwork &spinet, size_t sizeArray);
     void addEventToDisplay(const Event &event);
+    void prepareWeights(SpikingNetwork &spinet);
 };
 
 #endif // NEUVISYSTHREAD_H

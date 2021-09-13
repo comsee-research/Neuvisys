@@ -17,17 +17,18 @@ class SimpleNeuron : public Neuron {
     Eigen::Tensor<double, SIMPLEDIM> &m_weights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
-    SimpleNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
+    SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
     bool newEvent(Event event) override;
     bool update() override;
-    double getWeights(long p, long c, long s, long x, long y);
-    void saveWeights(std::string &saveFile);
-    void loadWeights(std::string &filePath);
+    double getWeights(long p, long c, long s, long x, long y) override;
+    std::vector<long> getWeightsDimension() override;
+    void saveWeights(std::string &saveFile) override;
+    void loadWeights(std::string &filePath) override;
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
+    void weightUpdate() override;
 private:
     bool membraneUpdate(Event event);
-    void spike(long time);
-    void updateSTDP();
+    void spike(long time) override;
     void normalizeWeights();
 };
 

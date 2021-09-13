@@ -19,36 +19,23 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
         try {
             ifs >> conf;
             NbCameras = conf["NbCameras"];
-            L1Width = conf["L1Width"];
-            L1Height = conf["L1Height"];
-            L1Depth = conf["L1Depth"];
-            L2Width = conf["L2Width"];
-            L2Height = conf["L2Height"];
-            L2Depth = conf["L2Depth"];
-            L3Size = conf["L3Size"];
 
-            for (const auto& x : conf["L1XAnchor"]) {
-                L1XAnchor.push_back(x);
+            for (const auto &size : conf["layerPatches"]) {
+                layerPatches.push_back(size);
             }
-            for (const auto& y : conf["L1YAnchor"]) {
-                L1YAnchor.push_back(y);
+            for (const auto &size : conf["layerSizes"]) {
+                layerSizes.push_back(size);
             }
-            for (const auto& x2 : conf["L2XAnchor"]) {
-                L2XAnchor.push_back(x2);
+            for (const auto &size : conf["neuronSizes"]) {
+                neuronSizes.push_back(size);
             }
-            for (const auto& y2 : conf["L2YAnchor"]) {
-                L2YAnchor.push_back(y2);
-            }
-            Neuron1Width = conf["Neuron1Width"];
-            Neuron1Height = conf["Neuron1Height"];
+
             Neuron1Synapses = conf["Neuron1Synapses"];
-
-            Neuron2Width = conf["Neuron2Width"];
-            Neuron2Height = conf["Neuron2Height"];
-            Neuron2Depth = conf["Neuron2Depth"];
-
             SharingType = conf["SharingType"];
             SaveData = conf["SaveData"];
+            NU = conf["NU"];
+            V0 = conf["V0"];
+            TAU_R = conf["TAU_R"];
 
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
@@ -88,7 +75,7 @@ void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
             ETA_SR = conf["ETA_TA"];
             DELTA_RP = conf["ETA_RP"];
             DELTA_SRA = conf["ETA_SRA"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             TAU_LTP = conf["TAU_LTP"];
             TAU_LTD = conf["TAU_LTD"];
             TAU_RP = conf["TAU_RP"];
@@ -126,7 +113,7 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
             TAU_LTD = conf["TAU_LTD"];
             TAU_M = conf["TAU_M"];
             VTHRESH = conf["VTHRESH"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_FACTOR = conf["DECAY_FACTOR"];
@@ -153,8 +140,11 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
             ifs >> conf;
             TAU_M = conf["TAU_M"];
             TAU_E = conf["TAU_E"];
+            TAU_K = conf["TAU_K"];
+            NU_K = conf["NU_K"];
+            ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
             TAU_LTP = conf["TAU_LTP"];

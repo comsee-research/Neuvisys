@@ -2,8 +2,9 @@
 
 using json = nlohmann::json;
 
-Neuron::Neuron(size_t index, NeuronConfig &conf, Position pos, Position offset) :
+Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
+        m_layer(layer),
         conf(conf),
         m_pos(pos),
         m_offset(offset),
@@ -31,20 +32,27 @@ inline double Neuron::adaptationPotentialDecay(const long time) {
     m_adaptation_potential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
 }
 
-inline void Neuron::thresholdAdaptation() {
+void Neuron::updateState(const long time) {
+    auto dt = time - m_referenceTime;
+    m_referenceTime = time;
+    m_lifeSpan += dt;
+    m_spikingRate = 1000000 * static_cast<double>(m_totalSpike) / static_cast<double>(m_lifeSpan);
+}
+
+inline void Neuron::thresholdAdaptation() { // TODO: weird use of time here
     m_recentSpikes.pop_back();
     m_recentSpikes.push_front(m_countSpike);
-    m_countSpike = 0;
+    resetSpikeCounter();
 
     for (size_t count : m_recentSpikes) {
-        m_spikingRate += static_cast<double>(count);
+        m_recentSpikeRate += static_cast<double>(count);
     }
-    m_spikingRate /= Conf::TIME_WINDOW_SR;
+    m_recentSpikeRate /= Conf::TIME_WINDOW_SR;
 
-    if (m_spikingRate > conf.TARGET_SPIKE_RATE) {
-        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRate));
+    if (m_recentSpikeRate > conf.TARGET_SPIKE_RATE) {
+        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_recentSpikeRate));
     } else {
-        m_threshold -= conf.ETA_SR * (1 - exp(m_spikingRate - conf.TARGET_SPIKE_RATE));
+        m_threshold -= conf.ETA_SR * (1 - exp(m_recentSpikeRate - conf.TARGET_SPIKE_RATE));
     }
 
     if (m_threshold < conf.MIN_THRESH) {
@@ -69,42 +77,13 @@ inline bool Neuron::hasSpiked() {
 }
 
 inline void Neuron::inhibition() {
-    m_potential -= conf.DELTA_INH;
+    m_potential -= conf.ETA_INH;
 }
 
 void Neuron::saveState(std::string &fileName) {
     json state;
 
-    std::vector<size_t> position = {m_pos.posx(), m_pos.posy(), m_pos.posz()};
-    std::vector<size_t> offset = {m_offset.posx(), m_offset.posy(), m_offset.posz()};
-    std::vector<size_t> inIndex;
-    std::vector<size_t> outIndex;
-    std::vector<size_t> inhibIndex;
-    for (auto neuron : m_inConnections) {
-        inIndex.push_back(neuron.get().getIndex());
-    }
-    for (auto neuron : m_outConnections) {
-        outIndex.push_back(neuron.get().getIndex());
-    }
-    for (auto neuron : m_inhibitionConnections) {
-        inhibIndex.push_back(neuron.get().getIndex());
-    }
-    state["position"] = position;
-    state["offset"] = offset;
-    state["in_connections"] = inIndex;
-    state["out_connections"] = outIndex;
-    state["inhibition_connections"] = inhibIndex;
-    state["potential"] = m_potential;
-    state["count_spike"] = m_totalSpike;
-    state["threshold"] = m_threshold;
-    state["creation_time"] = m_creationTime;
-    state["spiking_rate"] = m_spikingRate;
-    state["recent_spikes"] = m_recentSpikes;
-    state["learning_decay"] = m_learningDecay;
-
-    state["thresholds_train"] = m_trackingThresholds;
-    state["spike_train"] = m_trackingSpikeTrain;
-//    state["potential_train"] = m_trackingPotentialTrain;
+    writeJson(state);
 
     std::ofstream ofs(fileName + ".json");
     if (ofs.is_open()) {
@@ -125,20 +104,56 @@ void Neuron::loadState(std::string &fileName) {
             std::cerr << "In Neuron state file: " << fileName + ".json" << std::endl;
             throw;
         }
-        m_totalSpike = state["count_spike"];
-        m_threshold = state["threshold"];
-        m_creationTime = state["creation_time"];
-        m_spikingRate = state["spiking_rate"];
-        m_learningDecay = state["learning_decay"];
-//        m_potential = state["potential"];
-        m_recentSpikes.clear();
-        for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
-            m_recentSpikes.push_front(state["recent_spikes"][i]);
-        }
+        readJson(state);
     } else {
         std::cout << "cannot open neuron state file" << std::endl;
     }
     ifs.close();
+}
+
+void Neuron::writeJson(json &state) {
+    std::vector<size_t> position = {m_pos.x(), m_pos.y(), m_pos.z()};
+    std::vector<size_t> offset = {m_offset.x(), m_offset.y(), m_offset.z()};
+    std::vector<size_t> inIndex;
+    std::vector<size_t> outIndex;
+    std::vector<size_t> inhibIndex;
+    for (auto neuron : m_inConnections) {
+        inIndex.push_back(neuron.get().getIndex());
+    }
+    for (auto neuron : m_outConnections) {
+        outIndex.push_back(neuron.get().getIndex());
+    }
+    for (auto neuron : m_inhibitionConnections) {
+        inhibIndex.push_back(neuron.get().getIndex());
+    }
+    state["position"] = position;
+    state["offset"] = offset;
+    state["in_connections"] = inIndex;
+    state["out_connections"] = outIndex;
+    state["inhibition_connections"] = inhibIndex;
+    state["potential"] = m_potential;
+    state["count_spike"] = m_totalSpike;
+    state["threshold"] = m_threshold;
+    state["lifespan"] = m_lifeSpan;
+    state["spiking_rate"] = m_spikingRate;
+    state["recent_spikes"] = m_recentSpikes;
+    state["learning_decay"] = m_learningDecay;
+    state["thresholds_train"] = m_trackingThresholds;
+    state["spike_train"] = m_trackingSpikeTrain;
+    //    state["potential_train"] = m_trackingPotentialTrain;
+}
+
+void Neuron::readJson(const json &state) {
+    m_totalSpike = state["count_spike"];
+    m_threshold = state["threshold"];
+    m_lifeSpan = state["lifespan"];
+    m_recentSpikeRate = state["spiking_rate"];
+    m_learningDecay = state["learning_decay"];
+//    m_potential = state["potential"];
+    m_recentSpikes.clear();
+    for (size_t i = 0; i < Conf::TIME_WINDOW_SR; ++i) {
+        m_recentSpikes.push_front(state["recent_spikes"][i]);
+    }
 }
 
 void Neuron::trackPotential(const long time) {

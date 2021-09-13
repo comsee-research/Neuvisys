@@ -156,7 +156,7 @@ public:
 //            Selection::LAYER = 0;
 //        }
 
-//        config.setLong("spiking_rate", static_cast<long>(1000 * m_spinet.getNeuron(Selection::INDEX).getSpikingRate()));
+//        config.setLong("spiking_rate", static_cast<long>(1000 * m_spinet.getNeuron(Selection::INDEX).getSpikeRate()));
 //        config.setLong("threshold", static_cast<long>(m_spinet.getNeuron(Selection::INDEX).getThreshold()));
 //        config.setLong("adaptation_potential", static_cast<long>(1000 * m_spinet.getNeuron(Selection::INDEX).getAdaptationPotential()));
 //        config.setLong("learning_decay", static_cast<long>(100 * m_spinet.getNeuron(Selection::INDEX).getLearningDecay()));

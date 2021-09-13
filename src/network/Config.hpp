@@ -19,11 +19,6 @@ namespace Conf {
 }
 
 class NetworkConfig {
-public:
-    NetworkConfig();
-    explicit NetworkConfig(std::string networkPath);
-    void loadNetworkLayout(const std::string& fileName);
-
     /***** Display parameters *****/
     std::string NETWORK_CONFIG;
     bool SaveData{};
@@ -31,25 +26,33 @@ public:
 
     /***** Spiking Neural Network layout parameters *****/
     size_t NbCameras{};
-    size_t L1Width{};
-    size_t L1Height{};
-    size_t L1Depth{};
-    size_t L2Width{};
-    size_t L2Height{};
-    size_t L2Depth{};
-    size_t L3Size{};
-
-    std::vector<size_t> L1XAnchor;
-    std::vector<size_t> L1YAnchor;
-    std::vector<size_t> L2XAnchor;
-    std::vector<size_t> L2YAnchor;
-    size_t Neuron1Width{};
-    size_t Neuron1Height{};
     size_t Neuron1Synapses{};
-    size_t Neuron2Width{};
-    size_t Neuron2Height{};
-    size_t Neuron2Depth{};
     std::string SharingType{};
+
+    std::vector<std::vector<std::vector<size_t>>> layerPatches;
+    std::vector<std::vector<size_t>> layerSizes;
+    std::vector<std::vector<size_t>> neuronSizes;
+
+    double NU{};
+    double V0{};
+    double TAU_R{};
+public:
+    NetworkConfig();
+    explicit NetworkConfig(std::string networkPath);
+    void loadNetworkLayout(const std::string& fileName);
+
+    [[nodiscard]] std::string getNetworkPath() const { return NetworkPath; }
+    [[nodiscard]] size_t getNbCameras() const { return NbCameras; }
+    [[nodiscard]] size_t getNeuron1Synapses() const { return Neuron1Synapses; }
+    [[nodiscard]] bool getSaveData() const { return SaveData; }
+    std::string &getNetworkPath() { return NetworkPath; }
+    std::string &getSharingType() { return SharingType; }
+    [[nodiscard]] double getNU() const { return NU; }
+    [[nodiscard]] double getV0() const { return V0; }
+    [[nodiscard]] double getTAU_R() const { return TAU_R; }
+    std::vector<std::vector<std::vector<size_t>>> &getLayerPatches() { return layerPatches; }
+    std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
+    std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }
 };
 
 class NeuronConfig {
@@ -57,19 +60,22 @@ public:
     NeuronConfig();
     NeuronConfig(const std::string& configFile, size_t type);
 /***** Neurons internal parameters *****/
-    double TAU_M = 1; // μs
-    double TAU_LTP = 1; // μs
-    double TAU_LTD = 1; // μs
-    double TAU_RP = 1; // μs
-    double TAU_SRA = 1; // μs
-    double TAU_E = 1; // μs
+    double TAU_M{}; // μs
+    double TAU_LTP{}; // μs
+    double TAU_LTD{}; // μs
+    double TAU_RP{}; // μs
+    double TAU_SRA{}; // μs
+    double TAU_E{}; // s
+    double TAU_K{}; // s
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV
     double ETA_SR{}; // mV
     double DELTA_RP{}; // mv
     double DELTA_SRA{}; // mV
-    double DELTA_INH{}; // mV
+    double ETA_INH{}; // mV
+    double ETA{}; // mV
+    double NU_K{}; // mV
 
     double VRESET{}; // mV
     double VTHRESH{}; // mV

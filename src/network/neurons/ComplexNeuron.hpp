@@ -8,15 +8,16 @@ protected:
     boost::circular_buffer<NeuronEvent> m_events;
     Eigen::Tensor<double, COMPLEXDIM> &m_weights;
 public:
-    ComplexNeuron(size_t index, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, COMPLEXDIM> &weights);
+    ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, COMPLEXDIM> &weights);
     bool newEvent(NeuronEvent event) override;
-    double getWeights(long x, long y, long z);
-    void saveWeights(std::string &saveFile);
-    void loadWeights(std::string &filePath);
+    double getWeights(long x, long y, long z) override;
+    std::vector<long> getWeightsDimension() override;
+    void saveWeights(std::string &saveFile) override;
+    void loadWeights(std::string &filePath) override;
+    void weightUpdate() override;
 private:
     bool membraneUpdate(NeuronEvent event);
-    void spike(long time);
-    void updateSTDP();
+    void spike(long time) override;
     void normalizeWeights();
 };
 

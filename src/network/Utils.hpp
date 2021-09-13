@@ -18,6 +18,7 @@ namespace Util {
     void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor);
     void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile);
     int winnerTakeAll(std::vector<size_t> v);
+    bool fileExist(std::string &path);
 }
 
 class Luts {
@@ -31,16 +32,16 @@ private:
 };
 
 class Position {
-    uint64_t m_posx;
-    uint64_t m_posy;
-    uint64_t m_posz;
+    uint64_t m_posx{};
+    uint64_t m_posy{};
+    uint64_t m_posz{};
 public:
-    Position() = default;
+    inline Position() : m_posx(0), m_posy(0), m_posz(0) {};
     inline Position(uint64_t x, uint64_t y, uint64_t z) : m_posx(x), m_posy(y), m_posz(z) {}
     inline Position(uint64_t x, uint64_t y) : m_posx(x), m_posy(y), m_posz(0) {}
-    [[nodiscard]] inline uint64_t posx() const {return m_posx;}
-    [[nodiscard]] inline uint64_t posy() const {return m_posy;}
-    [[nodiscard]] inline uint64_t posz() const {return m_posz;}
+    [[nodiscard]] inline uint64_t x() const { return m_posx; }
+    [[nodiscard]] inline uint64_t y() const { return m_posy; }
+    [[nodiscard]] inline uint64_t z() const { return m_posz; }
 };
 
 #endif //NEUVISYS_DV_UTILS_HPP

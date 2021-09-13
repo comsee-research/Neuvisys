@@ -6,8 +6,8 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
-        std::string networkPath = "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json";
-        std::string events = "/home/alphat/Desktop/shapes.npz";
+        std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+        std::string events = "/home/thomas/Desktop/shapes.npz";
 
         multiplePass(networkPath, events, 1);
     }
