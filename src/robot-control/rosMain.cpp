@@ -21,33 +21,27 @@ int main(int argc, char **argv) {
     sim.startSimulation();
 
     double simTime = 0;
-    int actor = 0, value = 0;
+    double value = 0;
+    int actor = 0;
     while (ros::ok() && sim.getSimulationTime() < 200) {
         sim.triggerNextTimeStep();
-        ros::spinOnce();
+        while(!sim.simStepDone()) {
+            ros::spinOnce();
+        }
 
-        if (sim.hasReceivedLeftImage()) {
-            sim.update();
-            spinet.runEvents(sim.getLeftEvents(), sim.getReward());
+        sim.update();
+        spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
-            if (sim.getSimulationTime() - simTime > 0.1) {
-                simTime = sim.getSimulationTime();
-                if (actor != -1) {
-                    auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size()-1);
-                    neuron.get().spike(sim.getLeftEvents().back().timestamp());
-
-                    if (spinet.getRewards().back() - value >= 0) {
-                        neuron.get().setNeuromodulator(1);
-                    } else {
-                        neuron.get().setNeuromodulator(-1);
-                    }
-                    neuron.get().weightUpdate();
-                }
-                sim.motorAction(spinet.resolveMotor(), 0, actor);
-                value = spinet.getRewards().back();
+        if (sim.getSimulationTime() - simTime > 0.1) {
+            simTime = sim.getSimulationTime();
+            if (actor != -1) {
+                auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size()-1);
+                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+                neuron.get().setNeuromodulator(spinet.getRewards().back() - value);
+                neuron.get().weightUpdate();
             }
-
-            sim.resetLeft();
+            sim.motorAction(spinet.resolveMotor(), 0, actor);
+            value = spinet.getRewards().back();
         }
     }
 
