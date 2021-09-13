@@ -33,7 +33,7 @@ public slots:
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void displayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
@@ -57,6 +57,7 @@ protected:
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::map<size_t, std::vector<long>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
+    double m_simTime;
     double m_eventRate;
     bool m_realtime = false;
     bool m_stop = false;

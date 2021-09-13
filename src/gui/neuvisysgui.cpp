@@ -361,7 +361,8 @@ void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
     emit synapseChanged(m_synapse);
 }
 
-void NeuvisysGUI::onDisplayProgress(int progress, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
+void NeuvisysGUI::onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
+    ui->lcd_sim_time->display(simTime);
     ui->lcd_event_rate->display(event_rate);
     ui->lcd_on_off_ratio->display(on_off_ratio);
     ui->lcd_spike_rate->display(spike_rate);

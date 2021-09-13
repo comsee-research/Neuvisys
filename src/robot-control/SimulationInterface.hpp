@@ -17,6 +17,7 @@ class SimulationInterface {
     ros::Subscriber m_rightSensorSub;
     ros::Subscriber m_rewardSub;
     ros::Subscriber m_timeSub;
+    ros::Subscriber m_simStepDoneSub;
     ros::Publisher m_startSimulation;
     ros::Publisher m_stopSimulation;
     ros::Publisher m_enableSyncMode;
@@ -29,9 +30,9 @@ class SimulationInterface {
     double m_elapsedTime{};
     double m_lambda{};
     double m_time{};
+    bool m_simStepDone = false;
 
     double m_rewardStored{};
-    bool receivedLeftImage = false, receivedRightImage = false;
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
@@ -44,12 +45,9 @@ public:
     bool motorAction(const std::vector<uint64_t> &motorActivation, double explorationFactor, int &selectedMotor);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
-    void resetLeft() { leftEvents.clear(); receivedLeftImage = false; }
-    void resetRight() { rightEvents.clear(); receivedRightImage = false; }
     [[nodiscard]] double getReward() const { return m_rewardStored; }
+    [[nodiscard]] bool simStepDone() const { return m_simStepDone; }
     [[nodiscard]] double getSimulationTime() const { return m_time; }
-    [[nodiscard]] bool hasReceivedLeftImage() const { return receivedLeftImage; }
-    [[nodiscard]] bool hasReceivedRightImage() const { return receivedRightImage; }
     void activateMotors(std::vector<uint64_t> motorActivation);
     void motorsJitter(double dt);
     void activateMotor(uint64_t motor);
@@ -62,6 +60,7 @@ private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time);
     void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
+    void simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone);
     bool poissonProcess();
 };
 

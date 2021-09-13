@@ -67,7 +67,7 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     } else if (spinet.getNetworkConfig().getNbCameras() == 2) {
         eventPacket = stereo(m_events.toStdString(), m_nbPass);
     }
-    emit displayProgress(100, 0, 0, 0, 0, 0);
+    emit displayProgress(100, 0, 0, 0, 0, 0, 0);
 
     for (auto event: eventPacket) {
         addEventToDisplay(event);
@@ -94,55 +94,54 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     double simTime = 0, displayTime = 0, trackTime = 0;
     while (!m_stop) {
         sim.triggerNextTimeStep();
-        ros::spinOnce();
+        while(!sim.simStepDone()) {
+            ros::spinOnce();
+        }
 
-        if (sim.hasReceivedLeftImage()) {
-            sim.update();
+        m_simTime = sim.getSimulationTime();
+        sim.update();
+        spinet.transmitReward(sim.getReward());
+        spinet.pushTDError();
+        m_eventRate += static_cast<double>(sim.getLeftEvents().size());
+        for (const Event &event: sim.getLeftEvents()) {
+            addEventToDisplay(event);
+            spinet.runEvent(event);
+        }
 
-            spinet.transmitReward(sim.getReward());
-            spinet.pushTDError();
-            m_eventRate += static_cast<double>(sim.getLeftEvents().size());
-            for (const Event &event: sim.getLeftEvents()) {
-                addEventToDisplay(event);
-                spinet.runEvent(event);
+//        if (sim.getSimulationTime() - simTime > m_actionRate / 1e6) {
+//            simTime = sim.getSimulationTime();
+//            if (m_actor != -1) {
+//                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
+//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+//
+//                if (spinet.getRewards().back() - m_value >= 0) {
+//                    neuron.get().setNeuromodulator(1);
+//                } else {
+//                    neuron.get().setNeuromodulator(-1);
+//                }
+//                neuron.get().weightUpdate();
+//            }
+//            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+//            m_value = spinet.getRewards().back();
+//
+//            if (m_actor != -1) {
+//                m_motorDisplay[m_actor] = true;
+//            }
+//        }
+
+        if (sim.getSimulationTime() - displayTime > m_displayRate / 1e6) {
+            displayTime = sim.getSimulationTime();
+            display(spinet, 0);
+        }
+
+        if (sim.getSimulationTime() - trackTime > m_trackRate / 1e6) {
+            trackTime = sim.getSimulationTime();
+            if (!sim.getLeftEvents().empty()) {
+                spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);
             }
-
-            if (sim.getSimulationTime() - simTime > m_actionRate / 1e6) {
-                simTime = sim.getSimulationTime();
-                if (m_actor != -1) {
-                    auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
-                    neuron.get().spike(sim.getLeftEvents().back().timestamp());
-
-                    if (spinet.getRewards().back() - m_value >= 0) {
-                        neuron.get().setNeuromodulator(1);
-                    } else {
-                        neuron.get().setNeuromodulator(-1);
-                    }
-                    neuron.get().weightUpdate();
-                }
-                sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-                m_value = spinet.getRewards().back();
-
-                if (m_actor != -1) {
-                    m_motorDisplay[m_actor] = true;
-                }
-            }
-
-            if (sim.getSimulationTime() - displayTime > m_displayRate / 1e6) {
-                displayTime = sim.getSimulationTime();
-                display(spinet, 0);
-            }
-
-            if (sim.getSimulationTime() - trackTime > m_trackRate / 1e6) {
-                trackTime = sim.getSimulationTime();
-                if (!sim.getLeftEvents().empty()) {
-                    spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);
-                }
-            }
-
-            sim.resetLeft();
         }
     }
+
     sim.stopSimulation();
     spinet.saveNetwork(1, "Simulation");
     emit networkDestruction();
@@ -182,10 +181,10 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     m_eventRate = (1e6 / m_displayRate) * m_eventRate;
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
     if (sizeArray == 0) {
-        emit displayProgress(0, m_eventRate, on_off_ratio, spinet.getNeuron(m_id, m_layer).get().getSpikingRate(),
+        emit displayProgress(0, m_simTime, m_eventRate, on_off_ratio, spinet.getNeuron(m_id, m_layer).get().getSpikingRate(),
                              spinet.getNeuron(m_id, m_layer).get().getThreshold(), spinet.getBias());
     } else {
-        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), m_eventRate, on_off_ratio,
+        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), m_simTime, m_eventRate, on_off_ratio,
                              spinet.getNeuron(m_id, m_layer).get().getSpikingRate(), spinet
                                      .getNeuron(m_id, m_layer).get().getThreshold(), spinet.getBias());
     }

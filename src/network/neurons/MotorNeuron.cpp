@@ -62,7 +62,7 @@ inline void MotorNeuron::weightUpdate() {
             }
             m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
 
-            m_weights(event.x(), event.y(), event.z()) += 10 * conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
+            m_weights(event.x(), event.y(), event.z()) += conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }

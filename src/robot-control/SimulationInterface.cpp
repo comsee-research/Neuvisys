@@ -11,6 +11,7 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
     m_timeSub = nh.subscribe<std_msgs::Float32>("simulationTime", 1000, [this](auto && PH1) { timeCallBack(std::forward<decltype(PH1)>(PH1)); });
+    m_simStepDoneSub = nh.subscribe<std_msgs::Bool>("simulationStepDone", 1000, [this](auto && PH1) { simulationStepDoneCallBack(std::forward<decltype(PH1)>(PH1)); });
 
     m_startSimulation = nh.advertise<std_msgs::Bool>("startSimulation", 1000);
     m_stopSimulation = nh.advertise<std_msgs::Bool>("stopSimulation", 1000);
@@ -33,11 +34,11 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
+        leftEvents.clear();
         frameConverter.frameConversion(topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
-        receivedLeftImage = true;
     } else if (topic == "right") {
+//        rightEvents.clear();
 //        rightConverter.frameConversion(topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
-//        receivedRightImage = true;
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;
@@ -53,7 +54,12 @@ void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32
     m_time = time.getMessage()->data;
 }
 
+void SimulationInterface::simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone) {
+    m_simStepDone = simStepDone.getMessage()->data;
+}
+
 void SimulationInterface::update() {
+    m_simStepDone = false;
     auto dt = (m_imageTime - m_lastImageTime).toSec();
     m_lastImageTime = m_imageTime;
 

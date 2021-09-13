@@ -42,8 +42,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>33</height>
+             <width>854</width>
+             <height>588</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -94,30 +94,40 @@
         <item row="0" column="0">
          <widget class="QGroupBox" name="groupBox">
           <property name="title">
-           <string>Event statistics</string>
+           <string>Simulation statistics</string>
           </property>
           <layout class="QGridLayout" name="gridLayout_4">
            <item row="0" column="0">
             <layout class="QGridLayout" name="gridLayout_22">
              <item row="2" column="0">
-              <widget class="QLabel" name="label_on_off_ratio">
-               <property name="text">
-                <string>ON/OFF ratio</string>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
               <widget class="QLabel" name="label_event_rate">
                <property name="text">
                 <string>Event rate (event/s)</string>
                </property>
               </widget>
              </item>
-             <item row="1" column="0">
+             <item row="3" column="0">
               <widget class="QLCDNumber" name="lcd_event_rate"/>
              </item>
-             <item row="3" column="0">
+             <item row="5" column="0">
               <widget class="QLCDNumber" name="lcd_on_off_ratio"/>
+             </item>
+             <item row="4" column="0">
+              <widget class="QLabel" name="label_on_off_ratio">
+               <property name="text">
+                <string>ON/OFF ratio</string>
+               </property>
+              </widget>
+             </item>
+             <item row="1" column="0">
+              <widget class="QLCDNumber" name="lcd_sim_time"/>
+             </item>
+             <item row="0" column="0">
+              <widget class="QLabel" name="label_sim_time">
+               <property name="text">
+                <string>Simulation time (s)</string>
+               </property>
+              </widget>
              </item>
             </layout>
            </item>
@@ -184,8 +194,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>98</width>
-             <height>28</height>
+             <width>854</width>
+             <height>632</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
