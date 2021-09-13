@@ -91,7 +91,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
-    double simTime = 0, displayTime = 0, trackTime = 0;
+    double actionTime = 0, displayTime = 0, trackTime = 0;
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
@@ -108,26 +108,21 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.runEvent(event);
         }
 
-//        if (sim.getSimulationTime() - simTime > m_actionRate / 1e6) {
-//            simTime = sim.getSimulationTime();
-//            if (m_actor != -1) {
-//                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
-//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
-//
-//                if (spinet.getRewards().back() - m_value >= 0) {
-//                    neuron.get().setNeuromodulator(1);
-//                } else {
-//                    neuron.get().setNeuromodulator(-1);
-//                }
-//                neuron.get().weightUpdate();
-//            }
-//            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-//            m_value = spinet.getRewards().back();
-//
-//            if (m_actor != -1) {
-//                m_motorDisplay[m_actor] = true;
-//            }
-//        }
+        if (sim.getSimulationTime() - actionTime > m_actionRate / 1e6) {
+            actionTime = sim.getSimulationTime();
+            if (m_actor != -1) {
+                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
+                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+                neuron.get().setNeuromodulator(spinet.updateTDError());
+                neuron.get().weightUpdate();
+            }
+            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+            m_value = spinet.getRewards().back();
+
+            if (m_actor != -1) {
+                m_motorDisplay[m_actor] = true;
+            }
+        }
 
         if (sim.getSimulationTime() - displayTime > m_displayRate / 1e6) {
             displayTime = sim.getSimulationTime();

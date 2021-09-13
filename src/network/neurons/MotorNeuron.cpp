@@ -85,7 +85,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
             break;
         } else {
             kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / 1000000);
-//            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
+            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
             ++count;
         }
     }

@@ -75,7 +75,7 @@ void NeuronConfig::loadNeuronsParameters(const std::string& fileName) {
             ETA_SR = conf["ETA_TA"];
             DELTA_RP = conf["ETA_RP"];
             DELTA_SRA = conf["ETA_SRA"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             TAU_LTP = conf["TAU_LTP"];
             TAU_LTD = conf["TAU_LTD"];
             TAU_RP = conf["TAU_RP"];
@@ -113,7 +113,7 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string& fileName) {
             TAU_LTD = conf["TAU_LTD"];
             TAU_M = conf["TAU_M"];
             VTHRESH = conf["VTHRESH"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_FACTOR = conf["DECAY_FACTOR"];
@@ -144,7 +144,7 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string& fileName) {
             NU_K = conf["NU_K"];
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
-            DELTA_INH = conf["ETA_INH"];
+            ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
             TAU_LTP = conf["TAU_LTP"];

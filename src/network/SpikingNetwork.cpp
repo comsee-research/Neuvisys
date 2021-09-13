@@ -5,7 +5,8 @@
 SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(conf)),
                                                           m_simpleNeuronConf(m_conf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                           m_complexNeuronConf(m_conf.getNetworkPath() + "configs/complex_cell_config.json", 1),
-                                                          m_motorNeuronConf(m_conf.getNetworkPath() + "configs/motor_cell_config.json", 2),
+                                                          m_criticNeuronConf(m_conf.getNetworkPath() + "configs/critic_cell_config.json", 2),
+                                                          m_actorNeuronConf(m_conf.getNetworkPath() + "configs/actor_cell_config.json", 2),
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>
                                                                                  (Conf::WIDTH * Conf::HEIGHT, std::vector<uint64_t>(0))) {
 }
@@ -78,10 +79,11 @@ double SpikingNetwork::updateTDError() {
     for (const auto &critic : m_neurons[2]) {
         auto values = critic.get().updateKernelSpikingRate();
         value += values.first;
-//        valueDerivative += values.second;
+        valueDerivative += values.second;
     }
-    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
+//    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
 //    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
+    auto td_error = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
     return td_error;
 }
 
@@ -96,9 +98,9 @@ void SpikingNetwork::pushTDError() {
 //    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
 
     m_listValue.push_back(m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
-    m_listValueDot.push_back(0);
-//    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
-    m_listTDError.push_back(m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0()));
+    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
+    m_listTDError.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
+//    m_listTDError.push_back(m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0()));
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
@@ -205,9 +207,9 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                             } else if (neuronType == "ComplexCell") {
                                 m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset, m_sharedWeightsComplex[neuronIndex]));
                             } else if (neuronType == "CriticCell") {
-                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_motorNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
+                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_criticNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
                             } else if (neuronType == "ActorCell") {
-                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_motorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
+                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_actorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
                             } else {
                                 std::cout << "No matching cell type" << std::endl;
                             }

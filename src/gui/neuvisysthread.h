@@ -57,8 +57,8 @@ protected:
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::map<size_t, std::vector<long>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
-    double m_simTime;
-    double m_eventRate;
+    double m_simTime{};
+    double m_eventRate{};
     bool m_realtime = false;
     bool m_stop = false;
     bool m_change = false;

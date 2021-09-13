@@ -73,7 +73,7 @@ public:
     double ETA_SR{}; // mV
     double DELTA_RP{}; // mv
     double DELTA_SRA{}; // mV
-    double DELTA_INH{}; // mV
+    double ETA_INH{}; // mV
     double ETA{}; // mV
     double NU_K{}; // mV
 

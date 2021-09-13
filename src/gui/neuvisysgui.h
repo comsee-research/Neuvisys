@@ -56,7 +56,8 @@ private slots:
     void on_text_network_config_textChanged();
     void on_text_simple_cell_config_textChanged();
     void on_text_complex_cell_config_textChanged();
-    void on_text_motor_cell_config_textChanged();
+    void on_text_critic_cell_config_textChanged();
+    void on_text_actor_cell_config_textChanged();
     void on_button_selection_clicked();
     void on_spin_zcell_selection_valueChanged(int arg1);
     void on_spin_depth_selection_valueChanged(int arg1);
@@ -95,5 +96,7 @@ protected:
 
 private:
     void openConfigFiles();
+    QString readConfFile(QString &directory);
+    void modifyConfFile(QString &directory, QString &text);
 };
 #endif // NEUVISYSGUI_H

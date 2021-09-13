@@ -14,7 +14,8 @@ class SpikingNetwork {
     NetworkConfig m_conf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
-    NeuronConfig m_motorNeuronConf;
+    NeuronConfig m_criticNeuronConf;
+    NeuronConfig m_actorNeuronConf;
     long m_iterations{};
 
     std::vector<std::pair<uint64_t, float>> motorMapping;

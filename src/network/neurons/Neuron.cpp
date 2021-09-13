@@ -77,7 +77,7 @@ inline bool Neuron::hasSpiked() {
 }
 
 inline void Neuron::inhibition() {
-    m_potential -= conf.DELTA_INH;
+    m_potential -= conf.ETA_INH;
 }
 
 void Neuron::saveState(std::string &fileName) {
