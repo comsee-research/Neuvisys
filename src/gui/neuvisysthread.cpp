@@ -101,35 +101,37 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
         m_simTime = sim.getSimulationTime();
         sim.update();
         spinet.transmitReward(sim.getReward());
-        spinet.pushTDError();
         m_eventRate += static_cast<double>(sim.getLeftEvents().size());
         for (const Event &event: sim.getLeftEvents()) {
             addEventToDisplay(event);
             spinet.runEvent(event);
         }
-
-        if (sim.getSimulationTime() - actionTime > m_actionRate / 1e6) {
-            actionTime = sim.getSimulationTime();
-            if (m_actor != -1) {
-                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
-                neuron.get().spike(sim.getLeftEvents().back().timestamp());
-                neuron.get().setNeuromodulator(spinet.updateTDError());
-                neuron.get().weightUpdate();
-            }
-            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-            m_value = spinet.getRewards().back();
-
-            if (m_actor != -1) {
-                m_motorDisplay[m_actor] = true;
-            }
+        if (!sim.getLeftEvents().empty()) {
+            spinet.updateTDError(sim.getLeftEvents().back().timestamp());
         }
 
-        if (sim.getSimulationTime() - displayTime > m_displayRate / 1e6) {
+//        if (sim.getSimulationTime() - actionTime > m_actionRate / 1e6) {
+//            actionTime = sim.getSimulationTime();
+//            if (m_actor != -1) {
+//                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
+//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+//                neuron.get().setNeuromodulator(spinet.updateTDError());
+//                neuron.get().weightUpdate();
+//            }
+//            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+//            m_value = spinet.getRewards().back();
+//
+//            if (m_actor != -1) {
+//                m_motorDisplay[m_actor] = true;
+//            }
+//        }
+
+        if (sim.getSimulationTime() - displayTime > m_displayRate / Conf::E6) {
             displayTime = sim.getSimulationTime();
             display(spinet, 0);
         }
 
-        if (sim.getSimulationTime() - trackTime > m_trackRate / 1e6) {
+        if (sim.getSimulationTime() - trackTime > m_trackRate / Conf::E6) {
             trackTime = sim.getSimulationTime();
             if (!sim.getLeftEvents().empty()) {
                 spinet.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);

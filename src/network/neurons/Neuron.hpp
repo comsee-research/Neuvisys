@@ -87,6 +87,7 @@ public:
     virtual void updateState(long time);
     virtual void spike(long time) {};
     virtual std::pair<double, double> updateKernelSpikingRate() {};
+    virtual std::pair<double, double> updateKernelSpikingRate(double time) {};
 
 protected:
     void writeJson(json &state);

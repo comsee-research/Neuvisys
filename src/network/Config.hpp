@@ -16,6 +16,7 @@ namespace Conf {
     inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
+    inline constexpr size_t E6 = 1000000;
 }
 
 class NetworkConfig {

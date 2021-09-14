@@ -81,11 +81,26 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate() {
         if (count == 0) {
             ++count;
             continue;
-        } else if (count > 100) {
+        } else if (count > 200) {
             break;
         } else {
-            kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / 1000000);
-            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / 1000000);
+            kernelSpikingRate += kernel(static_cast<double>(m_spikingTime - *rit) / Conf::E6);
+            kernelDerivativeSpikingRate += kernelDerivative(static_cast<double>(m_spikingTime - *rit) / Conf::E6);
+            ++count;
+        }
+    }
+    return { kernelSpikingRate, kernelDerivativeSpikingRate };
+}
+
+std::pair<double, double> MotorNeuron::updateKernelSpikingRate(double time) {
+    double kernelSpikingRate = 0, kernelDerivativeSpikingRate = 0;
+    size_t count = 0;
+    for (auto rit = m_trackingSpikeTrain.rbegin(); rit != m_trackingSpikeTrain.rend(); ++rit) {
+        if (count > 200) {
+            break;
+        } else {
+            kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);
+            kernelDerivativeSpikingRate += kernelDerivative((time - static_cast<double>(*rit)) / Conf::E6);
             ++count;
         }
     }
@@ -99,29 +114,6 @@ inline double MotorNeuron::kernel(double time) {
 inline double MotorNeuron::kernelDerivative(double time) {
     return (exp(-time / conf.NU_K) / conf.NU_K - exp(-time / conf.TAU_K) / conf.TAU_K) / (conf.TAU_K - conf.NU_K);
 }
-
-//inline void MotorNeuron::weightUpdate() {
-//    if (conf.STDP_LEARNING) {
-//        for (NeuronEvent &event : m_events) {
-//            m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- static_cast<double>(m_spikingTime - m_lastSpikingTime) / conf.TAU_E);
-//
-//            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-//            m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
-//            if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
-//                m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
-//            }
-//
-//            m_weights(event.x(), event.y(), event.z()) += m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
-//
-//            if (m_weights(event.x(), event.y(), event.z()) < 0) {
-//                m_weights(event.x(), event.y(), event.z()) = 0;
-//            }
-//        }
-//
-//        normalizeWeights();
-//    }
-//    m_events.clear();
-//}
 
 inline void MotorNeuron::normalizeWeights() {
     Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();

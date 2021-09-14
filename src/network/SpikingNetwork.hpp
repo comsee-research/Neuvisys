@@ -55,8 +55,8 @@ public:
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
     void transmitReward(double reward);
     std::vector<uint64_t> resolveMotor();
-    void pushTDError();
     double updateTDError();
+    void updateTDError(double time);
 
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
