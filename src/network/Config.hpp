@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
+#include <filesystem>
 #include "../dependencies/json.hpp"
 
 using json = nlohmann::json;
@@ -56,6 +58,7 @@ public:
     std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
     std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }
     std::vector<std::vector<size_t>> &getNeuronOverlap() { return neuronOverlap; }
+    static void createNetwork(const std::string& directory);
 };
 
 class NeuronConfig {

@@ -31,9 +31,9 @@ public slots:
     void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
     void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
-    void onNetworkConfiguration(const std::string& sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
+    void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);
-    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t>& networkStructure);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void onFinished();
 
 signals:
@@ -48,10 +48,11 @@ signals:
     void rangeSpikeTrainChanged(size_t rangeSpiketrain);
     void layerChanged(size_t layer);
     void stopNetwork();
-
+    void createNetwork(std::string fileName);
 private slots:
     void on_button_event_file_clicked();
     void on_button_network_directory_clicked();
+    void on_button_create_network_clicked();
     void on_button_launch_network_clicked();
     void on_text_network_config_textChanged();
     void on_text_simple_cell_config_textChanged();
