@@ -81,9 +81,9 @@ double SpikingNetwork::updateTDError() {
         value += values.first;
         valueDerivative += values.second;
     }
-//    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
+    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
 //    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
-    auto td_error = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
+//    auto td_error = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
 
     return td_error;
 }
