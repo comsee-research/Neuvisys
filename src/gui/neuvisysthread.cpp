@@ -32,13 +32,16 @@ void NeuvisysThread::run() {
 
     spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true,
                     spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0],
-                    spinet.getNetworkConfig().getNeuronSizes()[0], 0);
+                    spinet.getNetworkConfig().getNeuronSizes()[0], spinet.getNetworkConfig().getNeuronOverlap()[0], 0);
     spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1],
-                    spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1], 0);
+                    spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1],
+                    spinet.getNetworkConfig().getNeuronOverlap()[1], 0);
     spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2],
-                    spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2], 1);
+                    spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2],
+                    spinet.getNetworkConfig().getNeuronOverlap()[2], 1);
     spinet.addLayer("ActorCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[3],
-                    spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
+                    spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3],
+                    spinet.getNetworkConfig().getNeuronOverlap()[3], 1);
 
     spinet.loadNetwork();
 
@@ -94,7 +97,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     double actionTime = 0, displayTime = 0, trackTime = 0;
     while (!m_stop) {
         sim.triggerNextTimeStep();
-        while(!sim.simStepDone()) {
+        while (!sim.simStepDone()) {
             ros::spinOnce();
         }
 
@@ -110,7 +113,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.updateTDError(sim.getLeftEvents().back().timestamp());
         }
 
-        if (sim.getSimulationTime() - actionTime > m_actionRate / 1e6) {
+        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
             actionTime = sim.getSimulationTime();
             if (m_actor != -1) {
                 auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
@@ -177,14 +180,17 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray) {
     m_eventRate = (1e6 / m_displayRate) * m_eventRate;
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
     if (sizeArray == 0) {
-        emit displayProgress(0, m_simTime, m_eventRate, on_off_ratio, spinet.getNeuron(m_id, m_layer).get().getSpikingRate(),
+        emit displayProgress(0, m_simTime, m_eventRate, on_off_ratio,
+                             spinet.getNeuron(m_id, m_layer).get().getSpikingRate(),
                              spinet.getNeuron(m_id, m_layer).get().getThreshold(), spinet.getBias());
     } else {
         emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), m_simTime, m_eventRate, on_off_ratio,
                              spinet.getNeuron(m_id, m_layer).get().getSpikingRate(), spinet
                                      .getNeuron(m_id, m_layer).get().getThreshold(), spinet.getBias());
     }
-    m_eventRate = 0; m_on_count = 0; m_off_count = 0;
+    m_eventRate = 0;
+    m_on_count = 0;
+    m_off_count = 0;
 
     // add rectangle to sensing zone
     for (size_t i = 0; i < spinet.getNetworkConfig().getLayerPatches()[0][0].size(); ++i) {

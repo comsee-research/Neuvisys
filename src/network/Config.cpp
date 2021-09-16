@@ -29,6 +29,9 @@ void NetworkConfig::loadNetworkLayout(const std::string& fileName) {
             for (const auto &size : conf["neuronSizes"]) {
                 neuronSizes.push_back(size);
             }
+            for (const auto &size : conf["neuronOverlap"]) {
+                neuronOverlap.push_back(size);
+            }
 
             Neuron1Synapses = conf["Neuron1Synapses"];
             SharingType = conf["SharingType"];

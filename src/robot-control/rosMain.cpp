@@ -10,10 +10,18 @@ int main(int argc, char **argv) {
     std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     SpikingNetwork spinet(networkPath);
 
-    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true, spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0], spinet.getNetworkConfig().getNeuronSizes()[0], 0);
-    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1], spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1], 0);
-    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2], spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2], 1);
-    spinet.addLayer("ActorCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[3], spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3], 1);
+    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true,
+                    spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0],
+                    spinet.getNetworkConfig().getNeuronSizes()[0], spinet.getNetworkConfig().getNeuronOverlap()[0], 0);
+    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1],
+                    spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1],
+                    spinet.getNetworkConfig().getNeuronOverlap()[1], 0);
+    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2],
+                    spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2],
+                    spinet.getNetworkConfig().getNeuronOverlap()[2], 1);
+    spinet.addLayer("ActorCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[3],
+                    spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3],
+                    spinet.getNetworkConfig().getNeuronOverlap()[3], 1);
     spinet.loadNetwork();
 
     SimulationInterface sim(1. / 150);
@@ -21,9 +29,8 @@ int main(int argc, char **argv) {
     sim.startSimulation();
 
     double simTime = 0;
-    double value = 0;
     int actor = 0;
-    while (ros::ok() && sim.getSimulationTime() < 200) {
+    while (ros::ok() && sim.getSimulationTime() < 50) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -37,11 +44,10 @@ int main(int argc, char **argv) {
             if (actor != -1) {
                 auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size()-1);
                 neuron.get().spike(sim.getLeftEvents().back().timestamp());
-                neuron.get().setNeuromodulator(spinet.getRewards().back() - value);
+                neuron.get().setNeuromodulator(spinet.updateTDError());
                 neuron.get().weightUpdate();
             }
             sim.motorAction(spinet.resolveMotor(), 0, actor);
-            value = spinet.getRewards().back();
         }
     }
 

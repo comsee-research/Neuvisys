@@ -172,6 +172,7 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                               const std::vector<std::vector<size_t>> &layerPatches,
                               const std::vector<size_t> &layerSizes,
                               const std::vector<size_t> &neuronSizes,
+                              const std::vector<size_t> &neuronOverlap,
                               const size_t layerToConnect) {
     m_conf.getLayerPatches().push_back(layerPatches);
     m_conf.getLayerSizes().push_back(layerSizes);
@@ -199,7 +200,7 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                             }
 
                             auto pos = Position(x * layerSizes[0] + i, y * layerSizes[1] + j, z * layerSizes[2] + k);
-                            auto offset = Position(layerPatches[0][x] + i * neuronSizes[0], layerPatches[1][y] + j * neuronSizes[1]);
+                            auto offset = Position(layerPatches[0][x] + i * (neuronSizes[0] - neuronOverlap[0]), layerPatches[1][y] + j * (neuronSizes[1] - neuronOverlap[1]));
                             if (neuronType == "SimpleCell") {
                                 m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, layer, m_simpleNeuronConf, pos, offset, m_sharedWeightsSimple[weightIndex],
                                                                           m_conf.getNeuron1Synapses()));

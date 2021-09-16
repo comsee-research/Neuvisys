@@ -33,6 +33,7 @@ class NetworkConfig {
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
+    std::vector<std::vector<size_t>> neuronOverlap;
 
     double NU{};
     double V0{};
@@ -54,6 +55,7 @@ public:
     std::vector<std::vector<std::vector<size_t>>> &getLayerPatches() { return layerPatches; }
     std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
     std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }
+    std::vector<std::vector<size_t>> &getNeuronOverlap() { return neuronOverlap; }
 };
 
 class NeuronConfig {
