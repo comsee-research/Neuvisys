@@ -23,9 +23,9 @@
      </widget>
     </item>
     <item row="0" column="1">
-     <widget class="QTabWidget" name="tabWidget">
+     <widget class="QTabWidget" name="tab_visualization">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="event_viz">
        <attribute name="title">
@@ -33,7 +33,7 @@
        </attribute>
        <layout class="QGridLayout" name="gridLayout_6">
         <item row="0" column="0">
-         <widget class="QScrollArea" name="scrollArea_3">
+         <widget class="QScrollArea" name="scroll_event_viz">
           <property name="widgetResizable">
            <bool>true</bool>
           </property>
@@ -245,7 +245,7 @@
      </widget>
     </item>
     <item row="0" column="0">
-     <widget class="QTabWidget" name="tabWidget_2">
+     <widget class="QTabWidget" name="tab_selection">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
         <horstretch>0</horstretch>
@@ -278,48 +278,7 @@
         <string>Launch Options</string>
        </attribute>
        <layout class="QGridLayout" name="gridLayout_2">
-        <item row="0" column="0">
-         <layout class="QGridLayout" name="gridLayout">
-          <item row="1" column="0">
-           <widget class="QPushButton" name="button_event_file">
-            <property name="text">
-             <string>Select Event File</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QPushButton" name="button_network_directory">
-            <property name="text">
-             <string>Select Network Directory</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="2">
-           <widget class="QLineEdit" name="text_event_file"/>
-          </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_number_runs">
-            <property name="text">
-             <string>Number of runs</string>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="3">
-           <widget class="QCheckBox" name="realtime">
-            <property name="text">
-             <string>Realtime</string>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="2" colspan="2">
-           <widget class="QLineEdit" name="text_network_directory"/>
-          </item>
-          <item row="3" column="2" colspan="2">
-           <widget class="QSpinBox" name="number_runs"/>
-          </item>
-         </layout>
-        </item>
-        <item row="3" column="0">
+        <item row="2" column="0">
          <layout class="QVBoxLayout" name="verticalLayout_6">
           <item>
            <widget class="QPushButton" name="button_launch_network">
@@ -344,62 +303,36 @@
           </item>
          </layout>
         </item>
-        <item row="1" column="0">
-         <widget class="QTabWidget" name="tabWidget_3">
-          <property name="currentIndex">
-           <number>4</number>
-          </property>
-          <widget class="QWidget" name="network_config">
-           <attribute name="title">
-            <string>Network config</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_11">
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="text_network_config"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="simple_cell_config">
-           <attribute name="title">
-            <string>Simple cell config</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_12">
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="text_simple_cell_config"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="complex_cell_config">
-           <attribute name="title">
-            <string>Complex cell config</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_13">
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="text_complex_cell_config"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="critic_cell_config">
-           <attribute name="title">
-            <string>Critic cell config</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_18">
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="text_critic_cell_config"/>
-            </item>
-           </layout>
-          </widget>
-          <widget class="QWidget" name="actor_cell_config">
-           <attribute name="title">
-            <string>Actor cell config</string>
-           </attribute>
-           <layout class="QGridLayout" name="gridLayout_23">
-            <item row="0" column="0">
-             <widget class="QTextEdit" name="text_actor_cell_config"/>
-            </item>
-           </layout>
-          </widget>
-         </widget>
+        <item row="0" column="0">
+         <layout class="QGridLayout" name="gridLayout">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_number_runs">
+            <property name="text">
+             <string>Number of runs</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QPushButton" name="button_event_file">
+            <property name="text">
+             <string>Select Event File</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="2">
+           <widget class="QLineEdit" name="text_event_file"/>
+          </item>
+          <item row="0" column="3">
+           <widget class="QCheckBox" name="realtime">
+            <property name="text">
+             <string>Realtime</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="2" colspan="2">
+           <widget class="QSpinBox" name="number_runs"/>
+          </item>
+         </layout>
         </item>
        </layout>
       </widget>
@@ -640,6 +573,87 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="tab_creation">
+       <attribute name="title">
+        <string>Network Creation</string>
+       </attribute>
+       <layout class="QVBoxLayout" name="verticalLayout_5">
+        <item>
+         <widget class="QPushButton" name="button_create_network">
+          <property name="text">
+           <string>Create Network</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="button_network_directory">
+          <property name="text">
+           <string>Select Network Directory</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="text_network_directory"/>
+        </item>
+        <item>
+         <widget class="QTabWidget" name="tab_configs">
+          <property name="currentIndex">
+           <number>4</number>
+          </property>
+          <widget class="QWidget" name="network_config">
+           <attribute name="title">
+            <string>Network config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_11">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_network_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="simple_cell_config">
+           <attribute name="title">
+            <string>Simple cell config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_12">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_simple_cell_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="complex_cell_config">
+           <attribute name="title">
+            <string>Complex cell config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_13">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_complex_cell_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="critic_cell_config">
+           <attribute name="title">
+            <string>Critic cell config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_18">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_critic_cell_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="actor_cell_config">
+           <attribute name="title">
+            <string>Actor cell config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_23">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_actor_cell_config"/>
+            </item>
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
      </widget>
     </item>
    </layout>
@@ -670,17 +684,11 @@
   </customwidget>
  </customwidgets>
  <tabstops>
-  <tabstop>tabWidget_2</tabstop>
-  <tabstop>button_network_directory</tabstop>
+  <tabstop>tab_selection</tabstop>
   <tabstop>button_event_file</tabstop>
-  <tabstop>text_network_directory</tabstop>
   <tabstop>text_event_file</tabstop>
   <tabstop>number_runs</tabstop>
-  <tabstop>tabWidget_3</tabstop>
-  <tabstop>text_network_config</tabstop>
-  <tabstop>text_simple_cell_config</tabstop>
-  <tabstop>text_complex_cell_config</tabstop>
-  <tabstop>tabWidget</tabstop>
+  <tabstop>tab_visualization</tabstop>
   <tabstop>potentialView</tabstop>
   <tabstop>spikeView</tabstop>
  </tabstops>

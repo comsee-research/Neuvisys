@@ -89,88 +89,6 @@ NeuvisysGUI::~NeuvisysGUI() {
     }
 }
 
-void NeuvisysGUI::on_button_event_file_clicked() {
-    QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
-    QFile file(fileName);
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
-        return;
-    }
-    ui->text_event_file->setText(fileName);
-    file.close();
-}
-
-void NeuvisysGUI::on_button_network_directory_clicked() {
-    QString dir = QFileDialog::getExistingDirectory(this, "Open Directory", "/home",
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
-    ui->text_network_directory->setText(dir);
-    openConfigFiles();
-}
-
-void NeuvisysGUI::openConfigFiles() {
-    QString dir = ui->text_network_directory->text();
-    QString confDir = dir + "/configs/network_config.json";
-    ui->text_network_config->setText(readConfFile(confDir));
-    confDir = dir + "/configs/simple_cell_config.json";
-    ui->text_simple_cell_config->setText(readConfFile(confDir));
-    confDir = dir + "/configs/complex_cell_config.json";
-    ui->text_complex_cell_config->setText(readConfFile(confDir));
-    confDir = dir + "/configs/critic_cell_config.json";
-    ui->text_critic_cell_config->setText(readConfFile(confDir));
-    confDir = dir + "/configs/actor_cell_config.json";
-    ui->text_actor_cell_config->setText(readConfFile(confDir));
-}
-
-void NeuvisysGUI::on_text_network_config_textChanged() {
-    QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
-    QString text = ui->text_network_config->toPlainText();
-    modifyConfFile(confDir, text);
-}
-
-void NeuvisysGUI::on_text_simple_cell_config_textChanged() {
-    QString confDir = ui->text_network_directory->text() + "/configs/simple_cell_config.json";
-    QString text = ui->text_simple_cell_config->toPlainText();
-    modifyConfFile(confDir, text);
-}
-
-void NeuvisysGUI::on_text_complex_cell_config_textChanged() {
-    QString confDir = ui->text_network_directory->text() + "/configs/complex_cell_config.json";
-    QString text = ui->text_complex_cell_config->toPlainText();
-    modifyConfFile(confDir, text);
-}
-
-void NeuvisysGUI::on_text_critic_cell_config_textChanged() {
-    QString confDir = ui->text_network_directory->text() + "/configs/critic_cell_config.json";
-    QString text = ui->text_critic_cell_config->toPlainText();
-    modifyConfFile(confDir, text);
-}
-
-void NeuvisysGUI::on_text_actor_cell_config_textChanged() {
-    QString confDir = ui->text_network_directory->text() + "/configs/actor_cell_config.json";
-    QString text = ui->text_actor_cell_config->toPlainText();
-    modifyConfFile(confDir, text);
-}
-
-QString NeuvisysGUI::readConfFile(QString &directory) {
-    QFile file(directory);
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
-    }
-    QString networkText = QTextStream(&file).readAll();
-    file.close();
-    return networkText;
-}
-
-void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
-    QFile file(directory);
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
-    }
-    QTextStream out(&file);
-    out << text;
-    file.close();
-}
-
 void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::string>("std::string");
@@ -214,9 +132,99 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
+void NeuvisysGUI::on_text_network_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
+    QString text = ui->text_network_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_text_simple_cell_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/simple_cell_config.json";
+    QString text = ui->text_simple_cell_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_text_complex_cell_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/complex_cell_config.json";
+    QString text = ui->text_complex_cell_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_text_critic_cell_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/critic_cell_config.json";
+    QString text = ui->text_critic_cell_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_text_actor_cell_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/actor_cell_config.json";
+    QString text = ui->text_actor_cell_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_button_event_file_clicked() {
+    QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        return;
+    }
+    ui->text_event_file->setText(fileName);
+    file.close();
+}
+
+void NeuvisysGUI::on_button_network_directory_clicked() {
+    QString dir = QFileDialog::getExistingDirectory(this, "Open Directory", "/home",
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    ui->text_network_directory->setText(dir);
+    openConfigFiles();
+}
+
+void NeuvisysGUI::on_button_create_network_clicked() {
+    QString dir = QFileDialog::getExistingDirectory(this, "Open Directory", "/home",
+                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    NetworkConfig::createNetwork(dir.toStdString());
+    ui->text_network_directory->setText(dir + "/network");
+    openConfigFiles();
+}
+
 void NeuvisysGUI::on_button_stop_network_clicked() {
     emit stopNetwork();
     ui->console->insertPlainText(QString("Saving network...\n"));
+}
+
+void NeuvisysGUI::openConfigFiles() {
+    QString dir = ui->text_network_directory->text();
+    QString confDir = dir + "/configs/network_config.json";
+    ui->text_network_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/simple_cell_config.json";
+    ui->text_simple_cell_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/complex_cell_config.json";
+    ui->text_complex_cell_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/critic_cell_config.json";
+    ui->text_critic_cell_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/actor_cell_config.json";
+    ui->text_actor_cell_config->setText(readConfFile(confDir));
+}
+
+QString NeuvisysGUI::readConfFile(QString &directory) {
+    QFile file(directory);
+    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+    }
+    QString networkText = QTextStream(&file).readAll();
+    file.close();
+    return networkText;
+}
+
+void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
+    QFile file(directory);
+    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+    }
+    QTextStream out(&file);
+    out << text;
+    file.close();
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
