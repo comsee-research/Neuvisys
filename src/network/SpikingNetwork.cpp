@@ -59,7 +59,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().z() -
                                                                        nextNeuron.get().getOffset().z())))) {
             if (nextNeuron.get().getLayer() > 1) {
-                nextNeuron.get().setNeuromodulator(updateTDError());
+                nextNeuron.get().setNeuromodulator(updateTDError(static_cast<double>(neuron.getSpikingTime())));
             }
             if (nextNeuron.get().getLayer() != 3) {
                 nextNeuron.get().weightUpdate();
@@ -73,22 +73,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     }
 }
 
-double SpikingNetwork::updateTDError() {
-    double value = 0;
-    double valueDerivative = 0;
-    for (const auto &critic : m_neurons[2]) {
-        auto values = critic.get().updateKernelSpikingRate();
-        value += values.first;
-        valueDerivative += values.second;
-    }
-    auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
-    auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
-
-    return td_error;
-}
-
-void SpikingNetwork::updateTDError(double time) {
+double SpikingNetwork::updateTDError(double time, bool store) {
     double value = 0;
     double valueDerivative = 0;
     for (const auto &critic : m_neurons[2]) {
@@ -99,10 +84,15 @@ void SpikingNetwork::updateTDError(double time) {
     auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
     auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
     auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
-    m_listReward.push_back(m_reward);
-    m_listValue.push_back(V);
-    m_listValueDot.push_back(V_dot);
-    m_listTDError.push_back(td_error);
+
+    if (store) {
+        m_listReward.push_back(m_reward);
+        m_listValue.push_back(V);
+        m_listValueDot.push_back(V_dot);
+        m_listTDError.push_back(td_error);
+    }
+
+    return td_error;
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {

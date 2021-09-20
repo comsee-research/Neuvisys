@@ -110,7 +110,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.runEvent(event);
         }
         if (!sim.getLeftEvents().empty()) {
-            spinet.updateTDError(sim.getLeftEvents().back().timestamp());
+            spinet.updateTDError(sim.getLeftEvents().back().timestamp(), true);
         }
 
 //        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
