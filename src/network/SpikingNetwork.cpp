@@ -81,9 +81,9 @@ double SpikingNetwork::updateTDError() {
         value += values.first;
         valueDerivative += values.second;
     }
-//    auto td_error = m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
-//    auto td_error = (m_conf.getNU() / static_cast<double>(m_neurons[2].size())) * (valueDerivative - (value / m_conf.getTAU_R())) - (m_conf.getV0() / m_conf.getTAU_R()) + m_reward;
-    auto td_error = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
+    auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
+    auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
+    auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
 
     return td_error;
 }
@@ -96,10 +96,13 @@ void SpikingNetwork::updateTDError(double time) {
         value += values.first;
         valueDerivative += values.second;
     }
+    auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
+    auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
+    auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
     m_listReward.push_back(m_reward);
-    m_listValue.push_back(m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0());
-    m_listValueDot.push_back(m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size()));
-    m_listTDError.push_back(m_reward - (m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0()));
+    m_listValue.push_back(V);
+    m_listValueDot.push_back(V_dot);
+    m_listTDError.push_back(td_error);
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
