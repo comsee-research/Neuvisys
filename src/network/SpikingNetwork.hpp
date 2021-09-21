@@ -21,7 +21,7 @@ class SpikingNetwork {
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
     double m_reward{};
-    double m_bias{};
+    double m_averageReward{};
     size_t m_rewardIter{};
     std::vector<double> m_listReward;
     std::vector<double> m_listValue;
@@ -64,7 +64,7 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     uint64_t getLayout(size_t layer, Position pos) { return m_layout[layer][{ pos.x(), pos.y(), pos.z() }]; }
     cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
-    [[nodiscard]] double getBias() const { return m_bias; }
+    [[nodiscard]] double getBias() const { return m_averageReward; }
     std::vector<double> &getRewards() { return m_listReward; }
     std::vector<double> &getListValue() { return m_listValue; }
     std::vector<double> &getListValueDot() { return m_listValueDot; }

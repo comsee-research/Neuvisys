@@ -18,7 +18,7 @@ namespace Conf {
     inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
-    inline constexpr size_t E6 = 1000000;
+    inline constexpr size_t E6 = 1000000; // μs
 }
 
 class NetworkConfig {
@@ -71,8 +71,9 @@ public:
     double TAU_LTD{}; // μs
     double TAU_RP{}; // μs
     double TAU_SRA{}; // μs
-    double TAU_E{}; // s
-    double TAU_K{}; // s
+    double TAU_E{}; // μs
+    double TAU_K{}; // μs
+    double NU_K{}; // μs
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV
@@ -81,7 +82,6 @@ public:
     double DELTA_SRA{}; // mV
     double ETA_INH{}; // mV
     double ETA{}; // mV
-    double NU_K{}; // mV
 
     double VRESET{}; // mV
     double VTHRESH{}; // mV

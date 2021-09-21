@@ -2,12 +2,17 @@
 // Created by thomas on 28/06/2021.
 //
 
-#include "SimulationInterface.hpp"
+#include "SimulationInterface.hpp""
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
-    std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+    std::string networkPath;
+    if (argc > 1) {
+        networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
+    } else {
+        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+    }
     SpikingNetwork spinet(networkPath);
 
     spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true,
@@ -44,7 +49,7 @@ int main(int argc, char **argv) {
             if (actor != -1) {
                 auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size()-1);
                 neuron.get().spike(sim.getLeftEvents().back().timestamp());
-                neuron.get().setNeuromodulator(spinet.updateTDError());
+                neuron.get().setNeuromodulator(spinet.updateTDError(sim.getLeftEvents().back().timestamp()));
                 neuron.get().weightUpdate();
             }
             sim.motorAction(spinet.resolveMotor(), 0, actor);

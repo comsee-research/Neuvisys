@@ -181,10 +181,9 @@ void NeuvisysGUI::on_button_network_directory_clicked() {
 }
 
 void NeuvisysGUI::on_button_create_network_clicked() {
-    QString dir = QFileDialog::getExistingDirectory(this, "Open Directory", "/home",
-                                                    QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
+    QString dir = QFileDialog::getSaveFileName(this, "Open Directory", "/home");
     NetworkConfig::createNetwork(dir.toStdString());
-    ui->text_network_directory->setText(dir + "/network");
+    ui->text_network_directory->setText(dir);
     openConfigFiles();
 }
 
