@@ -110,7 +110,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(&neuvisysThread, &NeuvisysThread::displayAction, this, &NeuvisysGUI::onDisplayAction);
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
     connect(&neuvisysThread, &NeuvisysThread::networkCreation, this, &NeuvisysGUI::onNetworkCreation);
-    connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onFinished);
+    connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onNetworkDestruction);
     neuvisysThread.init();
 
     connect(this, &NeuvisysGUI::tabVizChanged, &neuvisysThread, &NeuvisysThread::onTabVizChanged);
@@ -492,6 +492,6 @@ void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
     emit layerChanged(m_layer);
 }
 
-void NeuvisysGUI::onFinished() {
+void NeuvisysGUI::onNetworkDestruction() {
     ui->console->insertPlainText(QString("Finished."));
 }

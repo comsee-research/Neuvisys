@@ -34,7 +34,7 @@ public slots:
     void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
     std::vector<size_t> &neuronSizes);
     void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
-    void onFinished();
+    void onNetworkDestruction();
 
 signals:
     void tabVizChanged(size_t index);

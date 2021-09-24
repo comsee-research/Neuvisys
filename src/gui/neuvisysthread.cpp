@@ -97,7 +97,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     double actionTime = 0, displayTime = 0, trackTime = 0;
     while (!m_stop) {
         sim.triggerNextTimeStep();
-        while (!sim.simStepDone()) {
+        while (!sim.simStepDone() && !m_stop) {
             ros::spinOnce();
         }
 
@@ -121,10 +121,10 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
                 size_t count = 0;
                 double td = 0;
                 for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
-                    td += *rit;
-                    if (count == 10) {
+                    if (count > 9) {
                         break;
                     }
+                    td += *rit;
                     ++count;
                 }
 //                neuron.get().setNeuromodulator(spinet.updateTDError(sim.getLeftEvents().back().timestamp()));
