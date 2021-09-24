@@ -28,7 +28,7 @@ public slots:
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
-    void onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
+    void onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrains, double time);
     void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
     void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
@@ -37,6 +37,7 @@ public slots:
     void onFinished();
 
 signals:
+    void tabVizChanged(size_t index);
     void indexChanged(size_t index);
     void zcellChanged(size_t zcell);
     void depthChanged(size_t depth);
@@ -60,6 +61,7 @@ private slots:
     void on_text_critic_cell_config_textChanged();
     void on_text_actor_cell_config_textChanged();
     void on_button_selection_clicked();
+    void on_tab_visualization_currentChanged(int index);
     void on_spin_zcell_selection_valueChanged(int arg1);
     void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
