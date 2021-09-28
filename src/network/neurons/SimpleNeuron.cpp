@@ -32,8 +32,6 @@ bool SimpleNeuron::update() {
 inline bool SimpleNeuron::membraneUpdate(Event event) {
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
     m_adaptation_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_SRA);
-//    potentialDecay(event.timestamp() - m_timestampLastEvent);
-//    adaptationPotentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
                    - refractoryPotential(event.timestamp() - m_spikingTime)
                    - m_adaptation_potential;
@@ -55,7 +53,7 @@ inline void SimpleNeuron::spike(const long time) {
     m_potential = conf.VRESET;
 
     if (conf.TRACKING == "partial") {
-//        m_trackingSpikeTrain.push_back(time);
+        m_trackingSpikeTrain.push_back(time);
     }
 }
 

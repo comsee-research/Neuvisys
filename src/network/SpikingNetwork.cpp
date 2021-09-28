@@ -312,6 +312,9 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         state["event_file_name"] = eventFileName;
         state["nb_run"] = nbRun;
         state["rewards"] = m_listReward;
+        state["value"] = m_listValue;
+        state["value_dot"] = m_listValueDot;
+        state["td_error"] = m_listTDError;
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
 
