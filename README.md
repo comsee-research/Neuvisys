@@ -49,12 +49,6 @@ Install ROS Noetic (Other ROS distribution might work, but this is uncertain): h
 
 It is advised to use the **Desktop-Full Install**, though other lighter version may also work.
 
-### Create empty Network
-
-In the folder "generate_network", there is a python script that you can use to create and initialize a network structure:
-
-- Run ``cd  generate_network``, ``python -c 'import planner; planner.generate_network("../configuration")'``
-
 ## Launch
 
 To compile the Neuvisys library, in the root folder:
@@ -86,3 +80,11 @@ An example of use with the ``neuvisys-exe`` target:
 ``eventPath`` is the relative path to an event file in the .npz format.
 
 ``nbPass`` is the number of times the events will be presented to the network.
+
+### Create empty Network
+
+You can generate an empty spiking network ready to use from:
+
+- Run ``cd  build``, ``./neuvisys-exe [networkDirectory]``
+
+The parameters will be set to their default values, but you can change them afterwards using the gui or directly via the json config files. 
