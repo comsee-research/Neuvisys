@@ -18,28 +18,20 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
-            NbCameras = conf["NbCameras"];
-
-            for (const auto &size: conf["layerPatches"]) {
-                layerPatches.push_back(size);
-            }
-            for (const auto &size: conf["layerSizes"]) {
-                layerSizes.push_back(size);
-            }
-            for (const auto &size: conf["neuronSizes"]) {
-                neuronSizes.push_back(size);
-            }
-            for (const auto &size: conf["neuronOverlap"]) {
-                neuronOverlap.push_back(size);
-            }
-
-            Neuron1Synapses = conf["Neuron1Synapses"];
-            SharingType = conf["SharingType"];
-            SaveData = conf["SaveData"];
+            nbCameras = conf["nbCameras"];
+            for (const auto &item: conf["layerCellTypes"]) { layerCellTypes.push_back(item); }
+            for (const auto &item: conf["layerPatches"]) { layerInhibitions.push_back(item); }
+            for (const auto &item: conf["layerPatches"]) { interLayerConnections.push_back(item); }
+            for (const auto &item: conf["layerPatches"]) { layerPatches.push_back(item); }
+            for (const auto &item: conf["layerSizes"]) { layerSizes.push_back(item); }
+            for (const auto &item: conf["neuronSizes"]) { neuronSizes.push_back(item); }
+            for (const auto &item: conf["neuronOverlap"]) { neuronOverlap.push_back(item); }
+            neuron1Synapses = conf["neuron1Synapses"];
+            sharingType = conf["sharingType"];
+            saveData = conf["saveData"];
             NU = conf["NU"];
             V0 = conf["V0"];
             TAU_R = conf["TAU_R"];
-
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
@@ -190,14 +182,17 @@ void NetworkConfig::createNetwork(const std::string &directory) {
 
     std::vector<json> conf = {
             {
-                    {"NbCameras", 1},
-                    {"Neuron1Synapses", 1},
-                    {"SharingType", "patch"},
-                    {"SaveData", true},
+                    {"nbCameras", 1},
+                    {"neuron1Synapses", 1},
+                    {"sharingType", "patch"},
+                    {"saveData", true},
+                    {"layerCellTypes", {"SimpleCell", "ComplexCell", "CriticCell", "ActorCell"}},
+                    {"layerInhibitions", {true, true, false, false}},
+                    {"interLayerConnections", {0, 0, 1, 1}},
                     {"layerPatches", {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
-                    {"layerSizes", {{28, 4, 64}, {13, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
-                    {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {13, 1, 16}, {13, 1, 16}}},
-                    {"neuronOverlap", {{0, 0, 0}, {2, 2, 0}, {0, 0, 0}, {0, 0, 0}}},
+                    {"layerSizes", {{28, 4, 64}, {27, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
+                    {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {27, 1, 16}, {27, 1, 16}}},
+                    {"neuronOverlap", {{0, 0, 0}, {3, 3, 0}, {0, 0, 0}, {0, 0, 0}}},
                     {"NU",                2},
                     {"V0",            0},
                     {"TAU_R",         1}},

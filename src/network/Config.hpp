@@ -24,14 +24,17 @@ namespace Conf {
 class NetworkConfig {
     /***** Display parameters *****/
     std::string NETWORK_CONFIG;
-    bool SaveData{};
+    bool saveData{};
     std::string NetworkPath;
 
     /***** Spiking Neural Network layout parameters *****/
-    size_t NbCameras{};
-    size_t Neuron1Synapses{};
-    std::string SharingType{};
+    size_t nbCameras{};
+    size_t neuron1Synapses{};
+    std::string sharingType{};
 
+    std::vector<std::string> layerCellTypes;
+    std::vector<bool> layerInhibitions;
+    std::vector<size_t> interLayerConnections;
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
@@ -46,14 +49,17 @@ public:
     void loadNetworkLayout(const std::string& fileName);
 
     [[nodiscard]] std::string getNetworkPath() const { return NetworkPath; }
-    [[nodiscard]] size_t getNbCameras() const { return NbCameras; }
-    [[nodiscard]] size_t getNeuron1Synapses() const { return Neuron1Synapses; }
-    [[nodiscard]] bool getSaveData() const { return SaveData; }
+    [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
+    [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
+    [[nodiscard]] bool getSaveData() const { return saveData; }
     std::string &getNetworkPath() { return NetworkPath; }
-    std::string &getSharingType() { return SharingType; }
+    std::string &getSharingType() { return sharingType; }
     [[nodiscard]] double getNU() const { return NU; }
     [[nodiscard]] double getV0() const { return V0; }
     [[nodiscard]] double getTAU_R() const { return TAU_R; }
+    std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
+    std::vector<bool> &getLayerInhibitions() { return layerInhibitions; }
+    std::vector<size_t> &getInterLayerConnections() { return interLayerConnections; }
     std::vector<std::vector<std::vector<size_t>>> &getLayerPatches() { return layerPatches; }
     std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
     std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }

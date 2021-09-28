@@ -12,6 +12,11 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>
                                                                                  (Conf::WIDTH * Conf::HEIGHT,
                                                                                   std::vector<uint64_t>(0))) {
+    for (size_t i = 0; i < m_conf.getLayerCellTypes().size(); ++i) {
+        addLayer(m_conf.getLayerCellTypes()[i], m_conf.getSharingType(), m_conf.getLayerInhibitions()[i],
+                 m_conf.getLayerPatches()[i], m_conf.getLayerSizes()[i],
+                 m_conf.getNeuronSizes()[i], m_conf.getNeuronOverlap()[i], m_conf.getInterLayerConnections()[i]);
+    }
 }
 
 void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
