@@ -1,7 +1,5 @@
 #include "SpikingNetwork.hpp"
 
-#include <utility>
-
 SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(conf)),
                                                           m_simpleNeuronConf(m_conf.getNetworkPath() +
                                                                              "configs/simple_cell_config.json", 0),
@@ -327,6 +325,7 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         ofs.close();
 
         saveNeuronsStates();
+        std::cout << "Finished." << std::endl;
     }
 
     size_t count;

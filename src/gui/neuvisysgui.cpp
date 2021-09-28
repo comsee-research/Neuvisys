@@ -93,12 +93,12 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<cv::Mat>("cv::Mat");
-    qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
-    qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double,long>>");
-    qRegisterMetaType<std::map<size_t, std::vector<long>>>("std::map<size_t, std::vector<long>>");
     qRegisterMetaType<std::vector<double>>("std::vector<double>");
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
     qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
+    qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
+    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<long>>>>("std::vector<std::reference_wrapper<const std::vector<long>>>");
+    qRegisterMetaType<std::vector<std::vector<long>>>("std::vector<std::vector<long>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
@@ -110,9 +110,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(&neuvisysThread, &NeuvisysThread::displayAction, this, &NeuvisysGUI::onDisplayAction);
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
     connect(&neuvisysThread, &NeuvisysThread::networkCreation, this, &NeuvisysGUI::onNetworkCreation);
-    connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onFinished);
+    connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onNetworkDestruction);
     neuvisysThread.init();
 
+    connect(this, &NeuvisysGUI::tabVizChanged, &neuvisysThread, &NeuvisysThread::onTabVizChanged);
     connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
     connect(this, &NeuvisysGUI::zcellChanged, &neuvisysThread, &NeuvisysThread::onZcellChanged);
     connect(this, &NeuvisysGUI::depthChanged, &neuvisysThread, &NeuvisysThread::onDepthChanged);
@@ -333,6 +334,10 @@ void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
     emit synapseChanged(m_synapse);
 }
 
+void NeuvisysGUI::on_tab_visualization_currentChanged(int index) {
+    emit tabVizChanged(index);
+}
+
 void NeuvisysGUI::onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
     ui->lcd_sim_time->display(simTime);
     ui->lcd_event_rate->display(event_rate);
@@ -395,28 +400,26 @@ void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
     ui->potentialView->repaint();
 }
 
-void NeuvisysGUI::onDisplaySpike(const std::map<size_t, std::vector<long>> &spikeTrain) {
+void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrains, double time) {
     spikeChart->removeSeries(spikeSeries);
     spikeSeries = new QScatterSeries();
     spikeSeries->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
     spikeSeries->setMarkerSize(8);
-    long max = 0;
-    for (const auto &sTrain: spikeTrain) {
-        if (!sTrain.second.empty() && sTrain.second.back() > max) {
-            max = sTrain.second.back();
-        }
-    }
-    for (const auto &sTrain: spikeTrain) {
-        for (auto spike = sTrain.second.rbegin(); spike != sTrain.second.rend(); ++spike) {
-            if (max - *spike <= static_cast<long>(rangeSpiketrain)) {
-                spikeSeries->append(static_cast<qreal>(*spike), static_cast<qreal>(sTrain.first));
+
+    size_t index = 0;
+    for (const auto &spikeTrain: spikeTrains) {
+        for (auto spike = spikeTrain.get().rbegin(); spike != spikeTrain.get().rend(); ++spike) {
+            if (time - static_cast<double>(*spike) <= static_cast<double>(rangeSpiketrain)) {
+                spikeSeries->append(static_cast<qreal>(*spike), static_cast<qreal>(index));
             } else {
                 break;
             }
         }
+        ++index;
     }
     spikeChart->addSeries(spikeSeries);
     spikeChart->createDefaultAxes();
+    spikeChart->axes(Qt::Vertical, spikeSeries)[0]->setRange(0, static_cast<int>(spikeTrains.size()));
     ui->spikeView->repaint();
 }
 
@@ -489,6 +492,6 @@ void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
     emit layerChanged(m_layer);
 }
 
-void NeuvisysGUI::onFinished() {
+void NeuvisysGUI::onNetworkDestruction() {
     ui->console->insertPlainText(QString("Finished."));
 }

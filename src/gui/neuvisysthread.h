@@ -20,6 +20,7 @@ public:
     bool init();
 
 public slots:
+    void onTabVizChanged(size_t index);
     void onIndexChanged(size_t index);
     void onZcellChanged(size_t zcell);
     void onDepthChanged(size_t depth);
@@ -37,7 +38,7 @@ signals:
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
-    void displaySpike(const std::map<size_t, std::vector<long>> &spikeTrain);
+    void displaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrain, double time);
     void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void displayAction(const std::vector<bool> &motorActivation);
     void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
@@ -55,13 +56,14 @@ protected:
     cv::Mat m_leftEventDisplay;
     cv::Mat m_rightEventDisplay;
     std::map<size_t, cv::Mat> m_weightDisplay;
-    std::map<size_t, std::vector<long>> m_spikeTrain;
+    std::vector<std::reference_wrapper<const std::vector<long>>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
     double m_simTime{};
     double m_eventRate{};
     bool m_realtime = false;
     bool m_stop = false;
     bool m_change = false;
+    size_t m_currentTab = 0;
     size_t m_on_count = 0, m_off_count = 0;
 
     int m_actor = -1;
@@ -85,9 +87,11 @@ protected:
 private:
     void multiplePass(SpikingNetwork &spinet);
     void rosPass(SpikingNetwork &spinet);
-    void display(SpikingNetwork &spinet, size_t sizeArray);
+    void display(SpikingNetwork &spinet, size_t sizeArray, double time);
     void addEventToDisplay(const Event &event);
+    void prepareSpikes(SpikingNetwork &spinet);
     void prepareWeights(SpikingNetwork &spinet);
+    void sensingZone(SpikingNetwork &spinet);
 };
 
 #endif // NEUVISYSTHREAD_H
