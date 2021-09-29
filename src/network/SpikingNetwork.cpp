@@ -258,9 +258,6 @@ void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToCon
                     if (currLayer == 0) {
                         m_pixelMapping[i * Conf::HEIGHT + j].push_back(neuron.get().getIndex());
                     } else {
-                        if (currLayer == 2) {
-                            std::cout << m_layout[layerToConnect][{i, j, k}] << " / " << neuron.get().getIndex() << std::endl;
-                        }
                         neuron.get().addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
                         m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron.get());
                     }
@@ -303,6 +300,7 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         state["value"] = m_listValue;
         state["value_dot"] = m_listValueDot;
         state["td_error"] = m_listTDError;
+        state["td_actions"] = m_listTDActions;
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
 

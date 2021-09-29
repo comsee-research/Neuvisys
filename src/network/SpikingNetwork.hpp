@@ -27,7 +27,7 @@ class SpikingNetwork {
     std::vector<double> m_listValue;
     std::vector<double> m_listValueDot;
     std::vector<double> m_listTDError;
-    std::vector<double> m_listActions;
+    std::vector<double> m_listTDActions;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;

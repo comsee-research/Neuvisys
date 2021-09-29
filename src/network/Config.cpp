@@ -70,11 +70,11 @@ void NeuronConfig::loadNeuronsParameters(const std::string &fileName) {
             DELTA_RP = conf["ETA_RP"];
             DELTA_SRA = conf["ETA_SRA"];
             ETA_INH = conf["ETA_INH"];
-            TAU_LTP = conf["TAU_LTP"];
-            TAU_LTD = conf["TAU_LTD"];
-            TAU_RP = conf["TAU_RP"];
-            TAU_M = conf["TAU_M"];
-            TAU_SRA = conf["TAU_SRA"];
+            TAU_LTP = Conf::E3 * static_cast<double>(conf["TAU_LTP"]);
+            TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
+            TAU_RP = Conf::E3 * static_cast<double>(conf["TAU_RP"]);
+            TAU_M = Conf::E3 * static_cast<double>(conf["TAU_M"]);
+            TAU_SRA = Conf::E3 * static_cast<double>(conf["TAU_SRA"]);
             VTHRESH = conf["VTHRESH"];
             VRESET = conf["VRESET"];
             SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
@@ -103,9 +103,10 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string &fileName) {
             ifs >> conf;
             ETA_LTP = conf["ETA_LTP"];
             ETA_LTD = conf["ETA_LTD"];
-            TAU_LTP = conf["TAU_LTP"];
-            TAU_LTD = conf["TAU_LTD"];
-            TAU_M = conf["TAU_M"];
+            TAU_LTP = Conf::E3 * static_cast<double>(conf["TAU_LTP"]);
+            TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
+            TAU_M = Conf::E3 * static_cast<double>(conf["TAU_M"]);
+            TAU_RP = Conf::E3 * static_cast<double>(conf["TAU_RP"]);
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
@@ -114,7 +115,6 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string &fileName) {
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
             DELTA_RP = conf["ETA_RP"];
-            TAU_RP = conf["TAU_RP"];
         } catch (const std::exception &e) {
             std::cerr << "In complex cell config file" << std::endl;
             throw;
@@ -132,19 +132,19 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string &fileName) {
     if (ifs.is_open()) {
         try {
             ifs >> conf;
-            TAU_M = conf["TAU_M"];
-            TAU_E = conf["TAU_E"];
-            TAU_K = static_cast<double>(conf["TAU_K"]) / Conf::E6;
-            NU_K = static_cast<double>(conf["NU_K"]) / Conf::E6;
+            ETA_LTP = conf["ETA_LTP"];
+            ETA_LTD = conf["ETA_LTD"];
+            TAU_M = Conf::E3 * static_cast<double>(conf["TAU_M"]);
+            TAU_E = Conf::E3 * static_cast<double>(conf["TAU_E"]);
+            TAU_LTP = Conf::E3 * static_cast<double>(conf["TAU_LTP"]);
+            TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
+            TAU_K = static_cast<double>(conf["TAU_K"]) / Conf::E3;
+            NU_K = static_cast<double>(conf["NU_K"]) / Conf::E3;
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
-            TAU_LTP = conf["TAU_LTP"];
-            TAU_LTD = conf["TAU_LTD"];
-            ETA_LTP = conf["ETA_LTP"];
-            ETA_LTD = conf["ETA_LTD"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
         } catch (const std::exception &e) {
@@ -175,10 +175,10 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory + "/images/simple_cells");
     std::filesystem::create_directory(directory + "/images/complex_cells");
     std::filesystem::create_directory(directory + "/weights");
-    std::filesystem::create_directory(directory + "/weights/simple_cells");
-    std::filesystem::create_directory(directory + "/weights/complex_cells");
-    std::filesystem::create_directory(directory + "/weights/critic_cells");
-    std::filesystem::create_directory(directory + "/weights/actor_cells");
+    std::filesystem::create_directory(directory + "/weights/0");
+    std::filesystem::create_directory(directory + "/weights/1");
+    std::filesystem::create_directory(directory + "/weights/2");
+    std::filesystem::create_directory(directory + "/weights/3");
 
     std::vector<json> conf = {
             {
@@ -189,22 +189,22 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerCellTypes", {"SimpleCell", "ComplexCell", "CriticCell", "ActorCell"}},
                     {"layerInhibitions", {true, true, false, false}},
                     {"interLayerConnections", {0, 0, 1, 1}},
-                    {"layerPatches", {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
-                    {"layerSizes", {{28, 4, 64}, {25, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
+                    {"layerPatches",  {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
+                    {"layerSizes",        {{28, 4, 64}, {25, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
                     {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {25, 1, 16}, {25, 1, 16}}},
                     {"neuronOverlap", {{0, 0, 0}, {3, 3, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"NU",                4},
-                    {"V0",            0},
-                    {"TAU_R",         1}},
+                    {"NU",          4},
+                    {"V0",         0},
+                    {"TAU_R",        1}},
             {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_SRA",  100000},
-                    {"TAU_RP",       20000},
-                    {"TAU_M",      18000},
-                    {"TAU_LTP",       7000},
-                    {"TAU_LTD",      14000},
+                    {"TAU_SRA",  100},
+                    {"TAU_RP",         20},
+                    {"TAU_M",            18},
+                    {"TAU_LTP",               7},
+                    {"TAU_LTD",       14},
                     {"TARGET_SPIKE_RATE", 0.75},
                     {"SYNAPSE_DELAY", 0},
                     {"STDP_LEARNING", true},
@@ -221,48 +221,48 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   3},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20000},
-                    {"TAU_LTP",      20000},
-                    {"TAU_LTD",    20000},
+                    {"TAU_M",    20},
+                    {"TAU_LTP",        20},
+                    {"TAU_LTD",          20},
+                    {"TAU_RP",                20},
                     {"STDP_LEARNING", true},
-                    {"NORM_FACTOR",   10},
-                    {"ETA_LTP",           0.2},
+                    {"NORM_FACTOR",       10},
+                    {"ETA_LTP",       0.2},
                     {"ETA_LTD",       0.2},
-                    {"ETA_INH",       25},
-                    {"ETA_RP",      1},
-                    {"TAU_RP",     20000},
+                    {"ETA_INH",     25},
+                    {"ETA_RP",     1},
                     {"DECAY_FACTOR", 0}},
             {
                     {"VTHRESH",   1},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20000},
-                    {"ETA_INH",      0},
-                    {"TAU_LTP",    7000},
-                    {"TAU_LTD",       14000},
+                    {"TAU_M",    20},
+                    {"ETA_INH",        0},
+                    {"TAU_LTP",          7},
+                    {"TAU_LTD",               14},
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"NU_K",       400000},
-                    {"TAU_K",        100000},
-                    {"TAU_E",   500000},
+                    {"NU_K",        400},
+                    {"TAU_K",      100},
+                    {"TAU_E",        500},
                     {"ETA",     0.01}},
             {
                     {"VTHRESH",   1},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20000},
-                    {"ETA_INH",      0},
-                    {"TAU_LTP",    7000},
-                    {"TAU_LTD",       14000},
+                    {"TAU_M",    20},
+                    {"ETA_INH",        0},
+                    {"TAU_LTP",          7},
+                    {"TAU_LTD",               14},
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"NU_K",       400000},
-                    {"TAU_K",        100000},
-                    {"TAU_E",   500000},
+                    {"NU_K",        400},
+                    {"TAU_K",      100},
+                    {"TAU_E",        500},
                     {"ETA",     0.02}}
     };
     size_t count = 0;
