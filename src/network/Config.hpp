@@ -60,10 +60,10 @@ public:
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
     std::vector<bool> &getLayerInhibitions() { return layerInhibitions; }
     std::vector<size_t> &getInterLayerConnections() { return interLayerConnections; }
-    std::vector<std::vector<std::vector<size_t>>> &getLayerPatches() { return layerPatches; }
-    std::vector<std::vector<size_t>> &getLayerSizes() { return layerSizes; }
-    std::vector<std::vector<size_t>> &getNeuronSizes() { return neuronSizes; }
-    std::vector<std::vector<size_t>> &getNeuronOverlap() { return neuronOverlap; }
+    std::vector<std::vector<std::vector<size_t>>> getLayerPatches() { return layerPatches; }
+    std::vector<std::vector<size_t>> getLayerSizes() { return layerSizes; }
+    std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
+    std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
     static void createNetwork(const std::string& directory);
 };
 

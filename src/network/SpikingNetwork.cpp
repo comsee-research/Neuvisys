@@ -1,21 +1,16 @@
 #include "SpikingNetwork.hpp"
 
 SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(conf)),
-                                                          m_simpleNeuronConf(m_conf.getNetworkPath() +
-                                                                             "configs/simple_cell_config.json", 0),
-                                                          m_complexNeuronConf(m_conf.getNetworkPath() +
-                                                                              "configs/complex_cell_config.json", 1),
-                                                          m_criticNeuronConf(m_conf.getNetworkPath() +
-                                                                             "configs/critic_cell_config.json", 2),
-                                                          m_actorNeuronConf(m_conf.getNetworkPath() +
-                                                                            "configs/actor_cell_config.json", 2),
-                                                          m_pixelMapping(std::vector<std::vector<uint64_t>>
-                                                                                 (Conf::WIDTH * Conf::HEIGHT,
-                                                                                  std::vector<uint64_t>(0))) {
+                                                          m_simpleNeuronConf(m_conf.getNetworkPath() + "configs/simple_cell_config.json", 0),
+                                                          m_complexNeuronConf(m_conf.getNetworkPath() + "configs/complex_cell_config.json", 1),
+                                                          m_criticNeuronConf(m_conf.getNetworkPath() + "configs/critic_cell_config.json", 2),
+                                                          m_actorNeuronConf(m_conf.getNetworkPath() + "configs/actor_cell_config.json", 2),
+                                                          m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
+                                                                                                            std::vector<uint64_t>(0))) {
     for (size_t i = 0; i < m_conf.getLayerCellTypes().size(); ++i) {
         addLayer(m_conf.getLayerCellTypes()[i], m_conf.getSharingType(), m_conf.getLayerInhibitions()[i],
-                 m_conf.getLayerPatches()[i], m_conf.getLayerSizes()[i],
-                 m_conf.getNeuronSizes()[i], m_conf.getNeuronOverlap()[i], m_conf.getInterLayerConnections()[i]);
+                 m_conf.getLayerPatches()[i], m_conf.getLayerSizes()[i], m_conf.getNeuronSizes()[i],
+                 m_conf.getNeuronOverlap()[i], m_conf.getInterLayerConnections()[i]);
     }
 }
 
@@ -61,12 +56,9 @@ inline void SpikingNetwork::addEvent(const Event &event) {
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     for (auto &nextNeuron: neuron.getOutConnections()) {
         if (nextNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
-                                                  static_cast<int32_t>(neuron.getPos().x() -
-                                                                       nextNeuron.get().getOffset().x()),
-                                                  static_cast<int32_t>(neuron.getPos().y() -
-                                                                       nextNeuron.get().getOffset().y()),
-                                                  static_cast<int32_t>(neuron.getPos().z() -
-                                                                       nextNeuron.get().getOffset().z())))) {
+                                                  static_cast<int32_t>(neuron.getPos().x() - nextNeuron.get().getOffset().x()),
+                                                  static_cast<int32_t>(neuron.getPos().y() - nextNeuron.get().getOffset().y()),
+                                                  static_cast<int32_t>(neuron.getPos().z() - nextNeuron.get().getOffset().z())))) {
             if (nextNeuron.get().getLayer() > 1) {
                 nextNeuron.get().setNeuromodulator(updateTDError(static_cast<double>(neuron.getSpikingTime())));
             }
@@ -160,25 +152,25 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
     if (neuronType == "ComplexCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
             m_sharedWeightsComplex.push_back(
-                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]),
-                                               static_cast<long>
-                                               (neuronSizes[2])));
+                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]),
+                                               static_cast<long>(neuronSizes[1]),
+                                               static_cast<long>(neuronSizes[2])));
         }
     }
     if (neuronType == "CriticCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
             m_sharedWeightsCritic.push_back(
-                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]),
-                                               static_cast<long>
-                                               (neuronSizes[2])));
+                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]),
+                                               static_cast<long>(neuronSizes[1]),
+                                               static_cast<long>(neuronSizes[2])));
         }
     }
     if (neuronType == "ActorCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
             m_sharedWeightsActor.push_back(
-                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]), static_cast<long>(neuronSizes[1]),
-                                               static_cast<long>
-                                               (neuronSizes[2])));
+                    Util::uniformMatrixComplex(static_cast<long>(neuronSizes[0]),
+                                               static_cast<long>(neuronSizes[1]),
+                                               static_cast<long>(neuronSizes[2])));
         }
     }
 }
@@ -189,13 +181,7 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                               const std::vector<size_t> &neuronSizes,
                               const std::vector<size_t> &neuronOverlap,
                               const size_t layerToConnect) {
-    m_conf.getLayerPatches().push_back(layerPatches);
-    m_conf.getLayerSizes().push_back(layerSizes);
-    m_conf.getNeuronSizes().push_back(neuronSizes);
-
-    auto nbNeurons =
-            layerPatches[0].size() * layerSizes[0] * layerPatches[1].size() * layerSizes[1] * layerPatches[2].size() *
-            layerSizes[2];
+    auto nbNeurons = layerPatches[0].size() * layerSizes[0] * layerPatches[1].size() * layerSizes[1] * layerPatches[2].size() * layerSizes[2];
     generateWeightSharing(neuronType, neuronSizes, nbNeurons);
 
     size_t neuronIndex = 0;
@@ -221,19 +207,17 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                                                    layerPatches[1][y] + j * (neuronSizes[1] - neuronOverlap[1]));
                             if (neuronType == "SimpleCell") {
                                 m_simpleNeurons.emplace_back(
-                                        SimpleNeuron(neuronIndex, layer, m_simpleNeuronConf, pos, offset,
-                                                     m_sharedWeightsSimple[weightIndex],
+                                        SimpleNeuron(neuronIndex, layer, m_simpleNeuronConf, pos, offset, m_sharedWeightsSimple[weightIndex],
                                                      m_conf.getNeuron1Synapses()));
                             } else if (neuronType == "ComplexCell") {
                                 m_complexNeurons.emplace_back(
-                                        ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset,
-                                                      m_sharedWeightsComplex[neuronIndex]));
+                                        ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset, m_sharedWeightsComplex[neuronIndex]));
                             } else if (neuronType == "CriticCell") {
-                                m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_criticNeuronConf, pos,
-                                                                         m_sharedWeightsCritic[neuronIndex]));
+                                m_criticNeurons.emplace_back(
+                                        MotorNeuron(neuronIndex, layer, m_criticNeuronConf, pos, m_sharedWeightsCritic[neuronIndex]));
                             } else if (neuronType == "ActorCell") {
-                                m_actorNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_actorNeuronConf, pos,
-                                                                        m_sharedWeightsActor[neuronIndex]));
+                                m_actorNeurons.emplace_back(
+                                        MotorNeuron(neuronIndex, layer, m_actorNeuronConf, pos, m_sharedWeightsActor[neuronIndex]));
                             } else {
                                 std::cout << "No matching cell type" << std::endl;
                             }
@@ -264,9 +248,8 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
     connectLayer(inhibition, layerToConnect, layerSizes, neuronSizes);
 }
 
-void
-SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToConnect, const std::vector<size_t> &layerSizes,
-                             const std::vector<size_t> &neuronSizes) {
+void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToConnect,
+                                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     auto currLayer = m_neurons.size() - 1;
     for (auto &neuron: m_neurons[currLayer]) {
         for (size_t i = neuron.get().getOffset().x(); i < neuron.get().getOffset().x() + neuronSizes[0]; ++i) {
@@ -275,9 +258,11 @@ SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToConnect,
                     if (currLayer == 0) {
                         m_pixelMapping[i * Conf::HEIGHT + j].push_back(neuron.get().getIndex());
                     } else {
+                        if (currLayer == 2) {
+                            std::cout << m_layout[layerToConnect][{i, j, k}] << " / " << neuron.get().getIndex() << std::endl;
+                        }
                         neuron.get().addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
-                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(
-                                neuron.get());
+                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron.get());
                     }
                 }
             }
@@ -425,39 +410,6 @@ void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t 
     }
 }
 
-/***** GUI Interface *****/
-
-#include <opencv2/core/eigen.hpp>
-
-cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
-    if (!m_neurons[layer].empty()) {
-        auto dim = m_neurons[layer][0].get().getWeightsDimension();
-        cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
-
-        double weight;
-        for (size_t x = 0; x < dim[0]; ++x) {
-            for (size_t y = 0; y < dim[1]; ++y) {
-                if (layer == 0) {
-                    for (size_t p = 0; p < NBPOLARITY; p++) {
-                        weight = m_neurons[layer][idNeuron].get().getWeights(p, camera, synapse, x, y) * 255;
-                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 -
-                                                                                                             p)] = static_cast<unsigned char>(weight);
-                    }
-                } else {
-                    weight = m_neurons[layer][idNeuron].get().getWeights(x, y, z) * 255;
-                    weightImage.at<cv::Vec3b>(static_cast<int>(y),
-                                              static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
-                }
-            }
-        }
-        double min, max;
-        minMaxIdx(weightImage, &min, &max);
-        cv::Mat Weights = weightImage * 255 / max;
-        return Weights;
-    }
-    return cv::Mat::zeros(0, 0, CV_8UC3);
-}
-
 std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(size_t index, size_t layer) {
     if (layer < m_neurons.size()) {
         if (index < m_neurons[layer].size()) {
@@ -479,4 +431,36 @@ std::vector<size_t> SpikingNetwork::getNetworkStructure() {
         structure.push_back(m_neuron.size());
     }
     return structure;
+}
+
+/***** GUI Interface *****/
+
+#include <opencv2/core/eigen.hpp>
+
+cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
+    if (!m_neurons[layer].empty()) {
+        auto dim = m_neurons[layer][0].get().getWeightsDimension();
+        cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
+
+        double weight;
+        for (size_t x = 0; x < dim[0]; ++x) {
+            for (size_t y = 0; y < dim[1]; ++y) {
+                if (layer == 0) {
+                    for (size_t p = 0; p < NBPOLARITY; p++) {
+                        weight = m_neurons[layer][idNeuron].get().getWeights(p, camera, synapse, x, y) * 255;
+                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>
+                        (weight);
+                    }
+                } else {
+                    weight = m_neurons[layer][idNeuron].get().getWeights(x, y, z) * 255;
+                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
+                }
+            }
+        }
+        double min, max;
+        minMaxIdx(weightImage, &min, &max);
+        cv::Mat Weights = weightImage * 255 / max;
+        return Weights;
+    }
+    return cv::Mat::zeros(0, 0, CV_8UC3);
 }
