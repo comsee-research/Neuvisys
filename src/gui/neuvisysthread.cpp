@@ -30,19 +30,6 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, 
 void NeuvisysThread::run() {
     auto spinet = SpikingNetwork(m_networkPath.toStdString());
 
-    spinet.addLayer("SimpleCell", spinet.getNetworkConfig().getSharingType(), true,
-                    spinet.getNetworkConfig().getLayerPatches()[0], spinet.getNetworkConfig().getLayerSizes()[0],
-                    spinet.getNetworkConfig().getNeuronSizes()[0], spinet.getNetworkConfig().getNeuronOverlap()[0], 0);
-    spinet.addLayer("ComplexCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[1],
-                    spinet.getNetworkConfig().getLayerSizes()[1], spinet.getNetworkConfig().getNeuronSizes()[1],
-                    spinet.getNetworkConfig().getNeuronOverlap()[1], 0);
-    spinet.addLayer("CriticCell", "none", false, spinet.getNetworkConfig().getLayerPatches()[2],
-                    spinet.getNetworkConfig().getLayerSizes()[2], spinet.getNetworkConfig().getNeuronSizes()[2],
-                    spinet.getNetworkConfig().getNeuronOverlap()[2], 1);
-    spinet.addLayer("ActorCell", "none", true, spinet.getNetworkConfig().getLayerPatches()[3],
-                    spinet.getNetworkConfig().getLayerSizes()[3], spinet.getNetworkConfig().getNeuronSizes()[3],
-                    spinet.getNetworkConfig().getNeuronOverlap()[3], 1);
-
     spinet.loadNetwork();
 
     emit networkConfiguration(spinet.getNetworkConfig().getSharingType(),
