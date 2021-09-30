@@ -74,8 +74,7 @@ An example of use with the ``neuvisys-exe`` target:
 
 - ``./neuvisys-exe [networkPath] [eventPath] [nbPass]``
 
-``networkPath`` correspond to the path of the network structure. If you used the python script for creating an empty network, that would be:
-``./configuration/network/configs/network_config.json``.
+``networkPath`` correspond to the path of the network structure. This must link to the network config file, such as: ``./network/configs/network_config.json``.
 
 ``eventPath`` is the relative path to an event file in the .npz format.
 
