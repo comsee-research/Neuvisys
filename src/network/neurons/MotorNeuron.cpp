@@ -67,9 +67,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-        if (m_layer == 3) {
-            normalizeWeights();
-        }
+//        normalizeWeights();
     }
     m_events.clear();
 }
@@ -78,7 +76,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate(double time) {
     double kernelSpikingRate = 0, kernelDerivativeSpikingRate = 0;
     size_t count = 0;
     for (auto rit = m_trackingSpikeTrain.rbegin(); rit != m_trackingSpikeTrain.rend(); ++rit) {
-        if (count > 200) {
+        if (count > 300) {
             break;
         } else {
             kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);

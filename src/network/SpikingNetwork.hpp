@@ -28,6 +28,7 @@ class SpikingNetwork {
     std::vector<double> m_listValueDot;
     std::vector<double> m_listTDError;
     std::vector<double> m_listTDActions;
+    std::vector<size_t> m_listEvents;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -54,7 +55,7 @@ public:
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     void loadNetwork();
     void saveNetwork(size_t nbRun, const std::string& eventFileName);
-    void transmitReward(double reward);
+    void transmitReward(double reward, size_t nbEvents);
     std::vector<uint64_t> resolveMotor();
     double updateTDError(double time, bool store = false);
 

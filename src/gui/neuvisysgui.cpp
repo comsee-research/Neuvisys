@@ -100,6 +100,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<long>>>>("std::vector<std::reference_wrapper<const std::vector<long>>>");
     qRegisterMetaType<std::vector<std::vector<long>>>("std::vector<std::vector<long>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
+    qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double, long>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
     connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);

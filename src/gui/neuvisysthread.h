@@ -14,38 +14,6 @@
 class NeuvisysThread : public QThread {
     Q_OBJECT
 
-public:
-    NeuvisysThread(int argc, char** argv, QObject *parent = nullptr);
-    void render(QString networkPath, QString events, size_t nbPass, bool realtime);
-    bool init();
-
-public slots:
-    void onTabVizChanged(size_t index);
-    void onIndexChanged(size_t index);
-    void onZcellChanged(size_t zcell);
-    void onDepthChanged(size_t depth);
-    void onCameraChanged(size_t camera);
-    void onSynapseChanged(size_t synapse);
-    void onPrecisionEventChanged(size_t displayRate);
-    void onRangePotentialChanged(size_t rangePotential);
-    void onPrecisionPotentialChanged(size_t trackRate);
-    void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
-    void onLayerChanged(size_t layer);
-    void onStopNetwork();
-
-signals:
-    void displayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
-    void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
-    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
-    void displaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrain, double time);
-    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
-    void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
-    std::vector<size_t> &neuronSizes);
-    void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
-    void networkDestruction();
-
 protected:
     int m_initArgc;
     char** m_initArgv;
@@ -82,6 +50,10 @@ protected:
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
+public:
+    NeuvisysThread(int argc, char** argv, QObject *parent = nullptr);
+    void render(QString networkPath, QString events, size_t nbPass, bool realtime);
+    bool init();
     void run() override;
 
 private:
@@ -92,6 +64,33 @@ private:
     void prepareSpikes(SpikingNetwork &spinet);
     void prepareWeights(SpikingNetwork &spinet);
     void sensingZone(SpikingNetwork &spinet);
+
+public slots:
+    void onTabVizChanged(size_t index);
+    void onIndexChanged(size_t index);
+    void onZcellChanged(size_t zcell);
+    void onDepthChanged(size_t depth);
+    void onCameraChanged(size_t camera);
+    void onSynapseChanged(size_t synapse);
+    void onPrecisionEventChanged(size_t displayRate);
+    void onRangePotentialChanged(size_t rangePotential);
+    void onPrecisionPotentialChanged(size_t trackRate);
+    void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
+    void onLayerChanged(size_t layer);
+    void onStopNetwork();
+
+signals:
+    void displayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
+    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
+    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
+    void displaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrain, double time);
+    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
+    void displayAction(const std::vector<bool> &motorActivation);
+    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
+    std::vector<size_t> &neuronSizes);
+    void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
+    void networkDestruction();
 };
 
 #endif // NEUVISYSTHREAD_H

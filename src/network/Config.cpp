@@ -172,8 +172,10 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory + "/gabors/figures");
     std::filesystem::create_directory(directory + "/gabors/hists");
     std::filesystem::create_directory(directory + "/images");
-    std::filesystem::create_directory(directory + "/images/simple_cells");
-    std::filesystem::create_directory(directory + "/images/complex_cells");
+    std::filesystem::create_directory(directory + "/images/0");
+    std::filesystem::create_directory(directory + "/images/1");
+    std::filesystem::create_directory(directory + "/images/2");
+    std::filesystem::create_directory(directory + "/images/3");
     std::filesystem::create_directory(directory + "/weights");
     std::filesystem::create_directory(directory + "/weights/0");
     std::filesystem::create_directory(directory + "/weights/1");
@@ -193,9 +195,9 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerSizes",        {{28, 4, 64}, {25, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
                     {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {25, 1, 16}, {25, 1, 16}}},
                     {"neuronOverlap", {{0, 0, 0}, {3, 3, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"NU",          4},
-                    {"V0",         0},
-                    {"TAU_R",        1}},
+                    {"NU",          2},
+                    {"V0",         10},
+                    {"TAU_R",        4}},
             {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},

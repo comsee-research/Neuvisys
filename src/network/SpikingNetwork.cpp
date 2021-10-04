@@ -15,7 +15,7 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
 }
 
 void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
-    transmitReward(reward);
+    transmitReward(reward, eventPacket.size());
 
     for (Event event: eventPacket) {
         addEvent(event);
@@ -287,7 +287,7 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
     }
 }
 
-void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName) {
+void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFileName) {
     if (m_conf.getSaveData()) {
         std::cout << "Saving Network..." << std::endl;
         std::string fileName;
@@ -303,6 +303,7 @@ void SpikingNetwork::saveNetwork(size_t nbRun, const std::string &eventFileName)
         state["td_actions"] = m_listTDActions;
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
+        state["nb_events"] = m_listEvents;
 
         std::ofstream ofs(fileName + ".json");
         if (ofs.is_open()) {
@@ -408,7 +409,7 @@ void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t 
     }
 }
 
-std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(size_t index, size_t layer) {
+std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, const size_t layer) {
     if (layer < m_neurons.size()) {
         if (index < m_neurons[layer].size()) {
             return m_neurons[layer][index];
@@ -417,10 +418,11 @@ std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(size_t index, size_t l
     throw std::runtime_error("Wrong layer or index for neuron selection");
 }
 
-void SpikingNetwork::transmitReward(double reward) {
+void SpikingNetwork::transmitReward(const double reward, const size_t nbEvents) {
     m_reward = reward;
     ++m_rewardIter;
     m_averageReward += ((reward - m_averageReward) / static_cast<double>(m_rewardIter)); // Average reward
+    m_listEvents.push_back(nbEvents);
 }
 
 std::vector<size_t> SpikingNetwork::getNetworkStructure() {

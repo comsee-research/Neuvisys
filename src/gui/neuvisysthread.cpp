@@ -90,7 +90,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 
         m_simTime = sim.getSimulationTime();
         sim.update();
-        spinet.transmitReward(sim.getReward());
+        spinet.transmitReward(sim.getReward(), sim.getLeftEvents().size());
         m_eventRate += static_cast<double>(sim.getLeftEvents().size());
         for (const Event &event: sim.getLeftEvents()) {
             addEventToDisplay(event);
@@ -137,7 +137,6 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             }
         }
     }
-
     sim.stopSimulation();
     spinet.saveNetwork(1, "Simulation");
     emit networkDestruction();
