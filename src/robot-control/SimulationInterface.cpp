@@ -18,7 +18,6 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
     m_enableSyncMode = nh.advertise<std_msgs::Bool>("enableSyncMode", 1000);
     m_triggerNextStep = nh.advertise<std_msgs::Bool>("triggerNextStep", 1000);
 
-
     while (m_startSimulation.getNumSubscribers() < 1 && m_stopSimulation.getNumSubscribers() < 1 && m_enableSyncMode.getNumSubscribers() < 1 && m_triggerNextStep.getNumSubscribers() < 1) {
         ros::WallDuration sleep_t(0.5);
         sleep_t.sleep();
@@ -36,6 +35,10 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
     if (topic == "left") {
         leftEvents.clear();
         frameConverter.frameConversion(topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
+        if (!leftEim.empty()) {
+            cv::imwrite("/home/thomas/Bureau/EIM/eim" + std::to_string(count) + ".jpg", leftEim);
+            count++;
+        }
     } else if (topic == "right") {
 //        rightEvents.clear();
 //        rightConverter.frameConversion(topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);

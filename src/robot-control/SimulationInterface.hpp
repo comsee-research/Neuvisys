@@ -32,6 +32,8 @@ class SimulationInterface {
     double m_time{};
     bool m_simStepDone = false;
 
+    size_t count = 0;
+
     double m_rewardStored{};
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
