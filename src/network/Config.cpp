@@ -49,15 +49,17 @@ NeuronConfig::NeuronConfig() = default;
 
 NeuronConfig::NeuronConfig(const std::string &configFile, size_t type) {
     if (type == 0) {
-        loadNeuronsParameters(configFile);
+        loadSimpleNeuronsParameters(configFile);
     } else if (type == 1) {
-        loadPoolingNeuronsParameters(configFile);
+        loadComplexNeuronsParameters(configFile);
     } else if (type == 2) {
-        loadMotorNeuronsParameters(configFile);
+        loadCriticNeuronsParameters(configFile);
+    } else if (type == 3) {
+        loadActorNeuronsParameters(configFile);
     }
 }
 
-void NeuronConfig::loadNeuronsParameters(const std::string &fileName) {
+void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
     json conf;
 
     std::ifstream ifs(fileName);
@@ -94,7 +96,7 @@ void NeuronConfig::loadNeuronsParameters(const std::string &fileName) {
     ifs.close();
 }
 
-void NeuronConfig::loadPoolingNeuronsParameters(const std::string &fileName) {
+void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
     json conf;
 
     std::ifstream ifs(fileName);
@@ -125,7 +127,7 @@ void NeuronConfig::loadPoolingNeuronsParameters(const std::string &fileName) {
     ifs.close();
 }
 
-void NeuronConfig::loadMotorNeuronsParameters(const std::string &fileName) {
+void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
     json conf;
 
     std::ifstream ifs(fileName);
@@ -140,6 +142,36 @@ void NeuronConfig::loadMotorNeuronsParameters(const std::string &fileName) {
             TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_K = static_cast<double>(conf["TAU_K"]) / Conf::E3;
             NU_K = static_cast<double>(conf["NU_K"]) / Conf::E3;
+            ETA = conf["ETA"];
+            VTHRESH = conf["VTHRESH"];
+            ETA_INH = conf["ETA_INH"];
+            VRESET = conf["VRESET"];
+            TRACKING = conf["TRACKING"];
+            STDP_LEARNING = conf["STDP_LEARNING"];
+            NORM_FACTOR = conf["NORM_FACTOR"];
+        } catch (const std::exception &e) {
+            std::cerr << "In motor cell config file" << std::endl;
+            throw;
+        }
+    } else {
+        std::cout << "cannot open neuron configuration file" << std::endl;
+    }
+    ifs.close();
+}
+
+void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
+    json conf;
+
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        try {
+            ifs >> conf;
+            ETA_LTP = conf["ETA_LTP"];
+            ETA_LTD = conf["ETA_LTD"];
+            TAU_M = Conf::E3 * static_cast<double>(conf["TAU_M"]);
+            TAU_E = Conf::E3 * static_cast<double>(conf["TAU_E"]);
+            TAU_LTP = Conf::E3 * static_cast<double>(conf["TAU_LTP"]);
+            TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
@@ -262,8 +294,6 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"NU_K",        400},
-                    {"TAU_K",      100},
                     {"TAU_E",        500},
                     {"ETA",     0.02}}
     };

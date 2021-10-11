@@ -8,6 +8,7 @@
 #include <cmath>
 #include <list>
 #include <iomanip>
+#include <opencv2/core/mat.hpp>
 
 class Neuron {
 protected:
@@ -56,6 +57,7 @@ public:
     virtual std::vector<long> getWeightsDimension() {};
 
     virtual void weightUpdate() {};
+    virtual cv::Mat summedWeightMatrix() {};
     virtual void resetSpikeCounter() { m_countSpike = 0; }
     virtual void resetSpike() { m_spike = false; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }

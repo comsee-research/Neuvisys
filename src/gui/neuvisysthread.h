@@ -46,7 +46,7 @@ protected:
 
     double m_displayRate = 30000; // µs
     double m_trackRate = 10000; // µs
-    double m_actionRate = 100000; // µs
+    double m_actionRate = 500000; // µs
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
@@ -91,6 +91,7 @@ signals:
     std::vector<size_t> &neuronSizes);
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void networkDestruction();
+    void consoleMessage(const std::string &msg);
 };
 
 #endif // NEUVISYSTHREAD_H

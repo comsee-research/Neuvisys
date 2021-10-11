@@ -35,6 +35,7 @@ public slots:
     std::vector<size_t> &neuronSizes);
     void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
     void onNetworkDestruction();
+    void onConsoleMessage(const std::string &msg);
 
 signals:
     void tabVizChanged(size_t index);

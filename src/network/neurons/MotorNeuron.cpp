@@ -67,7 +67,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-//        normalizeWeights();
+        normalizeWeights();
     }
     m_events.clear();
 }
@@ -104,6 +104,22 @@ inline void MotorNeuron::normalizeWeights() {
     }
 }
 
+inline cv::Mat MotorNeuron::summedWeightMatrix() {
+    Eigen::Tensor<double, 2> sum = m_weights.sum(Eigen::array<double, 1>{2});
+    const Eigen::Tensor<long, 2>::Dimensions &dim = sum.dimensions();
+    Eigen::Tensor<double, 0> max = sum.maximum();
+    Eigen::Tensor<double, 2> result = sum * 255. / max(0);
+
+    cv::Mat mat = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
+    for (int i = 0; i < dim[0]; ++i) {
+        for (int j = 0; j < dim[1]; ++j) {
+            auto &color = mat.at<cv::Vec3b>(j, i);
+            color[0] = static_cast<unsigned char>(result(i, j));
+        }
+    }
+    return mat;
+}
+
 void MotorNeuron::saveWeights(std::string &saveFile) {
     Util::saveComplexTensorToNumpyFile(m_weights, saveFile);
 }
@@ -117,7 +133,7 @@ double MotorNeuron::getWeights(long x, long y, long z) {
 }
 
 std::vector<long> MotorNeuron::getWeightsDimension() {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
     std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
     return dim;
 }

@@ -104,9 +104,10 @@ public:
     bool STDP_LEARNING{};
     std::string TRACKING{};
 private:
-    void loadNeuronsParameters(const std::string& fileName);
-    void loadPoolingNeuronsParameters(const std::string& fileName);
-    void loadMotorNeuronsParameters(const std::string& fileName);
+    void loadSimpleNeuronsParameters(const std::string& fileName);
+    void loadComplexNeuronsParameters(const std::string& fileName);
+    void loadCriticNeuronsParameters(const std::string& fileName);
+    void loadActorNeuronsParameters(const std::string& fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP

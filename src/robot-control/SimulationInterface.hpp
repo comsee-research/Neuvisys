@@ -34,8 +34,8 @@ class SimulationInterface {
 
     double m_rewardStored{};
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
-    cv::Mat leftReference, leftInput, leftThresholdmap, leftEim;
-    cv::Mat rightReference, rightInput, rightThresholdmap, rightEim;
+    cv::Mat leftReference, leftThresholdmap, leftEim;
+    cv::Mat rightReference, rightThresholdmap, rightEim;
     std::vector<Event> leftEvents, rightEvents;
     std::vector<std::pair<uint64_t, float>> motorMapping;
 

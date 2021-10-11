@@ -35,10 +35,10 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
         leftEvents.clear();
-        frameConverter.frameConversion(topic, frame, leftReference, leftInput, leftThresholdmap, leftEim, leftEvents, 0);
+        frameConverter.frameConversion(topic, frame, leftReference, leftThresholdmap, leftEim, leftEvents, 0);
     } else if (topic == "right") {
 //        rightEvents.clear();
-//        rightConverter.frameConversion(topic, frame, rightReference, rightInput, rightThresholdmap, rightEim, rightEvents, 1);
+//        rightConverter.frameConversion(topic, frame, rightReference, rightThresholdmap, rightEim, rightEvents, 1);
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;

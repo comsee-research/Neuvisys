@@ -24,6 +24,7 @@ public:
     void loadWeights(std::string &filePath) override;
     void setNeuromodulator(double neuromodulator) override;
     void weightUpdate() override;
+    cv::Mat summedWeightMatrix() override;
     std::pair<double, double> updateKernelSpikingRate(double time) override;
 
 private:

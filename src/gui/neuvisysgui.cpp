@@ -112,6 +112,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
     connect(&neuvisysThread, &NeuvisysThread::networkCreation, this, &NeuvisysGUI::onNetworkCreation);
     connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onNetworkDestruction);
+    connect(&neuvisysThread, &NeuvisysThread::consoleMessage, this, &NeuvisysGUI::onConsoleMessage);
     neuvisysThread.init();
 
     connect(this, &NeuvisysGUI::tabVizChanged, &neuvisysThread, &NeuvisysThread::onTabVizChanged);
@@ -373,8 +374,10 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
             auto label = dynamic_cast<QLabel *>(ui->weightLayout->itemAt(count)->widget());
             if (m_layer == 0) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
-            } else {
+            } else if (m_layer == 1) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(500, 500, Qt::KeepAspectRatio));
+            } else if (m_layer > 1) {
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(1500, 1500, Qt::KeepAspectRatio));
             }
         }
         ++count;
@@ -495,4 +498,8 @@ void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
 
 void NeuvisysGUI::onNetworkDestruction() {
     ui->console->insertPlainText(QString("Finished."));
+}
+
+void NeuvisysGUI::onConsoleMessage(const std::string &msg) {
+    ui->console->insertPlainText(QString::fromStdString(msg));
 }

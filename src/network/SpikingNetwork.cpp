@@ -4,7 +4,7 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
                                                           m_simpleNeuronConf(m_conf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                           m_complexNeuronConf(m_conf.getNetworkPath() + "configs/complex_cell_config.json", 1),
                                                           m_criticNeuronConf(m_conf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                          m_actorNeuronConf(m_conf.getNetworkPath() + "configs/actor_cell_config.json", 2),
+                                                          m_actorNeuronConf(m_conf.getNetworkPath() + "configs/actor_cell_config.json", 3),
                                                           m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
                                                                                                             std::vector<uint64_t>(0))) {
     for (size_t i = 0; i < m_conf.getLayerCellTypes().size(); ++i) {
@@ -300,7 +300,6 @@ void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFil
         state["value"] = m_listValue;
         state["value_dot"] = m_listValueDot;
         state["td_error"] = m_listTDError;
-        state["td_actions"] = m_listTDActions;
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
         state["nb_events"] = m_listEvents;
@@ -459,8 +458,15 @@ cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t ca
         }
         double min, max;
         minMaxIdx(weightImage, &min, &max);
-        cv::Mat Weights = weightImage * 255 / max;
-        return Weights;
+        cv::Mat weights = weightImage * 255 / max;
+        return weights;
+    }
+    return cv::Mat::zeros(0, 0, CV_8UC3);
+}
+
+cv::Mat SpikingNetwork::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
+    if (!m_neurons[layer].empty()) {
+        return m_neurons[layer][idNeuron].get().summedWeightMatrix();
     }
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }

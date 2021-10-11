@@ -2,6 +2,12 @@
 
 #include <utility>
 
+#include <thread>
+#include <chrono>
+using namespace std::this_thread;
+using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
+using std::chrono::system_clock;
+
 NeuvisysThread::NeuvisysThread(int argc, char **argv, QObject *parent) : QThread(parent), m_initArgc(argc),
                                                                          m_initArgv(argv) {
     m_iterations = 0;
@@ -82,6 +88,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     sim.startSimulation();
 
     double actionTime = 0, displayTime = 0, trackTime = 0;
+    size_t nbTD = 30;
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -100,30 +107,30 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.updateTDError(sim.getLeftEvents().back().timestamp(), true);
         }
 
-//        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
-//            actionTime = sim.getSimulationTime();
-//            if (m_actor != -1) {
-//                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
-//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
-//                size_t count = 0;
-//                double td = 0;
-//                for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
-//                    if (count > 9) {
-//                        break;
-//                    }
-//                    td += *rit;
-//                    ++count;
-//                }
-////                neuron.get().setNeuromodulator(spinet.updateTDError(sim.getLeftEvents().back().timestamp()));
-//                neuron.get().setNeuromodulator(td / 10);
-//                neuron.get().weightUpdate();
-//            }
-//            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-//
-//            if (m_actor != -1) {
-//                m_motorDisplay[m_actor] = true;
-//            }
-//        }
+        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
+            actionTime = sim.getSimulationTime();
+            if (m_actor != -1) {
+                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
+                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+                size_t count = 0;
+                double td = 0;
+                for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
+                    td += *rit;
+                    ++count;
+                    if (count > nbTD) {
+                        break;
+                    }
+                }
+                neuron.get().setNeuromodulator(td / nbTD);
+                neuron.get().weightUpdate(); // what about the eligibility traces (previous action)
+                emit consoleMessage("\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(td / nbTD));
+            }
+            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+
+            if (m_actor != -1) {
+                m_motorDisplay[m_actor] = true;
+            }
+        }
 
         if (sim.getSimulationTime() - displayTime > m_displayRate / Conf::E6) {
             displayTime = sim.getSimulationTime();
@@ -285,8 +292,9 @@ inline void NeuvisysThread::prepareWeights(SpikingNetwork &spinet) {
         }
     } else {
         for (size_t i = 0; i < spinet.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
-            m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer,
-                                                            m_camera, m_synapse, m_depth);
+            m_weightDisplay[count] = spinet.getSummedWeightNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer);
+//            m_weightDisplay[count] = spinet.getWeightNeuron(spinet.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer,
+//                                                            m_camera, m_synapse, m_depth);
             ++count;
         }
     }

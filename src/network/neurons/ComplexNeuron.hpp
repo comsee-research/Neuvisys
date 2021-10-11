@@ -15,6 +15,7 @@ public:
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
     void weightUpdate() override;
+    cv::Mat summedWeightMatrix() override;
 private:
     bool membraneUpdate(NeuronEvent event);
     void spike(long time) override;
