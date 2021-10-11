@@ -20,9 +20,11 @@ int main(int argc, char **argv) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
+    std::vector<size_t> vecEvents;
+
     double simTime = 0;
     int actor = 0;
-    while (ros::ok() && sim.getSimulationTime() < 1) {
+    while (ros::ok() && sim.getSimulationTime() < 8) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
