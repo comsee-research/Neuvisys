@@ -84,7 +84,7 @@ double SpikingNetwork::updateTDError(double time, bool store) {
     }
     auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
     auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
+    auto td_error = - V / m_conf.getTAU_R() + m_reward;
 
     if (store) {
         m_listReward.push_back(m_reward);

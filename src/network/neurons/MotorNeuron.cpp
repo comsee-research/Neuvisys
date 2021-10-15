@@ -67,7 +67,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-        normalizeWeights();
+//        normalizeWeights();
     }
     m_events.clear();
 }
@@ -80,7 +80,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate(double time) {
             break;
         } else {
             kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);
-            kernelDerivativeSpikingRate += kernelDerivative((time - static_cast<double>(*rit)) / Conf::E6);
+//            kernelDerivativeSpikingRate += kernelDerivative((time - static_cast<double>(*rit)) / Conf::E6);
             ++count;
         }
     }

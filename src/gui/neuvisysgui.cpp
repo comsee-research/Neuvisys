@@ -377,7 +377,7 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
             } else if (m_layer == 1) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(500, 500, Qt::KeepAspectRatio));
             } else if (m_layer > 1) {
-                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(1500, 1500, Qt::KeepAspectRatio));
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(1200, 1200, Qt::KeepAspectRatio));
             }
         }
         ++count;

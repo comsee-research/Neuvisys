@@ -134,6 +134,15 @@ namespace Util {
         }
     }
 
+    double secondOrderNumericalDifferentiationMean(std::vector<double>::iterator first, std::vector<double>::iterator last) {
+        double sumDVec;
+
+        for (auto it = first + 1; it != last - 1; ++it) {
+            sumDVec += (*(it+1) - *(it-1)) / 2.0;
+        }
+        return sumDVec / (static_cast<double>(last - first) - 2);
+    }
+
     bool fileExist(std::string &path) {
         if (FILE *file = fopen(path.c_str(), "r")) {
             fclose(file);
