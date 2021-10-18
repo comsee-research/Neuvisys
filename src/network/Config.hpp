@@ -41,9 +41,13 @@ class NetworkConfig {
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
 
-    double NU{};
+    double nu{};
     double V0{};
-    double TAU_R{};
+    double tauR{};
+    double explorationFactor{};
+    long actionRate{};
+    double decayRate{};
+
 public:
     NetworkConfig();
     explicit NetworkConfig(std::string networkPath);
@@ -55,9 +59,12 @@ public:
     [[nodiscard]] bool getSaveData() const { return saveData; }
     std::string &getNetworkPath() { return NetworkPath; }
     std::string &getSharingType() { return sharingType; }
-    [[nodiscard]] double getNU() const { return NU; }
+    [[nodiscard]] double getNu() const { return nu; }
     [[nodiscard]] double getV0() const { return V0; }
-    [[nodiscard]] double getTAU_R() const { return TAU_R; }
+    [[nodiscard]] double getTauR() const { return tauR; }
+    [[nodiscard]] double getExplorationFactor() const { return explorationFactor; }
+    [[nodiscard]] long getActionRate() const { return actionRate; }
+    [[nodiscard]] double getDecayRate() const { return decayRate; }
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
     std::vector<bool> &getLayerInhibitions() { return layerInhibitions; }
     std::vector<size_t> &getInterLayerConnections() { return interLayerConnections; }
@@ -65,6 +72,8 @@ public:
     std::vector<std::vector<size_t>> getLayerSizes() { return layerSizes; }
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
+    void setExplorationFactor(double factor) { explorationFactor = factor; }
+    void setActionRate(long rate) { actionRate = rate; }
     static void createNetwork(const std::string& directory);
 };
 
@@ -96,7 +105,6 @@ public:
     size_t SYNAPSE_DELAY{}; // μs
 
     double NORM_FACTOR{};
-    double DECAY_FACTOR{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV

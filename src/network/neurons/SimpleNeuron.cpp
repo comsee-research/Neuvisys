@@ -60,8 +60,8 @@ inline void SimpleNeuron::spike(const long time) {
 inline void SimpleNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (Event &event : m_events) {
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += m_learningDecay * conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
             if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;

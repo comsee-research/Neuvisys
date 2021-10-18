@@ -46,7 +46,6 @@ protected:
 
     double m_displayRate = 30000; // µs
     double m_trackRate = 10000; // µs
-    double m_actionRate = 500000; // µs
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
@@ -64,7 +63,7 @@ private:
     void prepareSpikes(SpikingNetwork &spinet);
     void prepareWeights(SpikingNetwork &spinet);
     void sensingZone(SpikingNetwork &spinet);
-    void updateActor(SpikingNetwork &spinet, long timestamp);
+    void updateActor(SpikingNetwork &spinet, long timestamp) const;
 
 public slots:
     void onTabVizChanged(size_t index);

@@ -82,9 +82,9 @@ double SpikingNetwork::updateTDError(double time, bool store) {
         value += values.first;
         valueDerivative += values.second;
     }
-    auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
-    auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto td_error = - V / m_conf.getTAU_R() + m_reward;
+    auto V = m_conf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
+    auto V_dot = m_conf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
+    auto td_error = - V / m_conf.getTauR() + m_reward;
 
     if (store) {
         m_listReward.push_back(m_reward);
@@ -284,6 +284,19 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
             }
             neuron.get().updateState(time);
         }
+    }
+}
+
+void SpikingNetwork::learningDecay(size_t iteration) {
+    m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
+    m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
+    m_conf.setExplorationFactor(getNetworkConfig().getExplorationFactor() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration)));
+    m_conf.setActionRate(static_cast<long>(getNetworkConfig().getActionRate() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration))));
+}
+
+void SpikingNetwork::normalizeActions() {
+    for (auto &neuron: m_neurons[m_neurons.size() - 1]) {
+        neuron.get().normalizeWeights();
     }
 }
 

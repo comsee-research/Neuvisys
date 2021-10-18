@@ -76,6 +76,7 @@ public:
     virtual void loadState(std::string &fileName);
     virtual void saveWeights(std::string &fileName) {};
     virtual void loadWeights(std::string &fileName) {};
+    virtual void normalizeWeights() {};
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }

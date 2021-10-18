@@ -18,8 +18,6 @@ class SpikingNetwork {
     NeuronConfig m_actorNeuronConf;
     long m_iterations{};
 
-    std::vector<std::pair<uint64_t, float>> motorMapping;
-
     double m_reward{};
     double m_averageReward{};
     size_t m_rewardIter{};
@@ -57,6 +55,8 @@ public:
     void transmitReward(double reward, size_t nbEvents);
     std::vector<uint64_t> resolveMotor();
     double updateTDError(double time, bool store = false);
+    void learningDecay(size_t iteration);
+    void normalizeActions();
 
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();
