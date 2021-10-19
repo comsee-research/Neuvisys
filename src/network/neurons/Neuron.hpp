@@ -37,6 +37,8 @@ protected:
     long m_lifeSpan{};
     long m_referenceTime{};
 
+    double m_valueEstimate{};
+
     std::vector<double> m_trackingThresholds;
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
@@ -52,6 +54,7 @@ public:
     [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptation_potential; }
     [[nodiscard]] virtual size_t getSpikeCount() const { return m_countSpike; }
+    [[nodiscard]] virtual double getValueEstimate() { return m_valueEstimate; }
     virtual double getWeights(long x, long y, long z) {};
     virtual double getWeights(long p, long c, long s, long x, long y) {};
     virtual std::vector<long> getWeightsDimension() {};

@@ -11,8 +11,8 @@ using json = nlohmann::json;
 
 namespace Conf {
     /***** General parameters *****/
-    inline constexpr size_t WIDTH = 346; // px
-    inline constexpr size_t HEIGHT = 260; // px
+    inline constexpr size_t WIDTH = 1024; // px
+    inline constexpr size_t HEIGHT = 1024; // px
 
     inline constexpr size_t EVENT_FREQUENCY = 1000; // μs
     inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs

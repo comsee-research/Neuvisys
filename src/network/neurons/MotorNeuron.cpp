@@ -39,6 +39,9 @@ inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
 }
 
 inline void MotorNeuron::spike(long time) {
+    m_valueEstimate *= exp(- static_cast<double>(time - m_spikingTime) / 200000);
+    m_valueEstimate += 100;
+
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
@@ -67,7 +70,7 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-        normalizeWeights();
+//        normalizeWeights();
     }
     m_events.clear();
 }
@@ -76,7 +79,7 @@ std::pair<double, double> MotorNeuron::updateKernelSpikingRate(double time) {
     double kernelSpikingRate = 0, kernelDerivativeSpikingRate = 0;
     size_t count = 0;
     for (auto rit = m_trackingSpikeTrain.rbegin(); rit != m_trackingSpikeTrain.rend(); ++rit) {
-        if (count > 300) {
+        if (count > 200) {
             break;
         } else {
             kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);

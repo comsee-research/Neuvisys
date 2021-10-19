@@ -107,30 +107,30 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.updateTDError(sim.getLeftEvents().back().timestamp(), true);
         }
 
-        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
-            actionTime = sim.getSimulationTime();
-            if (m_actor != -1) {
-                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
-                neuron.get().spike(sim.getLeftEvents().back().timestamp());
-                size_t count = 0;
-                double td = 0;
-                for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
-                    td += *rit;
-                    ++count;
-                    if (count > nbTD) {
-                        break;
-                    }
-                }
-                neuron.get().setNeuromodulator(td / nbTD);
-                neuron.get().weightUpdate(); // what about the eligibility traces (previous action)
-                emit consoleMessage("\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(td / nbTD));
-            }
-            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
-
-            if (m_actor != -1) {
-                m_motorDisplay[m_actor] = true;
-            }
-        }
+//        if (sim.getSimulationTime() - actionTime > m_actionRate / Conf::E6) {
+//            actionTime = sim.getSimulationTime();
+//            if (m_actor != -1) {
+//                auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
+//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
+//                size_t count = 0;
+//                double td = 0;
+//                for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
+//                    td += *rit;
+//                    ++count;
+//                    if (count > nbTD) {
+//                        break;
+//                    }
+//                }
+//                neuron.get().setNeuromodulator(td / nbTD);
+//                neuron.get().weightUpdate(); // what about the eligibility traces (previous action)
+//                emit consoleMessage("\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(td / nbTD));
+//            }
+//            sim.motorAction(spinet.resolveMotor(), 0, m_actor);
+//
+//            if (m_actor != -1) {
+//                m_motorDisplay[m_actor] = true;
+//            }
+//        }
 
         if (sim.getSimulationTime() - displayTime > m_displayRate / Conf::E6) {
             displayTime = sim.getSimulationTime();

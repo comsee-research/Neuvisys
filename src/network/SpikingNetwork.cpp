@@ -29,7 +29,6 @@ void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const doub
 
 void SpikingNetwork::runEvent(const Event &event) {
     addEvent(event);
-
     if (static_cast<size_t>(m_iterations) % 10000 == 0) {
         updateNeuronsParameters(event.timestamp());
     }
@@ -78,10 +77,12 @@ double SpikingNetwork::updateTDError(double time, bool store) {
     double value = 0;
     double valueDerivative = 0;
     for (const auto &critic: m_neurons[2]) {
-        auto values = critic.get().updateKernelSpikingRate(time);
-        value += values.first;
-        valueDerivative += values.second;
+//        auto values = critic.get().updateKernelSpikingRate(time);
+        value = critic.get().getValueEstimate();
+//        value += values.first;
+//        valueDerivative += values.second;
     }
+//    std::cout << value << std::endl;
     auto V = m_conf.getNU() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
     auto V_dot = m_conf.getNU() * valueDerivative / static_cast<double>(m_neurons[2].size());
     auto td_error = V_dot - V / m_conf.getTAU_R() + m_reward;
@@ -92,8 +93,11 @@ double SpikingNetwork::updateTDError(double time, bool store) {
         m_listValueDot.push_back(V_dot);
         m_listTDError.push_back(td_error);
     }
-
-    return td_error;
+    if (time < 2 * Conf::E6) {
+        return 0;
+    } else {
+        return td_error;
+    }
 }
 
 std::vector<uint64_t> SpikingNetwork::resolveMotor() {
