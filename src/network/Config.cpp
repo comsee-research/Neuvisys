@@ -29,9 +29,12 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
             saveData = conf["saveData"];
-            NU = conf["NU"];
+            nu = conf["nu"];
             V0 = conf["V0"];
-            TAU_R = conf["TAU_R"];
+            tauR = conf["tauR"];
+            explorationFactor = conf["explorationFactor"];
+            decayRate = conf["decayRate"];
+            actionRate = conf["actionRate"];
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
@@ -81,7 +84,6 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             VRESET = conf["VRESET"];
             SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
             NORM_FACTOR = conf["NORM_FACTOR"];
-            DECAY_FACTOR = conf["DECAY_FACTOR"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
@@ -113,7 +115,6 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
-            DECAY_FACTOR = conf["DECAY_FACTOR"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
             DELTA_RP = conf["ETA_RP"];
@@ -227,9 +228,13 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerSizes",        {{28, 4, 64}, {25, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
                     {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {25, 1, 16}, {25, 1, 16}}},
                     {"neuronOverlap", {{0, 0, 0}, {3, 3, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"NU",          2},
+                    {"nu",          2},
                     {"V0",         10},
-                    {"TAU_R",        4}},
+                    {"tauR",   4},
+                    {"explorationFactor", 50},
+                    {"actionRate", 500000},
+                    {"decayRate", 1}
+            },
             {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},
@@ -244,13 +249,13 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"STDP_LEARNING", true},
                     {"NORM_FACTOR", 4},
                     {"MIN_THRESH", 4},
-                    {"ETA_LTP",      0.0077},
-                    {"ETA_LTD", -0.0021},
-                    {"ETA_SRA", 0.6},
+                    {"ETA_LTP", 0.0077},
+                    {"ETA_LTD",            -0.0021},
+                    {"ETA_SRA",    0.6},
                     {"ETA_TA", 1},
                     {"ETA_RP", 1},
                     {"ETA_INH", 20},
-                    {"DECAY_FACTOR", 0}},
+            },
             {
                     {"VTHRESH",   3},
                     {"VRESET",          -20},
@@ -265,7 +270,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTD",       0.2},
                     {"ETA_INH",     25},
                     {"ETA_RP",     1},
-                    {"DECAY_FACTOR", 0}},
+            },
             {
                     {"VTHRESH",   1},
                     {"VRESET",          -20},
@@ -280,8 +285,9 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"STDP_LEARNING", true},
                     {"NU_K",        400},
                     {"TAU_K",      100},
-                    {"TAU_E",        500},
-                    {"ETA",     0.01}},
+                    {"TAU_E",   500},
+                    {"ETA",                0.01}
+            },
             {
                     {"VTHRESH",   1},
                     {"VRESET",          -20},
@@ -294,8 +300,9 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"TAU_E",        500},
-                    {"ETA",     0.02}}
+                    {"TAU_E",       500},
+                    {"ETA",        0.02}
+            }
     };
     size_t count = 0;
     for (auto file: {"configs/network_config.json", "configs/simple_cell_config.json",

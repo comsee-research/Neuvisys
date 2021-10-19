@@ -55,6 +55,8 @@ public:
     void transmitReward(double reward, size_t nbEvents);
     std::vector<uint64_t> resolveMotor();
     double updateTDError(double time, bool store = false);
+    void learningDecay(size_t iteration);
+    void normalizeActions();
 
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
     std::vector<size_t> getNetworkStructure();

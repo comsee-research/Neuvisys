@@ -46,10 +46,10 @@ inline void ComplexNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (NeuronEvent &event : m_events) {
             if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
-                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTP;
+                m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTP;
             }
             if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
-                m_weights(event.x(), event.y(), event.z()) += m_learningDecay * conf.ETA_LTD;
+                m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTD;
             }
             // Step Window
             //        if (m_conf.STDP == "step_sym") {

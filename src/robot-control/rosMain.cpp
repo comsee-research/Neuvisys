@@ -2,17 +2,31 @@
 // Created by thomas on 28/06/2021.
 //
 
-#include "SimulationInterface.hpp""
+#include "SimulationInterface.hpp"
 
-int main(int argc, char **argv) {
-    ros::init(argc, argv, "neuvisysRos");
+inline void updateActor(SpikingNetwork &spinet, long timestamp, size_t actor) {
+    auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size() - 1);
+    neuron.get().spike(timestamp);
 
-    std::string networkPath;
-    if (argc > 1) {
-        networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
-    } else {
-        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+    auto first = spinet.getListValue().end() - 20;
+    auto last = spinet.getListValue().end();
+    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(first, last);
+
+    neuron.get().setNeuromodulator(meanDValues);
+    neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
+//    std::this_thread::sleep_for(2s);
+}
+
+inline double getConvergence(SpikingNetwork &spinet) {
+    double mean = 0;
+    for (auto it = spinet.getRewards().end(); it != spinet.getRewards().end() - 1000 && it != spinet.getRewards().begin(); --it) {
+        mean += *it;
     }
+    mean /= 1000;
+    return mean;
+}
+
+int launchLearning(std::string &networkPath) {
     SpikingNetwork spinet(networkPath);
     spinet.loadNetwork();
 
@@ -22,9 +36,10 @@ int main(int argc, char **argv) {
 
     std::vector<size_t> vecEvents;
 
-    double simTime = 0;
+    double actionTime = 0, displayTime = 0;
+    size_t iteration = 0;
     int actor = 0;
-    while (ros::ok() && sim.getSimulationTime() < 8) {
+    while (ros::ok() && sim.getSimulationTime() < 300) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -37,28 +52,38 @@ int main(int argc, char **argv) {
         sim.update();
         spinet.runEvents(sim.getLeftEvents(), sim.getReward());
 
-//        if (sim.getSimulationTime() - simTime > 0.1) {
-//            simTime = sim.getSimulationTime();
-//            if (actor != -1) {
-//                auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size() - 1);
-//                neuron.get().spike(sim.getLeftEvents().back().timestamp());
-//                size_t count = 0;
-//                double td = 0;
-//                for (auto rit = spinet.getListTDError().rbegin(); rit != spinet.getListTDError().rend(); ++rit) {
-//                    if (count > 9) {
-//                        break;
-//                    }
-//                    td += *rit;
-//                    ++count;
-//                }
-//                neuron.get().setNeuromodulator(td / 10);
-//                neuron.get().weightUpdate();
-//            }
-//            sim.motorAction(spinet.resolveMotor(), 0, actor);
-//        }
+        if (sim.getSimulationTime() - actionTime > static_cast<double>(spinet.getNetworkConfig().getActionRate()) / Conf::E6) {
+            actionTime = sim.getSimulationTime();
+            if (actor != -1) {
+                updateActor(spinet, sim.getLeftEvents().back().timestamp(), actor);
+            }
+            sim.motorAction(spinet.resolveMotor(), spinet.getNetworkConfig().getExplorationFactor(), actor);
+        }
+
+        if (sim.getSimulationTime() - displayTime > 10) {
+            displayTime = sim.getSimulationTime();
+
+            spinet.learningDecay(iteration);
+            ++iteration;
+            std::cout << "Average reward: " << getConvergence(spinet) << "\nExploration factor: " << spinet.getNetworkConfig().getExplorationFactor() <<
+            "\n" << std::endl;
+        }
     }
 
     sim.stopSimulation();
     spinet.saveNetwork(1, "Simulation");
     return 0;
+}
+
+int main(int argc, char **argv) {
+    ros::init(argc, argv, "neuvisysRos");
+
+    std::string networkPath;
+    if (argc > 1) {
+        networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
+    } else {
+        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+    }
+
+    launchLearning(networkPath);
 }

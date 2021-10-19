@@ -22,6 +22,7 @@ public:
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
+    void normalizeWeights() override;
     void setNeuromodulator(double neuromodulator) override;
     void weightUpdate() override;
     cv::Mat summedWeightMatrix() override;
@@ -29,7 +30,6 @@ public:
 
 private:
     bool membraneUpdate(NeuronEvent event);
-    void normalizeWeights();
     double kernel(double time);
     double kernelDerivative(double time);
 };

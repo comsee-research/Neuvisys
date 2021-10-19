@@ -24,7 +24,7 @@ set(ROS_SOURCES
         ../robot-control/Motor.cpp)
 
 set(GUI_SOURCES
-        main.cpp
+        guiMain.cpp
         neuvisysgui.cpp
         neuvisysthread.cpp
         neuvisysgui.ui)
@@ -51,6 +51,9 @@ else()
     endif()
 endif()
 
-#target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
+        ${PYTHON_LIBRARIES} cnpy)
+
+add_executable(neuvisys ${GUI_SOURCES} ${PROJECT_SOURCES} ${ROS_SOURCES})
+target_link_libraries(neuvisys PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
         ${PYTHON_LIBRARIES} cnpy)
