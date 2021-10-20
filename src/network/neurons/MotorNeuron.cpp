@@ -39,9 +39,6 @@ inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
 }
 
 inline void MotorNeuron::spike(long time) {
-    m_valueEstimate *= exp(- static_cast<double>(time - m_spikingTime) / 200000);
-    m_valueEstimate += 100;
-
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;

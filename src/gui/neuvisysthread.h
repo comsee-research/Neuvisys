@@ -63,7 +63,7 @@ private:
     void prepareSpikes(SpikingNetwork &spinet);
     void prepareWeights(SpikingNetwork &spinet);
     void sensingZone(SpikingNetwork &spinet);
-    void updateActor(SpikingNetwork &spinet, long timestamp) const;
+    void updateActor(SpikingNetwork &spinet, long timestamp);
 
 public slots:
     void onTabVizChanged(size_t index);

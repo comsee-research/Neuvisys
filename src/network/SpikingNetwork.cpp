@@ -58,7 +58,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().x() - nextNeuron.get().getOffset().x()),
                                                   static_cast<int32_t>(neuron.getPos().y() - nextNeuron.get().getOffset().y()),
                                                   static_cast<int32_t>(neuron.getPos().z() - nextNeuron.get().getOffset().z())))) {
-            if (nextNeuron.get().getLayer() > 1) {
+            if (nextNeuron.get().getLayer() == 2) {
                 nextNeuron.get().setNeuromodulator(updateTDError(static_cast<double>(neuron.getSpikingTime())));
             }
             if (nextNeuron.get().getLayer() != 3) {
@@ -77,9 +77,8 @@ double SpikingNetwork::updateTDError(double time, bool store) {
     double value = 0;
     double valueDerivative = 0;
     for (const auto &critic: m_neurons[2]) {
-//        auto values = critic.get().updateKernelSpikingRate(time);
-        value = critic.get().getValueEstimate();
-//        value += values.first;
+        auto values = critic.get().updateKernelSpikingRate(time);
+        value += values.first;
 //        valueDerivative += values.second;
     }
     auto V = m_conf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
@@ -292,6 +291,8 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
 
 void SpikingNetwork::learningDecay(size_t iteration) {
     m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
+    m_criticNeuronConf.TAU_K = m_criticNeuronConf.TAU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
+    m_criticNeuronConf.NU_K = m_criticNeuronConf.NU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     m_conf.setExplorationFactor(getNetworkConfig().getExplorationFactor() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration)));
     m_conf.setActionRate(static_cast<long>(getNetworkConfig().getActionRate() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration))));

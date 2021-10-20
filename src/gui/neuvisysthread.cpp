@@ -88,17 +88,18 @@ inline double getConvergence(SpikingNetwork &spinet) {
     return mean;
 }
 
-inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) const {
+inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) {
     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto first = spinet.getListValue().end() - 20;
+    auto first = spinet.getListValue().end() - 50;
     auto last = spinet.getListValue().end();
     auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(first, last);
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
-//    emit consoleMessage("\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(meanDValues));
+    std::string msg = "\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(meanDValues);
+    emit consoleMessage(msg);
 //    std::this_thread::sleep_for(2s);
 }
 
@@ -157,7 +158,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.learningDecay(iteration);
             spinet.normalizeActions();
             ++iteration;
-            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet)) + "\nExploration factor: " +
+            std::string msg = "\nAverage reward: " + std::to_string(getConvergence(spinet)) + "\nExploration factor: " +
                     std::to_string(spinet.getNetworkConfig().getExplorationFactor()) + "\nAction rate: " +
                     std::to_string(spinet.getNetworkConfig().getActionRate()) + "\n";
             emit consoleMessage(msg);
