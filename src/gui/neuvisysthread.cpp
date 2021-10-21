@@ -98,8 +98,8 @@ inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) 
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
-    std::string msg = "\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(meanDValues);
-    emit consoleMessage(msg);
+//    std::string msg = "\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(meanDValues);
+//    emit consoleMessage(msg);
 //    std::this_thread::sleep_for(2s);
 }
 
@@ -158,9 +158,12 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.learningDecay(iteration);
             spinet.normalizeActions();
             ++iteration;
-            std::string msg = "\nAverage reward: " + std::to_string(getConvergence(spinet)) + "\nExploration factor: " +
-                    std::to_string(spinet.getNetworkConfig().getExplorationFactor()) + "\nAction rate: " +
-                    std::to_string(spinet.getNetworkConfig().getActionRate()) + "\n";
+            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet)) +
+                    "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
+                    "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
+                    "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
+                    "\nTAU_K: " + std::to_string(spinet.getCriticNeuronConfig().TAU_K) +
+                    "\nNU_K: " + std::to_string(spinet.getCriticNeuronConfig().NU_K) + "\n";
             emit consoleMessage(msg);
         }
     }

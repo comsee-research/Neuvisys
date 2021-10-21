@@ -63,6 +63,8 @@ public:
     NetworkConfig getNetworkConfig() { return m_conf; };
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
+    NeuronConfig getCriticNeuronConfig() { return m_criticNeuronConf; }
+    NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
     uint64_t getLayout(size_t layer, Position pos) { return m_layout[layer][{ pos.x(), pos.y(), pos.z() }]; }
     cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
     cv::Mat getSummedWeightNeuron(size_t idNeuron, size_t layer);

@@ -72,7 +72,7 @@ bool SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivati
     std::uniform_real_distribution<double> distReal(0.0, 1.0);
     std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
 
-    auto real = distReal(gen);
+    auto real = 100 * distReal(gen);
     if (real >= explorationFactor) {
         selectedMotor = Util::winnerTakeAll(motorActivation);
     } else {

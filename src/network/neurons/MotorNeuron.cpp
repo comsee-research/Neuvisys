@@ -67,7 +67,6 @@ inline void MotorNeuron::weightUpdate() {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
         }
-//        normalizeWeights();
     }
     m_events.clear();
 }
@@ -96,12 +95,19 @@ inline double MotorNeuron::kernelDerivative(double time) {
 }
 
 inline void MotorNeuron::normalizeWeights() {
-    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
-    double norm = normT(0);
-
+    auto norm = computeNormWeights();
     if (norm != 0) {
         m_weights = conf.NORM_FACTOR * m_weights / norm;
     }
+}
+
+inline double MotorNeuron::computeNormWeights() {
+    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
+    return normT(0);
+}
+
+inline void MotorNeuron::rescaleWeights(double scale) {
+    m_weights = m_weights * scale;
 }
 
 inline cv::Mat MotorNeuron::summedWeightMatrix() {

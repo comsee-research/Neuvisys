@@ -90,6 +90,8 @@ public:
     virtual void updateState(long time);
     virtual void spike(long time) {};
     virtual std::pair<double, double> updateKernelSpikingRate(double time) {};
+    virtual double computeNormWeights() {};
+    virtual void rescaleWeights(double scale) {};
 
 protected:
     void writeJson(json &state);

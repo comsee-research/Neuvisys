@@ -34,7 +34,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             tauR = conf["tauR"];
             explorationFactor = conf["explorationFactor"];
             decayRate = conf["decayRate"];
-            actionRate = conf["actionRate"];
+            actionRate = static_cast<long>(Conf::E3) * static_cast<long>(conf["actionRate"]);
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());

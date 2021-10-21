@@ -27,6 +27,8 @@ public:
     void weightUpdate() override;
     cv::Mat summedWeightMatrix() override;
     std::pair<double, double> updateKernelSpikingRate(double time) override;
+    double computeNormWeights() override;
+    void rescaleWeights(double scale) override;
 
 private:
     bool membraneUpdate(NeuronEvent event);
