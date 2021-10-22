@@ -138,7 +138,6 @@ namespace Util {
         double sumDVec;
 
         for (auto it = first + 1; it != last - 1; ++it) {
-//            std::cout << *(it+1) << " / " << *(it-1) << std::endl;
             sumDVec += (*(it+1) - *(it-1)) / 2.0;
         }
         return sumDVec / (static_cast<double>(last - first) - 2);

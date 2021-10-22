@@ -8,9 +8,7 @@ inline void updateActor(SpikingNetwork &spinet, long timestamp, size_t actor) {
     auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto first = spinet.getListValue().end() - 20;
-    auto last = spinet.getListValue().end();
-    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(first, last);
+    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - 50, spinet.getSaveData()["value"].end());
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
@@ -19,7 +17,7 @@ inline void updateActor(SpikingNetwork &spinet, long timestamp, size_t actor) {
 
 inline double getConvergence(SpikingNetwork &spinet) {
     double mean = 0;
-    for (auto it = spinet.getRewards().end(); it != spinet.getRewards().end() - 1000 && it != spinet.getRewards().begin(); --it) {
+    for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - 1000 && it != spinet.getSaveData()["reward"].begin(); --it) {
         mean += *it;
     }
     mean /= 1000;
@@ -36,7 +34,7 @@ int launchLearning(std::string &networkPath) {
 
     std::vector<size_t> vecEvents;
 
-    double actionTime = 0, displayTime = 0;
+    double actionTime = 0, consoleTime = 0;
     size_t iteration = 0;
     int actor = 0;
     while (ros::ok() && sim.getSimulationTime() < 300) {
@@ -60,13 +58,18 @@ int launchLearning(std::string &networkPath) {
             sim.motorAction(spinet.resolveMotor(), spinet.getNetworkConfig().getExplorationFactor(), actor);
         }
 
-        if (sim.getSimulationTime() - displayTime > 10) {
-            displayTime = sim.getSimulationTime();
+        if (sim.getSimulationTime() - consoleTime > 10) {
+            consoleTime = sim.getSimulationTime();
 
             spinet.learningDecay(iteration);
+            spinet.normalizeActions();
             ++iteration;
-            std::cout << "Average reward: " << getConvergence(spinet) << "\nExploration factor: " << spinet.getNetworkConfig().getExplorationFactor() <<
-            "\n" << std::endl;
+            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet)) +
+                              "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
+                              "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
+                              "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
+                              "\nTAU_K: " + std::to_string(spinet.getCriticNeuronConfig().TAU_K) +
+                              "\nNU_K: " + std::to_string(spinet.getCriticNeuronConfig().NU_K) + "\n";
         }
     }
 

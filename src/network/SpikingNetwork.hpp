@@ -21,11 +21,8 @@ class SpikingNetwork {
     double m_reward{};
     double m_averageReward{};
     size_t m_rewardIter{};
-    std::vector<double> m_listReward;
-    std::vector<double> m_listValue;
-    std::vector<double> m_listValueDot;
-    std::vector<double> m_listTDError;
-    std::vector<size_t> m_listEvents;
+
+    std::map<std::string, std::vector<double>> m_saveData;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -69,10 +66,7 @@ public:
     cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
     cv::Mat getSummedWeightNeuron(size_t idNeuron, size_t layer);
     [[nodiscard]] double getAverageReward() const { return m_averageReward; }
-    std::vector<double> &getRewards() { return m_listReward; }
-    std::vector<double> &getListValue() { return m_listValue; }
-    std::vector<double> &getListValueDot() { return m_listValueDot; }
-    std::vector<double> &getListTDError() { return m_listTDError; }
+    std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 
 private:
     void updateNeurons(long time);

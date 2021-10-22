@@ -81,7 +81,7 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 
 inline double getConvergence(SpikingNetwork &spinet) {
     double mean = 0;
-    for (auto it = spinet.getRewards().end(); it != spinet.getRewards().end() - 1000 && it != spinet.getRewards().begin(); --it) {
+    for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - 1000 && it != spinet.getSaveData()["reward"].begin(); --it) {
         mean += *it;
     }
     mean /= 1000;
@@ -92,9 +92,7 @@ inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) 
     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto first = spinet.getListValue().end() - 50;
-    auto last = spinet.getListValue().end();
-    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(first, last);
+    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - 50, spinet.getSaveData()["value"].end());
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
@@ -234,8 +232,8 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray, do
             emit displaySpike(m_spikeTrain, time * Conf::E6);
             break;
         case 5: // reward
-            emit displayReward(spinet.getRewards(), spinet.getListValue(), spinet.getListValueDot(),
-                               spinet.getListTDError());
+            emit displayReward(spinet.getSaveData()["reward"], spinet.getSaveData()["value"], spinet.getSaveData()["valueDot"],
+                               spinet.getSaveData()["tdError"]);
             break;
         default:
             break;
