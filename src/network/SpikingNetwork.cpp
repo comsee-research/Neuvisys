@@ -82,19 +82,24 @@ double SpikingNetwork::updateTDError(double time, bool store) {
 //        valueDerivative += values.second;
     }
     auto V = m_conf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
-    auto V_dot = m_conf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto td_error = - V / m_conf.getTauR() + m_reward;
+    auto VDot = m_conf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
+    auto tdError = - V / m_conf.getTauR() + m_reward;
 
     if (store) {
-        m_listReward.push_back(m_reward);
-        m_listValue.push_back(V);
-        m_listValueDot.push_back(V_dot);
-        m_listTDError.push_back(td_error);
+        m_saveData["reward"].push_back(m_reward);
+        m_saveData["value"].push_back(V);
+        if (m_saveData["valueDot"].size() > 50) {
+            auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - 50, m_saveData["value"].end());
+            m_saveData["valueDot"].push_back(meanDValues);
+        } else {
+            m_saveData["valueDot"].push_back(0);
+        }
+        m_saveData["tdError"].push_back(tdError);
     }
     if (time < 2 * Conf::E6) {
         return 0;
     } else {
-        return td_error;
+        return tdError;
     }
 }
 
@@ -293,16 +298,16 @@ void SpikingNetwork::learningDecay(size_t iteration) {
     m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
 
-    if (m_criticNeuronConf.TAU_K > 0.025) {
+    if (m_criticNeuronConf.TAU_K > m_criticNeuronConf.MIN_TAU_K) {
         m_criticNeuronConf.TAU_K = m_criticNeuronConf.TAU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     }
-    if (m_criticNeuronConf.NU_K > 0.100) {
+    if (m_criticNeuronConf.NU_K > m_criticNeuronConf.MIN_NU_K) {
         m_criticNeuronConf.NU_K = m_criticNeuronConf.NU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     }
 
     m_conf.setExplorationFactor(getNetworkConfig().getExplorationFactor() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration)));
 
-    if (getNetworkConfig().getActionRate() > 100000) {
+    if (getNetworkConfig().getActionRate() > getNetworkConfig().getMinActionRate()) {
         m_conf.setActionRate(static_cast<long>(getNetworkConfig().getActionRate() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration))));
     }
 }
@@ -327,13 +332,11 @@ void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFil
         json state;
         state["event_file_name"] = eventFileName;
         state["nb_run"] = nbRun;
-        state["rewards"] = m_listReward;
-        state["value"] = m_listValue;
-        state["value_dot"] = m_listValueDot;
-        state["td_error"] = m_listTDError;
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
-        state["nb_events"] = m_listEvents;
+        state["learning_data"] = m_saveData;
+        state["action_rate"] = getNetworkConfig().getActionRate();
+        state["exploration_factor"] = getNetworkConfig().getExplorationFactor();
 
         std::ofstream ofs(fileName + ".json");
         if (ofs.is_open()) {
@@ -452,7 +455,7 @@ void SpikingNetwork::transmitReward(const double reward, const size_t nbEvents) 
     m_reward = reward;
     ++m_rewardIter;
     m_averageReward += ((reward - m_averageReward) / static_cast<double>(m_rewardIter)); // Average reward
-    m_listEvents.push_back(nbEvents);
+    m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
 }
 
 std::vector<size_t> SpikingNetwork::getNetworkStructure() {

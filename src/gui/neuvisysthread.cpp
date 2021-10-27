@@ -79,22 +79,24 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     emit networkDestruction();
 }
 
-inline double getConvergence(SpikingNetwork &spinet) {
+inline double getConvergence(SpikingNetwork &spinet, long time) {
     double mean = 0;
-    for (auto it = spinet.getRewards().end(); it != spinet.getRewards().end() - 1000 && it != spinet.getRewards().begin(); --it) {
-        mean += *it;
+    if (spinet.getSaveData()["reward"].size() > time) {
+        for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - time && it != spinet.getSaveData()["reward"].begin(); --it) {
+            mean += *it;
+        }
+        mean /= static_cast<double>(time);
+        spinet.getSaveData()["score"].push_back(mean);
+        return mean;
     }
-    mean /= 1000;
-    return mean;
+    return 0;
 }
 
 inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) {
     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto first = spinet.getListValue().end() - 50;
-    auto last = spinet.getListValue().end();
-    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(first, last);
+    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - 50, spinet.getSaveData()["value"].end());
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
@@ -155,10 +157,9 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 
         if (sim.getSimulationTime() - consoleTime > 10) {
             consoleTime = sim.getSimulationTime();
-
             spinet.learningDecay(iteration);
             ++iteration;
-            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet)) +
+            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet, 1000)) +
                     "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
                     "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
                     "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
@@ -234,8 +235,8 @@ inline void NeuvisysThread::display(SpikingNetwork &spinet, size_t sizeArray, do
             emit displaySpike(m_spikeTrain, time * Conf::E6);
             break;
         case 5: // reward
-            emit displayReward(spinet.getRewards(), spinet.getListValue(), spinet.getListValueDot(),
-                               spinet.getListTDError());
+            emit displayReward(spinet.getSaveData()["reward"], spinet.getSaveData()["value"], spinet.getSaveData()["valueDot"],
+                               spinet.getSaveData()["tdError"]);
             break;
         default:
             break;

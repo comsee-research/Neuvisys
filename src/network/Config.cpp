@@ -35,6 +35,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             explorationFactor = conf["explorationFactor"];
             decayRate = conf["decayRate"];
             actionRate = static_cast<long>(Conf::E3) * static_cast<long>(conf["actionRate"]);
+            minActionRate = static_cast<long>(Conf::E3) * static_cast<long>(conf["minActionRate"]);
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
@@ -143,6 +144,8 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_K = static_cast<double>(conf["TAU_K"]) / Conf::E3;
             NU_K = static_cast<double>(conf["NU_K"]) / Conf::E3;
+            MIN_TAU_K = static_cast<double>(conf["MIN_TAU_K"]) / Conf::E3;
+            MIN_NU_K = static_cast<double>(conf["MIN_NU_K"]) / Conf::E3;
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
@@ -225,15 +228,16 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerInhibitions", {true, true, false, false}},
                     {"interLayerConnections", {0, 0, 1, 1}},
                     {"layerPatches",  {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
-                    {"layerSizes",        {{28, 4, 64}, {25, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
-                    {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {25, 1, 16}, {25, 1, 16}}},
-                    {"neuronOverlap", {{0, 0, 0}, {3, 3, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"nu",          2},
-                    {"V0",         10},
-                    {"tauR",   4},
+                    {"layerSizes",        {{28, 4, 64}, {13, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
+                    {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {13, 1, 16}, {13, 1, 16}}},
+                    {"neuronOverlap", {{0, 0, 0}, {2, 2, 0}, {0, 0, 0}, {0, 0, 0}}},
+                    {"nu",          1},
+                    {"V0",         0},
+                    {"tauR",    1},
                     {"explorationFactor", 50},
-                    {"actionRate", 500000},
-                    {"decayRate", 1}
+                    {"actionRate", 500},
+                    {"minActionRate", 100},
+                    {"decayRate", 0.02},
             },
             {
                     {"VTHRESH",   30},
@@ -250,10 +254,10 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"NORM_FACTOR", 4},
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
-                    {"ETA_LTD",            -0.0021},
+                    {"ETA_LTD",           -0.0021},
                     {"ETA_SRA",    0.6},
-                    {"ETA_TA", 1},
-                    {"ETA_RP", 1},
+                    {"ETA_TA",        1},
+                    {"ETA_RP",    1},
                     {"ETA_INH", 20},
             },
             {
@@ -268,11 +272,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"NORM_FACTOR",       10},
                     {"ETA_LTP",       0.2},
                     {"ETA_LTD",       0.2},
-                    {"ETA_INH",     25},
+                    {"ETA_INH",     15},
                     {"ETA_RP",     1},
             },
             {
-                    {"VTHRESH",   1},
+                    {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
                     {"TAU_M",    20},
@@ -283,13 +287,15 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"NU_K",        400},
-                    {"TAU_K",      100},
-                    {"TAU_E",   500},
-                    {"ETA",                0.01}
+                    {"NU_K",        200},
+                    {"MIN_NU_K",   100},
+                    {"TAU_K",   50},
+                    {"MIN_TAU_K",         25},
+                    {"TAU_E",      500},
+                    {"ETA",           0.5}
             },
             {
-                    {"VTHRESH",   1},
+                    {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
                     {"TAU_M",    20},
@@ -301,7 +307,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
                     {"TAU_E",       500},
-                    {"ETA",        0.02}
+                    {"ETA",        0.5}
             }
     };
     size_t count = 0;
