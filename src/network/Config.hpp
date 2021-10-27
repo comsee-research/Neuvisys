@@ -46,6 +46,7 @@ class NetworkConfig {
     double tauR{};
     double explorationFactor{};
     long actionRate{};
+    long minActionRate{};
     double decayRate{};
 
 public:
@@ -64,6 +65,7 @@ public:
     [[nodiscard]] double getTauR() const { return tauR; }
     [[nodiscard]] double getExplorationFactor() const { return explorationFactor; }
     [[nodiscard]] long getActionRate() const { return actionRate; }
+    [[nodiscard]] long getMinActionRate() const { return minActionRate; }
     [[nodiscard]] double getDecayRate() const { return decayRate; }
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
     std::vector<bool> &getLayerInhibitions() { return layerInhibitions; }
@@ -90,6 +92,8 @@ public:
     double TAU_E{}; // μs
     double TAU_K{}; // μs
     double NU_K{}; // μs
+    double MIN_NU_K{}; // μs
+    double MIN_TAU_K{}; // μs
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV

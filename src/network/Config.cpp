@@ -35,6 +35,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             explorationFactor = conf["explorationFactor"];
             decayRate = conf["decayRate"];
             actionRate = static_cast<long>(Conf::E3) * static_cast<long>(conf["actionRate"]);
+            minActionRate = static_cast<long>(Conf::E3) * static_cast<long>(conf["minActionRate"]);
             std::string toErase = "configs/network_config.json";
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
@@ -143,6 +144,8 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             TAU_LTD = Conf::E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_K = static_cast<double>(conf["TAU_K"]) / Conf::E3;
             NU_K = static_cast<double>(conf["NU_K"]) / Conf::E3;
+            MIN_TAU_K = static_cast<double>(conf["MIN_TAU_K"]) / Conf::E3;
+            MIN_NU_K = static_cast<double>(conf["MIN_NU_K"]) / Conf::E3;
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
@@ -231,9 +234,10 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"nu",          1},
                     {"V0",         0},
                     {"tauR",    1},
-                    {"explorationFactor", 70},
+                    {"explorationFactor", 50},
                     {"actionRate", 500},
-                    {"decayRate", 0.02}
+                    {"minActionRate", 100},
+                    {"decayRate", 0.02},
             },
             {
                     {"VTHRESH",   30},
@@ -252,8 +256,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
                     {"ETA_SRA",    0.6},
-                    {"ETA_TA",    1},
-                    {"ETA_RP", 1},
+                    {"ETA_TA",        1},
+                    {"ETA_RP",    1},
                     {"ETA_INH", 20},
             },
             {
@@ -284,9 +288,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
                     {"NU_K",        200},
-                    {"TAU_K",      50},
-                    {"TAU_E",   500},
-                    {"ETA",               0.5}
+                    {"MIN_NU_K",   100},
+                    {"TAU_K",   50},
+                    {"MIN_TAU_K",         25},
+                    {"TAU_E",      500},
+                    {"ETA",           0.5}
             },
             {
                     {"VTHRESH",   2},

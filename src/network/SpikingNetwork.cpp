@@ -298,16 +298,16 @@ void SpikingNetwork::learningDecay(size_t iteration) {
     m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
 
-    if (m_criticNeuronConf.TAU_K > 0.025) {
+    if (m_criticNeuronConf.TAU_K > m_criticNeuronConf.MIN_TAU_K) {
         m_criticNeuronConf.TAU_K = m_criticNeuronConf.TAU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     }
-    if (m_criticNeuronConf.NU_K > 0.100) {
+    if (m_criticNeuronConf.NU_K > m_criticNeuronConf.MIN_NU_K) {
         m_criticNeuronConf.NU_K = m_criticNeuronConf.NU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
     }
 
     m_conf.setExplorationFactor(getNetworkConfig().getExplorationFactor() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration)));
 
-    if (getNetworkConfig().getActionRate() > 100000) {
+    if (getNetworkConfig().getActionRate() > getNetworkConfig().getMinActionRate()) {
         m_conf.setActionRate(static_cast<long>(getNetworkConfig().getActionRate() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration))));
     }
 }
@@ -332,13 +332,9 @@ void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFil
         json state;
         state["event_file_name"] = eventFileName;
         state["nb_run"] = nbRun;
-        state["rewards"] = m_saveData["reward"];
-        state["value"] = m_saveData["value"];
-        state["value_dot"] = m_saveData["valueDot"];
-        state["td_error"] = m_saveData["tdError"];
         state["average_reward"] = m_averageReward;
         state["reward_iter"] = m_rewardIter;
-        state["nb_events"] = m_saveData["nbEvents"];
+        state["learning_data"] = m_saveData;
         state["action_rate"] = getNetworkConfig().getActionRate();
         state["exploration_factor"] = getNetworkConfig().getExplorationFactor();
 

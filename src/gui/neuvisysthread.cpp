@@ -79,13 +79,17 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
     emit networkDestruction();
 }
 
-inline double getConvergence(SpikingNetwork &spinet) {
+inline double getConvergence(SpikingNetwork &spinet, long time) {
     double mean = 0;
-    for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - 1000 && it != spinet.getSaveData()["reward"].begin(); --it) {
-        mean += *it;
+    if (spinet.getSaveData()["reward"].size() > time) {
+        for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - time && it != spinet.getSaveData()["reward"].begin(); --it) {
+            mean += *it;
+        }
+        mean /= static_cast<double>(time);
+        spinet.getSaveData()["score"].push_back(mean);
+        return mean;
     }
-    mean /= 1000;
-    return mean;
+    return 0;
 }
 
 inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) {
@@ -96,6 +100,7 @@ inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) 
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
+    spinet.normalizeActions();
 //    std::string msg = "\n action: " + std::to_string(neuron.get().getIndex()) + " -> td: " + std::to_string(meanDValues);
 //    emit consoleMessage(msg);
 //    std::this_thread::sleep_for(2s);
@@ -152,11 +157,9 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
 
         if (sim.getSimulationTime() - consoleTime > 10) {
             consoleTime = sim.getSimulationTime();
-
             spinet.learningDecay(iteration);
-            spinet.normalizeActions();
             ++iteration;
-            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet)) +
+            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet, 1000)) +
                     "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
                     "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
                     "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
