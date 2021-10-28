@@ -53,5 +53,5 @@ add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 add_subdirectory(src/gui)
-#add_subdirectory(src/dv-modules)
+add_subdirectory(src/dv-modules)
 add_subdirectory(src/robot-control)
