@@ -4,34 +4,9 @@
 
 #include "SimulationInterface.hpp"
 
-inline void updateActor(SpikingNetwork &spinet, long timestamp, size_t actor) {
-    auto neuron = spinet.getNeuron(actor, spinet.getNetworkStructure().size() - 1);
-    neuron.get().spike(timestamp);
-
-    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - 50, spinet.getSaveData()["value"].end());
-
-    neuron.get().setNeuromodulator(meanDValues);
-    neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
-    spinet.normalizeActions();
-//    std::this_thread::sleep_for(2s);
-}
-
-inline double getConvergence(SpikingNetwork &spinet, long time) {
-    double mean = 0;
-    if (spinet.getSaveData()["reward"].size() > time) {
-        for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - time && it != spinet.getSaveData()["reward"].begin(); --it) {
-            mean += *it;
-        }
-        mean /= static_cast<double>(time);
-        spinet.getSaveData()["score"].push_back(mean);
-        return mean;
-    }
-    return 0;
-}
-
 int launchLearning(std::string &networkPath) {
-    SpikingNetwork spinet(networkPath);
-    spinet.loadNetwork();
+    NetworkHandle network(networkPath);
+
 
     SimulationInterface sim(1. / 150);
     sim.enableSyncMode(true);
@@ -48,36 +23,33 @@ int launchLearning(std::string &networkPath) {
             ros::spinOnce();
         }
 
-        if (!sim.getLeftEvents().empty()) {
-            spinet.updateTDError(sim.getLeftEvents().back().timestamp(), true);
-        }
-
         sim.update();
-        spinet.runEvents(sim.getLeftEvents(), sim.getReward());
+        network.transmitReward(sim.getReward());
+        network.transmitEvents(sim.getLeftEvents());
 
-        if (sim.getSimulationTime() - actionTime > static_cast<double>(spinet.getNetworkConfig().getActionRate()) / Conf::E6) {
+        if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / Conf::E6) {
             actionTime = sim.getSimulationTime();
             if (actor != -1) {
-                updateActor(spinet, sim.getLeftEvents().back().timestamp(), actor);
+                network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
             }
-            sim.motorAction(spinet.resolveMotor(), spinet.getNetworkConfig().getExplorationFactor(), actor);
+            sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
         }
 
         if (sim.getSimulationTime() - consoleTime > 10) {
             consoleTime = sim.getSimulationTime();
-            spinet.learningDecay(iteration);
+            network.learningDecay(iteration);
             ++iteration;
-            std::string msg = "Average reward: " + std::to_string(getConvergence(spinet, 1000)) +
-                              "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
-                              "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
-                              "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
-                              "\nTAU_K: " + std::to_string(spinet.getCriticNeuronConfig().TAU_K) +
-                              "\nNU_K: " + std::to_string(spinet.getCriticNeuronConfig().NU_K) + "\n";
+            std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
+                    "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
+                    "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
+                    "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
+                    "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
+                    "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
         }
     }
 
     sim.stopSimulation();
-    spinet.saveNetwork(1, "Simulation");
+    network.save(1, "Simulation");
     return 0;
 }
 

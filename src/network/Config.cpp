@@ -28,7 +28,6 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             neuronOverlap = static_cast<std::vector<std::vector<size_t>>>(conf["neuronOverlap"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
-            saveData = conf["saveData"];
             nu = conf["nu"];
             V0 = conf["V0"];
             tauR = conf["tauR"];

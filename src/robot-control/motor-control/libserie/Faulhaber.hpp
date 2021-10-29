@@ -9,15 +9,17 @@ public:
 
     ~Faulhaber();
 
-    void StartDrive(void);
+    void StartDrive();
 
-    void StopDrive(void);
+    void StopDrive();
 
     void GetPosition(string &position);
 
     void SetAbsolutePosition(int position);
 
     void SetRelativePosition(int position);
+
+    void SetSpeed(int speed);
 
 private:
     string Adresse_moteur_;

@@ -1,21 +1,17 @@
 #include <dv-sdk/module.hpp>
 #include <dv-sdk/processing/core.hpp>
 #include <thread>
-#include "../network/SpikingNetwork.hpp"
+#include "../network/NetworkHandle.hpp"
 
 #define CONFIG "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json"
 
 class Neuvisys : public dv::ModuleBase {
 private:
     dv::EventStreamSlicer slicer;
-    SpikingNetwork spinet = SpikingNetwork(config.getString("networkPath"));
+    NetworkHandle network = NetworkHandle(config.getString("networkPath"));
 
 public:
     Neuvisys() {
-        /***** Initialize Network *****/
-//        SpikingNetwork spinet = SpikingNetwork(config.getString("networkPath"));
-        spinet.loadNetwork();
-
         /***** Slicers *****/
         slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
@@ -23,7 +19,7 @@ public:
     }
 
     ~Neuvisys() override {
-        spinet.saveNetwork(0, "realTime");
+        network.save(0, "realTime");
     }
 
     static void initInputs(dv::InputDefinitionList &in) {
@@ -37,7 +33,7 @@ public:
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
             for (const dv::Event &eve : events) {
-                spinet.runEvent(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
+//                network.transmitEvents(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
             }
         }
     }

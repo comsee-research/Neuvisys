@@ -16,13 +16,6 @@ class SpikingNetwork {
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
-    long m_iterations{};
-
-    double m_reward{};
-    double m_averageReward{};
-    size_t m_rewardIter{};
-
-    std::map<std::string, std::vector<double>> m_saveData;
 
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
@@ -38,40 +31,28 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
+    long m_iterations{};
+    double m_neuromodulator{};
+
 public:
     explicit SpikingNetwork(const std::string &conf);
     void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>>& layerPatches,
                   const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
-    void runEvents(const std::vector<Event> &eventPacket, double reward);
     void runEvent(const Event &event);
     void addEvent(const Event &event);
     void updateNeuronsParameters(long time);
-    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
-    void loadNetwork();
-    void saveNetwork(size_t nbRun, const std::string& eventFileName);
-    void transmitReward(double reward, size_t nbEvents);
-    std::vector<uint64_t> resolveMotor();
-    double updateTDError(double time, bool store = false);
-    void learningDecay(size_t iteration);
+    void loadWeights();
+    void saveNetwork();
+    double computeNeuromodulator(double time);
+    void transmitNeuromodulator(double neuromodulator);
     void normalizeActions();
 
-    std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
-    std::vector<size_t> getNetworkStructure();
-    NetworkConfig getNetworkConfig() { return m_conf; };
-    NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
-    NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
-    NeuronConfig getCriticNeuronConfig() { return m_criticNeuronConf; }
-    NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
-    uint64_t getLayout(size_t layer, Position pos) { return m_layout[layer][{ pos.x(), pos.y(), pos.z() }]; }
-    cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
-    cv::Mat getSummedWeightNeuron(size_t idNeuron, size_t layer);
-    [[nodiscard]] double getAverageReward() const { return m_averageReward; }
-    std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
+    std::vector<std::vector<std::reference_wrapper<Neuron>>> &getNeurons() { return m_neurons; }
+    std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> &getLayout() { return m_layout; }
 
 private:
     void updateNeurons(long time);
     void saveNeuronsStates();
-    void loadWeights();
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
     void addNeuronEvent(const Neuron &neuron);
     void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);

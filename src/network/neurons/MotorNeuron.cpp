@@ -71,19 +71,18 @@ inline void MotorNeuron::weightUpdate() {
     m_events.clear();
 }
 
-std::pair<double, double> MotorNeuron::updateKernelSpikingRate(double time) {
-    double kernelSpikingRate = 0, kernelDerivativeSpikingRate = 0;
+double MotorNeuron::updateKernelSpikingRate(double time) {
+    double kernelSpikingRate = 0;
     size_t count = 0;
     for (auto rit = m_trackingSpikeTrain.rbegin(); rit != m_trackingSpikeTrain.rend(); ++rit) {
         if (count > 200) {
             break;
         } else {
             kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);
-//            kernelDerivativeSpikingRate += kernelDerivative((time - static_cast<double>(*rit)) / Conf::E6);
             ++count;
         }
     }
-    return { kernelSpikingRate, kernelDerivativeSpikingRate };
+    return kernelSpikingRate;
 }
 
 inline double MotorNeuron::kernel(double time) {

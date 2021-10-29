@@ -14,19 +14,6 @@ SpikingNetwork::SpikingNetwork(const std::string &conf) : m_conf(NetworkConfig(c
     }
 }
 
-void SpikingNetwork::runEvents(const std::vector<Event> &eventPacket, const double reward) {
-    transmitReward(reward, eventPacket.size());
-
-    for (Event event: eventPacket) {
-        addEvent(event);
-
-        if (static_cast<size_t>(m_iterations) % 10000 == 0) {
-            updateNeuronsParameters(event.timestamp());
-        }
-        ++m_iterations;
-    }
-}
-
 void SpikingNetwork::runEvent(const Event &event) {
     addEvent(event);
     if (static_cast<size_t>(m_iterations) % 10000 == 0) {
@@ -59,7 +46,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                                   static_cast<int32_t>(neuron.getPos().y() - nextNeuron.get().getOffset().y()),
                                                   static_cast<int32_t>(neuron.getPos().z() - nextNeuron.get().getOffset().z())))) {
             if (nextNeuron.get().getLayer() == 2) {
-                nextNeuron.get().setNeuromodulator(updateTDError(static_cast<double>(neuron.getSpikingTime())));
+                nextNeuron.get().setNeuromodulator(computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
             }
             if (nextNeuron.get().getLayer() != 3) {
                 nextNeuron.get().weightUpdate();
@@ -73,46 +60,17 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     }
 }
 
-double SpikingNetwork::updateTDError(double time, bool store) {
-    double value = 0;
-    double valueDerivative = 0;
-    for (const auto &critic: m_neurons[2]) {
-        auto values = critic.get().updateKernelSpikingRate(time);
-        value += values.first;
-//        valueDerivative += values.second;
-    }
-    auto V = m_conf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
-//    auto VDot = m_conf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto tdError = - V / m_conf.getTauR() + m_reward;
-
-    if (store) {
-        m_saveData["reward"].push_back(m_reward);
-        m_saveData["value"].push_back(V);
-
-        size_t nbPreviousTD = (getNetworkConfig().getActionRate() / Conf::E3) / 1;
-        if (m_saveData["valueDot"].size() > nbPreviousTD) {
-            auto meanDValues = 500 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"]
-            .end());
-            m_saveData["valueDot"].push_back(meanDValues);
-        } else {
-            m_saveData["valueDot"].push_back(0);
-        }
-        m_saveData["tdError"].push_back(tdError);
-    }
-    if (time < 2 * Conf::E6) {
-        return 0;
-    } else {
-        return tdError;
-    }
+void SpikingNetwork::transmitNeuromodulator(double neuromodulator) {
+    m_neuromodulator = neuromodulator;
 }
 
-std::vector<uint64_t> SpikingNetwork::resolveMotor() {
-    std::vector<uint64_t> motorActivations(m_neurons[m_neurons.size() - 1].size(), 0);
-    for (auto &neuron: m_neurons[m_neurons.size() - 1]) {
-        motorActivations[neuron.get().getIndex()] = neuron.get().getSpikeCount();
-        neuron.get().resetSpikeCounter();
+inline double SpikingNetwork::computeNeuromodulator(double time) {
+    double value = 0;
+    for (const auto &critic: m_neurons[2]) {
+        value += critic.get().updateKernelSpikingRate(time);
     }
-    return motorActivations;
+    auto V = m_conf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_conf.getV0();
+    return - V / m_conf.getTauR() + m_neuromodulator;
 }
 
 void SpikingNetwork::updateNeurons(const long time) {
@@ -297,24 +255,6 @@ void SpikingNetwork::updateNeuronsParameters(const long time) {
     }
 }
 
-void SpikingNetwork::learningDecay(size_t iteration) {
-    m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
-    m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
-
-    if (m_criticNeuronConf.TAU_K > m_criticNeuronConf.MIN_TAU_K) {
-        m_criticNeuronConf.TAU_K = m_criticNeuronConf.TAU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
-    }
-    if (m_criticNeuronConf.NU_K > m_criticNeuronConf.MIN_NU_K) {
-        m_criticNeuronConf.NU_K = m_criticNeuronConf.NU_K / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration));
-    }
-
-    m_conf.setExplorationFactor(getNetworkConfig().getExplorationFactor() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration)));
-
-    if (getNetworkConfig().getActionRate() > getNetworkConfig().getMinActionRate()) {
-        m_conf.setActionRate(static_cast<long>(getNetworkConfig().getActionRate() / (1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration))));
-    }
-}
-
 void SpikingNetwork::normalizeActions() {
     auto norm0 = m_neurons[3][0].get().computeNormWeights();
     auto norm1 = m_neurons[3][1].get().computeNormWeights();
@@ -326,32 +266,8 @@ void SpikingNetwork::normalizeActions() {
     }
 }
 
-void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFileName) {
-    if (m_conf.getSaveData()) {
-        std::cout << "Saving Network..." << std::endl;
-        std::string fileName;
-        fileName = m_conf.getNetworkPath() + "networkState";
-
-        json state;
-        state["event_file_name"] = eventFileName;
-        state["nb_run"] = nbRun;
-        state["average_reward"] = m_averageReward;
-        state["reward_iter"] = m_rewardIter;
-        state["learning_data"] = m_saveData;
-        state["action_rate"] = getNetworkConfig().getActionRate();
-        state["exploration_factor"] = getNetworkConfig().getExplorationFactor();
-
-        std::ofstream ofs(fileName + ".json");
-        if (ofs.is_open()) {
-            ofs << std::setw(4) << state << std::endl;
-        } else {
-            std::cout << "cannot save network state file" << std::endl;
-        }
-        ofs.close();
-
-        saveNeuronsStates();
-        std::cout << "Finished." << std::endl;
-    }
+void SpikingNetwork::saveNetwork() {
+    saveNeuronsStates();
 
     size_t count;
     for (size_t layer = 0; layer < m_neurons.size(); ++layer) {
@@ -374,29 +290,6 @@ void SpikingNetwork::saveNetwork(const size_t nbRun, const std::string &eventFil
                         m_conf.getLayerPatches()[layer][1].size() * m_conf.getLayerSizes()[layer][1],
                         m_conf.getLayerPatches()[layer][2].size() * m_conf.getLayerSizes()[layer][2]}, "w");
     }
-}
-
-void SpikingNetwork::loadNetwork() {
-    std::string fileName;
-    fileName = m_conf.getNetworkPath() + "networkState";
-
-    json state;
-    std::ifstream ifs(fileName + ".json");
-    if (ifs.is_open()) {
-        try {
-            ifs >> state;
-        } catch (const std::exception &e) {
-            std::cerr << "In Network state file: " << fileName + ".json" << std::endl;
-            throw;
-        }
-        m_averageReward = state["average_reward"];
-        m_rewardIter = state["reward_iter"];
-    } else {
-        std::cout << "Cannot open network state file" << std::endl;
-    }
-    ifs.close();
-
-    loadWeights();
 }
 
 void SpikingNetwork::saveNeuronsStates() {
@@ -435,75 +328,4 @@ void SpikingNetwork::loadWeights() {
         }
         ++layer;
     }
-}
-
-void SpikingNetwork::trackNeuron(const long time, const size_t id, const size_t layer) {
-    if (m_simpleNeuronConf.TRACKING == "partial") {
-        if (!m_neurons[layer].empty()) {
-            m_neurons[layer][id].get().trackPotential(time);
-        }
-    }
-}
-
-std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, const size_t layer) {
-    if (layer < m_neurons.size()) {
-        if (index < m_neurons[layer].size()) {
-            return m_neurons[layer][index];
-        }
-    }
-    throw std::runtime_error("Wrong layer or index for neuron selection");
-}
-
-void SpikingNetwork::transmitReward(const double reward, const size_t nbEvents) {
-    m_reward = reward;
-    ++m_rewardIter;
-    m_averageReward += ((reward - m_averageReward) / static_cast<double>(m_rewardIter)); // Average reward
-    m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
-}
-
-std::vector<size_t> SpikingNetwork::getNetworkStructure() {
-    std::vector<size_t> structure;
-    for (auto &m_neuron: m_neurons) {
-        structure.push_back(m_neuron.size());
-    }
-    return structure;
-}
-
-/***** GUI Interface *****/
-
-#include <opencv2/core/eigen.hpp>
-
-cv::Mat SpikingNetwork::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
-    if (!m_neurons[layer].empty()) {
-        auto dim = m_neurons[layer][0].get().getWeightsDimension();
-        cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
-
-        double weight;
-        for (size_t x = 0; x < dim[0]; ++x) {
-            for (size_t y = 0; y < dim[1]; ++y) {
-                if (layer == 0) {
-                    for (size_t p = 0; p < NBPOLARITY; p++) {
-                        weight = m_neurons[layer][idNeuron].get().getWeights(p, camera, synapse, x, y) * 255;
-                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>
-                        (weight);
-                    }
-                } else {
-                    weight = m_neurons[layer][idNeuron].get().getWeights(x, y, z) * 255;
-                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
-                }
-            }
-        }
-        double min, max;
-        minMaxIdx(weightImage, &min, &max);
-        cv::Mat weights = weightImage * 255 / max;
-        return weights;
-    }
-    return cv::Mat::zeros(0, 0, CV_8UC3);
-}
-
-cv::Mat SpikingNetwork::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
-    if (!m_neurons[layer].empty()) {
-        return m_neurons[layer][idNeuron].get().summedWeightMatrix();
-    }
-    return cv::Mat::zeros(0, 0, CV_8UC3);
 }

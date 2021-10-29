@@ -7,7 +7,7 @@
 
 #include <sstream>
 
-#include "../network/SpikingNetwork.hpp"
+#include "../network/NetworkHandle.hpp"
 #include "Motor.hpp"
 #include "FrameToEvents.hpp"
 

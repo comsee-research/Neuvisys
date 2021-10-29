@@ -57,14 +57,13 @@ public:
     void run() override;
 
 private:
-    void multiplePass(SpikingNetwork &spinet);
-    void rosPass(SpikingNetwork &spinet);
-    void display(SpikingNetwork &spinet, size_t sizeArray, double time);
+    void multiplePass(NetworkHandle &network);
+    void rosPass(NetworkHandle &network);
+    void display(NetworkHandle &network, size_t sizeArray, double time);
     void addEventToDisplay(const Event &event);
-    void prepareSpikes(SpikingNetwork &spinet);
-    void prepareWeights(SpikingNetwork &spinet);
-    void sensingZone(SpikingNetwork &spinet);
-    void updateActor(SpikingNetwork &spinet, long timestamp);
+    void prepareSpikes(NetworkHandle &network);
+    void prepareWeights(NetworkHandle &network);
+    void sensingZone(NetworkHandle &network);
 
 public slots:
     void onTabVizChanged(size_t index);

@@ -25,7 +25,6 @@ namespace Conf {
 class NetworkConfig {
     /***** Display parameters *****/
     std::string NETWORK_CONFIG;
-    bool saveData{};
     std::string NetworkPath;
 
     /***** Spiking Neural Network layout parameters *****/
@@ -57,7 +56,6 @@ public:
     [[nodiscard]] std::string getNetworkPath() const { return NetworkPath; }
     [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
     [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
-    [[nodiscard]] bool getSaveData() const { return saveData; }
     std::string &getNetworkPath() { return NetworkPath; }
     std::string &getSharingType() { return sharingType; }
     [[nodiscard]] double getNu() const { return nu; }

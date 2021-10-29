@@ -40,6 +40,7 @@ protected:
     std::vector<double> m_trackingThresholds;
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
+
 public:
     Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset);
     [[nodiscard]] virtual size_t getIndex() const { return m_index; }
@@ -89,7 +90,7 @@ public:
     virtual void trackPotential(long time);
     virtual void updateState(long time);
     virtual void spike(long time) {};
-    virtual std::pair<double, double> updateKernelSpikingRate(double time) {};
+    virtual double updateKernelSpikingRate(double time) {};
     virtual double computeNormWeights() {};
     virtual void rescaleWeights(double scale) {};
 

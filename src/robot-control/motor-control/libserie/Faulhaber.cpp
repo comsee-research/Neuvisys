@@ -12,7 +12,7 @@ Faulhaber::~Faulhaber() {
     fermer(); //Fermeture du lien serie
 }
 
-void Faulhaber::StartDrive(void) {
+void Faulhaber::StartDrive() {
     std::string chaine;
     chaine = Adresse_moteur_ + "GSER\r\n"; //Get Serial 0
     chaine += Adresse_moteur_ + "EN\r\n";  // Enable drive 0
@@ -24,7 +24,7 @@ void Faulhaber::StartDrive(void) {
 //  usleep(5000);
 }
 
-void Faulhaber::StopDrive(void) {
+void Faulhaber::StopDrive() {
     string chaine;
     chaine = Adresse_moteur_ + "DI\r\n"; //Disable drive
     chaine += Adresse_moteur_ + "CST\r\n";
@@ -58,7 +58,6 @@ void Faulhaber::GetPosition(string &position) {
 
 }
 
-
 void Faulhaber::SetAbsolutePosition(int position) {
     string chaine;
     chaine = Adresse_moteur_ + "LA" + std::to_string(position) + "\r\n"; //Set absolute position*/
@@ -73,7 +72,6 @@ void Faulhaber::SetAbsolutePosition(int position) {
 //  usleep(1000);
 }
 
-
 void Faulhaber::SetRelativePosition(int position) {
     string chaine;
     chaine = Adresse_moteur_ + "LR" + std::to_string(position) + "\r\n"; //Set absolute position*/
@@ -86,4 +84,18 @@ void Faulhaber::SetRelativePosition(int position) {
     flush();
 
 //    usleep(200000);
+}
+
+void Faulhaber::SetSpeed(int speed) {
+    string chaine;
+    chaine = Adresse_moteur_ + "V" + std::to_string(speed) + "\r\n"; //Set speed*/
+    envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
+    flush();
+    chaine = "";
+
+    //chaine=Adresse_moteur_+"NV"+std::to_string(speed)+"\r\n" ; //Set speed*/
+    //  envoyer((const uint8_t *)(chaine.c_str()),uint32_t(chaine.length()));
+    //  flush();
+
+//    usleep(1000);
 }
