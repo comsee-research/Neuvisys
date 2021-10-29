@@ -65,7 +65,7 @@ private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time);
     void timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep);
-    void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
+    void rewardSignalCallBack(const ros::MessageEvent<std_msgs::Float32> &reward);
     void simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone);
     bool poissonProcess();
 };

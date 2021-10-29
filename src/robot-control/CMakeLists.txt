@@ -17,3 +17,5 @@ set(PROJECT_SOURCES
 
 add_executable(neuvisys-ros rosMain.cpp ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy)
+
+add_subdirectory(motor-control)

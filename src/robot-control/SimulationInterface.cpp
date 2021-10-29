@@ -5,7 +5,7 @@
 #include "SimulationInterface.hpp"
 
 SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
-    m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignal(std::forward<decltype(PH1)>(PH1)); });
+    m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
@@ -46,7 +46,7 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
     m_imageTime = frame.getMessage()->header.stamp;
 }
 
-void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward) {
+void SimulationInterface::rewardSignalCallBack(const ros::MessageEvent<std_msgs::Float32> &reward) {
     m_rewardStored = reward.getMessage()->data;
 }
 
@@ -56,7 +56,6 @@ void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32
 
 void SimulationInterface::timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep) {
     m_timeStep = timeStep.getMessage()->data;
-    std::cout << m_timeStep << std::endl;
 }
 
 void SimulationInterface::simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone) {
