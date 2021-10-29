@@ -88,8 +88,11 @@ double SpikingNetwork::updateTDError(double time, bool store) {
     if (store) {
         m_saveData["reward"].push_back(m_reward);
         m_saveData["value"].push_back(V);
-        if (m_saveData["valueDot"].size() > 50) {
-            auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - 50, m_saveData["value"].end());
+
+        size_t nbPreviousTD = (getNetworkConfig().getActionRate() / Conf::E3) / 1;
+        if (m_saveData["valueDot"].size() > nbPreviousTD) {
+            auto meanDValues = 500 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"]
+            .end());
             m_saveData["valueDot"].push_back(meanDValues);
         } else {
             m_saveData["valueDot"].push_back(0);

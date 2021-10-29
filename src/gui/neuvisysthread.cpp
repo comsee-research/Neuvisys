@@ -82,7 +82,8 @@ void NeuvisysThread::multiplePass(SpikingNetwork &spinet) {
 inline double getConvergence(SpikingNetwork &spinet, long time) {
     double mean = 0;
     if (spinet.getSaveData()["reward"].size() > time) {
-        for (auto it = spinet.getSaveData()["reward"].end(); it != spinet.getSaveData()["reward"].end() - time && it != spinet.getSaveData()["reward"].begin(); --it) {
+        for (auto it = spinet.getSaveData()["reward"].end();
+             it != spinet.getSaveData()["reward"].end() - time && it != spinet.getSaveData()["reward"].begin(); --it) {
             mean += *it;
         }
         mean /= static_cast<double>(time);
@@ -96,7 +97,9 @@ inline void NeuvisysThread::updateActor(SpikingNetwork &spinet, long timestamp) 
     auto neuron = spinet.getNeuron(m_actor, spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - 50, spinet.getSaveData()["value"].end());
+    size_t nbPreviousTD = (spinet.getNetworkConfig().getActionRate() / Conf::E3) / 1;
+    auto meanDValues = 500 * Util::secondOrderNumericalDifferentiationMean(spinet.getSaveData()["value"].end() - nbPreviousTD, spinet
+            .getSaveData()["value"].end());
 
     neuron.get().setNeuromodulator(meanDValues);
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
@@ -110,6 +113,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
     SimulationInterface sim(1. / 150);
     sim.enableSyncMode(true);
     sim.startSimulation();
+    m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
     double actionTime = 0, displayTime = 0, trackTime = 0, consoleTime = 0;
     size_t iteration = 0;
@@ -119,7 +123,7 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             ros::spinOnce();
         }
 
-        m_simTime = sim.getSimulationTime();
+//        m_simTime = sim.getSimulationTime();
         sim.update();
         spinet.transmitReward(sim.getReward(), sim.getLeftEvents().size());
         m_eventRate += static_cast<double>(sim.getLeftEvents().size());
@@ -160,11 +164,11 @@ void NeuvisysThread::rosPass(SpikingNetwork &spinet) {
             spinet.learningDecay(iteration);
             ++iteration;
             std::string msg = "Average reward: " + std::to_string(getConvergence(spinet, 1000)) +
-                    "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
-                    "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
-                    "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
-                    "\nTAU_K: " + std::to_string(spinet.getCriticNeuronConfig().TAU_K) +
-                    "\nNU_K: " + std::to_string(spinet.getCriticNeuronConfig().NU_K) + "\n";
+                              "\nExploration factor: " + std::to_string(spinet.getNetworkConfig().getExplorationFactor()) +
+                              "\nAction rate: " + std::to_string(spinet.getNetworkConfig().getActionRate()) +
+                              "\nETA: " + std::to_string(spinet.getCriticNeuronConfig().ETA) +
+                              "\nTAU_K: " + std::to_string(spinet.getCriticNeuronConfig().TAU_K) +
+                              "\nNU_K: " + std::to_string(spinet.getCriticNeuronConfig().NU_K) + "\n";
             emit consoleMessage(msg);
         }
     }

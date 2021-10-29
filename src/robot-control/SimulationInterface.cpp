@@ -11,6 +11,7 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
 //    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
 //                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
     m_timeSub = nh.subscribe<std_msgs::Float32>("simulationTime", 1000, [this](auto && PH1) { timeCallBack(std::forward<decltype(PH1)>(PH1)); });
+    m_simTimeStepSub = nh.subscribe<std_msgs::Float32>("simulationTimeStep", 1000, [this](auto && PH1) { timeStepCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_simStepDoneSub = nh.subscribe<std_msgs::Bool>("simulationStepDone", 1000, [this](auto && PH1) { simulationStepDoneCallBack(std::forward<decltype(PH1)>(PH1)); });
 
     m_startSimulation = nh.advertise<std_msgs::Bool>("startSimulation", 1000);
@@ -51,6 +52,11 @@ void SimulationInterface::rewardSignal(const ros::MessageEvent<std_msgs::Float32
 
 void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time) {
     m_time = time.getMessage()->data;
+}
+
+void SimulationInterface::timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep) {
+    m_timeStep = timeStep.getMessage()->data;
+    std::cout << m_timeStep << std::endl;
 }
 
 void SimulationInterface::simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone) {

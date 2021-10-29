@@ -18,6 +18,7 @@ class SimulationInterface {
     ros::Subscriber m_rewardSub;
     ros::Subscriber m_timeSub;
     ros::Subscriber m_simStepDoneSub;
+    ros::Subscriber m_simTimeStepSub;
     ros::Publisher m_startSimulation;
     ros::Publisher m_stopSimulation;
     ros::Publisher m_enableSyncMode;
@@ -30,6 +31,7 @@ class SimulationInterface {
     double m_elapsedTime{};
     double m_lambda{};
     double m_time{};
+    double m_timeStep{};
     bool m_simStepDone = false;
 
     size_t count = 0;
@@ -50,6 +52,7 @@ public:
     [[nodiscard]] double getReward() const { return m_rewardStored; }
     [[nodiscard]] bool simStepDone() const { return m_simStepDone; }
     [[nodiscard]] double getSimulationTime() const { return m_time; }
+    [[nodiscard]] double getSimulationTimeStep() const { return m_timeStep; }
     void activateMotors(std::vector<uint64_t> motorActivation);
     void motorsJitter(double dt);
     void activateMotor(uint64_t motor);
@@ -61,6 +64,7 @@ public:
 private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time);
+    void timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep);
     void rewardSignal(const ros::MessageEvent<std_msgs::Float32> &reward);
     void simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone);
     bool poissonProcess();

@@ -27,6 +27,7 @@ protected:
     std::vector<std::reference_wrapper<const std::vector<long>>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
     double m_simTime{};
+    size_t m_simTimeStep = 1;
     double m_eventRate{};
     bool m_realtime = false;
     bool m_stop = false;
