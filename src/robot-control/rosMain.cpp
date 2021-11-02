@@ -16,7 +16,7 @@ int launchLearning(std::string &networkPath) {
     double actionTime = 0, consoleTime = 0;
     size_t iteration = 0;
     int actor = 0;
-    while (ros::ok() && sim.getSimulationTime() < 300) {
+    while (ros::ok() && sim.getSimulationTime() < 3) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -60,7 +60,15 @@ int main(int argc, char **argv) {
 
     std::string networkPath;
     if (argc > 1) {
-        networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
+        if (std::filesystem::is_directory(argv[1])) {
+            for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+                networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+                std::cout << networkPath << std::endl;
+                launchLearning(networkPath);
+            }
+        } else {
+            networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
+        }
     } else {
         networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     }
