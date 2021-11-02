@@ -71,7 +71,7 @@ inline void SimpleNeuron::weightUpdate() {
         }
 
         normalizeWeights();
-        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_conf.DECAY_FACTOR));
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
     }
     m_events.clear();
 }

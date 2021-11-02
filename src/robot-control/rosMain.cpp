@@ -7,7 +7,6 @@
 int launchLearning(std::string &networkPath) {
     NetworkHandle network(networkPath);
 
-
     SimulationInterface sim(1. / 150);
     sim.enableSyncMode(true);
     sim.startSimulation();
@@ -24,27 +23,30 @@ int launchLearning(std::string &networkPath) {
         }
 
         sim.update();
-        network.transmitReward(sim.getReward());
-        network.transmitEvents(sim.getLeftEvents());
+        if (!sim.getLeftEvents().empty()) {
+            network.transmitReward(sim.getReward());
+            network.transmitEvents(sim.getLeftEvents());
 
-        if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / Conf::E6) {
-            actionTime = sim.getSimulationTime();
-            if (actor != -1) {
-                network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+            if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
+                actionTime = sim.getSimulationTime();
+                if (actor != -1) {
+                    network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+                }
+                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
             }
-            sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
-        }
 
-        if (sim.getSimulationTime() - consoleTime > 10) {
-            consoleTime = sim.getSimulationTime();
-            network.learningDecay(iteration);
-            ++iteration;
-            std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
-                    "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                    "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
-                    "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
-                    "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
-                    "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
+            if (sim.getSimulationTime() - consoleTime > SCORE_TIME) {
+                consoleTime = sim.getSimulationTime();
+                network.learningDecay(iteration);
+                ++iteration;
+                std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_TIME * E3 / DT)) +
+                                  "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
+                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
+                                  "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
+                                  "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
+                                  "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
+                std::cout << msg << std::endl;
+            }
         }
     }
 

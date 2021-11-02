@@ -94,47 +94,48 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
             ros::spinOnce();
         }
 
-//        m_simTime = sim.getSimulationTime();
         sim.update();
-        network.transmitReward(sim.getReward());
-        network.transmitEvents(sim.getLeftEvents());
-        m_eventRate += static_cast<double>(sim.getLeftEvents().size());
+        if (!sim.getLeftEvents().empty()) {
+            network.transmitReward(sim.getReward());
+            network.transmitEvents(sim.getLeftEvents());
+            m_eventRate += static_cast<double>(sim.getLeftEvents().size());
 
-        if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / Conf::E6) {
-            actionTime = sim.getSimulationTime();
-            if (actor != -1) {
-                network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+            if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
+                actionTime = sim.getSimulationTime();
+                if (actor != -1) {
+                    network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+                }
+                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+
+                if (actor != -1) {
+                    m_motorDisplay[actor] = true;
+                }
             }
-            sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
 
-            if (actor != -1) {
-                m_motorDisplay[actor] = true;
+            if (sim.getSimulationTime() - displayTime > m_displayRate / E6) {
+                displayTime = sim.getSimulationTime();
+                display(network, 0, displayTime);
             }
-        }
 
-        if (sim.getSimulationTime() - displayTime > m_displayRate / Conf::E6) {
-            displayTime = sim.getSimulationTime();
-            display(network, 0, displayTime);
-        }
-
-        if (sim.getSimulationTime() - trackTime > m_trackRate / Conf::E6) {
-            trackTime = sim.getSimulationTime();
-            if (!sim.getLeftEvents().empty()) {
-                network.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);
+            if (sim.getSimulationTime() - trackTime > m_trackRate / E6) {
+                trackTime = sim.getSimulationTime();
+                if (!sim.getLeftEvents().empty()) {
+                    network.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);
+                }
             }
-        }
 
-        if (sim.getSimulationTime() - consoleTime > 10) {
-            consoleTime = sim.getSimulationTime();
-            network.learningDecay(iteration);
-            ++iteration;
-            std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
-                    "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                    "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
-                    "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
-                    "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
-                    "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
-            emit consoleMessage(msg);
+            if (sim.getSimulationTime() - consoleTime > SCORE_TIME) {
+                consoleTime = sim.getSimulationTime();
+                network.learningDecay(iteration);
+                ++iteration;
+                std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
+                                  "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
+                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
+                                  "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
+                                  "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
+                                  "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
+                emit consoleMessage(msg);
+            }
         }
     }
     sim.stopSimulation();
@@ -182,7 +183,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
-            m_eventRate = (Conf::E6 / m_displayRate) * m_eventRate;
+            m_eventRate = (E6 / m_displayRate) * m_eventRate;
             if (sizeArray != 0) {
                 progress = static_cast<int>(100 * m_iterations / sizeArray);
             }
@@ -201,7 +202,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             break;
         case 4: // spiketrain
             prepareSpikes(network);
-            emit displaySpike(m_spikeTrain, time * Conf::E6);
+            emit displaySpike(m_spikeTrain, time * E6);
             break;
         case 5: // reward
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],

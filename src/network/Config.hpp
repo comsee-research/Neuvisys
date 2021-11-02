@@ -7,6 +7,11 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
+#define SCORE_TIME 5 // s
+#define DT 10 // ms
+#define E3 1000 // µs
+#define E6 1000000 // µs
+
 using json = nlohmann::json;
 
 namespace Conf {
@@ -18,8 +23,6 @@ namespace Conf {
     inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
 
     inline constexpr size_t TIME_WINDOW_SR = 20; // s
-    inline constexpr size_t E6 = 1000000;
-    inline constexpr size_t E3 = 1000;
 }
 
 class NetworkConfig {

@@ -78,7 +78,7 @@ double MotorNeuron::updateKernelSpikingRate(double time) {
         if (count > 200) {
             break;
         } else {
-            kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / Conf::E6);
+            kernelSpikingRate += kernel((time - static_cast<double>(*rit)) / E6);
             ++count;
         }
     }
