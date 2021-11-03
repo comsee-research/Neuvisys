@@ -89,9 +89,9 @@ inline double MotorNeuron::kernel(double time) {
     return (exp(-time / conf.TAU_K) - exp(-time / conf.NU_K)) / (conf.TAU_K - conf.NU_K);
 }
 
-inline double MotorNeuron::kernelDerivative(double time) {
-    return (exp(-time / conf.NU_K) / conf.NU_K - exp(-time / conf.TAU_K) / conf.TAU_K) / (conf.TAU_K - conf.NU_K);
-}
+//inline double MotorNeuron::kernelDerivative(double time) {
+//    return (exp(-time / conf.NU_K) / conf.NU_K - exp(-time / conf.TAU_K) / conf.TAU_K) / (conf.TAU_K - conf.NU_K);
+//}
 
 inline void MotorNeuron::normalizeWeights() {
     auto norm = computeNormWeights();
@@ -145,4 +145,15 @@ std::vector<long> MotorNeuron::getWeightsDimension() {
 
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
     m_neuromodulator = neuromodulator;
+}
+
+void MotorNeuron::learningDecay(double decay) {
+    conf.ETA /= decay;
+
+    if (conf.TAU_K > conf.MIN_TAU_K) {
+        conf.TAU_K /= decay;
+    }
+    if (conf.NU_K > conf.MIN_NU_K) {
+        conf.NU_K /= decay;
+    }
 }

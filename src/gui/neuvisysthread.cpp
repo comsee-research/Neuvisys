@@ -83,6 +83,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
     SimulationInterface sim(1. / 150);
     sim.enableSyncMode(true);
     sim.startSimulation();
+
     m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
     int actor = 0;
@@ -130,10 +131,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
                 ++iteration;
                 std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
                                   "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
-                                  "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
-                                  "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
-                                  "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
+                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
                 emit consoleMessage(msg);
             }
         }

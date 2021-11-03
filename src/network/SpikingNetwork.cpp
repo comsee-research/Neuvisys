@@ -2,13 +2,12 @@
 
 SpikingNetwork::SpikingNetwork() = default;
 
-SpikingNetwork::SpikingNetwork(NetworkConfig &networkConfig, NeuronConfig &simpleConf, NeuronConfig &complexConf, NeuronConfig &criticConf,
-                               NeuronConfig &actorConf) : m_networkConf(networkConfig),
-                                                          m_simpleNeuronConf(simpleConf),
-                                                          m_complexNeuronConf(complexConf),
-                                                          m_criticNeuronConf(criticConf),
-                                                          m_actorNeuronConf(actorConf),
-                                                          m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
+SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(NetworkConfig(networkPath)),
+                                                                   m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
+                                                                   m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
+                                                                   m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
+                                                                   m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json", 3),
+                                                                   m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
                                                                                                std::vector<uint64_t>(0))) {
     for (size_t i = 0; i < m_networkConf.getLayerCellTypes().size(); ++i) {
         addLayer(m_networkConf.getLayerCellTypes()[i], m_networkConf.getSharingType(), m_networkConf.getLayerInhibitions()[i],

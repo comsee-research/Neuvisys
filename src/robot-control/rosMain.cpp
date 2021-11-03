@@ -16,7 +16,7 @@ int launchLearning(std::string &networkPath) {
     double actionTime = 0, consoleTime = 0;
     size_t iteration = 0;
     int actor = 0;
-    while (ros::ok() && sim.getSimulationTime() < 3) {
+    while (ros::ok() && sim.getSimulationTime() < 300) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -41,10 +41,7 @@ int launchLearning(std::string &networkPath) {
                 ++iteration;
                 std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_TIME * E3 / DT)) +
                                   "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate()) +
-                                  "\nETA: " + std::to_string(network.getCriticNeuronConfig().ETA) +
-                                  "\nTAU_K: " + std::to_string(network.getCriticNeuronConfig().TAU_K) +
-                                  "\nNU_K: " + std::to_string(network.getCriticNeuronConfig().NU_K) + "\n";
+                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
                 std::cout << msg << std::endl;
             }
         }
@@ -59,19 +56,16 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
     std::string networkPath;
-    if (argc > 1) {
-        if (std::filesystem::is_directory(argv[1])) {
-            for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-                networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-                std::cout << networkPath << std::endl;
-                launchLearning(networkPath);
-            }
-        } else {
-            networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
+    if (argc > 2) {
+        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+            std::cout << networkPath << std::endl;
+            launchLearning(networkPath);
         }
+    } else if (argc > 1) {
+        networkPath = static_cast<std::string>(argv[1]) + "/configs/network_config.json";
     } else {
         networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
     }
-
     launchLearning(networkPath);
 }

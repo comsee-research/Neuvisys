@@ -29,6 +29,7 @@ public:
     double updateKernelSpikingRate(double time) override;
     double computeNormWeights() override;
     void rescaleWeights(double scale) override;
+    void learningDecay(double decay) override;
 
 private:
     bool membraneUpdate(NeuronEvent event);

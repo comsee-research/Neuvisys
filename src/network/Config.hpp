@@ -7,7 +7,7 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_TIME 5 // s
+#define SCORE_TIME 10 // s
 #define DT 10 // ms
 #define E3 1000 // µs
 #define E6 1000000 // µs

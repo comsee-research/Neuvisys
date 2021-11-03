@@ -37,8 +37,7 @@ class SpikingNetwork {
 
 public:
     SpikingNetwork();
-    explicit SpikingNetwork(NetworkConfig &networkConfig, NeuronConfig &simpleConf, NeuronConfig &complexConf, NeuronConfig &criticConf, NeuronConfig
-    &actorConf);
+    explicit SpikingNetwork(const std::string &networkPath);
     void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
     void runEvent(const Event &event);

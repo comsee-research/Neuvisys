@@ -4,13 +4,11 @@
 
 #include "NetworkHandle.hpp"
 
-NetworkHandle::NetworkHandle(const std::string &networkPath) : m_networkConf(NetworkConfig(networkPath)),
+NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath), m_networkConf(NetworkConfig(networkPath)),
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                                m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
                                                                m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",
-                                                                                 3) {
-    m_spinet = SpikingNetwork(m_networkConf, m_simpleNeuronConf, m_complexNeuronConf, m_criticNeuronConf, m_actorNeuronConf);
+                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3) {
     m_spinet.loadWeights();
 }
 
@@ -61,8 +59,7 @@ double NetworkHandle::storeLearningMetrics(const double time, const size_t nbEve
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
         value += m_spinet.getNeuron(i, 2).get().updateKernelSpikingRate(time);
     }
-    auto V = m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) +
-             m_networkConf.getV0();
+    auto V = m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + m_networkConf.getV0();
     //    auto VDot = m_networkConf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
     auto tdError = -V / m_networkConf.getTauR() + m_reward;
 
@@ -71,8 +68,7 @@ double NetworkHandle::storeLearningMetrics(const double time, const size_t nbEve
 
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
     if (m_saveData["value"].size() > nbPreviousTD) {
-        auto meanDValues = 500 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"]
-                .end());
+        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"].end());
         m_saveData["valueDot"].push_back(meanDValues);
     } else {
         m_saveData["valueDot"].push_back(0);
@@ -111,18 +107,11 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 
 void NetworkHandle::learningDecay(size_t iteration) {
     double decay = 1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration);
-    m_actorNeuronConf.ETA = m_actorNeuronConf.ETA / decay;
-    m_criticNeuronConf.ETA = m_criticNeuronConf.ETA / decay;
 
-    if (m_criticNeuronConf.TAU_K > m_criticNeuronConf.MIN_TAU_K) {
-        m_criticNeuronConf.TAU_K = m_criticNeuronConf.TAU_K / decay;
-    }
-    if (m_criticNeuronConf.NU_K > m_criticNeuronConf.MIN_NU_K) {
-        m_criticNeuronConf.NU_K = m_criticNeuronConf.NU_K / decay;
-    }
+    m_spinet.getNeuron(0, 2).get().learningDecay(decay);
+    m_spinet.getNeuron(0, 3).get().learningDecay(decay);
 
     m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() / decay);
-
     if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
         m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() / decay));
     }

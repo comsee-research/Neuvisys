@@ -93,6 +93,7 @@ public:
     virtual double updateKernelSpikingRate(double time) {};
     virtual double computeNormWeights() {};
     virtual void rescaleWeights(double scale) {};
+    virtual void learningDecay(double decay) {};
 
 protected:
     void writeJson(json &state);
