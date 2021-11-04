@@ -33,9 +33,7 @@ void NetworkHandle::updateActor(long timestamp, size_t actor) {
         auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
         neuron.get().spike(timestamp);
 
-        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"].end());
-
-        neuron.get().setNeuromodulator(meanDValues);
+        neuron.get().setNeuromodulator(Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD));
         neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
         m_spinet.normalizeActions();
         //    std::this_thread::sleep_for(2s);
@@ -68,7 +66,7 @@ double NetworkHandle::storeLearningMetrics(const double time, const size_t nbEve
 
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
     if (m_saveData["value"].size() > nbPreviousTD) {
-        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"].end() - nbPreviousTD, m_saveData["value"].end());
+        auto meanDValues = Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
         m_saveData["valueDot"].push_back(meanDValues);
     } else {
         m_saveData["valueDot"].push_back(0);

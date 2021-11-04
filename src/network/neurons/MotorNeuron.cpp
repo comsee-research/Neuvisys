@@ -45,7 +45,6 @@ inline void MotorNeuron::spike(long time) {
     ++m_countSpike;
     ++m_totalSpike;
     m_potential = conf.VRESET;
-
     m_trackingSpikeTrain.push_back(time);
 }
 

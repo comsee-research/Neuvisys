@@ -134,13 +134,18 @@ namespace Util {
         }
     }
 
-    double secondOrderNumericalDifferentiationMean(std::vector<double>::iterator first, std::vector<double>::iterator last) {
-        double sumDVec;
-
-        for (auto it = first + 1; it != last - 1; ++it) {
-            sumDVec += (*(it+1) - *(it-1)) / 2.0;
+    double secondOrderNumericalDifferentiationMean(const std::vector<double> &vec, long n) {
+        if (!vec.empty()) {
+            double sumDVec = 0;
+            int count = 0;
+            for (size_t i = vec.size()-2; i > vec.size() - n && i > 0; --i) {
+                sumDVec += (vec[i+1] - vec[i-1]) / 2.0;
+                ++count;
+            }
+            return 50 * sumDVec / count;
+        } else {
+            return 0;
         }
-        return sumDVec / (static_cast<double>(last - first) - 2);
     }
 
     bool fileExist(std::string &path) {
