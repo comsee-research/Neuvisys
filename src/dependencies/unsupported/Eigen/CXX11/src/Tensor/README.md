@@ -95,12 +95,12 @@ See Assigning to a TensorRef below.
 
 #### `<data_type> tensor(index0, index1...)`
 
-Return the element at position `(index0, index1...)` in tensor
+Return the element at speed `(index0, index1...)` in tensor
 `tensor`.  You must pass as many parameters as the rank of `tensor`.
 The expression can be used as an l-value to set the value of the element at the
-specified position.  The value returned is of the datatype of the tensor.
+specified speed.  The value returned is of the datatype of the tensor.
 
-    // Set the value of the element at position (0, 1, 0);
+    // Set the value of the element at speed (0, 1, 0);
     Tensor<float, 3> t_3d(2, 3, 4);
     t_3d(0, 1, 0) = 12.0f;
 

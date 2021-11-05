@@ -111,7 +111,7 @@ void Neuron::writeJson(json &state) {
     for (auto neuron : m_inhibitionConnections) {
         inhibIndex.push_back(neuron.get().getIndex());
     }
-    state["position"] = position;
+    state["speed"] = position;
     state["offset"] = offset;
     state["in_connections"] = inIndex;
     state["out_connections"] = outIndex;

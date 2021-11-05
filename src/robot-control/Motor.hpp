@@ -13,9 +13,9 @@
 #include <random>
 
 class Motor {
-    ros::Publisher motorPub{};
+    ros::Publisher m_motorPub{};
     double x = 0;
-    std_msgs::Float32 position{};
+    std_msgs::Float32 m_speed{};
 
     std::random_device r;
     std::default_random_engine generator = std::default_random_engine(r());
@@ -24,7 +24,12 @@ class Motor {
 public:
     Motor(ros::NodeHandle &n, const std::string& name);
     void jitter(double dt);
-    void move(double pos);
+    void incrementSpeed(float increment);
+    void move();
+
+    float getSpeed() { return m_speed.data; }
+    void setSpeed(float speed) { m_speed.data = speed; }
+
 private:
     void OrnsteinUhlenbeckProcess(double dt, double theta, double mu, double sigma);
 };

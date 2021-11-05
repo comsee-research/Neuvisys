@@ -231,7 +231,7 @@ operator()(const IndicesT (&indices)[IndicesN]) EIGEN_INDEXED_VIEW_METHOD_CONST
   *
   * The last statement implies compatibility with \c std::vector, \c std::valarray, \c std::array, many of the Range-v3's ranges, etc.
   *
-  * If the submatrix can be represented using a starting position \c (i,j) and positive sizes \c (rows,columns), then this
+  * If the submatrix can be represented using a starting speed \c (i,j) and positive sizes \c (rows,columns), then this
   * method will returns a Block object after extraction of the relevant information from the passed arguments. This is the case
   * when all arguments are either:
   *  - An integer

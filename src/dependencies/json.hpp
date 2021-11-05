@@ -85,7 +85,7 @@ namespace nlohmann
 {
 namespace detail
 {
-/// struct to capture the start position of the current token
+/// struct to capture the start speed of the current token
 struct position_t
 {
     /// the total number of characters read
@@ -1902,7 +1902,7 @@ Exceptions have ids 1xx.
 
 name / id                      | example message | description
 ------------------------------ | --------------- | -------------------------
-json.exception.parse_error.101 | parse error at 2: unexpected end of input; expected string literal | This error indicates a syntax error while deserializing a JSON text. The error message describes that an unexpected token (character) was encountered, and the member @a byte indicates the error position.
+json.exception.parse_error.101 | parse error at 2: unexpected end of input; expected string literal | This error indicates a syntax error while deserializing a JSON text. The error message describes that an unexpected token (character) was encountered, and the member @a byte indicates the error speed.
 json.exception.parse_error.102 | parse error at 14: missing or wrong low surrogate | JSON uses the `\uxxxx` format to describe Unicode characters. Code points above above 0xFFFF are split into two `\uxxxx` entries ("surrogate pairs"). This error indicates that the surrogate pair is incomplete or contains an invalid code point.
 json.exception.parse_error.103 | parse error: code points above 0x10FFFF are invalid | Unicode supports code points up to 0x10FFFF. Code points above 0x10FFFF are invalid.
 json.exception.parse_error.104 | parse error: JSON patch must be an array of objects | [RFC 6902](https://tools.ietf.org/html/rfc6902) requires a JSON Patch document to be a JSON document that represents an array of objects.
@@ -1938,8 +1938,8 @@ class parse_error : public exception
     /*!
     @brief create a parse error exception
     @param[in] id_       the id of the exception
-    @param[in] pos       the position where the error occurred (or with
-                         chars_read_total=0 if the position cannot be
+    @param[in] pos       the speed where the error occurred (or with
+                         chars_read_total=0 if the speed cannot be
                          determined)
     @param[in] what_arg  the explanatory string
     @return parse_error object
@@ -1992,7 +1992,7 @@ Exceptions have ids 2xx.
 name / id                           | example message | description
 ----------------------------------- | --------------- | -------------------------
 json.exception.invalid_iterator.201 | iterators are not compatible | The iterators passed to constructor @ref basic_json(InputIT first, InputIT last) are not compatible, meaning they do not belong to the same container. Therefore, the range (@a first, @a last) is invalid.
-json.exception.invalid_iterator.202 | iterator does not fit current value | In an erase or insert function, the passed iterator @a pos does not belong to the JSON value for which the function was called. It hence does not define a valid position for the deletion/insertion.
+json.exception.invalid_iterator.202 | iterator does not fit current value | In an erase or insert function, the passed iterator @a pos does not belong to the JSON value for which the function was called. It hence does not define a valid speed for the deletion/insertion.
 json.exception.invalid_iterator.203 | iterators do not fit current value | Either iterator passed to function @ref erase(IteratorType first, IteratorType last) does not belong to the JSON value from which values shall be erased. It hence does not define a valid range to delete values from.
 json.exception.invalid_iterator.204 | iterators out of range | When an iterator range for a primitive type (number, boolean, or string) is passed to a constructor or an erase function, this range has to be exactly (@ref begin(), @ref end()), because this is the only way the single stored value is expressed. All other ranges are invalid.
 json.exception.invalid_iterator.205 | iterator out of range | When an iterator for a primitive type (number, boolean, or string) is passed to an erase function, the iterator has to be the @ref begin() iterator, because it is the only way to address the stored value. All other iterators are invalid.
@@ -2098,7 +2098,7 @@ Exceptions have ids 4xx.
 name / id                       | example message | description
 ------------------------------- | --------------- | -------------------------
 json.exception.out_of_range.401 | array index 3 is out of range | The provided array index @a i is larger than @a size-1.
-json.exception.out_of_range.402 | array index '-' (3) is out of range | The special array index `-` in a JSON Pointer never describes a valid element of the array, but the index past the end. That is, it can only be used to add elements at this position, but not to read it.
+json.exception.out_of_range.402 | array index '-' (3) is out of range | The special array index `-` in a JSON Pointer never describes a valid element of the array, but the index past the end. That is, it can only be used to add elements at this speed, but not to read it.
 json.exception.out_of_range.403 | key 'foo' not found | The provided key was not found in the JSON object.
 json.exception.out_of_range.404 | unresolved reference token 'foo' | A reference token in a JSON Pointer could not be resolved.
 json.exception.out_of_range.405 | JSON pointer has no parent | The JSON Patch operations 'remove' and 'add' can not be applied to the root element of the JSON value.
@@ -4422,7 +4422,7 @@ struct json_sax
 
     /*!
     @brief a parse error occurred
-    @param[in] position    the position in the input where the error occurs
+    @param[in] position    the speed in the input where the error occurs
     @param[in] last_token  the last read token
     @param[in] ex          an exception object describing the error
     @return whether parsing should proceed (must return false)
@@ -5350,7 +5350,7 @@ class binary_reader
     /*!
     @brief Read a BSON document element of the given @a element_type.
     @param[in] element_type The BSON element type, c.f. http://bsonspec.org/spec.html
-    @param[in] element_type_parse_position The position in the input stream,
+    @param[in] element_type_parse_position The speed in the input stream,
                where the `element_type` was read.
     @warning Not all BSON element types are supported yet. An unsupported
              @a element_type will give rise to a parse_error.114:
@@ -8476,7 +8476,7 @@ scan_number_done:
     // diagnostics
     /////////////////////
 
-    /// return position of last read token
+    /// return speed of last read token
     constexpr position_t get_position() const noexcept
     {
         return position;
@@ -8618,7 +8618,7 @@ scan_number_done:
     /// whether the next get() call should just return current
     bool next_unget = false;
 
-    /// the start position of the current token
+    /// the start speed of the current token
     position_t position {};
 
     /// raw input token string (for error messages)
@@ -10866,8 +10866,8 @@ class json_pointer
         }
 
         // extract the reference tokens:
-        // - slash: position of the last read slash (or end of string)
-        // - start: position after the previous slash
+        // - slash: speed of the last read slash (or end of string)
+        // - start: speed after the previous slash
         for (
             // search for the first slash after the first character
             std::size_t slash = reference_string.find_first_of('/', 1),
@@ -13632,7 +13632,7 @@ inline char* format_buffer(char* buf, int len, int decimal_exponent,
 
     // v = buf * 10^(n-k)
     // k is the length of the buffer (number of decimal digits)
-    // n is the position of the decimal point relative to the start of the buffer.
+    // n is the speed of the decimal point relative to the start of the buffer.
 
     if (k <= n and n <= max_exp)
     {
@@ -14152,7 +14152,7 @@ class serializer
                         bytes = 0;
                     }
 
-                    // remember the byte position of this accept
+                    // remember the byte speed of this accept
                     bytes_after_last_accept = bytes;
                     undumped_chars = 0;
                     break;
@@ -17967,7 +17967,7 @@ class basic_json
     does not throw if the given key @a key was not found.
 
     @note Unlike @ref operator[](const typename object_t::key_type& key), this
-    function does not implicitly add an element to the position defined by @a
+    function does not implicitly add an element to the speed defined by @a
     key. This function is furthermore also applicable to const objects.
 
     @param[in] key  key of the element to access
@@ -18330,7 +18330,7 @@ class basic_json
     @liveexample{The example shows the result of `erase()` for different JSON
     types.,erase__IteratorType_IteratorType}
 
-    @sa @ref erase(IteratorType) -- removes the element at a given position
+    @sa @ref erase(IteratorType) -- removes the element at a given speed
     @sa @ref erase(const typename object_t::key_type&) -- removes the element
     from an object at the given key
     @sa @ref erase(const size_type) -- removes the element from an array at
@@ -18421,7 +18421,7 @@ class basic_json
 
     @liveexample{The example shows the effect of `erase()`.,erase__key_type}
 
-    @sa @ref erase(IteratorType) -- removes the element at a given position
+    @sa @ref erase(IteratorType) -- removes the element at a given speed
     @sa @ref erase(IteratorType, IteratorType) -- removes the elements in
     the given range
     @sa @ref erase(const size_type) -- removes the element from an array at
@@ -18456,7 +18456,7 @@ class basic_json
 
     @liveexample{The example shows the effect of `erase()`.,erase__size_type}
 
-    @sa @ref erase(IteratorType) -- removes the element at a given position
+    @sa @ref erase(IteratorType) -- removes the element at a given speed
     @sa @ref erase(IteratorType, IteratorType) -- removes the elements in
     the given range
     @sa @ref erase(const typename object_t::key_type&) -- removes the element

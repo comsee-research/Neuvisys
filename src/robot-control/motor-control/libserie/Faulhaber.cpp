@@ -39,7 +39,7 @@ void Faulhaber::GetPosition(string &position) {
     uint8_t octet = 0;
     while (recevoir(&octet, 1));  //vide le buffer de reception
     string chaine;
-    chaine = Adresse_moteur_ + "POS\r\n"; //Get actual position*/
+    chaine = Adresse_moteur_ + "POS\r\n"; //Get actual speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
 
@@ -60,11 +60,11 @@ void Faulhaber::GetPosition(string &position) {
 
 void Faulhaber::SetAbsolutePosition(int position) {
     string chaine;
-    chaine = Adresse_moteur_ + "LA" + std::to_string(position) + "\r\n"; //Set absolute position*/
+    chaine = Adresse_moteur_ + "LA" + std::to_string(position) + "\r\n"; //Set absolute speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
     chaine = "";
-    chaine = Adresse_moteur_ + "NP\r\n";  // Stop on the command M until the position is reached
+    chaine = Adresse_moteur_ + "NP\r\n";  // Stop on the command M until the speed is reached
     chaine += Adresse_moteur_ + "M\r\n";   //Move
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
@@ -74,11 +74,11 @@ void Faulhaber::SetAbsolutePosition(int position) {
 
 void Faulhaber::SetRelativePosition(int position) {
     string chaine;
-    chaine = Adresse_moteur_ + "LR" + std::to_string(position) + "\r\n"; //Set absolute position*/
+    chaine = Adresse_moteur_ + "LR" + std::to_string(position) + "\r\n"; //Set absolute speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
     chaine = "";
-    chaine = Adresse_moteur_ + "NP\r\n";  // Stop on the command M until the position is reached
+    chaine = Adresse_moteur_ + "NP\r\n";  // Stop on the command M until the speed is reached
     chaine += Adresse_moteur_ + "M\r\n";   //Move
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();

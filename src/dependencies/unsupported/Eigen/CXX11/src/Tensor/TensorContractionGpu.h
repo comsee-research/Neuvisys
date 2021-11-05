@@ -86,9 +86,9 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   const Index rhs_store_idx_7 = rhs_store_idx_base + 576 * 7;
 
   // in the loading code, the following variables are important:
-  // threadIdx.x: the vertical position in an 8x8 block
+  // threadIdx.x: the vertical speed in an 8x8 block
   // threadIdx.y: the vertical index of the 8x8 block in the grid
-  // threadIdx.z: the horizontal position in an 8x8 block
+  // threadIdx.z: the horizontal speed in an 8x8 block
   // k: the horizontal index of the 8x8 block in the grid
   //
   // The k parameter is implicit (it was the loop counter for a loop that went

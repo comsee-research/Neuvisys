@@ -24,12 +24,10 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
         sleep_t.sleep();
     }
 
-    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
-//    motorMapping.emplace_back(std::make_pair(0, 0)); // left horizontal -> no movement
-    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
-//    motorMapping.emplace_back(std::make_pair(1, -0.1)); // left vertical  -> left movement
-//    motorMapping.emplace_back(std::make_pair(1, 0)); // left vertical -> no movement
-//    motorMapping.emplace_back(std::make_pair(1, 0.1)); // left vertical -> right movement
+//    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
+//    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
+    motorMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
+    motorMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -91,27 +89,6 @@ bool SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivati
     return exploration;
 }
 
-void SimulationInterface::activateMotors(std::vector<uint64_t> motorActivation) {
-    for (size_t i = 0; i < motorActivation.size(); ++i) {
-        if (motorActivation[i] > 0) {
-            switch (motorMapping[i].first) {
-                case 0:
-                    m_leftMotor1Pub.move(motorMapping[i].second);
-                    break;
-                case 1:
-                    m_leftMotor2Pub.move(motorMapping[i].second);
-                    break;
-                case 2:
-                    m_rightMotor1Pub.move(motorMapping[i].second);
-                    break;
-                case 3:
-                    m_rightMotor2Pub.move(motorMapping[i].second);
-                    break;
-            }
-        }
-    }
-}
-
 bool SimulationInterface::poissonProcess() {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -137,16 +114,24 @@ void SimulationInterface::motorsJitter(double dt) {
 void SimulationInterface::activateMotor(uint64_t motor) {
     switch (motorMapping[motor].first) {
         case 0:
-            m_leftMotor1Pub.move(motorMapping[motor].second);
+//            m_leftMotor1Pub.setSpeed(motorMapping[motor].second);
+            m_leftMotor1Pub.incrementSpeed(motorMapping[motor].second);
+            m_leftMotor1Pub.move();
             break;
         case 1:
-            m_leftMotor2Pub.move(motorMapping[motor].second);
+//            m_leftMotor2Pub.setSpeed(motorMapping[motor].second);
+            m_leftMotor2Pub.incrementSpeed(motorMapping[motor].second);
+            m_leftMotor2Pub.move();
             break;
         case 2:
-            m_rightMotor1Pub.move(motorMapping[motor].second);
+//            m_rightMotor1Pub.setSpeed(motorMapping[motor].second);
+            m_rightMotor1Pub.incrementSpeed(motorMapping[motor].second);
+            m_rightMotor1Pub.move();
             break;
         case 3:
-            m_rightMotor2Pub.move(motorMapping[motor].second);
+//            m_rightMotor2Pub.setSpeed(motorMapping[motor].second);
+            m_rightMotor2Pub.incrementSpeed(motorMapping[motor].second);
+            m_rightMotor2Pub.move();
             break;
     }
 }
