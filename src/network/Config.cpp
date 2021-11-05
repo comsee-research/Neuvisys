@@ -255,7 +255,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
                     {"ETA_SRA",    0.6},
-                    {"ETA_TA",        1},
+                    {"ETA_TA",        0},
                     {"ETA_RP",    1},
                     {"ETA_INH", 20},
             },

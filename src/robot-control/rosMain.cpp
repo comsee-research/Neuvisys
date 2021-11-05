@@ -13,7 +13,7 @@ int launchLearning(std::string &networkPath) {
 
     std::vector<size_t> vecEvents;
 
-    double actionTime = 0, consoleTime = 0;
+    double actionTime = 0, updateTime = 0, consoleTime = 0;
     size_t iteration = 0;
     int actor = 0;
     while (ros::ok() && sim.getSimulationTime() < 300) {
@@ -27,6 +27,11 @@ int launchLearning(std::string &networkPath) {
             network.transmitReward(sim.getReward());
             network.transmitEvents(sim.getLeftEvents());
 
+            if (sim.getSimulationTime() - updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
+                updateTime = sim.getSimulationTime();
+                network.updateNeuronStates(UPDATE_INTERVAL);
+            }
+
             if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
                 actionTime = sim.getSimulationTime();
                 if (actor != -1) {
@@ -35,11 +40,11 @@ int launchLearning(std::string &networkPath) {
                 sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
             }
 
-            if (sim.getSimulationTime() - consoleTime > SCORE_TIME) {
+            if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {
                 consoleTime = sim.getSimulationTime();
                 network.learningDecay(iteration);
                 ++iteration;
-                std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_TIME * E3 / DT)) +
+                std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_INTERVAL * E3 / DT)) +
                                   "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
                                   "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
                 std::cout << msg << std::endl;

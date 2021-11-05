@@ -16,8 +16,8 @@ inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
 
     m_potential += m_weights(event.x(), event.y(), event.z())
-                - refractoryPotential(event.timestamp() - m_spikingTime)
-                - m_adaptation_potential;
+                   - refractoryPotential(event.timestamp() - m_spikingTime)
+                   - m_adaptationPotential;
     m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {

@@ -31,10 +31,10 @@ bool SimpleNeuron::update() {
 
 inline bool SimpleNeuron::membraneUpdate(Event event) {
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
-    m_adaptation_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_SRA);
+    m_adaptationPotential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_SRA);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
                    - refractoryPotential(event.timestamp() - m_spikingTime)
-                   - m_adaptation_potential;
+                   - m_adaptationPotential;
     m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {

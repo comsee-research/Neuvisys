@@ -18,9 +18,6 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
 
 void SpikingNetwork::runEvent(const Event &event) {
     addEvent(event);
-    if (static_cast<size_t>(m_iterations) % 10000 == 0) {
-        updateNeuronsParameters(event.timestamp());
-    }
     ++m_iterations;
 }
 
@@ -245,14 +242,14 @@ void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToCon
     }
 }
 
-void SpikingNetwork::updateNeuronsParameters(const long time) {
+void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     size_t layer;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
+            neuron.get().updateState(timeInterval, 0.05);
             if (layer == 0) {
-//                neuron.get().thresholdAdaptation();
+                neuron.get().thresholdAdaptation();
             }
-            neuron.get().updateState(time);
         }
     }
 }

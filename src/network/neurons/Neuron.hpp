@@ -17,7 +17,6 @@ protected:
     NeuronConfig &conf;
     Position m_pos{};
     Position m_offset{};
-    std::list<size_t> m_recentSpikes;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inhibitionConnections;
@@ -27,17 +26,13 @@ protected:
     size_t m_countSpike{};
     double m_learningDecay;
     double m_potential{};
-    double m_adaptation_potential{};
+    double m_adaptationPotential{};
     double m_threshold;
     long m_timestampLastEvent{};
     bool m_spike;
-    long m_creationTime{};
-    double m_recentSpikeRate{};
-    double m_spikingRate{};
     long m_lifeSpan{};
-    long m_referenceTime{};
 
-    std::vector<double> m_trackingThresholds;
+    double m_spikingRateAverage{};
     std::vector<long> m_trackingSpikeTrain;
     std::vector<std::pair<double, long>> m_trackingPotentialTrain;
 
@@ -48,10 +43,10 @@ public:
     [[nodiscard]] virtual Position getPos() const { return m_pos; }
     [[nodiscard]] virtual Position getOffset() const { return m_offset; }
     [[nodiscard]] virtual double getThreshold() const { return m_threshold; }
-    [[nodiscard]] virtual double getSpikingRate() const { return m_spikingRate; }
+    [[nodiscard]] virtual double getSpikingRate() const { return m_spikingRateAverage; }
     [[nodiscard]] virtual long getSpikingTime() const { return m_spikingTime; }
     [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
-    [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptation_potential; }
+    [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
     [[nodiscard]] virtual size_t getSpikeCount() const { return m_countSpike; }
     virtual double getWeights(long x, long y, long z) {};
     virtual double getWeights(long p, long c, long s, long x, long y) {};
@@ -64,7 +59,6 @@ public:
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getInhibitionConnections() const { return m_inhibitionConnections; }
-    virtual const std::vector<double> &getTrackingThresholds() { return m_trackingThresholds; }
     virtual const std::vector<long> &getTrackingSpikeTrain() { return m_trackingSpikeTrain; }
     virtual const std::vector<std::pair<double, long>> &getTrackingPotentialTrain() { return m_trackingPotentialTrain; }
     virtual bool hasSpiked();
@@ -88,7 +82,7 @@ public:
     virtual bool update() {}
     virtual void setNeuromodulator(double neuromodulator) {}
     virtual void trackPotential(long time);
-    virtual void updateState(long time);
+    virtual void updateState(long timeInterval, double alpha);
     virtual void spike(long time) {};
     virtual double updateKernelSpikingRate(double time) {};
     virtual double computeNormWeights() {};

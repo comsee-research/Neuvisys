@@ -87,7 +87,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
     m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
     int actor = 0;
-    double actionTime = 0, displayTime = 0, trackTime = 0, consoleTime = 0;
+    double actionTime = 0, displayTime = 0, updateTime = 0, trackTime = 0, consoleTime = 0;
     size_t iteration = 0;
     while (!m_stop) {
         sim.triggerNextTimeStep();
@@ -100,6 +100,11 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
             network.transmitReward(sim.getReward());
             network.transmitEvents(sim.getLeftEvents());
             m_eventRate += static_cast<double>(sim.getLeftEvents().size());
+
+            if (sim.getSimulationTime() - updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
+                updateTime = sim.getSimulationTime();
+                network.updateNeuronStates(UPDATE_INTERVAL);
+            }
 
             if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
                 actionTime = sim.getSimulationTime();
@@ -125,7 +130,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
                 }
             }
 
-            if (sim.getSimulationTime() - consoleTime > SCORE_TIME) {
+            if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {
                 consoleTime = sim.getSimulationTime();
                 network.learningDecay(iteration);
                 ++iteration;

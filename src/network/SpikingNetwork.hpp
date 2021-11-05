@@ -42,7 +42,7 @@ public:
                   const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
     void runEvent(const Event &event);
     void addEvent(const Event &event);
-    void updateNeuronsParameters(long time);
+    void updateNeuronsStates(long timeInterval);
     void loadWeights();
     void saveNetwork();
     double computeNeuromodulator(double time);

@@ -183,6 +183,10 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
+void NetworkHandle::updateNeuronStates(long timeInterval) {
+    m_spinet.updateNeuronsStates(timeInterval);
+}
+
 std::vector<Event> mono(const std::string &events, size_t nbPass) {
     std::vector<Event> eventPacket;
     size_t pass, count;

@@ -33,6 +33,7 @@ public:
     void learningDecay(size_t iteration);
     void save(size_t nbRun, const std::string &eventFileName);
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
+    void updateNeuronStates(long timeInterval);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }

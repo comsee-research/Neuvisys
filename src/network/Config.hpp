@@ -7,7 +7,8 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_TIME 10 // s
+#define SCORE_INTERVAL 10 // s
+#define UPDATE_INTERVAL 100000 // µs
 #define DT 10 // ms
 #define E3 1000 // µs
 #define E6 1000000 // µs
@@ -20,9 +21,6 @@ namespace Conf {
     inline constexpr size_t HEIGHT = 260; // px
 
     inline constexpr size_t EVENT_FREQUENCY = 1000; // μs
-    inline constexpr size_t UPDATE_PARAMETER_FREQUENCY = 1000000; // μs
-
-    inline constexpr size_t TIME_WINDOW_SR = 20; // s
 }
 
 class NetworkConfig {
