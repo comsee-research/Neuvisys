@@ -4,6 +4,10 @@
 
 #include "NetworkHandle.hpp"
 
+/* Creates the spiking neural network from the SpikingNetwork class.
+ * Loads the configuration files locally.
+ * Loads possible network weights if the network has already been created and saved before.
+ */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath), m_networkConf(NetworkConfig(networkPath)),
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                                m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
@@ -12,6 +16,9 @@ NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkP
     m_spinet.loadWeights();
 }
 
+/* Launches the spiking network on the specified event file 'nbPass' times.
+ * The config file of the network must precise if the event file is stereo or mono.
+ */
 void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     auto eventPacket = std::vector<Event>();
     if (m_networkConf.getNbCameras() == 1) {
@@ -25,6 +32,120 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     }
 
     save(nbPass, events);
+}
+
+/* Saves information about the network actual state.
+ * Number of times the network has been launched and the name of the event file use can be precised.
+ */
+void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileName = "") {
+    std::cout << "Saving Network..." << std::endl;
+    std::string fileName;
+    fileName = m_networkConf.getNetworkPath() + "networkState";
+
+    json state;
+    state["event_file_name"] = eventFileName;
+    state["nb_run"] = nbRun;
+    state["learning_data"] = m_saveData;
+    state["action_rate"] = m_networkConf.getActionRate();
+    state["exploration_factor"] = m_networkConf.getExplorationFactor();
+
+    std::ofstream ofs(fileName + ".json");
+    if (ofs.is_open()) {
+        ofs << std::setw(4) << state << std::endl;
+    } else {
+        std::cout << "cannot save network state file" << std::endl;
+    }
+    ofs.close();
+
+    m_spinet.saveNetwork();
+
+    std::cout << "Finished." << std::endl;
+}
+
+/* Opens an event file (in the npz format) and load all the events in memory into a vector.
+ * If nbPass is greater than 1, the events are concatenated multiple times and the timestamps are updated in accordance.
+ * Returns the vector of events.
+ * Only for mono camera event files.
+ */
+std::vector<Event> NetworkHandle::mono(const std::string &events, size_t nbPass = 1) {
+    std::vector<Event> eventPacket;
+    size_t pass, count;
+
+    cnpy::NpyArray timestamps_array = cnpy::npz_load(events, "arr_0");
+    cnpy::NpyArray x_array = cnpy::npz_load(events, "arr_1");
+    cnpy::NpyArray y_array = cnpy::npz_load(events, "arr_2");
+    cnpy::NpyArray polarities_array = cnpy::npz_load(events, "arr_3");
+    size_t sizeLeftArray = timestamps_array.shape[0];
+
+    auto *l_timestamps = timestamps_array.data<long>();
+    auto *l_x = x_array.data<int16_t>();
+    auto *l_y = y_array.data<int16_t>();
+    auto *l_polarities = polarities_array.data<bool>();
+
+    long firstTimestamp = l_timestamps[0];
+    long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray - 1]);
+    Event event{};
+
+    for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
+        for (count = 0; count < sizeLeftArray; ++count) {
+            event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count], l_y[count],
+                          l_polarities[count], 0);
+            eventPacket.push_back(event);
+        }
+    }
+    return eventPacket;
+}
+
+/* Same as mono function but for stereo camera event files.
+ */
+std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPass) {
+    std::vector<Event> eventPacket;
+    size_t pass, left, right;
+
+    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(events, "arr_0");
+    cnpy::NpyArray l_x_array = cnpy::npz_load(events, "arr_1");
+    cnpy::NpyArray l_y_array = cnpy::npz_load(events, "arr_2");
+    cnpy::NpyArray l_polarities_array = cnpy::npz_load(events, "arr_3");
+    size_t sizeLeftArray = l_timestamps_array.shape[0];
+
+    auto *l_timestamps = l_timestamps_array.data<long>();
+    auto *l_x = l_x_array.data<int16_t>();
+    auto *l_y = l_y_array.data<int16_t>();
+    auto *l_polarities = l_polarities_array.data<bool>();
+
+    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(events, "arr_4");
+    cnpy::NpyArray r_x_array = cnpy::npz_load(events, "arr_5");
+    cnpy::NpyArray r_y_array = cnpy::npz_load(events, "arr_6");
+    cnpy::NpyArray r_polarities_array = cnpy::npz_load(events, "arr_7");
+    size_t sizeRightArray = r_timestamps_array.shape[0];
+
+    auto *r_timestamps = r_timestamps_array.data<long>();
+    auto *r_x = r_x_array.data<int16_t>();
+    auto *r_y = r_y_array.data<int16_t>();
+    auto *r_polarities = r_polarities_array.data<bool>();
+
+    long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = static_cast<long>(l_timestamps[
+            sizeLeftArray - 1]), lastRightTimestamp = static_cast<long>(r_timestamps[sizeRightArray - 1]);
+    long l_t, r_t;
+    Event event{};
+
+    for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
+        left = 0;
+        right = 0;
+        while (left < sizeLeftArray && right < sizeRightArray) {
+            l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
+            r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
+            if (right >= sizeRightArray || l_t <= r_t) {
+                event = Event(l_t / 1000, l_x[left], l_y[left], l_polarities[left], 0);
+                ++left;
+            } else if (left >= sizeLeftArray || l_t > r_t) {
+                event = Event(r_t / 1000, r_x[right], r_y[right], r_polarities[right], 1);
+                ++right;
+            }
+            eventPacket.push_back(event);
+        }
+    }
+    return eventPacket;
 }
 
 void NetworkHandle::updateActor(long timestamp, size_t actor) {
@@ -115,31 +236,6 @@ void NetworkHandle::learningDecay(size_t iteration) {
     }
 }
 
-void NetworkHandle::save(const size_t nbRun, const std::string &eventFileName) {
-    std::cout << "Saving Network..." << std::endl;
-    std::string fileName;
-    fileName = m_networkConf.getNetworkPath() + "networkState";
-
-    json state;
-    state["event_file_name"] = eventFileName;
-    state["nb_run"] = nbRun;
-    state["learning_data"] = m_saveData;
-    state["action_rate"] = m_networkConf.getActionRate();
-    state["exploration_factor"] = m_networkConf.getExplorationFactor();
-
-    std::ofstream ofs(fileName + ".json");
-    if (ofs.is_open()) {
-        ofs << std::setw(4) << state << std::endl;
-    } else {
-        std::cout << "cannot save network state file" << std::endl;
-    }
-    ofs.close();
-
-    m_spinet.saveNetwork();
-
-    std::cout << "Finished." << std::endl;
-}
-
 void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t layer) {
     if (m_simpleNeuronConf.TRACKING == "partial") {
         if (m_spinet.getNetworkStructure()[layer] > 0) {
@@ -185,83 +281,4 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
 
 void NetworkHandle::updateNeuronStates(long timeInterval) {
     m_spinet.updateNeuronsStates(timeInterval);
-}
-
-std::vector<Event> mono(const std::string &events, size_t nbPass) {
-    std::vector<Event> eventPacket;
-    size_t pass, count;
-
-    cnpy::NpyArray timestamps_array = cnpy::npz_load(events, "arr_0");
-    cnpy::NpyArray x_array = cnpy::npz_load(events, "arr_1");
-    cnpy::NpyArray y_array = cnpy::npz_load(events, "arr_2");
-    cnpy::NpyArray polarities_array = cnpy::npz_load(events, "arr_3");
-    size_t sizeLeftArray = timestamps_array.shape[0];
-
-    auto *l_timestamps = timestamps_array.data<long>();
-    auto *l_x = x_array.data<int16_t>();
-    auto *l_y = y_array.data<int16_t>();
-    auto *l_polarities = polarities_array.data<bool>();
-
-    long firstTimestamp = l_timestamps[0];
-    long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray - 1]);
-    Event event{};
-
-    for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
-        for (count = 0; count < sizeLeftArray; ++count) {
-            event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count], l_y[count],
-                          l_polarities[count], 0);
-            eventPacket.push_back(event);
-        }
-    }
-    return eventPacket;
-}
-
-std::vector<Event> stereo(const std::string &events, size_t nbPass) {
-    std::vector<Event> eventPacket;
-    size_t pass, left, right;
-
-    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(events, "arr_0");
-    cnpy::NpyArray l_x_array = cnpy::npz_load(events, "arr_1");
-    cnpy::NpyArray l_y_array = cnpy::npz_load(events, "arr_2");
-    cnpy::NpyArray l_polarities_array = cnpy::npz_load(events, "arr_3");
-    size_t sizeLeftArray = l_timestamps_array.shape[0];
-
-    auto *l_timestamps = l_timestamps_array.data<long>();
-    auto *l_x = l_x_array.data<int16_t>();
-    auto *l_y = l_y_array.data<int16_t>();
-    auto *l_polarities = l_polarities_array.data<bool>();
-
-    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(events, "arr_4");
-    cnpy::NpyArray r_x_array = cnpy::npz_load(events, "arr_5");
-    cnpy::NpyArray r_y_array = cnpy::npz_load(events, "arr_6");
-    cnpy::NpyArray r_polarities_array = cnpy::npz_load(events, "arr_7");
-    size_t sizeRightArray = r_timestamps_array.shape[0];
-
-    auto *r_timestamps = r_timestamps_array.data<long>();
-    auto *r_x = r_x_array.data<int16_t>();
-    auto *r_y = r_y_array.data<int16_t>();
-    auto *r_polarities = r_polarities_array.data<bool>();
-
-    long firstLeftTimestamp = l_timestamps[0], firstRightTimestamp = r_timestamps[0], lastLeftTimestamp = static_cast<long>(l_timestamps[
-            sizeLeftArray - 1]), lastRightTimestamp = static_cast<long>(r_timestamps[sizeRightArray - 1]);
-    long l_t, r_t;
-    Event event{};
-
-    for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
-        left = 0;
-        right = 0;
-        while (left < sizeLeftArray && right < sizeRightArray) {
-            l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
-            r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
-            if (right >= sizeRightArray || l_t <= r_t) {
-                event = Event(l_t / 1000, l_x[left], l_y[left], l_polarities[left], 0);
-                ++left;
-            } else if (left >= sizeLeftArray || l_t > r_t) {
-                event = Event(r_t / 1000, r_x[right], r_y[right], r_polarities[right], 1);
-                ++right;
-            }
-            eventPacket.push_back(event);
-        }
-    }
-    return eventPacket;
 }

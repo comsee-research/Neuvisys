@@ -7,9 +7,13 @@
 
 #include "SpikingNetwork.hpp"
 
-std::vector<Event> mono(const std::string &events, size_t nbPass);
-std::vector<Event> stereo(const std::string &events, size_t nbPass);
-
+/*
+ * Used as an abstraction layer on top of the SpikingNetwork class.
+ * It offers functions used for communication between the environment (mainly the incoming flow of events) and the spiking neural network.
+ * Example:
+ *      network = NetworkHandle("/path/to/network/");
+ *      network.transmitEvents(eventPacket);
+ */
 class NetworkHandle {
     SpikingNetwork m_spinet;
     std::map<std::string, std::vector<double>> m_saveData;
@@ -34,6 +38,8 @@ public:
     void save(size_t nbRun, const std::string &eventFileName);
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     void updateNeuronStates(long timeInterval);
+    static std::vector<Event> mono(const std::string &events, size_t nbPass);
+    static std::vector<Event> stereo(const std::string &events, size_t nbPass);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
