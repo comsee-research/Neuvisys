@@ -276,6 +276,10 @@ void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToCon
     }
 }
 
+/* Updates some neurons internal state.
+ * Computes each neurons average spiking rate.
+ * Adapts the threshold of the 1st layer's neurons.
+ */
 void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     size_t layer;
     for (auto &neurons: m_neurons) {

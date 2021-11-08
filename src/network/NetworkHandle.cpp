@@ -27,8 +27,15 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
         eventPacket = stereo(events, nbPass);
     }
 
+    long time = eventPacket.front().timestamp();
+
     for (auto event : eventPacket) {
         m_spinet.runEvent(event);
+
+        if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
+            time = event.timestamp();
+            updateNeuronStates(UPDATE_INTERVAL);
+        }
     }
 
     save(nbPass, events);

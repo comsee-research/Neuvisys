@@ -10,6 +10,8 @@
 #include <iomanip>
 #include <opencv2/core/mat.hpp>
 
+/* Abstract class defining a Neuron.
+ */
 class Neuron {
 protected:
     size_t m_index;

@@ -1,7 +1,12 @@
 #include "Neuron.hpp"
 
-using json = nlohmann::json;
-
+/* Defines an abstract neuron.
+ * index: unique id.
+ * layer: depth of the neuron in the spiking network.
+ * conf: configuration file.
+ * pos: indicates the position of the neuron relative to the other neurons of the layer.
+ * offset: removed to the position in order to access the correct weights of the neuron.
+ */
 Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
         m_layer(layer),
@@ -14,6 +19,8 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
     m_spike = false;
 }
 
+/* Returns the neuron's potential after the decay depending on the time passed from the last event.
+ */
 inline double Neuron::getPotential(long time) {
     return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
 }
@@ -30,6 +37,8 @@ inline double Neuron::adaptationPotentialDecay(long time) {
     m_adaptationPotential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
 }
 
+/* Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
+ */
 void Neuron::updateState(long timeInterval, double alpha) {
     m_lifeSpan += timeInterval;
     double spikesPerSecond = static_cast<double>(m_countSpike) * (E6 / static_cast<double>(timeInterval)); // spikes/s
@@ -37,6 +46,8 @@ void Neuron::updateState(long timeInterval, double alpha) {
     m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
 }
 
+/* Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
+ */
 inline void Neuron::thresholdAdaptation() {
     if (m_spikingRateAverage > conf.TARGET_SPIKE_RATE) {
         m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRateAverage));
@@ -66,7 +77,7 @@ inline void Neuron::inhibition() {
 }
 
 void Neuron::saveState(std::string &fileName) {
-    json state;
+    nlohmann::json state;
 
     writeJson(state);
 
@@ -80,7 +91,7 @@ void Neuron::saveState(std::string &fileName) {
 }
 
 void Neuron::loadState(std::string &fileName) {
-    json state;
+    nlohmann::json state;
     std::ifstream ifs(fileName + ".json");
     if (ifs.is_open()) {
         try {
@@ -96,7 +107,7 @@ void Neuron::loadState(std::string &fileName) {
     ifs.close();
 }
 
-void Neuron::writeJson(json &state) {
+void Neuron::writeJson(nlohmann::json &state) {
     std::vector<size_t> position = {m_pos.x(), m_pos.y(), m_pos.z()};
     std::vector<size_t> offset = {m_offset.x(), m_offset.y(), m_offset.z()};
     std::vector<size_t> inIndex;
@@ -126,7 +137,7 @@ void Neuron::writeJson(json &state) {
     //    state["potential_train"] = m_trackingPotentialTrain;
 }
 
-void Neuron::readJson(const json &state) {
+void Neuron::readJson(const nlohmann::json &state) {
     m_totalSpike = state["count_spike"];
     m_threshold = state["threshold"];
     m_lifeSpan = state["lifespan"];

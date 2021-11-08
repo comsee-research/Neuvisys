@@ -1,5 +1,8 @@
 #include "SimpleNeuron.hpp"
 
+/* Similar to the abstract neuron class.
+ * It also takes as input a weight tensor and the number of synapses used when delayed synapses are defined.
+ */
 SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
     Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
@@ -10,6 +13,9 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
     }
 }
 
+/* Updates neuron internal state after the arrival of an event
+ * Checks first if there is some synaptic delays defined in the network.
+ */
 inline bool SimpleNeuron::newEvent(Event event) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         m_events.push_back(event);
@@ -29,6 +35,10 @@ bool SimpleNeuron::update() {
     return membraneUpdate(event);
 }
 
+/* Updates the membrane potential using the newly arrived event.
+ * Updates some homeostatic mechansims such as the refractory period, potential decay and spike rate adaptation.
+ * If the membrane potential exceeds the threshold, the neuron spikes.
+ */
 inline bool SimpleNeuron::membraneUpdate(Event event) {
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
     m_adaptationPotential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_SRA);
@@ -44,6 +54,9 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
     return false;
 }
 
+/* Updates the spike timings and spike counters.
+ * Also increases the secondary membrane potential use in the spike rate adaptation mechanism.
+ */
 inline void SimpleNeuron::spike(const long time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
@@ -59,6 +72,10 @@ inline void SimpleNeuron::spike(const long time) {
     }
 }
 
+/* Updates the synatic weights using the STDP learning rule.
+ * Only the synapses from which events arrived are updated.
+ * Normalizes the weights after the update.
+ */
 inline void SimpleNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
         for (Event &event : m_events) {
@@ -76,6 +93,8 @@ inline void SimpleNeuron::weightUpdate() {
     m_events.clear();
 }
 
+/* Weight normalization using tensor calculations.
+ */
 inline void SimpleNeuron::normalizeWeights() {
     const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = m_weights.dimensions();
 
