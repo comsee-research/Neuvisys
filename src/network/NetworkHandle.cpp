@@ -143,10 +143,10 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
             l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
             r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
             if (right >= sizeRightArray || l_t <= r_t) {
-                event = Event(l_t / 1000, l_x[left], l_y[left], l_polarities[left], 0);
+                event = Event(l_t / E3, l_x[left], l_y[left], l_polarities[left], 0);
                 ++left;
             } else if (left >= sizeLeftArray || l_t > r_t) {
-                event = Event(r_t / 1000, r_x[right], r_y[right], r_polarities[right], 1);
+                event = Event(r_t / E3, r_x[right], r_y[right], r_polarities[right], 1);
                 ++right;
             }
             eventPacket.push_back(event);
@@ -164,7 +164,6 @@ void NetworkHandle::updateActor(long timestamp, size_t actor) {
         neuron.get().setNeuromodulator(Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD));
         neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
         m_spinet.normalizeActions();
-        //    std::this_thread::sleep_for(2s);
     }
 }
 
@@ -178,7 +177,7 @@ double NetworkHandle::getScore(long time) {
     return mean;
 }
 
-double NetworkHandle::storeLearningMetrics(const double time, const size_t nbEvents) {
+void NetworkHandle::storeLearningMetrics(const double time, const size_t nbEvents) {
     m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
 
     double value = 0;
@@ -200,11 +199,17 @@ double NetworkHandle::storeLearningMetrics(const double time, const size_t nbEve
         m_saveData["valueDot"].push_back(0);
     }
     m_saveData["tdError"].push_back(tdError);
-    if (time < 2 * E6) {
-        return 0;
-    } else {
-        return tdError;
-    }
+
+//    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
+//    double VDot = 0;
+//    if (m_saveData["value"].size() > nbPreviousTD) {
+//        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
+//        VDot = m_networkConf.getNu() * meanDValues / static_cast<double>(m_spinet.getNetworkStructure()[2]);
+//        m_saveData["valueDot"].push_back(meanDValues);
+//    } else {
+//        m_saveData["valueDot"].push_back(0);
+//    }
+//    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
 }
 
 void NetworkHandle::transmitReward(const double reward) {
@@ -225,8 +230,7 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 
     size_t layer = m_spinet.getNetworkStructure().size() - 1;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getSpikeCount();
-        m_spinet.getNeuron(i, layer).get().resetSpikeCounter();
+        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getActivityCount();
     }
     return motorActivations;
 }

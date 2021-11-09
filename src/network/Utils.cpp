@@ -110,17 +110,17 @@ namespace Util {
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
 
-    int winnerTakeAll(std::vector<size_t> v) {
+    int winnerTakeAll(std::vector<size_t> vec) {
         std::vector<size_t> argsmax;
         size_t max = 0;
 
-        for (size_t i = 0; i < v.size(); ++i) {
-            if (v[i] > max) {
-                max = v[i];
+        for (size_t i = 0; i < vec.size(); ++i) {
+            if (vec[i] > max) {
+                max = vec[i];
                 argsmax.clear();
             }
 
-            if (max != 0 && v[i] == max) {
+            if (max != 0 && vec[i] == max) {
                 argsmax.push_back(i);
             }
         }
@@ -142,7 +142,7 @@ namespace Util {
                 sumDVec += (vec[i+1] - vec[i-1]) / 2.0;
                 ++count;
             }
-            return 50 * sumDVec / count;
+            return sumDVec / count;
         } else {
             return 0;
         }

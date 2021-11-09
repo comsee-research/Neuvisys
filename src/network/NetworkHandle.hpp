@@ -30,7 +30,7 @@ public:
 
     void multiplePass(const std::string &events, size_t nbPass);
     void updateActor(long timestamp, size_t actor);
-    double storeLearningMetrics(double time, size_t nbEvents);
+    void storeLearningMetrics(double time, size_t nbEvents);
     void transmitReward(double reward);
     void transmitEvents(const std::vector<Event> &eventPacket);
     std::vector<uint64_t> resolveMotor();

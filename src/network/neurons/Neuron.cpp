@@ -41,8 +41,8 @@ inline double Neuron::adaptationPotentialDecay(long time) {
  */
 void Neuron::updateState(long timeInterval, double alpha) {
     m_lifeSpan += timeInterval;
-    double spikesPerSecond = static_cast<double>(m_countSpike) * (E6 / static_cast<double>(timeInterval)); // spikes/s
-    resetSpikeCounter();
+    double spikesPerSecond = static_cast<double>(m_spikeRateCounter) * (E6 / static_cast<double>(timeInterval)); // spikes/s
+    m_spikeRateCounter = 0;
     m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
 }
 
@@ -149,4 +149,10 @@ void Neuron::readJson(const nlohmann::json &state) {
 void Neuron::trackPotential(const long time) {
     double potential = getPotential(time);
     m_trackingPotentialTrain.emplace_back(potential, time);
+}
+
+size_t Neuron::getActivityCount() {
+    auto temp = m_activityCounter;
+    m_activityCounter = 0;
+    return temp;
 }

@@ -61,7 +61,7 @@ inline void SimpleNeuron::spike(const long time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
-    ++m_countSpike;
+    ++m_spikeRateCounter;
     ++m_totalSpike;
     m_potential = conf.VRESET;
 

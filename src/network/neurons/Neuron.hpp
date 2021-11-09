@@ -25,7 +25,8 @@ protected:
     long m_spikingTime{};
     long m_lastSpikingTime{};
     size_t m_totalSpike{};
-    size_t m_countSpike{};
+    size_t m_spikeRateCounter{};
+    size_t m_activityCounter{};
     double m_learningDecay;
     double m_potential{};
     double m_adaptationPotential{};
@@ -49,14 +50,13 @@ public:
     [[nodiscard]] virtual long getSpikingTime() const { return m_spikingTime; }
     [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
-    [[nodiscard]] virtual size_t getSpikeCount() const { return m_countSpike; }
+    [[nodiscard]] virtual size_t getActivityCount();
     virtual double getWeights(long x, long y, long z) {};
     virtual double getWeights(long p, long c, long s, long x, long y) {};
     virtual std::vector<long> getWeightsDimension() {};
 
     virtual void weightUpdate() {};
     virtual cv::Mat summedWeightMatrix() {};
-    virtual void resetSpikeCounter() { m_countSpike = 0; }
     virtual void resetSpike() { m_spike = false; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getOutConnections() const { return m_outConnections; }
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>> getInConnections() const { return m_inConnections; }

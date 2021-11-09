@@ -24,10 +24,10 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
         sleep_t.sleep();
     }
 
-//    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
-//    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
-    motorMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
-    motorMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
+    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
+    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
+//    motorMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
+//    motorMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -114,23 +114,23 @@ void SimulationInterface::motorsJitter(double dt) {
 void SimulationInterface::activateMotor(uint64_t motor) {
     switch (motorMapping[motor].first) {
         case 0:
-//            m_leftMotor1Pub.setSpeed(motorMapping[motor].second);
-            m_leftMotor1Pub.incrementSpeed(motorMapping[motor].second);
+            m_leftMotor1Pub.setSpeed(motorMapping[motor].second);
+//            m_leftMotor1Pub.incrementSpeed(motorMapping[motor].second);
             m_leftMotor1Pub.move();
             break;
         case 1:
-//            m_leftMotor2Pub.setSpeed(motorMapping[motor].second);
-            m_leftMotor2Pub.incrementSpeed(motorMapping[motor].second);
+            m_leftMotor2Pub.setSpeed(motorMapping[motor].second);
+//            m_leftMotor2Pub.incrementSpeed(motorMapping[motor].second);
             m_leftMotor2Pub.move();
             break;
         case 2:
-//            m_rightMotor1Pub.setSpeed(motorMapping[motor].second);
-            m_rightMotor1Pub.incrementSpeed(motorMapping[motor].second);
+            m_rightMotor1Pub.setSpeed(motorMapping[motor].second);
+//            m_rightMotor1Pub.incrementSpeed(motorMapping[motor].second);
             m_rightMotor1Pub.move();
             break;
         case 3:
-//            m_rightMotor2Pub.setSpeed(motorMapping[motor].second);
-            m_rightMotor2Pub.incrementSpeed(motorMapping[motor].second);
+            m_rightMotor2Pub.setSpeed(motorMapping[motor].second);
+//            m_rightMotor2Pub.incrementSpeed(motorMapping[motor].second);
             m_rightMotor2Pub.move();
             break;
     }

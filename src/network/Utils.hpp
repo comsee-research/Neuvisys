@@ -17,7 +17,7 @@ namespace Util {
     void saveSimpleTensorToNumpyFile(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &saveFile);
     void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor);
     void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile);
-    int winnerTakeAll(std::vector<size_t> v);
+    int winnerTakeAll(std::vector<size_t> vec);
     double secondOrderNumericalDifferentiationMean(const std::vector<double> &vec, long n);
     bool fileExist(std::string &path);
 }

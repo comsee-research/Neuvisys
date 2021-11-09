@@ -54,9 +54,9 @@ void NeuvisysThread::run() {
 void NeuvisysThread::multiplePass(NetworkHandle &network) {
     auto eventPacket = std::vector<Event>();
     if (network.getNetworkConfig().getNbCameras() == 1) {
-        eventPacket = mono(m_events.toStdString(), m_nbPass);
+        eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
     } else if (network.getNetworkConfig().getNbCameras() == 2) {
-        eventPacket = stereo(m_events.toStdString(), m_nbPass);
+        eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
     }
     emit displayProgress(100, 0, 0, 0, 0, 0, 0);
 
@@ -134,7 +134,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
                 consoleTime = sim.getSimulationTime();
                 network.learningDecay(iteration);
                 ++iteration;
-                std::string msg = "Average reward: " + std::to_string(network.getScore(1000)) +
+                std::string msg = "\n\nAverage reward: " + std::to_string(network.getScore(SCORE_INTERVAL * E3 / DT)) +
                                   "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
                                   "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
                 emit consoleMessage(msg);
