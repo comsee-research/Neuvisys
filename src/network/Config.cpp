@@ -230,20 +230,20 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerSizes",        {{28, 4, 64}, {13, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
                     {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {13, 1, 16}, {13, 1, 16}}},
                     {"neuronOverlap", {{0, 0, 0}, {2, 2, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"nu",          1},
+                    {"nu",          0.5},
                     {"V0",         0},
                     {"tauR",    1},
-                    {"explorationFactor", 50},
+                    {"explorationFactor", 70},
                     {"actionRate", 500},
                     {"minActionRate", 100},
-                    {"decayRate", 0.02},
+                    {"decayRate", 0.01},
             },
             {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
                     {"TAU_SRA",  100},
-                    {"TAU_RP",         20},
+                    {"TAU_RP",         30},
                     {"TAU_M",            18},
                     {"TAU_LTP",               7},
                     {"TAU_LTD",       14},
@@ -266,7 +266,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_M",    20},
                     {"TAU_LTP",        20},
                     {"TAU_LTD",          20},
-                    {"TAU_RP",                20},
+                    {"TAU_RP",                30},
                     {"STDP_LEARNING", true},
                     {"NORM_FACTOR",       10},
                     {"ETA_LTP",       0.2},
@@ -291,7 +291,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_K",   50},
                     {"MIN_TAU_K",         25},
                     {"TAU_E",      500},
-                    {"ETA",           0.5}
+                    {"ETA",           0.2}
             },
             {
                     {"VTHRESH",   2},
@@ -305,8 +305,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
                     {"STDP_LEARNING", true},
-                    {"TAU_E",       500},
-                    {"ETA",        0.5}
+                    {"TAU_E",       250},
+                    {"ETA",        0.2}
             }
     };
     size_t count = 0;
