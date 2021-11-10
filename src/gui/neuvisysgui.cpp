@@ -434,9 +434,13 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     rewardChart->removeSeries(valueDotSeries);
     rewardChart->removeSeries(tdSeries);
     rewardSeries = new QLineSeries();
+    rewardSeries->setName("Reward");
     valueSeries = new QLineSeries();
+    valueSeries->setName("Value");
     valueDotSeries = new QLineSeries();
+    valueDotSeries->setName("Value Derivative");
     tdSeries = new QLineSeries();
+    tdSeries->setName("TD Error");
     auto end = rewardTrain.size();
     for (auto i = 1; i < 1000; ++i) {
         if (i >= end) { break; }
@@ -450,6 +454,8 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     rewardChart->addSeries(valueDotSeries);
     rewardChart->addSeries(tdSeries);
     rewardChart->createDefaultAxes();
+    rewardChart->legend()->setVisible(true);
+    rewardChart->legend()->setAlignment(Qt::AlignBottom);
     ui->rewardView->update();
 }
 

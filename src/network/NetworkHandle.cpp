@@ -156,15 +156,16 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
 }
 
 void NetworkHandle::updateActor(long timestamp, size_t actor) {
-    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
-    if (m_saveData["value"].size() > nbPreviousTD) {
-        auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
-        neuron.get().spike(timestamp);
+    auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
+    neuron.get().spike(timestamp);
 
-        neuron.get().setNeuromodulator(50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD));
-        neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
-        m_spinet.normalizeActions();
-    }
+    auto V = valueFunction(static_cast<double>(timestamp));
+    double VDot = valueDerivative(m_saveData["value"]);
+    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
+
+    neuron.get().setNeuromodulator(tdError);
+    neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
+    m_spinet.normalizeActions();
 }
 
 double NetworkHandle::getScore(long time) {
@@ -177,39 +178,34 @@ double NetworkHandle::getScore(long time) {
     return mean;
 }
 
-void NetworkHandle::storeLearningMetrics(const double time, const size_t nbEvents) {
+void NetworkHandle::storeLearningMetrics(double time, size_t nbEvents) {
     m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
 
+    auto V = valueFunction(time);
+    double VDot = valueDerivative(m_saveData["value"]);
+    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
+
+    m_saveData["reward"].push_back(m_reward);
+    m_saveData["value"].push_back(V);
+    m_saveData["valueDot"].push_back(VDot);
+    m_saveData["tdError"].push_back(tdError);
+}
+
+double NetworkHandle::valueFunction(double time) {
     double value = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
         value += m_spinet.getNeuron(i, 2).get().updateKernelSpikingRate(time);
     }
-    auto V = m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + m_networkConf.getV0();
-    //    auto VDot = m_networkConf.getNu() * valueDerivative / static_cast<double>(m_neurons[2].size());
-    auto tdError = -V / m_networkConf.getTauR() + m_reward;
+    return m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + m_networkConf.getV0();
+}
 
-    m_saveData["reward"].push_back(m_reward);
-    m_saveData["value"].push_back(V);
-
+double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
-    if (m_saveData["value"].size() > nbPreviousTD) {
-        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
-        m_saveData["valueDot"].push_back(meanDValues);
+    if (value.size() > nbPreviousTD) {
+        return 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
     } else {
-        m_saveData["valueDot"].push_back(0);
+        return 0;
     }
-    m_saveData["tdError"].push_back(tdError);
-
-//    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
-//    double VDot = 0;
-//    if (m_saveData["value"].size() > nbPreviousTD) {
-//        auto meanDValues = 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
-//        VDot = m_networkConf.getNu() * meanDValues / static_cast<double>(m_spinet.getNetworkStructure()[2]);
-//        m_saveData["valueDot"].push_back(meanDValues);
-//    } else {
-//        m_saveData["valueDot"].push_back(0);
-//    }
-//    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
 }
 
 void NetworkHandle::transmitReward(const double reward) {

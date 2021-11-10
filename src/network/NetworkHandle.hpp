@@ -40,6 +40,8 @@ public:
     void updateNeuronStates(long timeInterval);
     static std::vector<Event> mono(const std::string &events, size_t nbPass);
     static std::vector<Event> stereo(const std::string &events, size_t nbPass);
+    double valueFunction(double time);
+    double valueDerivative(const std::vector<double> &value);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
