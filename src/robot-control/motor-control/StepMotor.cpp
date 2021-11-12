@@ -13,7 +13,8 @@ StepMotor::StepMotor(const std::string &topic, const size_t motorAdress, const s
 }
 
 void StepMotor::setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position) {
-    m_motor.SetAbsolutePosition(static_cast<int>(position.getMessage()->data));
+//    m_motor.SetAbsolutePosition(static_cast<int>(position.getMessage()->data));
+    m_motor.SetSpeed(static_cast<int>(position.getMessage()->data));
 }
 
 StepMotor::~StepMotor() {
