@@ -40,7 +40,6 @@ public:
     explicit SpikingNetwork(const std::string &networkPath);
     void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
-    void runEvent(const Event &event);
     void addEvent(const Event &event);
     void updateNeuronsStates(long timeInterval);
     void loadWeights();

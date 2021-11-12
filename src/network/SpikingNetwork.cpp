@@ -30,17 +30,12 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
     }
 }
 
-void SpikingNetwork::runEvent(const Event &event) {
-    addEvent(event);
-    ++m_iterations;
-}
-
 /* Iterate the network on the event, updating every 1st layer neuron connected to the subsequent pixel.
  * Determines wich neuron to update depending on a mapping between pixels and neurons.
  * If a neuron exceeds a threshold, it spikes and transmit another event towards deeper neurons.
  * A neuron spikes activates inhibition connections to adjacent neurons.
  */
-inline void SpikingNetwork::addEvent(const Event &event) {
+void SpikingNetwork::addEvent(const Event &event) {
     for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
                                     static_cast<uint32_t>(event.y())]) {
         if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), event.x() - static_cast<int16_t>
@@ -55,6 +50,7 @@ inline void SpikingNetwork::addEvent(const Event &event) {
             }
         }
     }
+    ++m_iterations;
 }
 
 /* Recursive function that updates neurons deeper than the 1st layer. Similarly to the addEvent function, if a neuron spikes,
