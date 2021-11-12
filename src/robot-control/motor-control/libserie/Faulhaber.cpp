@@ -2,7 +2,7 @@
 #include <iostream>
 #include <string>     // std::string, std::to_string
 
-Faulhaber::Faulhaber(int Adresse_moteur, string port) : ComSerie() {
+Faulhaber::Faulhaber(int Adresse_moteur, const string &port) : ComSerie() {
     std::cout << " Ouverture de " << port << std::endl;
     ouvrir(port, B9600 | CS8 | CLOCAL | CREAD, 10);
     Adresse_moteur_ = std::to_string(Adresse_moteur);

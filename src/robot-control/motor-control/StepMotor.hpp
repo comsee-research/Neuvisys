@@ -17,7 +17,7 @@ class StepMotor {
     Faulhaber m_motor;
 
 public:
-    StepMotor(const std::string &topic, const size_t motorAdress, const std::string &port);
+    StepMotor(const std::string &topic, size_t motorAdress, const std::string &port);
     ~StepMotor();
     void setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position);
 };
