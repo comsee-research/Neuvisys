@@ -293,14 +293,16 @@ void SpikingNetwork::normalizeActions() {
     auto norms = std::vector<double>(getNetworkStructure().back(), 0);
 
     double normMax = 0;
+    size_t count = 0;
     for (auto &neuron: m_neurons[layer]) {
-        norms.push_back(neuron.get().computeNormWeights());
-        if (norms.back() > normMax) {
-            normMax = norms.back();
+        norms[count] = neuron.get().computeNormWeights();
+        if (norms[count] > normMax) {
+            normMax = norms[count];
         }
+        ++count;
     }
 
-    size_t count = 0;
+    count = 0;
     for (auto &neuron: m_neurons[layer]) {
         if (normMax != norms[count]) {
             neuron.get().rescaleWeights(normMax / norms[count]);
