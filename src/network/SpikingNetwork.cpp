@@ -293,13 +293,23 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
 }
 
 void SpikingNetwork::normalizeActions() {
-    auto norm0 = m_neurons[3][0].get().computeNormWeights();
-    auto norm1 = m_neurons[3][1].get().computeNormWeights();
+    auto layer = m_neurons.size()-1;
+    auto norms = std::vector<double>(getNetworkStructure().back(), 0);
 
-    if (norm0 >= norm1) {
-        m_neurons[3][1].get().rescaleWeights(norm0 / norm1);
-    } else {
-        m_neurons[3][0].get().rescaleWeights(norm1 / norm0);
+    double normMax = 0;
+    for (auto &neuron: m_neurons[layer]) {
+        norms.push_back(neuron.get().computeNormWeights());
+        if (norms.back() > normMax) {
+            normMax = norms.back();
+        }
+    }
+
+    size_t count = 0;
+    for (auto &neuron: m_neurons[layer]) {
+        if (normMax != norms[count]) {
+            neuron.get().rescaleWeights(normMax / norms[count]);
+        }
+        ++count;
     }
 }
 
