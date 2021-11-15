@@ -5,7 +5,8 @@
 
 class Faulhaber : public ComSerie {
 public:
-    Faulhaber(int Adresse_moteur = 0, string port = "/dev/ttyUSB0");
+    Faulhaber() = default;
+    explicit Faulhaber(int Adresse_moteur = 0, const string& port = "/dev/ttyUSB0");
 
     ~Faulhaber();
 

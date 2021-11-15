@@ -1,8 +1,7 @@
-cmake_minimum_required(VERSION 3.0)
-
-project(StepMotor)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 
 add_subdirectory(libserie)
+include_directories(${catkin_INCLUDE_DIRS})
 
 set(SRCS StepMotor.cpp)
 

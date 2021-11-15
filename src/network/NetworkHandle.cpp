@@ -30,7 +30,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     long time = eventPacket.front().timestamp();
 
     for (auto event : eventPacket) {
-        m_spinet.runEvent(event);
+        m_spinet.addEvent(event);
 
         if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
             time = event.timestamp();
@@ -217,7 +217,7 @@ void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
     storeLearningMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
 
     for (auto event : eventPacket) {
-        m_spinet.runEvent(event);
+        m_spinet.addEvent(event);
     }
 }
 

@@ -6,7 +6,6 @@
 
 #include "comserie.hpp"
 
-
 //Declaration des static
 int ComSerie::nb_instance_;
 struct termios ComSerie::old_;
