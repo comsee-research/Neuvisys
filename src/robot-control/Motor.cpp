@@ -9,8 +9,8 @@ Motor::Motor(ros::NodeHandle &n, const std::string& name) {
 }
 
 void Motor::jitter(double dt) {
-    OrnsteinUhlenbeckProcess(dt, 1.1, 0., 0.01);
-    m_speed.data = x;
+    OrnsteinUhlenbeckProcess(dt, 25, 0., 0.05);
+    m_speed.data = static_cast<float>(x);
     m_motorPub.publish(m_speed);
 }
 

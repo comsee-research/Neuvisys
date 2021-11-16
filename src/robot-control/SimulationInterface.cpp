@@ -27,6 +27,7 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
     motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
     motorMapping.emplace_back(std::make_pair(0, 0)); // no movement
     motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
+
 //    motorMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
 //    motorMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
 }
@@ -66,7 +67,7 @@ void SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
     m_lastImageTime = m_imageTime;
 
-//    motorsJitter(dt);
+    motorsJitter(dt);
 }
 
 bool SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
