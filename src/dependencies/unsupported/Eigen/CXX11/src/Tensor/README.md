@@ -28,7 +28,7 @@ indicating the sizes of the instance along each of the the `rank`
 dimensions.
 
     // Create a tensor of rank 3 of sizes 2, 3, 4.  This tensor owns
-    // memory to hold 24 floating point values (24 = 2 x 3 x 4).
+    // memory to hold 24 floating point values (24 = 2 m_jitterPos 3 m_jitterPos 4).
     Tensor<float, 3> t_3d(2, 3, 4);
 
     // Resize t_3d by assigning a tensor of different sizes, but same rank.
@@ -54,7 +54,7 @@ dimensions are known by the compiler.  FixedSize tensors are not resizable.
 If the total number of elements in a fixed size tensor is small enough the
 tensor data is held onto the stack and does not cause heap allocation and free.
 
-    // Create a 4 x 3 tensor of floats.
+    // Create a 4 m_jitterPos 3 tensor of floats.
     TensorFixedSize<float, Sizes<4, 3>> t_4x3;
 
 ### Class `TensorMap<Tensor<data_type, rank>>`
@@ -74,7 +74,7 @@ storage for the data, and "rank" size attributes.  The storage has to be
 large enough to hold all the data.
 
     // Map a tensor of ints on top of stack-allocated storage.
-    int storage[128];  // 2 x 4 x 2 x 8 = 128
+    int storage[128];  // 2 m_jitterPos 4 m_jitterPos 2 m_jitterPos 8 = 128
     TensorMap<Tensor<int, 4>> t_4d(storage, 2, 4, 2, 8);
 
     // The same storage can be viewed as a different tensor.
@@ -309,7 +309,7 @@ following code does not do what you may think:
     auto t4 = (t3 * 0.2f).exp();
 
     // The value is evaluated when you assign the Operation to a Tensor, using
-    // an intermediate tensor to represent t3.x
+    // an intermediate tensor to represent t3.m_jitterPos
     Tensor<float, 3> result = t4;
 
 While in the examples above calling `eval()` does not make a difference in

@@ -207,14 +207,14 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return unaryExpr(internal::scalar_bessel_k1e_op<Scalar>());
     }
 
-    // igamma(a = this, x = other)
+    // igamma(a = this, m_jitterPos = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_igamma_op<Scalar>, const Derived, const OtherDerived>
     igamma(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_igamma_op<Scalar>());
     }
 
-    // igamma_der_a(a = this, x = other)
+    // igamma_der_a(a = this, m_jitterPos = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_igamma_der_a_op<Scalar>, const Derived, const OtherDerived>
     igamma_der_a(const OtherDerived& other) const {
@@ -228,21 +228,21 @@ class TensorBase<Derived, ReadOnlyAccessors>
       return binaryExpr(other.derived(), internal::scalar_gamma_sample_der_alpha_op<Scalar>());
     }
 
-    // igammac(a = this, x = other)
+    // igammac(a = this, m_jitterPos = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_igammac_op<Scalar>, const Derived, const OtherDerived>
     igammac(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_igammac_op<Scalar>());
     }
 
-    // zeta(x = this, q = other)
+    // zeta(m_jitterPos = this, q = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_zeta_op<Scalar>, const Derived, const OtherDerived>
     zeta(const OtherDerived& other) const {
       return binaryExpr(other.derived(), internal::scalar_zeta_op<Scalar>());
     }
 
-    // polygamma(n = this, x = other)
+    // polygamma(n = this, m_jitterPos = other)
     template<typename OtherDerived> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
     const TensorCwiseBinaryOp<internal::scalar_polygamma_op<Scalar>, const Derived, const OtherDerived>
     polygamma(const OtherDerived& other) const {

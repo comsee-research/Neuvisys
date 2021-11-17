@@ -132,7 +132,7 @@ template<>              struct product_type_selector<Large,Large,Small>  { enum 
 // Pro: more natural for the user
 // Cons: this could be a problem if in a meta unrolled algorithm a matrix-matrix
 // product ends up to a row-vector times col-vector product... To tackle this use
-// case, we could have a specialization for Block<MatrixType,1,1> with: operator=(Scalar x);
+// case, we could have a specialization for Block<MatrixType,1,1> with: operator=(Scalar m_jitterPos);
 
 /***********************************************************************
 *  Implementation of Outer Vector Vector Product

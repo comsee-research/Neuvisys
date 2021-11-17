@@ -288,7 +288,7 @@ const CwiseBinaryOp<internal::scalar_difference_op<T,Scalar>,Constant<T>,Derived
   /**
     * \brief Component-wise division of the scalar \a s by array elements of \a a.
     *
-    * \tparam Scalar is the scalar type of \a x. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
+    * \tparam Scalar is the scalar type of \a m_jitterPos. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
     */
   template<typename T> friend
   inline const CwiseBinaryOp<internal::scalar_quotient_op<T,Scalar>,Constant<T>,Derived>
@@ -322,7 +322,7 @@ operator^(const EIGEN_CURRENT_STORAGE_BASE_CLASS<OtherDerived> &other) const
   *
   * It returns the \a n -th derivative of the digamma(psi) evaluated at \c *this.
   *
-  * \warning Be careful with the order of the parameters: x.polygamma(n) is equivalent to polygamma(n,x)
+  * \warning Be careful with the order of the parameters: m_jitterPos.polygamma(n) is equivalent to polygamma(n,m_jitterPos)
   *
   * \sa Eigen::polygamma()
   */

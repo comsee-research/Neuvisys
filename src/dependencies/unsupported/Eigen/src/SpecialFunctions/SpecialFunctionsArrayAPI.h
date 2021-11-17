@@ -13,7 +13,7 @@
 
 namespace Eigen {
 
-/** \cpp11 \returns an expression of the coefficient-wise igamma(\a a, \a x) to the given arrays.
+/** \cpp11 \returns an expression of the coefficient-wise igamma(\a a, \a m_jitterPos) to the given arrays.
   *
   * This function computes the coefficient-wise incomplete gamma function.
   *
@@ -33,7 +33,7 @@ igamma(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDerive
   );
 }
 
-/** \cpp11 \returns an expression of the coefficient-wise igamma_der_a(\a a, \a x) to the given arrays.
+/** \cpp11 \returns an expression of the coefficient-wise igamma_der_a(\a a, \a m_jitterPos) to the given arrays.
   *
   * This function computes the coefficient-wise derivative of the incomplete
   * gamma function with respect to the parameter a.
@@ -75,7 +75,7 @@ gamma_sample_der_alpha(const Eigen::ArrayBase<AlphaDerived>& alpha, const Eigen:
       sample.derived());
 }
 
-/** \cpp11 \returns an expression of the coefficient-wise igammac(\a a, \a x) to the given arrays.
+/** \cpp11 \returns an expression of the coefficient-wise igammac(\a a, \a m_jitterPos) to the given arrays.
   *
   * This function computes the coefficient-wise complementary incomplete gamma function.
   *
@@ -95,9 +95,9 @@ igammac(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDeriv
   );
 }
 
-/** \cpp11 \returns an expression of the coefficient-wise polygamma(\a n, \a x) to the given arrays.
+/** \cpp11 \returns an expression of the coefficient-wise polygamma(\a n, \a m_jitterPos) to the given arrays.
   *
-  * It returns the \a n -th derivative of the digamma(psi) evaluated at \c x.
+  * It returns the \a n -th derivative of the digamma(psi) evaluated at \c m_jitterPos.
   *
   * \note This function supports only float and double scalar types in c++11 mode. To support other scalar types,
   * or float/double in non c++11 mode, the user has to provide implementations of polygamma(T,T) for any scalar
@@ -105,7 +105,7 @@ igammac(const Eigen::ArrayBase<Derived>& a, const Eigen::ArrayBase<ExponentDeriv
   *
   * \sa Eigen::digamma()
   */
-// * \warning Be careful with the order of the parameters: x.polygamma(n) is equivalent to polygamma(n,x)
+// * \warning Be careful with the order of the parameters: m_jitterPos.polygamma(n) is equivalent to polygamma(n,m_jitterPos)
 // * \sa ArrayBase::polygamma()
 template<typename DerivedN,typename DerivedX>
 EIGEN_STRONG_INLINE const Eigen::CwiseBinaryOp<Eigen::internal::scalar_polygamma_op<typename DerivedX::Scalar>, const DerivedN, const DerivedX>
@@ -117,7 +117,7 @@ polygamma(const Eigen::ArrayBase<DerivedN>& n, const Eigen::ArrayBase<DerivedX>&
   );
 }
 
-/** \cpp11 \returns an expression of the coefficient-wise betainc(\a x, \a a, \a b) to the given arrays.
+/** \cpp11 \returns an expression of the coefficient-wise betainc(\a m_jitterPos, \a a, \a b) to the given arrays.
   *
   * This function computes the regularized incomplete beta function (integral).
   *
@@ -139,9 +139,9 @@ betainc(const Eigen::ArrayBase<ArgADerived>& a, const Eigen::ArrayBase<ArgBDeriv
 }
 
 
-/** \returns an expression of the coefficient-wise zeta(\a x, \a q) to the given arrays.
+/** \returns an expression of the coefficient-wise zeta(\a m_jitterPos, \a q) to the given arrays.
   *
-  * It returns the Riemann zeta function of two arguments \a x and \a q:
+  * It returns the Riemann zeta function of two arguments \a m_jitterPos and \a q:
   *
   * \param x is the exponent, it must be > 1
   * \param q is the shift, it must be > 0

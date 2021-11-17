@@ -1,16 +1,16 @@
 #include "Utils.hpp"
 
+std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
+std::normal_distribution<double> normalDistr(0.0, 1.0);
+std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
+
 namespace Util {
     Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(const long x, const long y, const long z) {
-        unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
-        std::default_random_engine generator(seed);
-        std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
         Eigen::Tensor<double, COMPLEXDIM> mat(x, y, z);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
                 for (long k = 0; k < z; ++k) {
-                    mat(i, j, k) = distribution(generator);
+                    mat(i, j, k) = uniformRealDistr(generator);
                 }
             }
         }
@@ -18,15 +18,11 @@ namespace Util {
     }
 
     Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(const long p, const long c, const long s, const long x, const long y) {
-        unsigned seed = static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
-        std::default_random_engine generator(seed);
-        std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
         Eigen::Tensor<double, SIMPLEDIM> mat(p, c, s, x, y);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
                 for (long k = 0; k < p; ++k) {
-                    double weight = distribution(generator);
+                    double weight = uniformRealDistr(generator);
                     for (long l = 0; l < c; ++l) {
                         for (long m = 0; m < s; ++m) {
                             mat(k, l, m, i, j) = weight;
@@ -106,7 +102,6 @@ namespace Util {
                 }
             }
         }
-
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
 
@@ -129,7 +124,7 @@ namespace Util {
             return -1;
         } else {
             std::vector<int> randomArgmax;
-            std::sample(argsmax.begin(), argsmax.end(), std::back_inserter(randomArgmax), 1, std::mt19937{std::random_device{}()});
+            std::sample(argsmax.begin(), argsmax.end(), std::back_inserter(randomArgmax), 1, generator);
             return randomArgmax[0];
         }
     }
@@ -155,6 +150,11 @@ namespace Util {
         } else {
             return false;
         }
+    }
+
+    double ornsteinUhlenbeckProcess(double dt, double pos, double theta, double mu, double sigma) {
+        double noise = normalDistr(generator) * std::sqrt(dt);
+        return pos + theta * (mu - pos) * dt + sigma * noise;
     }
 }
 

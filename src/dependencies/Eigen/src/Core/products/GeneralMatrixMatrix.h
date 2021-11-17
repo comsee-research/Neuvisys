@@ -183,7 +183,7 @@ static void run(Index rows, Index cols, Index depth,
         // horizontal panel which is, in practice, a very low number.
         pack_lhs(blockA, lhs.getSubMapper(i2,k2), actual_kc, actual_mc);
 
-        // For each kc x nc block of the rhs's horizontal panel...
+        // For each kc m_jitterPos nc block of the rhs's horizontal panel...
         for(Index j2=0; j2<cols; j2+=nc)
         {
           const Index actual_nc = (std::min)(j2+nc,cols)-j2;

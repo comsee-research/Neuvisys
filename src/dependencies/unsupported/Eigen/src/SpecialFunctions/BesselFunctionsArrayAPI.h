@@ -13,7 +13,7 @@
 
 namespace Eigen {
 
-/** \returns an expression of the coefficient-wise i0(\a x) to the given
+/** \returns an expression of the coefficient-wise i0(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the modified Bessel function of the first kind of order zero.
@@ -35,7 +35,7 @@ bessel_i0(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise i0e(\a x) to the given
+/** \returns an expression of the coefficient-wise i0e(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the exponentially scaled modified Bessel
@@ -58,7 +58,7 @@ bessel_i0e(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise i1(\a x) to the given
+/** \returns an expression of the coefficient-wise i1(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the modified Bessel function of the first kind of order one.
@@ -80,7 +80,7 @@ bessel_i1(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise i1e(\a x) to the given
+/** \returns an expression of the coefficient-wise i1e(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the exponentially scaled modified Bessel
@@ -103,7 +103,7 @@ bessel_i1e(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise k0(\a x) to the given
+/** \returns an expression of the coefficient-wise k0(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the modified Bessel function of the second kind of order zero.
@@ -125,7 +125,7 @@ bessel_k0(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise k0e(\a x) to the given
+/** \returns an expression of the coefficient-wise k0e(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the exponentially scaled modified Bessel
@@ -148,7 +148,7 @@ bessel_k0e(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise k1(\a x) to the given
+/** \returns an expression of the coefficient-wise k1(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the modified Bessel function of the second kind of order one.
@@ -170,7 +170,7 @@ bessel_k1(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise k1e(\a x) to the given
+/** \returns an expression of the coefficient-wise k1e(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the exponentially scaled modified Bessel
@@ -193,7 +193,7 @@ bessel_k1e(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise j0(\a x) to the given
+/** \returns an expression of the coefficient-wise j0(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the Bessel function of the first kind of order zero.
@@ -215,7 +215,7 @@ bessel_j0(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise y0(\a x) to the given
+/** \returns an expression of the coefficient-wise y0(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the Bessel function of the second kind of order zero.
@@ -237,7 +237,7 @@ bessel_y0(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise j1(\a x) to the given
+/** \returns an expression of the coefficient-wise j1(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the modified Bessel function of the first kind of order one.
@@ -259,7 +259,7 @@ bessel_j1(const Eigen::ArrayBase<Derived>& x) {
       const Derived>(x.derived());
 }
 
-/** \returns an expression of the coefficient-wise y1(\a x) to the given
+/** \returns an expression of the coefficient-wise y1(\a m_jitterPos) to the given
  * arrays.
   *
   * It returns the Bessel function of the second kind of order one.

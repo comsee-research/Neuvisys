@@ -590,7 +590,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel1D(
   extern __shared__ float s[];
 #endif
 
-  const int first_x = blockIdx.x * maxX;
+  const int first_x = blockIdx.m_jitterPos * maxX;
   const int last_x = (first_x + maxX < numX ? first_x + maxX : numX) - 1;
   const int num_x_input = last_x - first_x + GetKernelSize<StaticKernelSize>()(kernelSize);
   const int num_x_output = last_x - first_x + 1;
@@ -603,7 +603,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel1D(
     const int plane_input_offset = indexMapper.mapGpuInputPlaneToTensorInputOffset(p);
     const int plane_kernel_offset = threadIdx.y * num_x_input;
     #pragma unroll
-    for (int i = threadIdx.x; i < num_x_input; i += blockDim.x) {
+    for (int i = threadIdx.m_jitterPos; i < num_x_input; i += blockDim.m_jitterPos) {
       const int tensor_index = plane_input_offset + indexMapper.mapGpuInputKernelToTensorInputOffset(i+first_x);
       s[i + plane_kernel_offset] = eval.coeff(tensor_index);
     }
@@ -614,7 +614,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel1D(
     const int plane_output_offset = indexMapper.mapGpuOutputPlaneToTensorOutputOffset(p);
 
     #pragma unroll
-    for (int i = threadIdx.x; i < num_x_output; i += blockDim.x) {
+    for (int i = threadIdx.m_jitterPos; i < num_x_output; i += blockDim.m_jitterPos) {
       const int kernel_offset = plane_kernel_offset + i;
       float result = 0.0f;
       #pragma unroll
@@ -643,7 +643,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel2D(
   extern __shared__ float s[];
 #endif
 
-  const int first_x = blockIdx.x * maxX;
+  const int first_x = blockIdx.m_jitterPos * maxX;
   const int last_x = (first_x + maxX < numX ? first_x + maxX : numX) - 1;
   const int num_x_input = last_x - first_x + GetKernelSize<StaticKernelSizeX>()(kernelSizeX);
   const int num_x_output = last_x - first_x + 1;
@@ -666,7 +666,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel2D(
     for (int j = threadIdx.y; j < num_y_input; j += blockDim.y) {
       const int input_offset = num_x_input * (j + plane_kernel_offset);
       #pragma unroll
-      for (int i = threadIdx.x; i < num_x_input; i += blockDim.x) {
+      for (int i = threadIdx.m_jitterPos; i < num_x_input; i += blockDim.m_jitterPos) {
         const int tensor_index = plane_input_offset + indexMapper.mapGpuInputKernelToTensorInputOffset(i+first_x, j+first_y);
         s[i + input_offset] = eval.coeff(tensor_index);
       }
@@ -680,7 +680,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel2D(
     #pragma unroll
     for (int j = threadIdx.y; j < num_y_output; j += blockDim.y) {
       #pragma unroll
-      for (int i = threadIdx.x; i < num_x_output; i += blockDim.x) {
+      for (int i = threadIdx.m_jitterPos; i < num_x_output; i += blockDim.m_jitterPos) {
         float result = 0.0f;
         #pragma unroll
         for (int l = 0; l < GetKernelSize<StaticKernelSizeY>()(kernelSizeY); ++l) {
@@ -716,7 +716,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel3D(
 #endif
 
   // Load inputs to shared memory
-  const int first_x = blockIdx.x * maxX;
+  const int first_x = blockIdx.m_jitterPos * maxX;
   const int last_x = (first_x + maxX < numX ? first_x + maxX : numX) - 1;
   const int num_x_input = last_x - first_x + kernelSizeX;
 
@@ -735,7 +735,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel3D(
 
     for (int k = threadIdx.z; k < num_z_input; k += blockDim.z) {
       for (int j = threadIdx.y; j < num_y_input; j += blockDim.y) {
-        for (int i = threadIdx.x; i < num_x_input; i += blockDim.x) {
+        for (int i = threadIdx.m_jitterPos; i < num_x_input; i += blockDim.m_jitterPos) {
           const int tensor_index = plane_input_offset + indexMapper.mapGpuInputKernelToTensorInputOffset(i+first_x, j+first_y, k+first_z);
           s[i + num_x_input * (j + num_y_input * (k + plane_kernel_offset))] = eval.coeff(tensor_index);
         }
@@ -752,7 +752,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel3D(
 
     for (int k = threadIdx.z; k < num_z_output; k += blockDim.z) {
       for (int j = threadIdx.y; j < num_y_output; j += blockDim.y) {
-        for (int i = threadIdx.x; i < num_x_output; i += blockDim.x) {
+        for (int i = threadIdx.m_jitterPos; i < num_x_output; i += blockDim.m_jitterPos) {
           float result = 0.0f;
           for (int n = 0; n < kernelSizeZ; ++n) {
             for (int m = 0; m < kernelSizeY; ++m) {
@@ -903,8 +903,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           const int inner_dim = ((maxSharedMem / (sizeof(Scalar)) - kernel_size + 1 + 31) / 32) * 32;
           maxX = numext::mini<int>(inner_dim, numX);
           const int maxP = numext::mini<int>(maxSharedMem / ((kernel_size - 1 + maxX) * sizeof(Scalar)), numP);
-          block_size.x = numext::mini(maxThreadsPerBlock, maxX);
-          block_size.y = numext::mini<int>(maxThreadsPerBlock / block_size.x, maxP);
+          block_size.m_jitterPos = numext::mini(maxThreadsPerBlock, maxX);
+          block_size.y = numext::mini<int>(maxThreadsPerBlock / block_size.m_jitterPos, maxP);
         }
         else {
           // Read as much as possible alongside the inner most dimension, that is the plane
@@ -912,8 +912,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
           const int maxP = numext::mini<int>(inner_dim, numP);
           maxX = numext::mini<int>(maxSharedMem / (inner_dim * sizeof(Scalar)) - kernel_size + 1, numX);
 
-          block_size.x = numext::mini(warpSize, maxX);
-          block_size.y = numext::mini<int>(maxThreadsPerBlock/block_size.x, maxP);
+          block_size.m_jitterPos = numext::mini(warpSize, maxX);
+          block_size.y = numext::mini<int>(maxThreadsPerBlock/block_size.m_jitterPos, maxP);
         }
 
         const int shared_mem = block_size.y * (maxX + kernel_size - 1) * sizeof(Scalar);
@@ -926,7 +926,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         dim3 num_blocks(num_x_blocks, numext::mini<int>(num_y_blocks, ceil(numP, block_size.y)));
 
 
-        //cout << "launching 1D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " maxX: " << maxX << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
+        //cout << "launching 1D kernel with block_size.m_jitterPos: " << block_size.m_jitterPos << " block_size.y: " << block_size.y << " num_blocks.m_jitterPos: " << num_blocks.m_jitterPos << " num_blocks.y: " << num_blocks.y << " maxX: " << maxX << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
 
         const array<Index, 1> indices(m_indices[0]);
         const array<Index, 1> kernel_dims(m_kernelImpl.dimensions()[0]);
@@ -969,9 +969,9 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const int maxP = numext::mini<int>(maxSharedMem / ((kernel_size_x - 1 + maxX) * (kernel_size_y - 1 + maxY) * sizeof(Scalar)), numP);
 
         dim3 block_size;
-        block_size.x = numext::mini(1024, maxX);
-        block_size.y = numext::mini<int>(1024/block_size.x, maxY);
-        block_size.z = numext::mini<int>(1024/(block_size.x*block_size.y), maxP);
+        block_size.m_jitterPos = numext::mini(1024, maxX);
+        block_size.y = numext::mini<int>(1024/block_size.m_jitterPos, maxY);
+        block_size.z = numext::mini<int>(1024/(block_size.m_jitterPos*block_size.y), maxP);
 
         const int shared_mem = block_size.z * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * sizeof(Scalar);
         gpu_assert(shared_mem <= maxSharedMem);
@@ -984,7 +984,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         dim3 num_blocks(num_x_blocks, num_y_blocks, numext::mini<int>(num_z_blocks, ceil(numP, block_size.z)));
 
 
-        //cout << "launching 2D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z << " maxX: " << maxX << " maxY: " << maxY << " maxP: " << maxP << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
+        //cout << "launching 2D kernel with block_size.m_jitterPos: " << block_size.m_jitterPos << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.m_jitterPos: " << num_blocks.m_jitterPos << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z << " maxX: " << maxX << " maxY: " << maxY << " maxP: " << maxP << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
 
         const array<Index, 2> indices(m_indices[idxX], m_indices[idxY]);
         const array<Index, 2> kernel_dims(m_kernelImpl.dimensions()[idxX],
@@ -1048,15 +1048,15 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
         const int maxZ = numext::mini<int>(128, numext::mini<int>(maxSharedMem / (sizeof(Scalar) * (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1)) - kernel_size_z + 1, numZ));
 
         dim3 block_size;
-        block_size.x = numext::mini(32, maxX);
+        block_size.m_jitterPos = numext::mini(32, maxX);
         block_size.y = numext::mini(32, maxY);
-        block_size.z = numext::mini<int>(1024/(block_size.x*block_size.y), maxZ);
+        block_size.z = numext::mini<int>(1024/(block_size.m_jitterPos*block_size.y), maxZ);
         dim3 num_blocks(ceil(numX, maxX), ceil(numY, maxY), ceil(numZ, maxZ));
 
         const int shared_mem = (maxX + kernel_size_x - 1) * (maxY + kernel_size_y - 1) * (maxZ + kernel_size_z - 1) * sizeof(Scalar);
         gpu_assert(shared_mem <= maxSharedMem);
 
-        //cout << "launching 3D kernel with block_size.x: " << block_size.x << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.x: " << num_blocks.x << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z  << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
+        //cout << "launching 3D kernel with block_size.m_jitterPos: " << block_size.m_jitterPos << " block_size.y: " << block_size.y  << " block_size.z: " << block_size.z << " num_blocks.m_jitterPos: " << num_blocks.m_jitterPos << " num_blocks.y: " << num_blocks.y << " num_blocks.z: " << num_blocks.z  << " shared_mem: " << shared_mem << " in stream " << m_device.stream() << endl;
         const array<Index, 3> indices(m_indices[idxX], m_indices[idxY],
                                       m_indices[idxZ]);
         const array<Index, 3> kernel_dims(m_kernelImpl.dimensions()[idxX],

@@ -1992,7 +1992,7 @@ Exceptions have ids 2xx.
 name / id                           | example message | description
 ----------------------------------- | --------------- | -------------------------
 json.exception.invalid_iterator.201 | iterators are not compatible | The iterators passed to constructor @ref basic_json(InputIT first, InputIT last) are not compatible, meaning they do not belong to the same container. Therefore, the range (@a first, @a last) is invalid.
-json.exception.invalid_iterator.202 | iterator does not fit current value | In an erase or insert function, the passed iterator @a pos does not belong to the JSON value for which the function was called. It hence does not define a valid speed for the deletion/insertion.
+json.exception.invalid_iterator.202 | iterator does not fit current value | In an erase or insert function, the passed iterator @a m_jitterPos does not belong to the JSON value for which the function was called. It hence does not define a valid speed for the deletion/insertion.
 json.exception.invalid_iterator.203 | iterators do not fit current value | Either iterator passed to function @ref erase(IteratorType first, IteratorType last) does not belong to the JSON value from which values shall be erased. It hence does not define a valid range to delete values from.
 json.exception.invalid_iterator.204 | iterators out of range | When an iterator range for a primitive type (number, boolean, or string) is passed to a constructor or an erase function, this range has to be exactly (@ref begin(), @ref end()), because this is the only way the single stored value is expressed. All other ranges are invalid.
 json.exception.invalid_iterator.205 | iterator out of range | When an iterator for a primitive type (number, boolean, or string) is passed to an erase function, the iterator has to be the @ref begin() iterator, because it is the only way to address the stored value. All other iterators are invalid.
@@ -12706,8 +12706,8 @@ struct diyfp // f * 2^e
     constexpr diyfp(std::uint64_t f_, int e_) noexcept : f(f_), e(e_) {}
 
     /*!
-    @brief returns x - y
-    @pre x.e == y.e and x.f >= y.f
+    @brief returns m_jitterPos - y
+    @pre m_jitterPos.e == y.e and m_jitterPos.f >= y.f
     */
     static diyfp sub(const diyfp& x, const diyfp& y) noexcept
     {
@@ -12718,7 +12718,7 @@ struct diyfp // f * 2^e
     }
 
     /*!
-    @brief returns x * y
+    @brief returns m_jitterPos * y
     @note The result is rounded. (Only the upper q bits are returned.)
     */
     static diyfp mul(const diyfp& x, const diyfp& y) noexcept
@@ -12726,8 +12726,8 @@ struct diyfp // f * 2^e
         static_assert(kPrecision == 64, "internal error");
 
         // Computes:
-        //  f = round((x.f * y.f) / 2^q)
-        //  e = x.e + y.e + q
+        //  f = round((m_jitterPos.f * y.f) / 2^q)
+        //  e = m_jitterPos.e + y.e + q
 
         // Emulate the 64-bit * 64-bit multiplication:
         //
@@ -12783,8 +12783,8 @@ struct diyfp // f * 2^e
     }
 
     /*!
-    @brief normalize x such that the significand is >= 2^(q-1)
-    @pre x.f != 0
+    @brief normalize m_jitterPos such that the significand is >= 2^(q-1)
+    @pre m_jitterPos.f != 0
     */
     static diyfp normalize(diyfp x) noexcept
     {
@@ -12800,8 +12800,8 @@ struct diyfp // f * 2^e
     }
 
     /*!
-    @brief normalize x such that the result has the exponent E
-    @pre e >= x.e and the upper e - x.e bits of x.f must be zero.
+    @brief normalize m_jitterPos such that the result has the exponent E
+    @pre e >= m_jitterPos.e and the upper e - m_jitterPos.e bits of m_jitterPos.f must be zero.
     */
     static diyfp normalize_to(const diyfp& x, const int target_exponent) noexcept
     {
@@ -18190,16 +18190,16 @@ class basic_json
     /*!
     @brief remove element given an iterator
 
-    Removes the element specified by iterator @a pos. The iterator @a pos must
+    Removes the element specified by iterator @a m_jitterPos. The iterator @a m_jitterPos must
     be valid and dereferenceable. Thus the `end()` iterator (which is valid,
-    but is not dereferenceable) cannot be used as a value for @a pos.
+    but is not dereferenceable) cannot be used as a value for @a m_jitterPos.
 
     If called on a primitive type other than `null`, the resulting JSON value
     will be `null`.
 
     @param[in] pos iterator to the element to remove
     @return Iterator following the last removed element. If the iterator @a
-    pos refers to the last element, the `end()` iterator is returned.
+    m_jitterPos refers to the last element, the `end()` iterator is returned.
 
     @tparam IteratorType an @ref iterator or @ref const_iterator
 
@@ -18217,7 +18217,7 @@ class basic_json
 
     @complexity The complexity depends on the type:
     - objects: amortized constant
-    - arrays: linear in distance between @a pos and the end of the container
+    - arrays: linear in distance between @a m_jitterPos and the end of the container
     - strings: linear in the length of the string
     - other types: constant
 
@@ -19686,7 +19686,7 @@ class basic_json
         result.m_it.array_iterator = m_value.array->begin() + insert_pos;
 
         // This could have been written as:
-        // result.m_it.array_iterator = m_value.array->insert(pos.m_it.array_iterator, cnt, val);
+        // result.m_it.array_iterator = m_value.array->insert(m_jitterPos.m_it.array_iterator, cnt, val);
         // but the return value of insert is missing in GCC 4.8, so it is written this way instead.
 
         return result;
@@ -19695,7 +19695,7 @@ class basic_json
     /*!
     @brief inserts element
 
-    Inserts element @a val before iterator @a pos.
+    Inserts element @a val before iterator @a m_jitterPos.
 
     @param[in] pos iterator before which the content will be inserted; may be
     the end() iterator
@@ -19704,10 +19704,10 @@ class basic_json
 
     @throw type_error.309 if called on JSON values other than arrays;
     example: `"cannot use insert() with string"`
-    @throw invalid_iterator.202 if @a pos is not an iterator of *this;
+    @throw invalid_iterator.202 if @a m_jitterPos is not an iterator of *this;
     example: `"iterator does not fit current value"`
 
-    @complexity Constant plus linear in the distance between @a pos and end of
+    @complexity Constant plus linear in the distance between @a m_jitterPos and end of
     the container.
 
     @liveexample{The example shows how `insert()` is used.,insert}
@@ -19719,7 +19719,7 @@ class basic_json
         // insert only works for arrays
         if (JSON_HEDLEY_LIKELY(is_array()))
         {
-            // check if iterator pos fits to this JSON value
+            // check if iterator m_jitterPos fits to this JSON value
             if (JSON_HEDLEY_UNLIKELY(pos.m_object != this))
             {
                 JSON_THROW(invalid_iterator::create(202, "iterator does not fit current value"));
@@ -19744,21 +19744,21 @@ class basic_json
     /*!
     @brief inserts elements
 
-    Inserts @a cnt copies of @a val before iterator @a pos.
+    Inserts @a cnt copies of @a val before iterator @a m_jitterPos.
 
     @param[in] pos iterator before which the content will be inserted; may be
     the end() iterator
     @param[in] cnt number of copies of @a val to insert
     @param[in] val element to insert
-    @return iterator pointing to the first element inserted, or @a pos if
+    @return iterator pointing to the first element inserted, or @a m_jitterPos if
     `cnt==0`
 
     @throw type_error.309 if called on JSON values other than arrays; example:
     `"cannot use insert() with string"`
-    @throw invalid_iterator.202 if @a pos is not an iterator of *this;
+    @throw invalid_iterator.202 if @a m_jitterPos is not an iterator of *this;
     example: `"iterator does not fit current value"`
 
-    @complexity Linear in @a cnt plus linear in the distance between @a pos
+    @complexity Linear in @a cnt plus linear in the distance between @a m_jitterPos
     and end of the container.
 
     @liveexample{The example shows how `insert()` is used.,insert__count}
@@ -19770,7 +19770,7 @@ class basic_json
         // insert only works for arrays
         if (JSON_HEDLEY_LIKELY(is_array()))
         {
-            // check if iterator pos fits to this JSON value
+            // check if iterator m_jitterPos fits to this JSON value
             if (JSON_HEDLEY_UNLIKELY(pos.m_object != this))
             {
                 JSON_THROW(invalid_iterator::create(202, "iterator does not fit current value"));
@@ -19786,7 +19786,7 @@ class basic_json
     /*!
     @brief inserts elements
 
-    Inserts elements from range `[first, last)` before iterator @a pos.
+    Inserts elements from range `[first, last)` before iterator @a m_jitterPos.
 
     @param[in] pos iterator before which the content will be inserted; may be
     the end() iterator
@@ -19795,7 +19795,7 @@ class basic_json
 
     @throw type_error.309 if called on JSON values other than arrays; example:
     `"cannot use insert() with string"`
-    @throw invalid_iterator.202 if @a pos is not an iterator of *this;
+    @throw invalid_iterator.202 if @a m_jitterPos is not an iterator of *this;
     example: `"iterator does not fit current value"`
     @throw invalid_iterator.210 if @a first and @a last do not belong to the
     same JSON value; example: `"iterators do not fit"`
@@ -19803,11 +19803,11 @@ class basic_json
     container for which insert is called; example: `"passed iterators may not
     belong to container"`
 
-    @return iterator pointing to the first element inserted, or @a pos if
+    @return iterator pointing to the first element inserted, or @a m_jitterPos if
     `first==last`
 
     @complexity Linear in `std::distance(first, last)` plus linear in the
-    distance between @a pos and end of the container.
+    distance between @a m_jitterPos and end of the container.
 
     @liveexample{The example shows how `insert()` is used.,insert__range}
 
@@ -19821,7 +19821,7 @@ class basic_json
             JSON_THROW(type_error::create(309, "cannot use insert() with " + std::string(type_name())));
         }
 
-        // check if iterator pos fits to this JSON value
+        // check if iterator m_jitterPos fits to this JSON value
         if (JSON_HEDLEY_UNLIKELY(pos.m_object != this))
         {
             JSON_THROW(invalid_iterator::create(202, "iterator does not fit current value"));
@@ -19845,7 +19845,7 @@ class basic_json
     /*!
     @brief inserts elements
 
-    Inserts elements from initializer list @a ilist before iterator @a pos.
+    Inserts elements from initializer list @a ilist before iterator @a m_jitterPos.
 
     @param[in] pos iterator before which the content will be inserted; may be
     the end() iterator
@@ -19853,14 +19853,14 @@ class basic_json
 
     @throw type_error.309 if called on JSON values other than arrays; example:
     `"cannot use insert() with string"`
-    @throw invalid_iterator.202 if @a pos is not an iterator of *this;
+    @throw invalid_iterator.202 if @a m_jitterPos is not an iterator of *this;
     example: `"iterator does not fit current value"`
 
-    @return iterator pointing to the first element inserted, or @a pos if
+    @return iterator pointing to the first element inserted, or @a m_jitterPos if
     `ilist` is empty
 
     @complexity Linear in `ilist.size()` plus linear in the distance between
-    @a pos and end of the container.
+    @a m_jitterPos and end of the container.
 
     @liveexample{The example shows how `insert()` is used.,insert__ilist}
 
@@ -19874,7 +19874,7 @@ class basic_json
             JSON_THROW(type_error::create(309, "cannot use insert() with " + std::string(type_name())));
         }
 
-        // check if iterator pos fits to this JSON value
+        // check if iterator m_jitterPos fits to this JSON value
         if (JSON_HEDLEY_UNLIKELY(pos.m_object != this))
         {
             JSON_THROW(invalid_iterator::create(202, "iterator does not fit current value"));

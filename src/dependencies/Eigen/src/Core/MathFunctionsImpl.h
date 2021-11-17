@@ -18,10 +18,10 @@ namespace internal {
 /** \internal \returns the hyperbolic tan of \a a (coeff-wise)
     Doesn't do anything fancy, just a 13/6-degree rational interpolant which
     is accurate up to a couple of ulps in the (approximate) range [-8, 8],
-    outside of which tanh(x) = +/-1 in single precision. The input is clamped
+    outside of which tanh(m_jitterPos) = +/-1 in single precision. The input is clamped
     to the range [-c, c]. The value c is chosen as the smallest value where
     the approximation evaluates to exactly 1. In the reange [-0.0004, 0.0004]
-    the approxmation tanh(x) ~= x is used for better accuracy as x tends to zero.
+    the approxmation tanh(m_jitterPos) ~= m_jitterPos is used for better accuracy as m_jitterPos tends to zero.
 
     This implementation works on both scalars and packets.
 */
@@ -54,7 +54,7 @@ T generic_fast_tanh_float(const T& a_x)
   const T beta_4 = pset1<T>(1.18534705686654e-04f);
   const T beta_6 = pset1<T>(1.19825839466702e-06f);
 
-  // Since the polynomials are odd/even, we need x^2.
+  // Since the polynomials are odd/even, we need m_jitterPos^2.
   const T x2 = pmul(x, x);
 
   // Evaluate the numerator polynomial p.

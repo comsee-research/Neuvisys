@@ -277,7 +277,7 @@ struct TensorEvaluator<const TensorImagePatchOp<Rows, Cols, ArgType>, Device>
     //   A B C
     //   D E F
     //
-    // to a matrix is 3 x 5:
+    // to a matrix is 3 m_jitterPos 5:
     //
     //   A . B . C
     //   . . . . .

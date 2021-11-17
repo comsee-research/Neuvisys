@@ -585,8 +585,8 @@ __global__ void
 __launch_bounds__(1024)
 EigenMetaKernel(Evaluator eval, StorageIndex size) {
 
-  const StorageIndex first_index = blockIdx.x * blockDim.x + threadIdx.x;
-  const StorageIndex step_size = blockDim.x * gridDim.x;
+  const StorageIndex first_index = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
+  const StorageIndex step_size = blockDim.m_jitterPos * gridDim.m_jitterPos;
 
   const bool vectorizable = Evaluator::PacketAccess & Evaluator::IsAligned;
   EigenMetaKernelEval<Evaluator, StorageIndex, vectorizable>::run(eval, first_index, size, step_size);

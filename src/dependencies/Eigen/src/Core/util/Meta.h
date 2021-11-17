@@ -429,7 +429,7 @@ template<typename T, std::size_t N> struct array_size<std::array<T,N> > {
 
 /** \internal
   * Analogue of the std::size free function.
-  * It returns the size of the container or view \a x of type \c T
+  * It returns the size of the container or view \a m_jitterPos of type \c T
   *
   * It currently supports:
   *  - any types T defining a member T::size() const

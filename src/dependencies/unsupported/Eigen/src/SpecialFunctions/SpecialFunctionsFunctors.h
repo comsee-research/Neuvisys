@@ -17,7 +17,7 @@ namespace internal {
 
 
 /** \internal
-  * \brief Template functor to compute the incomplete gamma function igamma(a, x)
+  * \brief Template functor to compute the incomplete gamma function igamma(a, m_jitterPos)
   *
   * \sa class CwiseBinaryOp, Cwise::igamma
   */
@@ -43,7 +43,7 @@ struct functor_traits<scalar_igamma_op<Scalar> > {
 
 /** \internal
   * \brief Template functor to compute the derivative of the incomplete gamma
-  * function igamma_der_a(a, x)
+  * function igamma_der_a(a, m_jitterPos)
   *
   * \sa class CwiseBinaryOp, Cwise::igamma_der_a
   */
@@ -97,7 +97,7 @@ struct functor_traits<scalar_gamma_sample_der_alpha_op<Scalar> > {
 };
 
 /** \internal
-  * \brief Template functor to compute the complementary incomplete gamma function igammac(a, x)
+  * \brief Template functor to compute the complementary incomplete gamma function igammac(a, m_jitterPos)
   *
   * \sa class CwiseBinaryOp, Cwise::igammac
   */
@@ -124,7 +124,7 @@ struct functor_traits<scalar_igammac_op<Scalar> > {
 
 
 /** \internal
-  * \brief Template functor to compute the incomplete beta integral betainc(a, b, x)
+  * \brief Template functor to compute the incomplete beta integral betainc(a, b, m_jitterPos)
   *
   */
 template<typename Scalar> struct scalar_betainc_op {

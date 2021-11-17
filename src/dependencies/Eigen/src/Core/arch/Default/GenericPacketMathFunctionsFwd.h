@@ -26,45 +26,45 @@ pfrexp_double(const Packet& a, Packet& exponent);
 template<typename Packet> EIGEN_STRONG_INLINE Packet
 pldexp_float(Packet a, Packet exponent);
 
-/** \internal \returns log(x) for single precision float */
+/** \internal \returns log(m_jitterPos) for single precision float */
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet plog_float(const Packet _x);
 
-/** \internal \returns log(x) for single precision float */
+/** \internal \returns log(m_jitterPos) for single precision float */
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet plog_double(const Packet _x);
 
-/** \internal \returns log(1 + x) */
+/** \internal \returns log(1 + m_jitterPos) */
 template<typename Packet>
 Packet generic_plog1p(const Packet& x);
 
-/** \internal \returns exp(x)-1 */
+/** \internal \returns exp(m_jitterPos)-1 */
 template<typename Packet>
 Packet generic_expm1(const Packet& x);
 
-/** \internal \returns exp(x) for single precision float */
+/** \internal \returns exp(m_jitterPos) for single precision float */
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet pexp_float(const Packet _x);
 
-/** \internal \returns exp(x) for double precision real numbers */
+/** \internal \returns exp(m_jitterPos) for double precision real numbers */
 template <typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet pexp_double(const Packet _x);
 
-/** \internal \returns sin(x) for single precision float */
+/** \internal \returns sin(m_jitterPos) for single precision float */
 template<typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED
 Packet psin_float(const Packet& x);
 
-/** \internal \returns cos(x) for single precision float */
+/** \internal \returns cos(m_jitterPos) for single precision float */
 template<typename Packet>
 EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS
 EIGEN_UNUSED

@@ -391,10 +391,10 @@ template<> EIGEN_STRONG_INLINE Packet4f pmin<Packet4f>(const Packet4f& a, const 
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
   #ifdef EIGEN_VECTORIZE_AVX
   Packet4f res;
-  asm("vminps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  asm("vminps %[a], %[b], %[res]" : [res] "=m_jitterPos" (res) : [a] "m_jitterPos" (a), [b] "m_jitterPos" (b));
   #else
   Packet4f res = b;
-  asm("minps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  asm("minps %[a], %[res]" : [res] "+m_jitterPos" (res) : [a] "m_jitterPos" (a));
   #endif
   return res;
 #else
@@ -410,10 +410,10 @@ template<> EIGEN_STRONG_INLINE Packet2d pmin<Packet2d>(const Packet2d& a, const 
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
   #ifdef EIGEN_VECTORIZE_AVX
   Packet2d res;
-  asm("vminpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  asm("vminpd %[a], %[b], %[res]" : [res] "=m_jitterPos" (res) : [a] "m_jitterPos" (a), [b] "m_jitterPos" (b));
   #else
   Packet2d res = b;
-  asm("minpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  asm("minpd %[a], %[res]" : [res] "+m_jitterPos" (res) : [a] "m_jitterPos" (a));
   #endif
   return res;
 #else
@@ -441,10 +441,10 @@ template<> EIGEN_STRONG_INLINE Packet4f pmax<Packet4f>(const Packet4f& a, const 
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
   #ifdef EIGEN_VECTORIZE_AVX
   Packet4f res;
-  asm("vmaxps %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  asm("vmaxps %[a], %[b], %[res]" : [res] "=m_jitterPos" (res) : [a] "m_jitterPos" (a), [b] "m_jitterPos" (b));
   #else
   Packet4f res = b;
-  asm("maxps %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  asm("maxps %[a], %[res]" : [res] "+m_jitterPos" (res) : [a] "m_jitterPos" (a));
   #endif
   return res;
 #else
@@ -460,10 +460,10 @@ template<> EIGEN_STRONG_INLINE Packet2d pmax<Packet2d>(const Packet2d& a, const 
   // see also: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=72867
   #ifdef EIGEN_VECTORIZE_AVX
   Packet2d res;
-  asm("vmaxpd %[a], %[b], %[res]" : [res] "=x" (res) : [a] "x" (a), [b] "x" (b));
+  asm("vmaxpd %[a], %[b], %[res]" : [res] "=m_jitterPos" (res) : [a] "m_jitterPos" (a), [b] "m_jitterPos" (b));
   #else
   Packet2d res = b;
-  asm("maxpd %[a], %[res]" : [res] "+x" (res) : [a] "x" (a));
+  asm("maxpd %[a], %[res]" : [res] "+m_jitterPos" (res) : [a] "m_jitterPos" (a));
   #endif
   return res;
 #else
@@ -751,12 +751,12 @@ template<> EIGEN_STRONG_INLINE void prefetch<int>(const int*       addr) { _mm_p
 // Direct of the struct members fixed bug #62.
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { return a.m128_f32[0]; }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return a.m128d_f64[0]; }
-template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
+template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int m_jitterPos = _mm_cvtsi128_si32(a); return m_jitterPos; }
 #elif EIGEN_COMP_MSVC_STRICT
 // The temporary variable fixes an internal compilation error in vs <= 2008 and a wrong-result bug in vs 2010
-template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float x = _mm_cvtss_f32(a); return x; }
-template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { double x = _mm_cvtsd_f64(a); return x; }
-template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int x = _mm_cvtsi128_si32(a); return x; }
+template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { float m_jitterPos = _mm_cvtss_f32(a); return m_jitterPos; }
+template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { double m_jitterPos = _mm_cvtsd_f64(a); return m_jitterPos; }
+template<> EIGEN_STRONG_INLINE int    pfirst<Packet4i>(const Packet4i& a) { int m_jitterPos = _mm_cvtsi128_si32(a); return m_jitterPos; }
 #else
 template<> EIGEN_STRONG_INLINE float  pfirst<Packet4f>(const Packet4f& a) { return _mm_cvtss_f32(a); }
 template<> EIGEN_STRONG_INLINE double pfirst<Packet2d>(const Packet2d& a) { return _mm_cvtsd_f64(a); }
@@ -994,9 +994,9 @@ template<> EIGEN_STRONG_INLINE int predux_max<Packet4i>(const Packet4i& a)
 }
 
 // not needed yet
-// template<> EIGEN_STRONG_INLINE bool predux_all(const Packet4f& x)
+// template<> EIGEN_STRONG_INLINE bool predux_all(const Packet4f& m_jitterPos)
 // {
-//   return _mm_movemask_ps(x) == 0xF;
+//   return _mm_movemask_ps(m_jitterPos) == 0xF;
 // }
 
 template<> EIGEN_STRONG_INLINE bool predux_any(const Packet4f& x)
@@ -1171,7 +1171,7 @@ template<> EIGEN_STRONG_INLINE double pmadd(const double& a, const double& b, co
 #if 0
 
 typedef struct {
-  __m64 x;
+  __m64 m_jitterPos;
 } Packet4h;
 
 
@@ -1211,19 +1211,19 @@ template<> struct unpacket_traits<Packet4h> { typedef Eigen::half type; enum {si
 
 template<> EIGEN_STRONG_INLINE Packet4h pset1<Packet4h>(const Eigen::half& from) {
   Packet4h result;
-  result.x = _mm_set1_pi16(from.x);
+  result.m_jitterPos = _mm_set1_pi16(from.m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Eigen::half pfirst<Packet4h>(const Packet4h& from) {
-  return half_impl::raw_uint16_to_half(static_cast<unsigned short>(_mm_cvtsi64_si32(from.x)));
+  return half_impl::raw_uint16_to_half(static_cast<unsigned short>(_mm_cvtsi64_si32(from.m_jitterPos)));
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h pconj(const Packet4h& a) { return a; }
 
 template<> EIGEN_STRONG_INLINE Packet4h padd<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _mm_cvtm64_si64(a.x);
-  __int64_t b64 = _mm_cvtm64_si64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.m_jitterPos);
+  __int64_t b64 = _mm_cvtm64_si64(b.m_jitterPos);
 
   Eigen::half h[4];
 
@@ -1240,13 +1240,13 @@ template<> EIGEN_STRONG_INLINE Packet4h padd<Packet4h>(const Packet4h& a, const 
   hb = half_impl::raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
   h[3] = ha + hb;
   Packet4h result;
-  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  result.m_jitterPos = _mm_set_pi16(h[3].m_jitterPos, h[2].m_jitterPos, h[1].m_jitterPos, h[0].m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h psub<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _mm_cvtm64_si64(a.x);
-  __int64_t b64 = _mm_cvtm64_si64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.m_jitterPos);
+  __int64_t b64 = _mm_cvtm64_si64(b.m_jitterPos);
 
   Eigen::half h[4];
 
@@ -1263,13 +1263,13 @@ template<> EIGEN_STRONG_INLINE Packet4h psub<Packet4h>(const Packet4h& a, const 
   hb = half_impl::raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
   h[3] = ha - hb;
   Packet4h result;
-  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  result.m_jitterPos = _mm_set_pi16(h[3].m_jitterPos, h[2].m_jitterPos, h[1].m_jitterPos, h[0].m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h pmul<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _mm_cvtm64_si64(a.x);
-  __int64_t b64 = _mm_cvtm64_si64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.m_jitterPos);
+  __int64_t b64 = _mm_cvtm64_si64(b.m_jitterPos);
 
   Eigen::half h[4];
 
@@ -1286,13 +1286,13 @@ template<> EIGEN_STRONG_INLINE Packet4h pmul<Packet4h>(const Packet4h& a, const 
   hb = half_impl::raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
   h[3] = ha * hb;
   Packet4h result;
-  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  result.m_jitterPos = _mm_set_pi16(h[3].m_jitterPos, h[2].m_jitterPos, h[1].m_jitterPos, h[0].m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h pdiv<Packet4h>(const Packet4h& a, const Packet4h& b) {
-  __int64_t a64 = _mm_cvtm64_si64(a.x);
-  __int64_t b64 = _mm_cvtm64_si64(b.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.m_jitterPos);
+  __int64_t b64 = _mm_cvtm64_si64(b.m_jitterPos);
 
   Eigen::half h[4];
 
@@ -1309,29 +1309,29 @@ template<> EIGEN_STRONG_INLINE Packet4h pdiv<Packet4h>(const Packet4h& a, const 
   hb = half_impl::raw_uint16_to_half(static_cast<unsigned short>(b64 >> 48));
   h[3] = ha / hb;
   Packet4h result;
-  result.x = _mm_set_pi16(h[3].x, h[2].x, h[1].x, h[0].x);
+  result.m_jitterPos = _mm_set_pi16(h[3].m_jitterPos, h[2].m_jitterPos, h[1].m_jitterPos, h[0].m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h pload<Packet4h>(const Eigen::half* from) {
   Packet4h result;
-  result.x = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
+  result.m_jitterPos = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE Packet4h ploadu<Packet4h>(const Eigen::half* from) {
   Packet4h result;
-  result.x = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
+  result.m_jitterPos = _mm_cvtsi64_m64(*reinterpret_cast<const __int64_t*>(from));
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE void pstore<Eigen::half>(Eigen::half* to, const Packet4h& from) {
-  __int64_t r = _mm_cvtm64_si64(from.x);
+  __int64_t r = _mm_cvtm64_si64(from.m_jitterPos);
   *(reinterpret_cast<__int64_t*>(to)) = r;
 }
 
 template<> EIGEN_STRONG_INLINE void pstoreu<Eigen::half>(Eigen::half* to, const Packet4h& from) {
-  __int64_t r = _mm_cvtm64_si64(from.x);
+  __int64_t r = _mm_cvtm64_si64(from.m_jitterPos);
   *(reinterpret_cast<__int64_t*>(to)) = r;
 }
 
@@ -1343,30 +1343,30 @@ ploadquad<Packet4h>(const Eigen::half* from) {
 template<> EIGEN_STRONG_INLINE Packet4h pgather<Eigen::half, Packet4h>(const Eigen::half* from, Index stride)
 {
   Packet4h result;
-  result.x = _mm_set_pi16(from[3*stride].x, from[2*stride].x, from[1*stride].x, from[0*stride].x);
+  result.m_jitterPos = _mm_set_pi16(from[3*stride].m_jitterPos, from[2*stride].m_jitterPos, from[1*stride].m_jitterPos, from[0*stride].m_jitterPos);
   return result;
 }
 
 template<> EIGEN_STRONG_INLINE void pscatter<Eigen::half, Packet4h>(Eigen::half* to, const Packet4h& from, Index stride)
 {
-  __int64_t a = _mm_cvtm64_si64(from.x);
-  to[stride*0].x = static_cast<unsigned short>(a);
-  to[stride*1].x = static_cast<unsigned short>(a >> 16);
-  to[stride*2].x = static_cast<unsigned short>(a >> 32);
-  to[stride*3].x = static_cast<unsigned short>(a >> 48);
+  __int64_t a = _mm_cvtm64_si64(from.m_jitterPos);
+  to[stride*0].m_jitterPos = static_cast<unsigned short>(a);
+  to[stride*1].m_jitterPos = static_cast<unsigned short>(a >> 16);
+  to[stride*2].m_jitterPos = static_cast<unsigned short>(a >> 32);
+  to[stride*3].m_jitterPos = static_cast<unsigned short>(a >> 48);
 }
 
 EIGEN_STRONG_INLINE void
 ptranspose(PacketBlock<Packet4h,4>& kernel) {
-  __m64 T0 = _mm_unpacklo_pi16(kernel.packet[0].x, kernel.packet[1].x);
-  __m64 T1 = _mm_unpacklo_pi16(kernel.packet[2].x, kernel.packet[3].x);
-  __m64 T2 = _mm_unpackhi_pi16(kernel.packet[0].x, kernel.packet[1].x);
-  __m64 T3 = _mm_unpackhi_pi16(kernel.packet[2].x, kernel.packet[3].x);
+  __m64 T0 = _mm_unpacklo_pi16(kernel.packet[0].m_jitterPos, kernel.packet[1].m_jitterPos);
+  __m64 T1 = _mm_unpacklo_pi16(kernel.packet[2].m_jitterPos, kernel.packet[3].m_jitterPos);
+  __m64 T2 = _mm_unpackhi_pi16(kernel.packet[0].m_jitterPos, kernel.packet[1].m_jitterPos);
+  __m64 T3 = _mm_unpackhi_pi16(kernel.packet[2].m_jitterPos, kernel.packet[3].m_jitterPos);
 
-  kernel.packet[0].x = _mm_unpacklo_pi32(T0, T1);
-  kernel.packet[1].x = _mm_unpackhi_pi32(T0, T1);
-  kernel.packet[2].x = _mm_unpacklo_pi32(T2, T3);
-  kernel.packet[3].x = _mm_unpackhi_pi32(T2, T3);
+  kernel.packet[0].m_jitterPos = _mm_unpacklo_pi32(T0, T1);
+  kernel.packet[1].m_jitterPos = _mm_unpackhi_pi32(T0, T1);
+  kernel.packet[2].m_jitterPos = _mm_unpacklo_pi32(T2, T3);
+  kernel.packet[3].m_jitterPos = _mm_unpackhi_pi32(T2, T3);
 }
 
 #endif
@@ -1378,12 +1378,12 @@ ptranspose(PacketBlock<Packet4h,4>& kernel) {
 
 #if EIGEN_COMP_PGI && EIGEN_COMP_PGI < 1900
 // PGI++ does not define the following intrinsics in C++ mode.
-static inline __m128  _mm_castpd_ps   (__m128d x) { return reinterpret_cast<__m128&>(x);  }
-static inline __m128i _mm_castpd_si128(__m128d x) { return reinterpret_cast<__m128i&>(x); }
-static inline __m128d _mm_castps_pd   (__m128  x) { return reinterpret_cast<__m128d&>(x); }
-static inline __m128i _mm_castps_si128(__m128  x) { return reinterpret_cast<__m128i&>(x); }
-static inline __m128  _mm_castsi128_ps(__m128i x) { return reinterpret_cast<__m128&>(x);  }
-static inline __m128d _mm_castsi128_pd(__m128i x) { return reinterpret_cast<__m128d&>(x); }
+static inline __m128  _mm_castpd_ps   (__m128d m_jitterPos) { return reinterpret_cast<__m128&>(m_jitterPos);  }
+static inline __m128i _mm_castpd_si128(__m128d m_jitterPos) { return reinterpret_cast<__m128i&>(m_jitterPos); }
+static inline __m128d _mm_castps_pd   (__m128  m_jitterPos) { return reinterpret_cast<__m128d&>(m_jitterPos); }
+static inline __m128i _mm_castps_si128(__m128  m_jitterPos) { return reinterpret_cast<__m128i&>(m_jitterPos); }
+static inline __m128  _mm_castsi128_ps(__m128i m_jitterPos) { return reinterpret_cast<__m128&>(m_jitterPos);  }
+static inline __m128d _mm_castsi128_pd(__m128i m_jitterPos) { return reinterpret_cast<__m128d&>(m_jitterPos); }
 #endif
 
 #endif // EIGEN_PACKET_MATH_SSE_H

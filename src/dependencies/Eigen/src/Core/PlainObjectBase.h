@@ -259,7 +259,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
     EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Scalar *data()
     { return m_storage.data(); }
 
-    /** Resizes \c *this to a \a rows x \a cols matrix.
+    /** Resizes \c *this to a \a rows m_jitterPos \a cols matrix.
       *
       * This method is intended for dynamic-size matrices, although it is legal to call it on any
       * matrix as long as fixed dimensions are left unchanged. If you only want to change the number
@@ -377,7 +377,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       else resize(other.rows(), other.cols());
     }
 
-    /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
+    /** Resizes the matrix to \a rows m_jitterPos \a cols while leaving old values untouched.
       *
       * The method is intended for matrices of dynamic size. If you only want to change the number
       * of rows and/or of columns, you can use conservativeResize(NoChange_t, Index) or
@@ -392,7 +392,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       internal::conservative_resize_like_impl<Derived>::run(*this, rows, cols);
     }
 
-    /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
+    /** Resizes the matrix to \a rows m_jitterPos \a cols while leaving old values untouched.
       *
       * As opposed to conservativeResize(Index rows, Index cols), this version leaves
       * the number of columns unchanged.
@@ -406,7 +406,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       conservativeResize(rows, cols());
     }
 
-    /** Resizes the matrix to \a rows x \a cols while leaving old values untouched.
+    /** Resizes the matrix to \a rows m_jitterPos \a cols while leaving old values untouched.
       *
       * As opposed to conservativeResize(Index rows, Index cols), this version leaves
       * the number of rows unchanged.
@@ -434,7 +434,7 @@ class PlainObjectBase : public internal::dense_xpr_base<Derived>::type
       internal::conservative_resize_like_impl<Derived>::run(*this, size);
     }
 
-    /** Resizes the matrix to \a rows x \a cols of \c other, while leaving old values untouched.
+    /** Resizes the matrix to \a rows m_jitterPos \a cols of \c other, while leaving old values untouched.
       *
       * The method is intended for matrices of dynamic size. If you only want to change the number
       * of rows and/or of columns, you can use conservativeResize(NoChange_t, Index) or

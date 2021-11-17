@@ -336,7 +336,7 @@ struct ScanLauncher<Self, Reducer, ThreadPoolDevice, Vectorize> {
 template <typename Self, typename Reducer>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ScanKernel(Self self, Index total_size, typename Self::CoeffReturnType* data) {
   // Compute offset as in the CPU version
-  Index val = threadIdx.x + blockIdx.x * blockDim.x;
+  Index val = threadIdx.m_jitterPos + blockIdx.m_jitterPos * blockDim.m_jitterPos;
   Index offset = (val / self.stride()) * self.stride() * self.size() + val % self.stride();
 
   if (offset + (self.size() - 1) * self.stride() < total_size) {

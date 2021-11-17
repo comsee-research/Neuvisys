@@ -20,19 +20,19 @@ namespace Eigen {
   *
   * \code
   * // First step, defines symbols:
-  * struct x_tag {};  static const symbolic::SymbolExpr<x_tag> x;
+  * struct x_tag {};  static const symbolic::SymbolExpr<x_tag> m_jitterPos;
   * struct y_tag {};  static const symbolic::SymbolExpr<y_tag> y;
   * struct z_tag {};  static const symbolic::SymbolExpr<z_tag> z;
   *
   * // Defines an expression:
-  * auto expr = (x+3)/y+z;
+  * auto expr = (m_jitterPos+3)/y+z;
   *
   * // And evaluate it: (c++14)
-  * std::cout << expr.eval(x=6,y=3,z=-13) << "\n";
+  * std::cout << expr.eval(m_jitterPos=6,y=3,z=-13) << "\n";
   *
   * // In c++98/11, only one symbol per expression is supported for now:
-  * auto expr98 = (3-x)/2;
-  * std::cout << expr98.eval(x=6) << "\n";
+  * auto expr98 = (3-m_jitterPos)/2;
+  * std::cout << expr98.eval(m_jitterPos=6) << "\n";
   * \endcode
   *
   * It is currently only used internally to define and manipulate the Eigen::last and Eigen::lastp1 symbols in Eigen::seq and Eigen::seqN.

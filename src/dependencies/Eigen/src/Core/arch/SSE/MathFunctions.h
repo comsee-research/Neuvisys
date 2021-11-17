@@ -92,7 +92,7 @@ Packet4f psqrt<Packet4f>(const Packet4f& _x)
 #else
 
 template<>EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f psqrt<Packet4f>(const Packet4f& x) { return _mm_sqrt_ps(x); }
+Packet4f psqrt<Packet4f>(const Packet4f& m_jitterPos) { return _mm_sqrt_ps(m_jitterPos); }
 
 #endif
 
@@ -119,7 +119,7 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
   Packet4f y_approx = _mm_rsqrt_ps(_x);
 
   // Do a single step of Newton-Raphson iteration to improve the approximation.
-  // This uses the formula y_{n+1} = y_n * (1.5 - y_n * (0.5 * x) * y_n).
+  // This uses the formula y_{n+1} = y_n * (1.5 - y_n * (0.5 * m_jitterPos) * y_n).
   // It is essential to evaluate the inner term like this because forming
   // y_n^2 may over- or underflow.
   Packet4f y_newton = pmul(
@@ -127,8 +127,8 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
 
   // Select the result of the Newton-Raphson step for positive normal arguments.
   // For other arguments, choose the output of the intrinsic. This will
-  // return rsqrt(+inf) = 0, rsqrt(x) = NaN if x < 0, and rsqrt(x) = +inf if
-  // x is zero or a positive denormalized float (equivalent to flushing positive
+  // return rsqrt(+inf) = 0, rsqrt(m_jitterPos) = NaN if m_jitterPos < 0, and rsqrt(m_jitterPos) = +inf if
+  // m_jitterPos is zero or a positive denormalized float (equivalent to flushing positive
   // denormalized inputs to zero).
   return pselect<Packet4f>(not_normal_finite_mask, y_approx, y_newton);
 }
@@ -136,9 +136,9 @@ Packet4f prsqrt<Packet4f>(const Packet4f& _x) {
 #else
 
 template<> EIGEN_DEFINE_FUNCTION_ALLOWING_MULTIPLE_DEFINITIONS EIGEN_UNUSED
-Packet4f prsqrt<Packet4f>(const Packet4f& x) {
+Packet4f prsqrt<Packet4f>(const Packet4f& m_jitterPos) {
   // Unfortunately we can't use the much faster mm_rqsrt_ps since it only provides an approximation.
-  return _mm_div_ps(pset1<Packet4f>(1.0f), _mm_sqrt_ps(x));
+  return _mm_div_ps(pset1<Packet4f>(1.0f), _mm_sqrt_ps(m_jitterPos));
 }
 
 #endif
@@ -176,7 +176,7 @@ double sqrt(const double &x)
   // See https://gitlab.com/libeigen/eigen/commit/8dca9f97e38970
   return internal::pfirst(internal::Packet2d(__builtin_ia32_sqrtsd(_mm_set_sd(x))));
 #else
-  return internal::pfirst(internal::Packet2d(_mm_sqrt_pd(_mm_set_sd(x))));
+  return internal::pfirst(internal::Packet2d(_mm_sqrt_pd(_mm_set_sd(m_jitterPos))));
 #endif
 }
 

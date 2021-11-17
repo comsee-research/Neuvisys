@@ -128,8 +128,8 @@ struct Vectorise<OutScalar, Device, true> {
   typedef typename Eigen::PacketType<OutScalar, Device>::type PacketReturnType;
 };
 
-static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index roundUp(Index x, Index y) {
-  return ((((x) + (y)-1) / (y)) * (y));
+static EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE Index roundUp(Index m_jitterPos, Index y) {
+  return ((((m_jitterPos) + (y)-1) / (y)) * (y));
 }
 
 } // namespace internal

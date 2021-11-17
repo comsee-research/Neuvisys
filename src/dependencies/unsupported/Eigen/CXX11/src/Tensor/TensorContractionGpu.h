@@ -23,7 +23,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
                                const OutputMapper output, Scalar* lhs_shmem, Scalar* rhs_shmem,
                        const Index m_size, const Index n_size, const Index k_size) {
 
-  const Index m_block_idx = blockIdx.x;
+  const Index m_block_idx = blockIdx.m_jitterPos;
   const Index n_block_idx = blockIdx.y;
 
   const Index base_m = 64 * m_block_idx;
@@ -54,7 +54,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // (contract idx in block, nocontract idx in block, block idx)
   // where block idx is column major. This transposition limits the number of
   // bank conflicts when reading the LHS. The core idea is that since the contracting
-  // index is shared by both sides, then the contracting index should be in threadIdx.x.
+  // index is shared by both sides, then the contracting index should be in threadIdx.m_jitterPos.
 
   // On the LHS, we pad each row inside of each block with an extra element. This makes
   // each block 8 rows of 9 elements, which is 72 elements. This gives no bank conflicts
@@ -64,8 +64,8 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // conflicts on writes and also none on reads.
 
   // storage indices
-  const Index lhs_store_idx_base = threadIdx.y * 72 + threadIdx.x * 9 + threadIdx.z;
-  const Index rhs_store_idx_base = threadIdx.y * 72 + threadIdx.z * 8 + threadIdx.x;
+  const Index lhs_store_idx_base = threadIdx.y * 72 + threadIdx.m_jitterPos * 9 + threadIdx.z;
+  const Index rhs_store_idx_base = threadIdx.y * 72 + threadIdx.z * 8 + threadIdx.m_jitterPos;
 
   const Index lhs_store_idx_0 = lhs_store_idx_base + 576 * 0;
   const Index lhs_store_idx_1 = lhs_store_idx_base + 576 * 1;
@@ -86,7 +86,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   const Index rhs_store_idx_7 = rhs_store_idx_base + 576 * 7;
 
   // in the loading code, the following variables are important:
-  // threadIdx.x: the vertical speed in an 8x8 block
+  // threadIdx.m_jitterPos: the vertical speed in an 8x8 block
   // threadIdx.y: the vertical index of the 8x8 block in the grid
   // threadIdx.z: the horizontal speed in an 8x8 block
   // k: the horizontal index of the 8x8 block in the grid
@@ -94,7 +94,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   // The k parameter is implicit (it was the loop counter for a loop that went
   // from 0 to <8, but now that loop is unrolled in the below code.
 
-  const Index load_idx_vert = threadIdx.x + 8 * threadIdx.y;
+  const Index load_idx_vert = threadIdx.m_jitterPos + 8 * threadIdx.y;
   const Index lhs_vert = base_m + load_idx_vert;
 
 #define prefetchIntoRegisters(base_k)                           \
@@ -318,9 +318,9 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
     Scalar rrow(6);
     Scalar rrow(7);
 
-    // Now x corresponds to k, y to m, and z to n
-    const Scalar* lhs_block = &lhs_shmem[threadIdx.x + 9 * threadIdx.y];
-    const Scalar* rhs_block = &rhs_shmem[threadIdx.x + 8 * threadIdx.z];
+    // Now m_jitterPos corresponds to k, y to m, and z to n
+    const Scalar* lhs_block = &lhs_shmem[threadIdx.m_jitterPos + 9 * threadIdx.y];
+    const Scalar* rhs_block = &rhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.z];
 
 #define lhs_element(i, j) lhs_block[72 * ((i) + 8 * (j))]
 #define rhs_element(i, j) rhs_block[72 * ((i) + 8 * (j))]
@@ -384,8 +384,8 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   } // end loop over k
 
   // we've now iterated over all of the large (ie width 64) k blocks and
-  // accumulated results in registers. At this point thread (x, y, z) contains
-  // the sum across all big k blocks of the product of little k block of index (x, y)
+  // accumulated results in registers. At this point thread (m_jitterPos, y, z) contains
+  // the sum across all big k blocks of the product of little k block of index (m_jitterPos, y)
   // with block of index (y, z). To compute the final output, we need to reduce
   // the 8 threads over y by summation.
 #if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000)
@@ -452,7 +452,7 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   writeResultShmem(i, 6);                       \
   writeResultShmem(i, 7);                       \
 
-  if (threadIdx.x == 0) {
+  if (threadIdx.m_jitterPos == 0) {
     writeRow(0);
     writeRow(1);
     writeRow(2);
@@ -468,31 +468,31 @@ EigenContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   const int max_i_write = numext::mini((int)((m_size - base_m - threadIdx.y + 7) / 8), 8);
   const int max_j_write = numext::mini((int)((n_size - base_n - threadIdx.z + 7) / 8), 8);
 
-  if (threadIdx.x < max_i_write) {
+  if (threadIdx.m_jitterPos < max_i_write) {
     if (max_j_write == 8) {
       // TODO: can i trade bank conflicts for coalesced writes?
-      Scalar val0 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 0];
-      Scalar val1 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 1];
-      Scalar val2 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 2];
-      Scalar val3 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 3];
-      Scalar val4 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 4];
-      Scalar val5 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 5];
-      Scalar val6 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 6];
-      Scalar val7 = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 7];
+      Scalar val0 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 0];
+      Scalar val1 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 1];
+      Scalar val2 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 2];
+      Scalar val3 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 3];
+      Scalar val4 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 4];
+      Scalar val5 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 5];
+      Scalar val6 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 6];
+      Scalar val7 = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * 7];
 
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 0) = val0;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 1) = val1;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 2) = val2;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 3) = val3;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 4) = val4;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 5) = val5;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 6) = val6;
-      output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * 7) = val7;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 0) = val0;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 1) = val1;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 2) = val2;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 3) = val3;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 4) = val4;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 5) = val5;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 6) = val6;
+      output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * 7) = val7;
     } else {
 #pragma unroll 7
       for (int j = 0; j < max_j_write; j++) {
-        Scalar val = lhs_shmem[threadIdx.x + 8 * threadIdx.y + 64 * threadIdx.z + 512 * j];
-        output(base_m + threadIdx.y + 8 * threadIdx.x, base_n + threadIdx.z + 8 * j) = val;
+        Scalar val = lhs_shmem[threadIdx.m_jitterPos + 8 * threadIdx.y + 64 * threadIdx.z + 512 * j];
+        output(base_m + threadIdx.y + 8 * threadIdx.m_jitterPos, base_n + threadIdx.z + 8 * j) = val;
       }
     }
   }
@@ -514,7 +514,7 @@ EigenContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
   __shared__ Scalar lhs_shmem[72 * 64];
   __shared__ Scalar rhs_shmem[72 * 64];
 
-  const Index m_block_idx = blockIdx.x;
+  const Index m_block_idx = blockIdx.m_jitterPos;
   const Index n_block_idx = blockIdx.y;
 
   const Index base_m = 64 * m_block_idx;
@@ -543,7 +543,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
 
   float4 results[4];
   for (int i=0; i < 4; i++) {
-    results[i].x = results[i].y = results[i].z = results[i].w = 0;
+    results[i].m_jitterPos = results[i].y = results[i].z = results[i].w = 0;
   }
 
 #define prefetch_lhs(reg, row, col)                            \
@@ -556,19 +556,19 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
         if (row + 3 < m_size) {                                \
           reg =lhs.template loadPacket<float4,Unaligned>(row, col);   \
         } else if (row + 2 < m_size) {                         \
-          reg.x =lhs(row + 0, col);                            \
+          reg.m_jitterPos =lhs(row + 0, col);                            \
           reg.y =lhs(row + 1, col);                            \
           reg.z =lhs(row + 2, col);                            \
         } else if (row + 1 < m_size) {                         \
-          reg.x =lhs(row + 0, col);                            \
+          reg.m_jitterPos =lhs(row + 0, col);                            \
           reg.y =lhs(row + 1, col);                            \
         } else if (row  < m_size) {                            \
-          reg.x =lhs(row + 0, col);                            \
+          reg.m_jitterPos =lhs(row + 0, col);                            \
         }                                                      \
       }                                                        \
     }							       \
 
-  Index lhs_vert = base_m+threadIdx.x*4;
+  Index lhs_vert = base_m+threadIdx.m_jitterPos*4;
 
   for (Index k = 0; k < k_size; k += 16) {
 
@@ -578,8 +578,8 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     Index lhs_horiz = threadIdx.y+k;
     prefetch_lhs(lhs_pf0, lhs_vert, lhs_horiz)
 
-    Index rhs_vert = k+(threadIdx.x%4)*4;
-    Index rhs_horiz0 = (threadIdx.x>>2)+threadIdx.y*4+base_n;
+    Index rhs_vert = k+(threadIdx.m_jitterPos%4)*4;
+    Index rhs_horiz0 = (threadIdx.m_jitterPos>>2)+threadIdx.y*4+base_n;
 
     if (!CHECK_RHS_BOUNDARY) {
       if ((rhs_vert + 3) < k_size) {
@@ -587,38 +587,38 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
         rhs_pf0 = rhs.template loadPacket<float4,Unaligned>(rhs_vert, rhs_horiz0);
       } else if (rhs_vert + 2 < k_size) {
         // just CHECK_RHS_BOUNDARY
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
         rhs_pf0.z = rhs(rhs_vert + 2, rhs_horiz0);
       } else if (rhs_vert + 1 < k_size) {
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
       } else if (rhs_vert  < k_size) {
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
       }
     } else {
       if (rhs_horiz0 < n_size) {
         if ((rhs_vert + 3) < k_size) {
           rhs_pf0 = rhs.template loadPacket<float4,Unaligned>(rhs_vert, rhs_horiz0);
         } else if ((rhs_vert + 2) < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
           rhs_pf0.z = rhs(rhs_vert + 2, rhs_horiz0);
         } else if ((rhs_vert + 1) < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
         } else if (rhs_vert  < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         }
       }
     }
     float x1, x2 ;
     // the following can be a bitwise operation..... some day.
-    if((threadIdx.x%8) < 4) {
+    if((threadIdx.m_jitterPos%8) < 4) {
       x1 = rhs_pf0.y;
       x2 = rhs_pf0.w;
     } else {
-      x1 = rhs_pf0.x;
+      x1 = rhs_pf0.m_jitterPos;
       x2 = rhs_pf0.z;
     }
     #if defined(EIGEN_HIPCC) || (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER < 90000)
@@ -628,11 +628,11 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     x1 = __shfl_xor_sync(0xFFFFFFFF, x1, 4);
     x2 = __shfl_xor_sync(0xFFFFFFFF, x2, 4);
     #endif
-    if((threadIdx.x%8) < 4) {
+    if((threadIdx.m_jitterPos%8) < 4) {
       rhs_pf0.y = x1;
       rhs_pf0.w = x2;
     } else {
-      rhs_pf0.x = x1;
+      rhs_pf0.m_jitterPos = x1;
       rhs_pf0.z = x2;
     }
 
@@ -643,8 +643,8 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     // Row 31 -> times (0, 4, 8, 12, 1, 5, 9, 13) for features 62, 63
     // Row 32 -> times (2, 6, 10, 14, 3, 7, 11, 15) for features 0, 1
     // ...
-    rhs_shmem2[(threadIdx.x>>3)+ threadIdx.y*2][threadIdx.x%8] = make_float2(rhs_pf0.x, rhs_pf0.y);
-    rhs_shmem2[(threadIdx.x>>3)+ threadIdx.y*2+32][threadIdx.x%8] = make_float2(rhs_pf0.z, rhs_pf0.w);
+    rhs_shmem2[(threadIdx.m_jitterPos>>3)+ threadIdx.y*2][threadIdx.m_jitterPos%8] = make_float2(rhs_pf0.m_jitterPos, rhs_pf0.y);
+    rhs_shmem2[(threadIdx.m_jitterPos>>3)+ threadIdx.y*2+32][threadIdx.m_jitterPos%8] = make_float2(rhs_pf0.z, rhs_pf0.w);
 
     // Row 0 (time 0) -> features (0, 1), (4, 5), .. (28, 29), (32, 33), ..  (60, 61)
     // Row 1 (time 1) -> features (0, 1), (4, 5), .. (28, 29), (32, 33), ..  (60, 61)
@@ -653,29 +653,29 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     // Row 16 (time 0) -> features (2, 3), (6, 7), .. (30, 31), (34, 35), ..  (62, 63)
     // ...
 
-    lhs_shmem2[threadIdx.y][threadIdx.x] = make_float2(lhs_pf0.x, lhs_pf0.y);
-    lhs_shmem2[threadIdx.y+16][threadIdx.x] = make_float2(lhs_pf0.z, lhs_pf0.w);
+    lhs_shmem2[threadIdx.y][threadIdx.m_jitterPos] = make_float2(lhs_pf0.m_jitterPos, lhs_pf0.y);
+    lhs_shmem2[threadIdx.y+16][threadIdx.m_jitterPos] = make_float2(lhs_pf0.z, lhs_pf0.w);
 
 
 #define add_vals(fl1, fl2, fr1, fr2)\
-    results[0].x += fl1.x * fr1.x;\
-    results[0].y += fl1.y * fr1.x;\
-    results[0].z += fl2.x * fr1.x;\
-    results[0].w += fl2.y * fr1.x;\
+    results[0].m_jitterPos += fl1.m_jitterPos * fr1.m_jitterPos;\
+    results[0].y += fl1.y * fr1.m_jitterPos;\
+    results[0].z += fl2.m_jitterPos * fr1.m_jitterPos;\
+    results[0].w += fl2.y * fr1.m_jitterPos;\
 \
-    results[1].x += fl1.x * fr1.y;\
+    results[1].m_jitterPos += fl1.m_jitterPos * fr1.y;\
     results[1].y += fl1.y * fr1.y;\
-    results[1].z += fl2.x * fr1.y;\
+    results[1].z += fl2.m_jitterPos * fr1.y;\
     results[1].w += fl2.y * fr1.y;\
 \
-    results[2].x += fl1.x * fr2.x;\
-    results[2].y += fl1.y * fr2.x;\
-    results[2].z += fl2.x * fr2.x;\
-    results[2].w += fl2.y * fr2.x;\
+    results[2].m_jitterPos += fl1.m_jitterPos * fr2.m_jitterPos;\
+    results[2].y += fl1.y * fr2.m_jitterPos;\
+    results[2].z += fl2.m_jitterPos * fr2.m_jitterPos;\
+    results[2].w += fl2.y * fr2.m_jitterPos;\
 \
-    results[3].x += fl1.x * fr2.y;\
+    results[3].m_jitterPos += fl1.m_jitterPos * fr2.y;\
     results[3].y += fl1.y * fr2.y;\
-    results[3].z += fl2.x * fr2.y;\
+    results[3].z += fl2.m_jitterPos * fr2.y;\
     results[3].w += fl2.y * fr2.y;\
 
     __syncthreads();
@@ -683,9 +683,9 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     // Do the multiplies.
     #pragma unroll
     for (int koff = 0; koff < 16; koff ++) {
-      // 32 x threads.
-      float2 fl1 = lhs_shmem2[koff][threadIdx.x];
-      float2 fl2 = lhs_shmem2[koff + 16][threadIdx.x];
+      // 32 m_jitterPos threads.
+      float2 fl1 = lhs_shmem2[koff][threadIdx.m_jitterPos];
+      float2 fl2 = lhs_shmem2[koff + 16][threadIdx.m_jitterPos];
 
       int start_feature = threadIdx.y * 4;
       float2 fr1 = rhs_shmem2[(start_feature>>1) + 32*((koff%4)/2)][koff/4 + (koff%2)*4];
@@ -702,7 +702,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
   Index horiz_base = threadIdx.y*4+base_n;
   if (!CHECK_LHS_BOUNDARY && !CHECK_RHS_BOUNDARY) {
     for (int i = 0; i < 4; i++) {
-      output(lhs_vert, horiz_base + i) = results[i].x;
+      output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
       output(lhs_vert + 1, horiz_base + i) = results[i].y;
       output(lhs_vert + 2, horiz_base + i) = results[i].z;
       output(lhs_vert + 3, horiz_base + i) = results[i].w;
@@ -711,25 +711,25 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     // CHECK LHS
     if (lhs_vert + 3 < m_size) {
       for (int i = 0; i < 4; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
         output(lhs_vert + 3, horiz_base + i) = results[i].w;
       }
     } else if (lhs_vert + 2 < m_size) {
       for (int i = 0; i < 4; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
       }
     } else if (lhs_vert + 1 < m_size) {
       for (int i = 0; i < 4; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
       }
     } else if (lhs_vert  < m_size) {
       for (int i = 0; i < 4; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
       }
     }
   } else if (!CHECK_LHS_BOUNDARY) {
@@ -737,14 +737,14 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     /*
     int ncols_rem = fminf(n_size- horiz_base, 4);
     for (int i = 0; i < ncols_rem; i++) {
-      output(lhs_vert, horiz_base + i) = results[i].x;
+      output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
       output(lhs_vert + 1, horiz_base + i) = results[i].y;
       output(lhs_vert + 2, horiz_base + i) = results[i].z;
       output(lhs_vert + 3, horiz_base + i) = results[i].w;
     }*/
     for (int i = 0; i < 4; i++) {
       if (horiz_base+i < n_size) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
         output(lhs_vert + 3, horiz_base + i) = results[i].w;
@@ -755,7 +755,7 @@ EigenFloatContractionKernelInternal16x16(const LhsMapper lhs, const RhsMapper rh
     for (int i = 0; i < 4; i++) {
       if (horiz_base+i < n_size) {
         if (lhs_vert < m_size)
-          output(lhs_vert, horiz_base + i) = results[i].x;
+          output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         if (lhs_vert + 1 < m_size)
           output(lhs_vert + 1, horiz_base + i) = results[i].y;
         if (lhs_vert + 2 < m_size)
@@ -784,10 +784,10 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 
   float4 results[8];
   for (int i=0; i < 8; i++) {
-    results[i].x = results[i].y = results[i].z = results[i].w = 0;
+    results[i].m_jitterPos = results[i].y = results[i].z = results[i].w = 0;
   }
 
-  Index lhs_vert = base_m+threadIdx.x*4+(threadIdx.y%4)*32;
+  Index lhs_vert = base_m+threadIdx.m_jitterPos*4+(threadIdx.y%4)*32;
   for (Index k = 0; k < k_size; k += 32) {
     lhs_pf0 = internal::pset1<float4>(0);
     lhs_pf1 = internal::pset1<float4>(0);
@@ -833,86 +833,86 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
         }
       } else if (lhs_vert + 2 < m_size) {
         if ((threadIdx.y/4+k+24) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
           lhs_pf0.z =lhs(lhs_vert + 2, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
           lhs_pf1.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
           lhs_pf2.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+16));
           lhs_pf2.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+16));
-          lhs_pf3.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
+          lhs_pf3.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
           lhs_pf3.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+24));
           lhs_pf3.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+24));
         } else if ((threadIdx.y/4+k+16) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
           lhs_pf0.z =lhs(lhs_vert + 2, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
           lhs_pf1.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
           lhs_pf2.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+16));
           lhs_pf2.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+16));
         } else if ((threadIdx.y/4+k+8) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
           lhs_pf0.z =lhs(lhs_vert + 2, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
           lhs_pf1.z =lhs(lhs_vert + 2, (threadIdx.y/4+k+8));
         } else if ((threadIdx.y/4+k) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
           lhs_pf0.z =lhs(lhs_vert + 2, (threadIdx.y/4+k));
         }
       } else if (lhs_vert + 1 < m_size) {
         if ((threadIdx.y/4+k+24) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
           lhs_pf2.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+16));
-          lhs_pf3.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
+          lhs_pf3.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
           lhs_pf3.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+24));
         } else if ((threadIdx.y/4+k+16) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
           lhs_pf2.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+16));
         } else if ((threadIdx.y/4+k+8) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
           lhs_pf1.y =lhs(lhs_vert + 1, (threadIdx.y/4+k+8));
         } else if ((threadIdx.y/4+k) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
           lhs_pf0.y =lhs(lhs_vert + 1, (threadIdx.y/4+k));
         }
       } else if (lhs_vert < m_size) {
         if ((threadIdx.y/4+k+24) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
-          lhs_pf3.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf3.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+24));
         } else if ((threadIdx.y/4+k+16) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
-          lhs_pf2.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf2.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+16));
         } else if ((threadIdx.y/4+k+8) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
-          lhs_pf1.x =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf1.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k+8));
         } else if ((threadIdx.y/4+k) < k_size) {
-          lhs_pf0.x =lhs(lhs_vert + 0, (threadIdx.y/4+k));
+          lhs_pf0.m_jitterPos =lhs(lhs_vert + 0, (threadIdx.y/4+k));
         }
       }
     }
     __syncthreads();
-    Index rhs_vert = k+threadIdx.x*4;
+    Index rhs_vert = k+threadIdx.m_jitterPos*4;
     Index rhs_horiz0 = threadIdx.y*2+base_n;
     Index rhs_horiz1 = threadIdx.y*2+1+base_n;
     if (!CHECK_RHS_BOUNDARY) {
@@ -922,20 +922,20 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
         rhs_pf1 = rhs.template loadPacket<float4,Unaligned>(rhs_vert, rhs_horiz1);
       } else if (rhs_vert + 2 < k_size) {
         // just CHECK_RHS_BOUNDARY
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
         rhs_pf0.z = rhs(rhs_vert + 2, rhs_horiz0);
-        rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+        rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
         rhs_pf1.y = rhs(rhs_vert + 1, rhs_horiz1);
         rhs_pf1.z = rhs(rhs_vert + 2, rhs_horiz1);
       } else if (rhs_vert + 1 < k_size) {
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
-        rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+        rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
         rhs_pf1.y = rhs(rhs_vert + 1, rhs_horiz1);
       } else if (rhs_vert  < k_size) {
-        rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
-        rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+        rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
+        rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
       }
     } else {
       if (rhs_horiz1 < n_size) {
@@ -945,20 +945,20 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
           rhs_pf1 = rhs.template loadPacket<float4,Unaligned>(rhs_vert, rhs_horiz1);
         } else if (rhs_vert + 2 < k_size) {
           // just CHECK_RHS_BOUNDARY
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
           rhs_pf0.z = rhs(rhs_vert + 2, rhs_horiz0);
-          rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+          rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
           rhs_pf1.y = rhs(rhs_vert + 1, rhs_horiz1);
           rhs_pf1.z = rhs(rhs_vert + 2, rhs_horiz1);
-        } else if (k+threadIdx.x*4 + 1 < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+        } else if (k+threadIdx.m_jitterPos*4 + 1 < k_size) {
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
-          rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+          rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
           rhs_pf1.y = rhs(rhs_vert + 1, rhs_horiz1);
-        } else if (k+threadIdx.x*4  < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
-          rhs_pf1.x = rhs(rhs_vert, rhs_horiz1);
+        } else if (k+threadIdx.m_jitterPos*4  < k_size) {
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf1.m_jitterPos = rhs(rhs_vert, rhs_horiz1);
         }
       } else if (rhs_horiz0 < n_size) {
         if ((rhs_vert + 3) < k_size) {
@@ -966,14 +966,14 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
           rhs_pf0 = rhs.template loadPacket<float4,Unaligned>(rhs_vert, rhs_horiz0);
         } else if ((rhs_vert + 2) < k_size) {
           // just CHECK_RHS_BOUNDARY
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
           rhs_pf0.z = rhs(rhs_vert + 2, rhs_horiz0);
         } else if ((rhs_vert + 1) < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
           rhs_pf0.y = rhs(rhs_vert + 1, rhs_horiz0);
         } else if (rhs_vert  < k_size) {
-          rhs_pf0.x = rhs(rhs_vert, rhs_horiz0);
+          rhs_pf0.m_jitterPos = rhs(rhs_vert, rhs_horiz0);
         }
       }
     }
@@ -983,17 +983,17 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
     // Row 1 -> times (0, 4, 8, .. 28) for features 2, 3.
     // ..
     // Row 31 -> times (0, 4, 8, .. 28) for features 62, 63
-    rhs_shmem2[threadIdx.y][threadIdx.x] = make_float2(rhs_pf0.x, rhs_pf1.x);
+    rhs_shmem2[threadIdx.y][threadIdx.m_jitterPos] = make_float2(rhs_pf0.m_jitterPos, rhs_pf1.m_jitterPos);
     // Row 32 -> times (1, 5, 9, .. 29) for features 0, 1.
     // Row 33 -> times (1, 5, 9, .. 29) for features 2, 3.
     // ..
-    rhs_shmem2[threadIdx.y+32][threadIdx.x] = make_float2(rhs_pf0.y, rhs_pf1.y);
+    rhs_shmem2[threadIdx.y+32][threadIdx.m_jitterPos] = make_float2(rhs_pf0.y, rhs_pf1.y);
     // Row 64 -> times (2, 6, 10, .. 30) for features 0, 1.
     // Row 65 -> times (2, 6, 10, .. 30) for features 2, 3.
-    rhs_shmem2[threadIdx.y+64][threadIdx.x] = make_float2(rhs_pf0.z, rhs_pf1.z);
+    rhs_shmem2[threadIdx.y+64][threadIdx.m_jitterPos] = make_float2(rhs_pf0.z, rhs_pf1.z);
     // Row 96 -> times (3, 7, 11, .. 31) for features 0, 1.
     // Row 97 -> times (3, 7, 11, .. 31) for features 2, 3.
-    rhs_shmem2[threadIdx.y+96][threadIdx.x] = make_float2(rhs_pf0.w, rhs_pf1.w);
+    rhs_shmem2[threadIdx.y+96][threadIdx.m_jitterPos] = make_float2(rhs_pf0.w, rhs_pf1.w);
 
     // LHS.
     // Row 0 (time 0) -> features (0, 1), (4, 5), .. (28, 29), (32, 33), ..  (60, 61) .. (124, 125)
@@ -1004,59 +1004,59 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
 
 
 #define add_vals(a_feat1, a_feat2, f1, f2, f3, f4)\
-      results[0].x += a_feat1.x * f1.x;\
-      results[1].x += a_feat1.x * f1.y;\
-      results[2].x += a_feat1.x * f2.x;\
-      results[3].x += a_feat1.x * f2.y;\
-      results[4].x += a_feat1.x * f3.x;\
-      results[5].x += a_feat1.x * f3.y;\
-      results[6].x += a_feat1.x * f4.x;\
-      results[7].x += a_feat1.x * f4.y;\
+      results[0].m_jitterPos += a_feat1.m_jitterPos * f1.m_jitterPos;\
+      results[1].m_jitterPos += a_feat1.m_jitterPos * f1.y;\
+      results[2].m_jitterPos += a_feat1.m_jitterPos * f2.m_jitterPos;\
+      results[3].m_jitterPos += a_feat1.m_jitterPos * f2.y;\
+      results[4].m_jitterPos += a_feat1.m_jitterPos * f3.m_jitterPos;\
+      results[5].m_jitterPos += a_feat1.m_jitterPos * f3.y;\
+      results[6].m_jitterPos += a_feat1.m_jitterPos * f4.m_jitterPos;\
+      results[7].m_jitterPos += a_feat1.m_jitterPos * f4.y;\
 \
-      results[0].y += a_feat1.y * f1.x;\
+      results[0].y += a_feat1.y * f1.m_jitterPos;\
       results[1].y += a_feat1.y * f1.y;\
-      results[2].y += a_feat1.y * f2.x;\
+      results[2].y += a_feat1.y * f2.m_jitterPos;\
       results[3].y += a_feat1.y * f2.y;\
-      results[4].y += a_feat1.y * f3.x;\
+      results[4].y += a_feat1.y * f3.m_jitterPos;\
       results[5].y += a_feat1.y * f3.y;\
-      results[6].y += a_feat1.y * f4.x;\
+      results[6].y += a_feat1.y * f4.m_jitterPos;\
       results[7].y += a_feat1.y * f4.y;\
 \
-      results[0].z += a_feat2.x * f1.x;\
-      results[1].z += a_feat2.x * f1.y;\
-      results[2].z += a_feat2.x * f2.x;\
-      results[3].z += a_feat2.x * f2.y;\
-      results[4].z += a_feat2.x * f3.x;\
-      results[5].z += a_feat2.x * f3.y;\
-      results[6].z += a_feat2.x * f4.x;\
-      results[7].z += a_feat2.x * f4.y;\
+      results[0].z += a_feat2.m_jitterPos * f1.m_jitterPos;\
+      results[1].z += a_feat2.m_jitterPos * f1.y;\
+      results[2].z += a_feat2.m_jitterPos * f2.m_jitterPos;\
+      results[3].z += a_feat2.m_jitterPos * f2.y;\
+      results[4].z += a_feat2.m_jitterPos * f3.m_jitterPos;\
+      results[5].z += a_feat2.m_jitterPos * f3.y;\
+      results[6].z += a_feat2.m_jitterPos * f4.m_jitterPos;\
+      results[7].z += a_feat2.m_jitterPos * f4.y;\
 \
-      results[0].w += a_feat2.y * f1.x;\
+      results[0].w += a_feat2.y * f1.m_jitterPos;\
       results[1].w += a_feat2.y * f1.y;\
-      results[2].w += a_feat2.y * f2.x;\
+      results[2].w += a_feat2.y * f2.m_jitterPos;\
       results[3].w += a_feat2.y * f2.y;\
-      results[4].w += a_feat2.y * f3.x;\
+      results[4].w += a_feat2.y * f3.m_jitterPos;\
       results[5].w += a_feat2.y * f3.y;\
-      results[6].w += a_feat2.y * f4.x;\
+      results[6].w += a_feat2.y * f4.m_jitterPos;\
       results[7].w += a_feat2.y * f4.y;\
 
-    lhs_shmem2[threadIdx.y/4][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf0.x, lhs_pf0.y);
-    lhs_shmem2[threadIdx.y/4+8][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf1.x, lhs_pf1.y);
-    lhs_shmem2[threadIdx.y/4+16][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf2.x, lhs_pf2.y);
-    lhs_shmem2[threadIdx.y/4+24][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf3.x, lhs_pf3.y);
+    lhs_shmem2[threadIdx.y/4][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf0.m_jitterPos, lhs_pf0.y);
+    lhs_shmem2[threadIdx.y/4+8][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf1.m_jitterPos, lhs_pf1.y);
+    lhs_shmem2[threadIdx.y/4+16][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf2.m_jitterPos, lhs_pf2.y);
+    lhs_shmem2[threadIdx.y/4+24][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf3.m_jitterPos, lhs_pf3.y);
 
-    lhs_shmem2[threadIdx.y/4 + 32][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf0.z, lhs_pf0.w);
-    lhs_shmem2[threadIdx.y/4 + 40][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf1.z, lhs_pf1.w);
-    lhs_shmem2[threadIdx.y/4 + 48][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf2.z, lhs_pf2.w);
-    lhs_shmem2[threadIdx.y/4 + 56][threadIdx.x+(threadIdx.y%4)*8] = make_float2(lhs_pf3.z, lhs_pf3.w);
+    lhs_shmem2[threadIdx.y/4 + 32][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf0.z, lhs_pf0.w);
+    lhs_shmem2[threadIdx.y/4 + 40][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf1.z, lhs_pf1.w);
+    lhs_shmem2[threadIdx.y/4 + 48][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf2.z, lhs_pf2.w);
+    lhs_shmem2[threadIdx.y/4 + 56][threadIdx.m_jitterPos+(threadIdx.y%4)*8] = make_float2(lhs_pf3.z, lhs_pf3.w);
 
     __syncthreads();
 
     // Do the multiplies.
     #pragma unroll
     for (int koff = 0; koff < 32; koff ++) {
-      float2 a3 = lhs_shmem2[koff][threadIdx.x + (threadIdx.y % 4) * 8];
-      float2 a4 = lhs_shmem2[koff + 32][threadIdx.x + (threadIdx.y % 4) * 8];
+      float2 a3 = lhs_shmem2[koff][threadIdx.m_jitterPos + (threadIdx.y % 4) * 8];
+      float2 a4 = lhs_shmem2[koff + 32][threadIdx.m_jitterPos + (threadIdx.y % 4) * 8];
 
       // first feature is at (threadIdx.y/4) * 8 last is at start + 8.
       int start_feature = (threadIdx.y / 4) * 8;
@@ -1075,7 +1075,7 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   Index horiz_base = (threadIdx.y/4)*8+base_n;
   if (!CHECK_LHS_BOUNDARY && !CHECK_RHS_BOUNDARY) {
     for (int i = 0; i < 8; i++) {
-      output(lhs_vert, horiz_base + i) = results[i].x;
+      output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
       output(lhs_vert + 1, horiz_base + i) = results[i].y;
       output(lhs_vert + 2, horiz_base + i) = results[i].z;
       output(lhs_vert + 3, horiz_base + i) = results[i].w;
@@ -1083,32 +1083,32 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
   } else if (!CHECK_RHS_BOUNDARY) {
     if (lhs_vert + 3 < m_size) {
       for (int i = 0; i < 8; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
         output(lhs_vert + 3, horiz_base + i) = results[i].w;
       }
     } else if (lhs_vert + 2 < m_size) {
       for (int i = 0; i < 8; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
       }
     } else if (lhs_vert + 1 < m_size) {
       for (int i = 0; i < 8; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
       }
     } else if (lhs_vert  < m_size) {
       for (int i = 0; i < 8; i++) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
       }
     }
   } else if (!CHECK_LHS_BOUNDARY) {
     // CHECK BOUNDARY_B
     for (int i = 0; i < 8; i++) {
       if (horiz_base + i < n_size) {
-        output(lhs_vert, horiz_base + i) = results[i].x;
+        output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         output(lhs_vert + 1, horiz_base + i) = results[i].y;
         output(lhs_vert + 2, horiz_base + i) = results[i].z;
         output(lhs_vert + 3, horiz_base + i) = results[i].w;
@@ -1119,7 +1119,7 @@ EigenFloatContractionKernelInternal(const LhsMapper lhs, const RhsMapper rhs,
     for (int i = 0; i < 8; i++) {
       if (horiz_base + i < n_size) {
         if (lhs_vert < m_size)
-          output(lhs_vert, horiz_base + i) = results[i].x;
+          output(lhs_vert, horiz_base + i) = results[i].m_jitterPos;
         if (lhs_vert + 1 < m_size)
           output(lhs_vert + 1, horiz_base + i) = results[i].y;
         if (lhs_vert + 2 < m_size)
@@ -1149,7 +1149,7 @@ EigenFloatContractionKernel(const LhsMapper lhs, const RhsMapper rhs,
   typedef float2 LHS_MEM[64][32];
   typedef float2 RHS_MEM[128][8];
 
-  const Index m_block_idx = blockIdx.x;
+  const Index m_block_idx = blockIdx.m_jitterPos;
   const Index n_block_idx = blockIdx.y;
 
   const Index base_m = 128 * m_block_idx;
@@ -1193,7 +1193,7 @@ EigenFloatContractionKernel16x16(const LhsMapper lhs, const RhsMapper rhs,
   __shared__ float2 lhs_shmem[32][16];
   __shared__ float2 rhs_shmem[64][8];
 
-  const Index m_block_idx = blockIdx.x;
+  const Index m_block_idx = blockIdx.m_jitterPos;
   const Index n_block_idx = blockIdx.y;
 
   const Index base_m = 64 * m_block_idx;

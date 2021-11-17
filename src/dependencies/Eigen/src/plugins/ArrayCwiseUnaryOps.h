@@ -100,8 +100,8 @@ exp() const
 
 /** \returns an expression of the coefficient-wise exponential of *this minus 1.
   *
-  * In exact arithmetic, \c x.expm1() is equivalent to \c x.exp() - 1,
-  * however, with finite precision, this function is much more accurate when \c x is close to zero.
+  * In exact arithmetic, \c m_jitterPos.expm1() is equivalent to \c m_jitterPos.exp() - 1,
+  * however, with finite precision, this function is much more accurate when \c m_jitterPos is close to zero.
   *
   * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_expm1">Math functions</a>, exp()
   */
@@ -131,8 +131,8 @@ log() const
 
 /** \returns an expression of the coefficient-wise logarithm of 1 plus \c *this.
   *
-  * In exact arithmetic, \c x.log() is equivalent to \c (x+1).log(),
-  * however, with finite precision, this function is much more accurate when \c x is close to zero.
+  * In exact arithmetic, \c m_jitterPos.log() is equivalent to \c (m_jitterPos+1).log(),
+  * however, with finite precision, this function is much more accurate when \c m_jitterPos is close to zero.
   *
   * \sa <a href="group__CoeffwiseMathFunctions.html#cwisetable_log1p">Math functions</a>, log()
   */
@@ -628,8 +628,8 @@ erfc() const
   *
   * \specialfunctions_module
   * 
-  * In other words, considering `x = ndtri(y)`, it returns the argument, x, for which the area under the
-  * Gaussian probability density function (integrated from minus infinity to x) is equal to y.
+  * In other words, considering `m_jitterPos = ndtri(y)`, it returns the argument, m_jitterPos, for which the area under the
+  * Gaussian probability density function (integrated from minus infinity to m_jitterPos) is equal to y.
   *
   * \note This function supports only float and double scalar types. To support other scalar types,
   * the user has to provide implementations of ndtri(T) for any scalar type T to be supported.

@@ -69,9 +69,9 @@ struct generic_i0e<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, i0ef();
+     * float m_jitterPos, y, i0ef();
      *
-     * y = i0ef( x );
+     * y = i0ef( m_jitterPos );
      *
      *
      *
@@ -80,7 +80,7 @@ struct generic_i0e<T, float> {
      * Returns exponentially scaled modified Bessel function
      * of order zero of the argument.
      *
-     * The function is defined as i0e(x) = exp(-|x|) j0( ix ).
+     * The function is defined as i0e(m_jitterPos) = exp(-|m_jitterPos|) j0( ix ).
      *
      *
      *
@@ -134,9 +134,9 @@ struct generic_i0e<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, i0e();
+     * double m_jitterPos, y, i0e();
      *
-     * y = i0e( x );
+     * y = i0e( m_jitterPos );
      *
      *
      *
@@ -145,7 +145,7 @@ struct generic_i0e<T, double> {
      * Returns exponentially scaled modified Bessel function
      * of order zero of the argument.
      *
-     * The function is defined as i0e(x) = exp(-|x|) j0( ix ).
+     * The function is defined as i0e(m_jitterPos) = exp(-|m_jitterPos|) j0( ix ).
      *
      *
      *
@@ -260,9 +260,9 @@ struct generic_i1e<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, i1ef();
+     * float m_jitterPos, y, i1ef();
      *
-     * y = i1ef( x );
+     * y = i1ef( m_jitterPos );
      *
      *
      *
@@ -271,7 +271,7 @@ struct generic_i1e<T, float> {
      * Returns exponentially scaled modified Bessel function
      * of order one of the argument.
      *
-     * The function is defined as i1(x) = -i exp(-|x|) j1( ix ).
+     * The function is defined as i1(m_jitterPos) = -i exp(-|m_jitterPos|) j1( ix ).
      *
      *
      *
@@ -328,9 +328,9 @@ struct generic_i1e<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, i1e();
+     * double m_jitterPos, y, i1e();
      *
-     * y = i1e( x );
+     * y = i1e( m_jitterPos );
      *
      *
      *
@@ -339,7 +339,7 @@ struct generic_i1e<T, double> {
      * Returns exponentially scaled modified Bessel function
      * of order one of the argument.
      *
-     * The function is defined as i1(x) = -i exp(-|x|) j1( ix ).
+     * The function is defined as i1(m_jitterPos) = -i exp(-|m_jitterPos|) j1( ix ).
      *
      *
      *
@@ -454,9 +454,9 @@ struct generic_k0e<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, k0ef();
+     * float m_jitterPos, y, k0ef();
      *
-     * y = k0ef( x );
+     * y = k0ef( m_jitterPos );
      *
      *
      *
@@ -517,9 +517,9 @@ struct generic_k0e<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, k0e();
+     * double m_jitterPos, y, k0e();
      *
-     * y = k0e( x );
+     * y = k0e( m_jitterPos );
      *
      *
      *
@@ -616,9 +616,9 @@ struct generic_k0<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, k0f();
+     * float m_jitterPos, y, k0f();
      *
-     * y = k0f( x );
+     * y = k0f( m_jitterPos );
      *
      *
      *
@@ -644,7 +644,7 @@ struct generic_k0<T, float> {
      * ERROR MESSAGES:
      *
      *   message         condition      value returned
-     *  K0 domain          x <= 0          MAXNUM
+     *  K0 domain          m_jitterPos <= 0          MAXNUM
      *
      */
 
@@ -689,9 +689,9 @@ struct generic_k0<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, k0();
+     * double m_jitterPos, y, k0();
      *
-     * y = k0( x );
+     * y = k0( m_jitterPos );
      *
      *
      *
@@ -790,9 +790,9 @@ struct generic_k1e<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, k1ef();
+     * float m_jitterPos, y, k1ef();
      *
-     * y = k1ef( x );
+     * y = k1ef( m_jitterPos );
      *
      *
      *
@@ -801,7 +801,7 @@ struct generic_k1e<T, float> {
      * Returns exponentially scaled modified Bessel function
      * of the third kind of order one of the argument:
      *
-     *      k1e(x) = exp(x) * k1(x).
+     *      k1e(m_jitterPos) = exp(m_jitterPos) * k1(m_jitterPos).
      *
      *
      *
@@ -852,9 +852,9 @@ struct generic_k1e<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, k1e();
+     * double m_jitterPos, y, k1e();
      *
-     * y = k1e( x );
+     * y = k1e( m_jitterPos );
      *
      *
      *
@@ -863,7 +863,7 @@ struct generic_k1e<T, double> {
      * Returns exponentially scaled modified Bessel function
      * of the third kind of order one of the argument:
      *
-     *      k1e(x) = exp(x) * k1(x).
+     *      k1e(m_jitterPos) = exp(m_jitterPos) * k1(m_jitterPos).
      *
      *
      *
@@ -944,9 +944,9 @@ struct generic_k1<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, k1f();
+     * float m_jitterPos, y, k1f();
      *
-     * y = k1f( x );
+     * y = k1f( m_jitterPos );
      *
      *
      *
@@ -970,7 +970,7 @@ struct generic_k1<T, float> {
      * ERROR MESSAGES:
      *
      *   message         condition      value returned
-     * k1 domain          x <= 0          MAXNUM
+     * k1 domain          m_jitterPos <= 0          MAXNUM
      *
      */
 
@@ -1011,9 +1011,9 @@ struct generic_k1<T, double> {
      *
      * SYNOPSIS:
      *
-     * float x, y, k1f();
+     * float m_jitterPos, y, k1f();
      *
-     * y = k1f( x );
+     * y = k1f( m_jitterPos );
      *
      *
      *
@@ -1037,7 +1037,7 @@ struct generic_k1<T, double> {
      * ERROR MESSAGES:
      *
      *   message         condition      value returned
-     * k1 domain          x <= 0          MAXNUM
+     * k1 domain          m_jitterPos <= 0          MAXNUM
      *
      */
     const double A[] = {-7.02386347938628759343E-18, -2.42744985051936593393E-15,
@@ -1110,9 +1110,9 @@ struct generic_j0<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, j0f();
+     * float m_jitterPos, y, j0f();
      *
-     * y = j0f( x );
+     * y = j0f( m_jitterPos );
      *
      *
      *
@@ -1130,13 +1130,13 @@ struct generic_j0<T, float> {
      *       1         2         3
      *
      *            2
-     * where w = x  and the three r's are zeros of the function.
+     * where w = m_jitterPos  and the three r's are zeros of the function.
      *
      * In the second interval, the modulus and phase are approximated
-     * by polynomials of the form Modulus(x) = sqrt(1/x) Q(1/x)
-     * and Phase(x) = x + 1/x R(1/x^2) - pi/4.  The function is
+     * by polynomials of the form Modulus(m_jitterPos) = sqrt(1/m_jitterPos) Q(1/m_jitterPos)
+     * and Phase(m_jitterPos) = m_jitterPos + 1/m_jitterPos R(1/m_jitterPos^2) - pi/4.  The function is
      *
-     *   j0(x) = Modulus(x) cos( Phase(x) ).
+     *   j0(m_jitterPos) = Modulus(m_jitterPos) cos( Phase(m_jitterPos) ).
      *
      *
      *
@@ -1189,9 +1189,9 @@ struct generic_j0<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, j0();
+     * double m_jitterPos, y, j0();
      *
-     * y = j0( x );
+     * y = j0( m_jitterPos );
      *
      *
      *
@@ -1209,7 +1209,7 @@ struct generic_j0<T, double> {
      *       1         2    3       8
      *
      *            2
-     * where w = x  and the two r's are zeros of the function.
+     * where w = m_jitterPos  and the two r's are zeros of the function.
      *
      * In the second interval, the Hankel asymptotic expansion
      * is employed with two rational functions of degree 6/6
@@ -1310,9 +1310,9 @@ struct generic_y0<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, y0f();
+     * float m_jitterPos, y, y0f();
      *
-     * y = y0f( x );
+     * y = y0f( m_jitterPos );
      *
      *
      *
@@ -1323,27 +1323,27 @@ struct generic_y0<T, float> {
      *
      * The domain is divided into the intervals [0, 2] and
      * (2, infinity). In the first interval a rational approximation
-     * R(x) is employed to compute
+     * R(m_jitterPos) is employed to compute
      *
      *                  2         2         2
-     * y0(x)  =  (w - r  ) (w - r  ) (w - r  ) R(x)  +  2/pi ln(x) j0(x).
+     * y0(m_jitterPos)  =  (w - r  ) (w - r  ) (w - r  ) R(m_jitterPos)  +  2/pi ln(m_jitterPos) j0(m_jitterPos).
      *                 1         2         3
      *
      * Thus a call to j0() is required.  The three zeros are removed
-     * from R(x) to improve its numerical stability.
+     * from R(m_jitterPos) to improve its numerical stability.
      *
      * In the second interval, the modulus and phase are approximated
-     * by polynomials of the form Modulus(x) = sqrt(1/x) Q(1/x)
-     * and Phase(x) = x + 1/x S(1/x^2) - pi/4.  Then the function is
+     * by polynomials of the form Modulus(m_jitterPos) = sqrt(1/m_jitterPos) Q(1/m_jitterPos)
+     * and Phase(m_jitterPos) = m_jitterPos + 1/m_jitterPos S(1/m_jitterPos^2) - pi/4.  Then the function is
      *
-     *   y0(x) = Modulus(x) sin( Phase(x) ).
+     *   y0(m_jitterPos) = Modulus(m_jitterPos) sin( Phase(m_jitterPos) ).
      *
      *
      *
      *
      * ACCURACY:
      *
-     *  Absolute error, when y0(x) < 1; else relative error:
+     *  Absolute error, when y0(m_jitterPos) < 1; else relative error:
      *
      * arithmetic   domain     # trials      peak         rms
      *    IEEE      0,  2       100000      2.4e-7      3.4e-8
@@ -1392,9 +1392,9 @@ struct generic_y0<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, y0();
+     * double m_jitterPos, y, y0();
      *
-     * y = y0( x );
+     * y = y0( m_jitterPos );
      *
      *
      *
@@ -1405,8 +1405,8 @@ struct generic_y0<T, double> {
      *
      * The domain is divided into the intervals [0, 5] and
      * (5, infinity). In the first interval a rational approximation
-     * R(x) is employed to compute
-     *   y0(x)  = R(x)  +   2 * log(x) * j0(x) / PI.
+     * R(m_jitterPos) is employed to compute
+     *   y0(m_jitterPos)  = R(m_jitterPos)  +   2 * log(m_jitterPos) * j0(m_jitterPos) / PI.
      * Thus a call to j0() is required.
      *
      * In the second interval, the Hankel asymptotic expansion
@@ -1417,7 +1417,7 @@ struct generic_y0<T, double> {
      *
      * ACCURACY:
      *
-     *  Absolute error, when y0(x) < 1; else relative error:
+     *  Absolute error, when y0(m_jitterPos) < 1; else relative error:
      *
      * arithmetic   domain     # trials      peak         rms
      *    DEC       0, 30        9400       7.0e-17     7.9e-18
@@ -1508,9 +1508,9 @@ struct generic_j1<T, float> {
      *
      * SYNOPSIS:
      *
-     * float x, y, j1f();
+     * float m_jitterPos, y, j1f();
      *
-     * y = j1f( x );
+     * y = j1f( m_jitterPos );
      *
      *
      *
@@ -1521,16 +1521,16 @@ struct generic_j1<T, float> {
      * The domain is divided into the intervals [0, 2] and
      * (2, infinity). In the first interval a polynomial approximation
      *        2
-     * (w - r  ) x P(w)
+     * (w - r  ) m_jitterPos P(w)
      *       1
      *                     2
-     * is used, where w = x  and r is the first zero of the function.
+     * is used, where w = m_jitterPos  and r is the first zero of the function.
      *
      * In the second interval, the modulus and phase are approximated
-     * by polynomials of the form Modulus(x) = sqrt(1/x) Q(1/x)
-     * and Phase(x) = x + 1/x R(1/x^2) - 3pi/4.  The function is
+     * by polynomials of the form Modulus(m_jitterPos) = sqrt(1/m_jitterPos) Q(1/m_jitterPos)
+     * and Phase(m_jitterPos) = m_jitterPos + 1/m_jitterPos R(1/m_jitterPos^2) - 3pi/4.  The function is
      *
-     *   j0(x) = Modulus(x) cos( Phase(x) ).
+     *   j0(m_jitterPos) = Modulus(m_jitterPos) cos( Phase(m_jitterPos) ).
      *
      *
      *
@@ -1570,7 +1570,7 @@ struct generic_j1<T, float> {
     T yn = pmadd(q, internal::ppolevl<T, 7>::run(w, PH1), NEG_THPIO4F);
     T y_gt_two = pmul(p, pcos(padd(yn, y)));
     // j1 is an odd function. This implementation differs from cephes to
-    // take this fact in to account. Cephes returns -j1(x) for y > 2 range.
+    // take this fact in to account. Cephes returns -j1(m_jitterPos) for y > 2 range.
     y_gt_two = pselect(
         pcmp_lt(x, pset1<T>(0.0f)), pnegate(y_gt_two), y_gt_two);
     return pselect(pcmp_le(y, pset1<T>(2.0f)), y_le_two, y_gt_two);
@@ -1588,9 +1588,9 @@ struct generic_j1<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, j1();
+     * double m_jitterPos, y, j1();
      *
-     * y = j1( x );
+     * y = j1( m_jitterPos );
      *
      *
      *
@@ -1658,7 +1658,7 @@ struct generic_j1<T, double> {
     p = pmadd(p, pcos(yn), pmul(w, pmul(q, psin(yn))));
     T y_gt_five = pmul(p, pmul(SQ2OPI, prsqrt(y)));
     // j1 is an odd function. This implementation differs from cephes to
-    // take this fact in to account. Cephes returns -j1(x) for y > 5 range.
+    // take this fact in to account. Cephes returns -j1(m_jitterPos) for y > 5 range.
     y_gt_five = pselect(
         pcmp_lt(x, pset1<T>(0.0)), pnegate(y_gt_five), y_gt_five);
     return pselect(pcmp_le(y, pset1<T>(5.0)), y_le_five, y_gt_five);
@@ -1699,9 +1699,9 @@ struct generic_y1<T, float> {
      *
      * SYNOPSIS:
      *
-     * double x, y, y1();
+     * double m_jitterPos, y, y1();
      *
-     * y = y1( x );
+     * y = y1( m_jitterPos );
      *
      *
      *
@@ -1712,19 +1712,19 @@ struct generic_y1<T, float> {
      *
      * The domain is divided into the intervals [0, 2] and
      * (2, infinity). In the first interval a rational approximation
-     * R(x) is employed to compute
+     * R(m_jitterPos) is employed to compute
      *
      *                  2
-     * y0(x)  =  (w - r  ) x R(x^2)  +  2/pi (ln(x) j1(x) - 1/x) .
+     * y0(m_jitterPos)  =  (w - r  ) m_jitterPos R(m_jitterPos^2)  +  2/pi (ln(m_jitterPos) j1(m_jitterPos) - 1/m_jitterPos) .
      *                 1
      *
      * Thus a call to j1() is required.
      *
      * In the second interval, the modulus and phase are approximated
-     * by polynomials of the form Modulus(x) = sqrt(1/x) Q(1/x)
-     * and Phase(x) = x + 1/x S(1/x^2) - 3pi/4.  Then the function is
+     * by polynomials of the form Modulus(m_jitterPos) = sqrt(1/m_jitterPos) Q(1/m_jitterPos)
+     * and Phase(m_jitterPos) = m_jitterPos + 1/m_jitterPos S(1/m_jitterPos^2) - 3pi/4.  Then the function is
      *
-     *   y0(x) = Modulus(x) sin( Phase(x) ).
+     *   y0(m_jitterPos) = Modulus(m_jitterPos) sin( Phase(m_jitterPos) ).
      *
      *
      *
@@ -1786,9 +1786,9 @@ struct generic_y1<T, double> {
      *
      * SYNOPSIS:
      *
-     * double x, y, y1();
+     * double m_jitterPos, y, y1();
      *
-     * y = y1( x );
+     * y = y1( m_jitterPos );
      *
      *
      *

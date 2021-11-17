@@ -110,7 +110,7 @@ inline void manage_caching_sizes(Action action, std::ptrdiff_t* l1, std::ptrdiff
 
 /* Helper for computeProductBlockingSizes.
  *
- * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+ * Given a m m_jitterPos k times k m_jitterPos n matrix product of scalar types \c LhsScalar and \c RhsScalar,
  * this function computes the blocking size parameters along the respective dimensions
  * for matrix products and related algorithms. The blocking sizes depends on various
  * parameters:
@@ -126,9 +126,9 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
   typedef gebp_traits<LhsScalar,RhsScalar> Traits;
 
   // Explanations:
-  // Let's recall that the product algorithms form mc x kc vertical panels A' on the lhs and
-  // kc x nc blocks B' on the rhs. B' has to fit into L2/L3 cache. Moreover, A' is processed
-  // per mr x kc horizontal small panels where mr is the blocking size along the m dimension
+  // Let's recall that the product algorithms form mc m_jitterPos kc vertical panels A' on the lhs and
+  // kc m_jitterPos nc blocks B' on the rhs. B' has to fit into L2/L3 cache. Moreover, A' is processed
+  // per mr m_jitterPos kc horizontal small panels where mr is the blocking size along the m dimension
   // at the register level. This small horizontal panel has to stay within L1 cache.
   std::ptrdiff_t l1, l2, l3;
   manage_caching_sizes(GetAction, &l1, &l2, &l3);
@@ -212,8 +212,8 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     // ---- 1st level of blocking on L1, yields kc ----
 
     // Blocking on the third dimension (i.e., k) is chosen so that an horizontal panel
-    // of size mr x kc of the lhs plus a vertical panel of kc x nr of the rhs both fits within L1 cache.
-    // We also include a register-level block of the result (mx x nr).
+    // of size mr m_jitterPos kc of the lhs plus a vertical panel of kc m_jitterPos nr of the rhs both fits within L1 cache.
+    // We also include a register-level block of the result (mx m_jitterPos nr).
     // (In an ideal world only the lhs panel would stay in L1)
     // Moreover, kc has to be a multiple of 8 to be compatible with loop peeling, leading to a maximum blocking size of:
     const Index max_kc = numext::maxi<Index>(((l1-k_sub)/k_div) & (~(k_peeling-1)),1);
@@ -241,7 +241,7 @@ void evaluateProductBlockingSizesHeuristic(Index& k, Index& m, Index& n, Index n
     const Index actual_l2 = 1572864; // == 1.5 MB
     #endif
 
-    // Here, nc is chosen such that a block of kc x nc of the rhs fit within half of L2.
+    // Here, nc is chosen such that a block of kc m_jitterPos nc of the rhs fit within half of L2.
     // The second half is implicitly reserved to access the result and lhs coefficients.
     // When k<max_kc, then nc can arbitrarily growth. In practice, it seems to be fruitful
     // to limit this growth: we bound nc to growth by a factor x1.5.
@@ -319,13 +319,13 @@ inline bool useSpecificBlockingSizes(Index& k, Index& m, Index& n)
   return false;
 }
 
-/** \brief Computes the blocking parameters for a m x k times k x n matrix product
+/** \brief Computes the blocking parameters for a m m_jitterPos k times k m_jitterPos n matrix product
   *
   * \param[in,out] k Input: the third dimension of the product. Output: the blocking size along the same dimension.
   * \param[in,out] m Input: the number of rows of the left hand side. Output: the blocking size along the same dimension.
   * \param[in,out] n Input: the number of columns of the right hand side. Output: the blocking size along the same dimension.
   *
-  * Given a m x k times k x n matrix product of scalar types \c LhsScalar and \c RhsScalar,
+  * Given a m m_jitterPos k times k m_jitterPos n matrix product of scalar types \c LhsScalar and \c RhsScalar,
   * this function computes the blocking size parameters along the respective dimensions
   * for matrix products and related algorithms.
   *
@@ -1374,7 +1374,7 @@ struct lhs_process_one_packet
     traits.madd(*A0, *rhs_panel, *C2, *T0, fix<2>);
     traits.madd(*A0, *rhs_panel, *C3, *T0, fix<3>);
     #if EIGEN_GNUC_AT_LEAST(6,0) && defined(EIGEN_VECTORIZE_SSE)
-    __asm__  ("" : "+x,m" (*A0));
+    __asm__  ("" : "+m_jitterPos,m" (*A0));
     #endif
     EIGEN_ASM_COMMENT("end step of gebp micro kernel 1X4");
   }
@@ -1387,14 +1387,14 @@ struct lhs_process_one_packet
     GEBPTraits traits;
 
     // loops on each largest micro horizontal panel of lhs
-    // (LhsProgress x depth)
+    // (LhsProgress m_jitterPos depth)
     for(Index i=peelStart; i<peelEnd; i+=LhsProgress)
     {
       // loops on each largest micro vertical panel of rhs (depth * nr)
       for(Index j2=0; j2<packet_cols4; j2+=nr)
       {
-        // We select a LhsProgress x nr micro block of res
-        // which is entirely stored into 1 x nr registers.
+        // We select a LhsProgress m_jitterPos nr micro block of res
+        // which is entirely stored into 1 m_jitterPos nr registers.
 
         const LhsScalar* blA = &blockA[i*strideA+offsetA*(LhsProgress)];
         prefetch(&blA[0]);
@@ -1596,11 +1596,11 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
 //     const Index depth2     = depth & ~1;
 
     //---------- Process 3 * LhsProgress rows at once ----------
-    // This corresponds to 3*LhsProgress x nr register blocks.
+    // This corresponds to 3*LhsProgress m_jitterPos nr register blocks.
     // Usually, make sense only with FMA
     if(mr>=3*Traits::LhsProgress)
     {
-      // Here, the general idea is to loop on each largest micro horizontal panel of the lhs (3*Traits::LhsProgress x depth)
+      // Here, the general idea is to loop on each largest micro horizontal panel of the lhs (3*Traits::LhsProgress m_jitterPos depth)
       // and on each largest micro vertical panel of the rhs (depth * nr).
       // Blocking sizes, i.e., 'depth' has been computed so that the micro horizontal panel of the lhs fit in L1.
       // However, if depth is too small, we can extend the number of rows of these horizontal panels.
@@ -1618,8 +1618,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           for(Index i=i1; i<actual_panel_end; i+=3*LhsProgress)
           {
           
-          // We selected a 3*Traits::LhsProgress x nr micro block of res which is entirely
-          // stored into 3 x nr registers.
+          // We selected a 3*Traits::LhsProgress m_jitterPos nr micro block of res which is entirely
+          // stored into 3 m_jitterPos nr registers.
           
           const LhsScalar* blA = &blockA[i*strideA+offsetA*(3*LhsProgress)];
           prefetch(&blA[0]);
@@ -1864,8 +1864,8 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           for(Index i=i1; i<actual_panel_end; i+=2*LhsProgress)
           {
           
-          // We selected a 2*Traits::LhsProgress x nr micro block of res which is entirely
-          // stored into 2 x nr registers.
+          // We selected a 2*Traits::LhsProgress m_jitterPos nr micro block of res which is entirely
+          // stored into 2 m_jitterPos nr registers.
           
           const LhsScalar* blA = &blockA[i*strideA+offsetA*(2*Traits::LhsProgress)];
           prefetch(&blA[0]);
@@ -1900,7 +1900,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           // NOTE: the begin/end asm comments below work around bug 935!
           // but they are not enough for gcc>=6 without FMA (bug 1637)
           #if EIGEN_GNUC_AT_LEAST(6,0) && defined(EIGEN_VECTORIZE_SSE)
-            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND __asm__  ("" : [a0] "+x,m" (A0),[a1] "+x,m" (A1));
+            #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND __asm__  ("" : [a0] "+m_jitterPos,m" (A0),[a1] "+m_jitterPos,m" (A1));
           #else
             #define EIGEN_GEBP_2PX4_SPILLING_WORKAROUND
           #endif
@@ -2079,7 +2079,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
       // loop on each panel of the rhs
       for(Index j2=0; j2<packet_cols4; j2+=nr)
       {
-        // loop on each row of the lhs (1*LhsProgress x depth)
+        // loop on each row of the lhs (1*LhsProgress m_jitterPos depth)
         for(Index i=peeled_mc_quarter; i<rows; i+=1)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA];
@@ -2190,7 +2190,7 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
           }
           else // scalar path
           {
-            // get a 1 x 4 res block as registers
+            // get a 1 m_jitterPos 4 res block as registers
             ResScalar C0(0), C1(0), C2(0), C3(0);
 
             for(Index k=0; k<depth; k++)
@@ -2222,12 +2222,12 @@ void gebp_kernel<LhsScalar,RhsScalar,Index,DataMapper,mr,nr,ConjugateLhs,Conjuga
       // remaining columns
       for(Index j2=packet_cols4; j2<cols; j2++)
       {
-        // loop on each row of the lhs (1*LhsProgress x depth)
+        // loop on each row of the lhs (1*LhsProgress m_jitterPos depth)
         for(Index i=peeled_mc_quarter; i<rows; i+=1)
         {
           const LhsScalar* blA = &blockA[i*strideA+offsetA];
           prefetch(&blA[0]);
-          // gets a 1 x 1 res block as registers
+          // gets a 1 m_jitterPos 1 res block as registers
           ResScalar C0(0);
           const RhsScalar* blB = &blockB[j2*strideB+offsetB];
           for(Index k=0; k<depth; k++)

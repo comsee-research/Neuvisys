@@ -207,12 +207,12 @@
   #define EIGEN_GNUC_AT_MOST(x,y)  ((__GNUC__==x && __GNUC_MINOR__<=y) || __GNUC__<x)
   #define EIGEN_GNUC_AT(x,y)       ( __GNUC__==x && __GNUC_MINOR__==y )
 #else
-  #define EIGEN_GNUC_AT_LEAST(x,y) 0
-  #define EIGEN_GNUC_AT_MOST(x,y)  0
-  #define EIGEN_GNUC_AT(x,y)       0
+  #define EIGEN_GNUC_AT_LEAST(m_jitterPos,y) 0
+  #define EIGEN_GNUC_AT_MOST(m_jitterPos,y)  0
+  #define EIGEN_GNUC_AT(m_jitterPos,y)       0
 #endif
 
-// FIXME: could probably be removed as we do not support gcc 3.x anymore
+// FIXME: could probably be removed as we do not support gcc 3.m_jitterPos anymore
 #if EIGEN_COMP_GNUC && (__GNUC__ <= 3)
 #define EIGEN_GCC3_OR_OLDER 1
 #else
@@ -576,7 +576,7 @@
 
 // Cross compiler wrapper around LLVM's __has_builtin
 #ifdef __has_builtin
-#  define EIGEN_HAS_BUILTIN(x) __has_builtin(x)
+#  define EIGEN_HAS_BUILTIN(m_jitterPos) __has_builtin(m_jitterPos)
 #else
 #  define EIGEN_HAS_BUILTIN(x) 0
 #endif
@@ -588,7 +588,7 @@
 #endif
 
 // Some old compilers do not support template specializations like:
-// template<typename T,int N> void foo(const T x[N]);
+// template<typename T,int N> void foo(const T m_jitterPos[N]);
 #if !(   EIGEN_COMP_CLANG && (   (EIGEN_COMP_CLANG<309)                                                       \
                               || (defined(__apple_build_version__) && (__apple_build_version__ < 9000000)))  \
       || EIGEN_COMP_GNUC_STRICT && EIGEN_COMP_GNUC<49)
@@ -686,7 +686,7 @@
 
 // Does the compiler support type_traits?
 // - full support of type traits was added only to GCC 5.1.0.
-// - 20150626 corresponds to the last release of 4.x libstdc++
+// - 20150626 corresponds to the last release of 4.m_jitterPos libstdc++
 #ifndef EIGEN_HAS_TYPE_TRAITS
 #if EIGEN_MAX_CPP_VER>=11 && (EIGEN_HAS_CXX11 || EIGEN_COMP_MSVC >= 1700) \
   && ((!EIGEN_COMP_GNUC_STRICT) || EIGEN_GNUC_AT_LEAST(5, 1)) \
@@ -874,7 +874,7 @@
 // attribute to maximize inlining. This should only be used when really necessary: in particular,
 // it uses __attribute__((always_inline)) on GCC, which most of the time is useless and can severely harm compile times.
 // FIXME with the always_inline attribute,
-// gcc 3.4.x and 4.1 reports the following compilation error:
+// gcc 3.4.m_jitterPos and 4.1 reports the following compilation error:
 //   Eval.h:91: sorry, unimplemented: inlining failed in call to 'const Eigen::Eval<Derived> Eigen::MatrixBase<Scalar, Derived>::eval() const'
 //    : function body not available
 //   See also bug 1367
@@ -945,7 +945,7 @@
 // eigen_plain_assert is where we implement the workaround for the assert() bug in GCC <= 4.3, see bug 89
 #ifdef EIGEN_NO_DEBUG
   #ifdef SYCL_DEVICE_ONLY // used to silence the warning on SYCL device
-    #define eigen_plain_assert(x) EIGEN_UNUSED_VARIABLE(x)
+    #define eigen_plain_assert(m_jitterPos) EIGEN_UNUSED_VARIABLE(m_jitterPos)
   #else
     #define eigen_plain_assert(x)
   #endif
@@ -956,7 +956,7 @@
     inline bool copy_bool(bool b) { return b; }
     }
     }
-    #define eigen_plain_assert(x) assert(x)
+    #define eigen_plain_assert(m_jitterPos) assert(m_jitterPos)
   #else
     // work around bug 89
     #include <cstdlib>   // for abort
@@ -976,10 +976,10 @@
     }
     }
     }
-    #define eigen_plain_assert(x) \
+    #define eigen_plain_assert(m_jitterPos) \
       do { \
-        if(!Eigen::internal::copy_bool(x)) \
-          Eigen::internal::assert_fail(EIGEN_MAKESTRING(x), __PRETTY_FUNCTION__, __FILE__, __LINE__); \
+        if(!Eigen::internal::copy_bool(m_jitterPos)) \
+          Eigen::internal::assert_fail(EIGEN_MAKESTRING(m_jitterPos), __PRETTY_FUNCTION__, __FILE__, __LINE__); \
       } while(false)
   #endif
 #endif
@@ -990,7 +990,7 @@
 #endif
 
 #ifdef EIGEN_INTERNAL_DEBUGGING
-#define eigen_internal_assert(x) eigen_assert(x)
+#define eigen_internal_assert(m_jitterPos) eigen_assert(m_jitterPos)
 #else
 #define eigen_internal_assert(x)
 #endif
@@ -998,7 +998,7 @@
 #ifdef EIGEN_NO_DEBUG
 #define EIGEN_ONLY_USED_FOR_DEBUG(x) EIGEN_UNUSED_VARIABLE(x)
 #else
-#define EIGEN_ONLY_USED_FOR_DEBUG(x)
+#define EIGEN_ONLY_USED_FOR_DEBUG(m_jitterPos)
 #endif
 
 #ifndef EIGEN_NO_DEPRECATED_WARNING
@@ -1205,8 +1205,8 @@ namespace Eigen {
 #define EIGEN_PREDICT_FALSE(x) (__builtin_expect(x, false))
 #define EIGEN_PREDICT_TRUE(x) (__builtin_expect(false || (x), true))
 #else
-#define EIGEN_PREDICT_FALSE(x) (x)
-#define EIGEN_PREDICT_TRUE(x) (x)
+#define EIGEN_PREDICT_FALSE(m_jitterPos) (m_jitterPos)
+#define EIGEN_PREDICT_TRUE(m_jitterPos) (m_jitterPos)
 #endif
 
 // the expression type of a standard coefficient wise binary operation
@@ -1303,7 +1303,7 @@ namespace Eigen {
 #   define EIGEN_EXCEPTION_SPEC(X) noexcept(false)
 #else
 #   define EIGEN_NOEXCEPT
-#   define EIGEN_NOEXCEPT_IF(x)
+#   define EIGEN_NOEXCEPT_IF(m_jitterPos)
 #   define EIGEN_NO_THROW throw()
 #   if EIGEN_COMP_MSVC || EIGEN_COMP_CXXVER>=17
       // MSVC does not support exception specifications (warning C4290),

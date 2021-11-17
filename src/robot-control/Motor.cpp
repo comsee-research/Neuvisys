@@ -8,15 +8,14 @@ Motor::Motor(ros::NodeHandle &n, const std::string& name) {
     m_motorPub = n.advertise<std_msgs::Float32>(name, 1000);
 }
 
-void Motor::jitter(double dt) {
-    OrnsteinUhlenbeckProcess(dt, 25, 0., 0.05);
-    m_speed.data = static_cast<float>(x);
+void Motor::jitter(double dt, double jitter) {
+    if (jitter == 0) {
+        m_jitterPos = Util::ornsteinUhlenbeckProcess(dt, m_jitterPos, 25, 0., 0.05);
+    } else {
+        m_jitterPos = jitter;
+    }
+    m_speed.data = static_cast<float>(m_jitterPos);
     m_motorPub.publish(m_speed);
-}
-
-void Motor::OrnsteinUhlenbeckProcess(double dt, double theta, double mu, double sigma) {
-    double noise = distribution(generator) * std::sqrt(dt);
-    x = x + theta * (mu - x) * dt + sigma * noise;
 }
 
 void Motor::move() {

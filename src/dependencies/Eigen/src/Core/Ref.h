@@ -138,10 +138,10 @@ protected:
   * A Ref<> object can represent either a const expression or a l-value:
   * \code
   * // in-out argument:
-  * void foo1(Ref<VectorXf> x);
+  * void foo1(Ref<VectorXf> m_jitterPos);
   *
   * // read-only const argument:
-  * void foo2(const Ref<const VectorXf>& x);
+  * void foo2(const Ref<const VectorXf>& m_jitterPos);
   * \endcode
   *
   * In the in-out case, the input argument must satisfy the constraints of the actual Ref<> type, otherwise a compilation issue will be triggered.
@@ -168,7 +168,7 @@ protected:
   * Here is an example accepting an innerstride!=1:
   * \code
   * // in-out argument:
-  * void foo3(Ref<VectorXf,0,InnerStride<> > x);
+  * void foo3(Ref<VectorXf,0,InnerStride<> > m_jitterPos);
   * foo3(A.row());              // OK
   * \endcode
   * The downside here is that the function foo3 might be significantly slower than foo1 because it won't be able to exploit vectorization, and will involve more

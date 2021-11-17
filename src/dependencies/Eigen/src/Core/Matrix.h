@@ -361,7 +361,7 @@ class Matrix
     EIGEN_STRONG_INLINE explicit Matrix(Index dim);
     /** \brief Constructs an initialized 1x1 matrix with the given coefficient
       * \sa Matrix(const Scalar&, const Scalar&, const Scalar&,  const Scalar&, const ArgTypes&...) */
-    Matrix(const Scalar& x);
+    Matrix(const Scalar& m_jitterPos);
     /** \brief Constructs an uninitialized matrix with \a rows rows and \a cols columns.
       *
       * This is useful for dynamic-size matrices. For fixed-size matrices,
@@ -369,7 +369,7 @@ class Matrix
       * Matrix() instead.
       * 
       * \warning This constructor is disabled for fixed-size \c 1x2 and \c 2x1 vectors. For instance,
-      * calling Matrix2f(2,1) will call the initialization constructor: Matrix(const Scalar& x, const Scalar& y).
+      * calling Matrix2f(2,1) will call the initialization constructor: Matrix(const Scalar& m_jitterPos, const Scalar& y).
       * For fixed-size \c 1x2 or \c 2x1 vectors it is therefore recommended to use the default
       * constructor Matrix() instead, especially when using one of the non standard
       * \c EIGEN_INITIALIZE_MATRICES_BY_{ZERO,\c NAN} macros (see \ref TopicPreprocessorDirectives).
@@ -379,7 +379,7 @@ class Matrix
     
     /** \brief Constructs an initialized 2D vector with given coefficients
       * \sa Matrix(const Scalar&, const Scalar&, const Scalar&,  const Scalar&, const ArgTypes&...) */
-    Matrix(const Scalar& x, const Scalar& y);
+    Matrix(const Scalar& m_jitterPos, const Scalar& y);
     #endif  // end EIGEN_PARSED_BY_DOXYGEN
 
     /** \brief Constructs an initialized 3D vector with given coefficients

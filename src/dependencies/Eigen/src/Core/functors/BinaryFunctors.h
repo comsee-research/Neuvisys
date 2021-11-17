@@ -101,7 +101,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool scalar_product_op<bool,bool>::operato
 /** \internal
   * \brief Template functor to compute the conjugate product of two scalars
   *
-  * This is a short cut for conj(x) * y which is needed for optimization purpose; in Eigen2 support mode, this becomes x * conj(y)
+  * This is a short cut for conj(m_jitterPos) * y which is needed for optimization purpose; in Eigen2 support mode, this becomes m_jitterPos * conj(y)
   */
 template<typename LhsScalar,typename RhsScalar>
 struct scalar_conj_product_op  : binary_op_base<LhsScalar,RhsScalar>

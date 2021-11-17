@@ -14,7 +14,7 @@
 #ifdef EIGEN_PARSED_BY_DOXYGEN
 
 #define EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(NAME,FUNCTOR,DOC_OP,DOC_DETAILS) \
-  /** \returns an expression of the coefficient-wise DOC_OP of \a x
+  /** \returns an expression of the coefficient-wise DOC_OP of \a m_jitterPos
 
     DOC_DETAILS
 
@@ -22,7 +22,7 @@
     */ \
   template<typename Derived> \
   inline const Eigen::CwiseUnaryOp<Eigen::internal::FUNCTOR<typename Derived::Scalar>, const Derived> \
-  NAME(const Eigen::ArrayBase<Derived>& x);
+  NAME(const Eigen::ArrayBase<Derived>& m_jitterPos);
 
 #else
 
@@ -98,7 +98,7 @@ namespace Eigen
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(isfinite,scalar_isfinite_op,finite value test,\sa Eigen::isinf DOXCOMMA Eigen::isnan DOXCOMMA ArrayBase::isfinite)
   EIGEN_ARRAY_DECLARE_GLOBAL_UNARY(sign,scalar_sign_op,sign (or 0),\sa ArrayBase::sign)
 
-  /** \returns an expression of the coefficient-wise power of \a x to the given constant \a exponent.
+  /** \returns an expression of the coefficient-wise power of \a m_jitterPos to the given constant \a exponent.
     *
     * \tparam ScalarExponent is the scalar type of \a exponent. It must be compatible with the scalar type of the given expression (\c Derived::Scalar).
     *
@@ -109,7 +109,7 @@ namespace Eigen
 #ifdef EIGEN_PARSED_BY_DOXYGEN
   template<typename Derived,typename ScalarExponent>
   inline const CwiseBinaryOp<internal::scalar_pow_op<Derived::Scalar,ScalarExponent>,Derived,Constant<ScalarExponent> >
-  pow(const Eigen::ArrayBase<Derived>& x, const ScalarExponent& exponent);
+  pow(const Eigen::ArrayBase<Derived>& m_jitterPos, const ScalarExponent& exponent);
 #else
   template <typename Derived,typename ScalarExponent>
   EIGEN_DEVICE_FUNC inline
@@ -126,7 +126,7 @@ namespace Eigen
   }
 #endif
 
-  /** \returns an expression of the coefficient-wise power of \a x to the given array of \a exponents.
+  /** \returns an expression of the coefficient-wise power of \a m_jitterPos to the given array of \a exponents.
     *
     * This function computes the coefficient-wise power.
     *
@@ -147,11 +147,11 @@ namespace Eigen
     );
   }
 
-  /** \returns an expression of the coefficient-wise power of the scalar \a x to the given array of \a exponents.
+  /** \returns an expression of the coefficient-wise power of the scalar \a m_jitterPos to the given array of \a exponents.
     *
     * This function computes the coefficient-wise power between a scalar and an array of exponents.
     *
-    * \tparam Scalar is the scalar type of \a x. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
+    * \tparam Scalar is the scalar type of \a m_jitterPos. It must be compatible with the scalar type of the given array expression (\c Derived::Scalar).
     *
     * Example: \include Cwise_scalar_power_array.cpp
     * Output: \verbinclude Cwise_scalar_power_array.out
@@ -163,7 +163,7 @@ namespace Eigen
 #ifdef EIGEN_PARSED_BY_DOXYGEN
   template<typename Scalar,typename Derived>
   inline const CwiseBinaryOp<internal::scalar_pow_op<Scalar,Derived::Scalar>,Constant<Scalar>,Derived>
-  pow(const Scalar& x,const Eigen::ArrayBase<Derived>& x);
+  pow(const Scalar& m_jitterPos,const Eigen::ArrayBase<Derived>& m_jitterPos);
 #else
   template <typename Scalar, typename Derived>
   EIGEN_DEVICE_FUNC inline

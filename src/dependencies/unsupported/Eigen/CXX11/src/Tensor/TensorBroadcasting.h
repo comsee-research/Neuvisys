@@ -884,7 +884,7 @@ struct TensorEvaluator<const TensorBroadcastingOp<Broadcast, ArgType>, Device>
 
       // The general case. Let's denote the output block as
       //
-      //   x[..., a:a+bcast_dim_size, :, ..., :]
+      //   m_jitterPos[..., a:a+bcast_dim_size, :, ..., :]
       //
       // where a:a+bcast_dim_size is a slice on the bcast_dim dimension
       // (< NumDims). We need to split the a:a+bcast_dim_size into possibly 3

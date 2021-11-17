@@ -107,7 +107,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 
         // the selected actual_mc * size panel of res is split into three different part:
         //  1 - before the diagonal => processed with gebp or skipped
-        //  2 - the actual_mc x actual_mc symmetric block => processed with a special kernel
+        //  2 - the actual_mc m_jitterPos actual_mc symmetric block => processed with a special kernel
         //  3 - after the diagonal => processed with gebp or skipped
         if (UpLo==Lower)
           gebp(res.getSubMapper(i2, 0), blockA, blockB, actual_mc, actual_kc,
@@ -128,7 +128,7 @@ struct general_matrix_matrix_triangular_product<Index,LhsScalar,LhsStorageOrder,
 
 // Optimized packed Block * packed Block product kernel evaluating only one given triangular part
 // This kernel is built on top of the gebp kernel:
-// - the current destination block is processed per panel of actual_mc x BlockSize
+// - the current destination block is processed per panel of actual_mc m_jitterPos BlockSize
 //   where BlockSize is set to the minimal value allowing gebp to be as fast as possible
 // - then, as usual, each panel is split into three parts along the diagonal,
 //   the sub blocks above and below the diagonal are processed as usual,
@@ -154,7 +154,7 @@ struct tribb_kernel
 
     Matrix<ResScalar,BlockSize,BlockSize,ColMajor> buffer((internal::constructor_without_unaligned_array_assert()));
 
-    // let's process the block per panel of actual_mc x BlockSize,
+    // let's process the block per panel of actual_mc m_jitterPos BlockSize,
     // again, each is split into three parts, etc.
     for (Index j=0; j<size; j+=BlockSize)
     {

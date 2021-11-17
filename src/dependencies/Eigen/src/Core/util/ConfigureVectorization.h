@@ -34,22 +34,22 @@
  */
 #if (defined EIGEN_CUDACC)
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __align__(n)
-  #define EIGEN_ALIGNOF(x) __alignof(x)
+  #define EIGEN_ALIGNOF(m_jitterPos) __alignof(m_jitterPos)
 #elif EIGEN_HAS_ALIGNAS
   #define EIGEN_ALIGN_TO_BOUNDARY(n) alignas(n)
   #define EIGEN_ALIGNOF(x) alignof(x)
 #elif EIGEN_COMP_GNUC || EIGEN_COMP_PGI || EIGEN_COMP_IBM || EIGEN_COMP_ARM
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
+  #define EIGEN_ALIGNOF(m_jitterPos) __alignof(m_jitterPos)
 #elif EIGEN_COMP_MSVC
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __declspec(align(n))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
+  #define EIGEN_ALIGNOF(m_jitterPos) __alignof(m_jitterPos)
 #elif EIGEN_COMP_SUNCC
   // FIXME not sure about this one:
   #define EIGEN_ALIGN_TO_BOUNDARY(n) __attribute__((aligned(n)))
-  #define EIGEN_ALIGNOF(x) __alignof(x)
+  #define EIGEN_ALIGNOF(m_jitterPos) __alignof(m_jitterPos)
 #else
-  #error Please tell me what is the equivalent of alignas(n) and alignof(x) for your compiler
+  #error Please tell me what is the equivalent of alignas(n) and alignof(m_jitterPos) for your compiler
 #endif
 
 // If the user explicitly disable vectorization, then we also disable alignment

@@ -22,8 +22,8 @@ EIGEN_DEVICE_FUNC uint64_t get_random_seed() {
   // 2d kernels.
   gpu_assert(threadIdx.z == 0);
   return clock64() +
-      blockIdx.x * blockDim.x + threadIdx.x +
-      gridDim.x * blockDim.x * (blockIdx.y * blockDim.y + threadIdx.y);
+      blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos +
+      gridDim.m_jitterPos * blockDim.m_jitterPos * (blockIdx.y * blockDim.y + threadIdx.y);
 
 #elif defined _WIN32
   // Use the current time as a baseline.

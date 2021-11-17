@@ -405,13 +405,13 @@ enum DecompositionOptions {
   /** \internal */
   EigVecMask = EigenvaluesOnly | ComputeEigenvectors,
   /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
-    * solve the generalized eigenproblem \f$ Ax = \lambda B x \f$. */
+    * solve the generalized eigenproblem \f$ Ax = \lambda B m_jitterPos \f$. */
   Ax_lBx              = 0x100,
   /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
-    * solve the generalized eigenproblem \f$ ABx = \lambda x \f$. */
+    * solve the generalized eigenproblem \f$ ABx = \lambda m_jitterPos \f$. */
   ABx_lx              = 0x200,
   /** Used in GeneralizedSelfAdjointEigenSolver to indicate that it should
-    * solve the generalized eigenproblem \f$ BAx = \lambda x \f$. */
+    * solve the generalized eigenproblem \f$ BAx = \lambda m_jitterPos \f$. */
   BAx_lx              = 0x400,
   /** \internal */
   GenEigMask = Ax_lBx | ABx_lx | BAx_lx
@@ -457,7 +457,7 @@ enum TransformTraits {
   /** Transformation is an affine transformation stored as a (Dim+1)^2 matrix whose last row is 
     * assumed to be [0 ... 0 1]. */
   Affine        = 0x2,
-  /** Transformation is an affine transformation stored as a (Dim) x (Dim+1) matrix. */
+  /** Transformation is an affine transformation stored as a (Dim) m_jitterPos (Dim+1) matrix. */
   AffineCompact = 0x10 | Affine,
   /** Transformation is a general projective transformation stored as a (Dim+1)^2 matrix. */
   Projective    = 0x20

@@ -150,7 +150,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       *
       * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
       *
-      * \sa operator[](Index), operator()(Index,Index) const, x() const, y() const,
+      * \sa operator[](Index), operator()(Index,Index) const, m_jitterPos() const, y() const,
       * z() const, w() const
       */
 
@@ -170,7 +170,7 @@ class DenseCoeffsBase<Derived,ReadOnlyAccessors> : public EigenBase<Derived>
       *
       * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
       *
-      * \sa operator[](Index), operator()(Index,Index) const, x() const, y() const,
+      * \sa operator[](Index), operator()(Index,Index) const, m_jitterPos() const, y() const,
       * z() const, w() const
       */
 
@@ -398,7 +398,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       *
       * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
       *
-      * \sa operator[](Index) const, operator()(Index,Index), x(), y(), z(), w()
+      * \sa operator[](Index) const, operator()(Index,Index), m_jitterPos(), y(), z(), w()
       */
 
     EIGEN_DEVICE_FUNC
@@ -417,7 +417,7 @@ class DenseCoeffsBase<Derived, WriteAccessors> : public DenseCoeffsBase<Derived,
       *
       * This method is allowed only for vector expressions, and for matrix expressions having the LinearAccessBit.
       *
-      * \sa operator[](Index) const, operator()(Index,Index), x(), y(), z(), w()
+      * \sa operator[](Index) const, operator()(Index,Index), m_jitterPos(), y(), z(), w()
       */
 
     EIGEN_DEVICE_FUNC

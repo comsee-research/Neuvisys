@@ -8,8 +8,8 @@ SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
-//    m_rightSensorSub = n.subscribe<sensor_msgs::Image>("rightimage", 1000,
-//                                                       boost::bind(&SimulationInterface::visionCallBack, this, _1, "right"));
+    m_rightSensorSub = nh.subscribe<sensor_msgs::Image>("rightimage", 1000,
+                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "right"); });
     m_timeSub = nh.subscribe<std_msgs::Float32>("simulationTime", 1000, [this](auto && PH1) { timeCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_simTimeStepSub = nh.subscribe<std_msgs::Float32>("simulationTimeStep", 1000, [this](auto && PH1) { timeStepCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_simStepDoneSub = nh.subscribe<std_msgs::Bool>("simulationStepDone", 1000, [this](auto && PH1) { simulationStepDoneCallBack(std::forward<decltype(PH1)>(PH1)); });
@@ -38,7 +38,7 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
         frameConverter.frameConversion(topic, frame, leftReference, leftThresholdmap, leftEim, leftEvents, 0);
     } else if (topic == "right") {
 //        rightEvents.clear();
-//        rightConverter.frameConversion(topic, frame, rightReference, rightThresholdmap, rightEim, rightEvents, 1);
+//        frameConverter.frameConversion(topic, frame, rightReference, rightThresholdmap, rightEim, rightEvents, 1);
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;
@@ -108,9 +108,10 @@ bool SimulationInterface::poissonProcess() {
 
 void SimulationInterface::motorsJitter(double dt) {
     m_leftMotor1Pub.jitter(dt);
-    m_leftMotor2Pub.jitter(dt);
+    m_leftMotor2Pub.jitter(dt, m_leftMotor1Pub.getJitterPos());
+
     m_rightMotor1Pub.jitter(dt);
-    m_rightMotor2Pub.jitter(dt);
+    m_rightMotor2Pub.jitter(dt, m_leftMotor2Pub.getJitterPos());
 }
 
 void SimulationInterface::activateMotor(uint64_t motor) {

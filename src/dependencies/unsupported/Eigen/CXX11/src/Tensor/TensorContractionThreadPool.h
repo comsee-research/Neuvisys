@@ -230,7 +230,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
 
     // If there is enough concurrency in the sharding dimension, we choose not
     // to paralellize by the other dimension, and execute all kernels in sync
-    // mode. This reduces parallelism from the nm x nn down to nn
+    // mode. This reduces parallelism from the nm m_jitterPos nn down to nn
     // (shard_by_col==true) or nm (shard_by_col==false).
     const Index sharding_dim_tasks = shard_by_col ? nn : nm;
     const int num_worker_threads = this->m_device.numThreadsInPool();
@@ -426,27 +426,27 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
       // These two options are mutually exclusive.
       eigen_assert(!(parallel_pack && parallelize_by_sharding_dim_only));
 
-      for (Index x = 0; x < P; x++) {
+      for (Index m_jitterPos = 0; m_jitterPos < P; m_jitterPos++) {
         // Normal number of notifications for k slice switch is
         // nm_ + nn_ + nm_ * nn_. However, first P - 1 slices will receive only
         // nm_ + nn_ notifications, because they will not receive notifications
         // from preceding kernels.
-        state_switch_[x] =
-            x == 0
+        state_switch_[m_jitterPos] =
+            m_jitterPos == 0
                 ? 1
                 : (parallel_pack_ ? nn_ + nm_ : (shard_by_col_ ? nn_ : nm_)) +
-                      (x == P - 1 ? nm_ * nn_ : 0);
-        state_packing_ready_[x] =
+                      (m_jitterPos == P - 1 ? nm_ * nn_ : 0);
+        state_packing_ready_[m_jitterPos] =
             parallel_pack_ ? 0 : (shard_by_col_ ? nm_ : nn_);
-        state_kernel_[x] = new std::atomic<uint8_t>*[nm_];
+        state_kernel_[m_jitterPos] = new std::atomic<uint8_t>*[nm_];
         for (Index m = 0; m < nm_; m++) {
-          state_kernel_[x][m] = new std::atomic<uint8_t>[nn_];
+          state_kernel_[m_jitterPos][m] = new std::atomic<uint8_t>[nn_];
           // Kernels generally receive 3 notifications (previous kernel + 2
           // packing), but the first slice won't get notifications from previous
           // kernels.
           for (Index n = 0; n < nn_; n++)
-            state_kernel_[x][m][n].store(
-                (x == 0 ? 0 : 1) + (parallel_pack_ ? 2 : 1),
+            state_kernel_[m_jitterPos][m][n].store(
+                (m_jitterPos == 0 ? 0 : 1) + (parallel_pack_ ? 2 : 1),
                 std::memory_order_relaxed);
         }
       }
@@ -494,9 +494,9 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     }
 
     ~EvalParallelContext() {
-      for (Index x = 0; x < P; x++) {
-        for (Index m = 0; m < nm_; m++) delete[] state_kernel_[x][m];
-        delete[] state_kernel_[x];
+      for (Index m_jitterPos = 0; m_jitterPos < P; m_jitterPos++) {
+        for (Index m = 0; m < nm_; m++) delete[] state_kernel_[m_jitterPos][m];
+        delete[] state_kernel_[m_jitterPos];
       }
       kernel_.deallocate(device_, packed_mem_);
       if (parallelize_by_sharding_dim_only_) {
@@ -569,7 +569,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     //
     // Blocks related to the same k block can run in parallel because they write
     // to different output blocks. So we parallelize within k slices, this
-    // gives us parallelism level of m x n. Before we can start any kernels
+    // gives us parallelism level of m m_jitterPos n. Before we can start any kernels
     // related to k-th slice, we need to issue m lhs packing tasks and n rhs
     // packing tasks.
     //
@@ -580,7 +580,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     // output block, so they must not run in parallel.
     //
     // This gives us the following dependency graph.
-    // On each k slice we have m x n kernel tasks, m lhs paking tasks and n rhs
+    // On each k slice we have m m_jitterPos n kernel tasks, m lhs paking tasks and n rhs
     // packing tasks.
     // Kernel (m, n, k) can start when:
     //  - kernel (m, n, k-1) has finished
@@ -910,7 +910,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
           // call to the `TensorContractionKernel::invoke()`.
           //
           // On 10000x2x10000 mm zeroing can easily take half of time. Zero (bn
-          // x m) row. Safe to do here because all kernels that will write to
+          // m_jitterPos m) row. Safe to do here because all kernels that will write to
           // this memory depend on completion of this task. Note: don't call
           // device_.memset() here. device_.memset() blocks on thread pool
           // worker thread, which can lead to underutilization and deadlocks.
@@ -1452,7 +1452,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
   // Below are the function used by evalProductImpl heuristics, trying to select
   // optimcal parameters for parallelization algorithm.
 
-  // Decide whether we want to shard m x n contraction by columns or by rows.
+  // Decide whether we want to shard m m_jitterPos n contraction by columns or by rows.
   static bool shardByCol(Index m, Index n, Index num_threads) {
     // Note: we are comparing both n and m against Traits::nr, it is not
     // a mistake. We are trying to figure out how both n and m will fit into
@@ -1584,7 +1584,7 @@ struct TensorEvaluator<const TensorContractionOp<Indices, LeftArgType, RightArgT
     return cost + lhsCost + rhsCost;
   }
 
-  // Decide whether we want to shard m x k x n contraction over the inner
+  // Decide whether we want to shard m m_jitterPos k m_jitterPos n contraction over the inner
   // (contraction) dimension (k).
   static bool shardByInnerDim(Index m, Index n, Index k, int num_threads,
                               int num_threads_by_k) {

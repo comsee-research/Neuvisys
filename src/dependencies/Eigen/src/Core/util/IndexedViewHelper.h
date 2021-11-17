@@ -76,7 +76,7 @@ template<typename T, typename EnableIf = void> struct get_compile_time_incr {
   enum { value = UndefinedIncr };
 };
 
-// Analogue of std::get<0>(x), but tailored for our needs.
+// Analogue of std::get<0>(m_jitterPos), but tailored for our needs.
 template<typename T>
 Index first(const T& x) { return x.first(); }
 

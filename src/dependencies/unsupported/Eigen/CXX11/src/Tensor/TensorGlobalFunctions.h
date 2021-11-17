@@ -12,7 +12,7 @@
 
 namespace Eigen {
 
-/** \cpp11 \returns an expression of the coefficient-wise betainc(\a x, \a a, \a b) to the given tensors.
+/** \cpp11 \returns an expression of the coefficient-wise betainc(\a m_jitterPos, \a a, \a b) to the given tensors.
  *
  * This function computes the regularized incomplete beta function (integral).
  *

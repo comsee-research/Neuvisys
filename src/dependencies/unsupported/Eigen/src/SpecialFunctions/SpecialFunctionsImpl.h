@@ -77,9 +77,9 @@ struct lgamma_impl<float> {
     int dummy;
     return ::lgammaf_r(x, &dummy);
 #elif defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::lgamma(x);
+    return cl::sycl::lgamma(m_jitterPos);
 #else
-    return ::lgammaf(x);
+    return ::lgammaf(m_jitterPos);
 #endif
   }
 };
@@ -92,9 +92,9 @@ struct lgamma_impl<double> {
     int dummy;
     return ::lgamma_r(x, &dummy);
 #elif defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::lgamma(x);
+    return cl::sycl::lgamma(m_jitterPos);
 #else
-    return ::lgamma(x);
+    return ::lgamma(m_jitterPos);
 #endif
   }
 };
@@ -188,36 +188,36 @@ struct digamma_impl {
      *
      * SYNOPSIS:
      *
-     * double x, y, psi();
+     * double m_jitterPos, y, psi();
      *
-     * y = psi( x );
+     * y = psi( m_jitterPos );
      *
      *
      * DESCRIPTION:
      *
      *              d      -
-     *   psi(x)  =  -- ln | (x)
+     *   psi(m_jitterPos)  =  -- ln | (m_jitterPos)
      *              dx
      *
      * is the logarithmic derivative of the gamma function.
-     * For integer x,
+     * For integer m_jitterPos,
      *                   n-1
      *                    -
      * psi(n) = -EUL  +   >  1/k.
      *                    -
      *                   k=1
      *
-     * If x is negative, it is transformed to a positive argument by the
-     * reflection formula  psi(1-x) = psi(x) + pi cot(pi x).
-     * For general positive x, the argument is made greater than 10
-     * using the recurrence  psi(x+1) = psi(x) + 1/x.
+     * If m_jitterPos is negative, it is transformed to a positive argument by the
+     * reflection formula  psi(1-m_jitterPos) = psi(m_jitterPos) + pi cot(pi m_jitterPos).
+     * For general positive m_jitterPos, the argument is made greater than 10
+     * using the recurrence  psi(m_jitterPos+1) = psi(m_jitterPos) + 1/m_jitterPos.
      * Then the following asymptotic expansion is applied:
      *
      *                           inf.   B
      *                            -      2k
-     * psi(x) = log(x) - 1/2x -   >   -------
+     * psi(m_jitterPos) = log(m_jitterPos) - 1/2x -   >   -------
      *                            -        2k
-     *                           k=1   2k x
+     *                           k=1   2k m_jitterPos
      *
      * where the B2k are Bernoulli numbers.
      *
@@ -235,7 +235,7 @@ struct digamma_impl {
      *
      * ERROR MESSAGES:
      *     message         condition      value returned
-     * psi singularity    x integer <=0      INFINITY
+     * psi singularity    m_jitterPos integer <=0      INFINITY
      */
 
     Scalar p, q, nz, s, w, y;
@@ -256,8 +256,8 @@ struct digamma_impl {
       if (p == q) {
         return maxnum;
       }
-      /* Remove the zeros of tan(m_pi x)
-       * by subtracting the nearest integer from x
+      /* Remove the zeros of tan(m_pi m_jitterPos)
+       * by subtracting the nearest integer from m_jitterPos
        */
       nz = q - p;
       if (nz != half) {
@@ -273,7 +273,7 @@ struct digamma_impl {
       x = one - x;
     }
 
-    /* use the recurrence psi(x+1) = psi(x) + 1/x. */
+    /* use the recurrence psi(m_jitterPos+1) = psi(m_jitterPos) + 1/m_jitterPos. */
     s = x;
     w = zero;
     while (s < Scalar(10)) {
@@ -296,7 +296,7 @@ struct digamma_impl {
 /** \internal \returns the error function of \a a (coeff-wise)
     Doesn't do anything fancy, just a 13/8-degree rational interpolant which
     is accurate up to a couple of ulp in the range [-4, 4], outside of which
-    fl(erf(x)) = +/-1.
+    fl(erf(m_jitterPos)) = +/-1.
 
     This implementation works on both scalars and Ts.
 */
@@ -323,7 +323,7 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE T generic_fast_erf_float(const T& a_x) {
   const T beta_6 = pset1<T>(-2.13374055278905e-04f);
   const T beta_8 = pset1<T>(-1.45660718464996e-05f);
 
-  // Since the polynomials are odd/even, we need x^2.
+  // Since the polynomials are odd/even, we need m_jitterPos^2.
   const T x2 = pmul(x, x);
 
   // Evaluate the numerator polynomial p.
@@ -364,7 +364,7 @@ struct erf_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(float x) {
 #if defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::erf(x);
+    return cl::sycl::erf(m_jitterPos);
 #else
     return generic_fast_erf_float(x);
 #endif
@@ -376,7 +376,7 @@ struct erf_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(double x) {
 #if defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::erf(x);
+    return cl::sycl::erf(m_jitterPos);
 #else
     return ::erf(x);
 #endif
@@ -409,7 +409,7 @@ struct erfc_impl<float> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE float run(const float x) {
 #if defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::erfc(x);
+    return cl::sycl::erfc(m_jitterPos);
 #else
     return ::erfcf(x);
 #endif
@@ -421,7 +421,7 @@ struct erfc_impl<double> {
   EIGEN_DEVICE_FUNC
   static EIGEN_STRONG_INLINE double run(const double x) {
 #if defined(SYCL_DEVICE_ONLY)
-    return cl::sycl::erfc(x);
+    return cl::sycl::erfc(m_jitterPos);
 #else
     return ::erfc(x);
 #endif
@@ -439,25 +439,25 @@ struct erfc_impl<double> {
  *
  * SYNOPSIS:
  *
- * double x, y, ndtri();
+ * double m_jitterPos, y, ndtri();
  *
- * x = ndtri( y );
+ * m_jitterPos = ndtri( y );
  *
  *
  *
  * DESCRIPTION:
  *
- * Returns the argument, x, for which the area under the
+ * Returns the argument, m_jitterPos, for which the area under the
  * Gaussian probability density function (integrated from
- * minus infinity to x) is equal to y.
+ * minus infinity to m_jitterPos) is equal to y.
  *
  *
  * For small arguments 0 < y < exp(-2), the program computes
  * z = sqrt( -2.0 * log(y) );  then the approximation is
- * x = z - log(z)/z  - (1/z) P(1/z) / Q(1/z).
+ * m_jitterPos = z - log(z)/z  - (1/z) P(1/z) / Q(1/z).
  * There are two rational functions P/Q, one for 0 < y < exp(-32)
  * and the other for y up to exp(-2).  For larger arguments,
- * w = y - 0.5, and  x/sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
+ * w = y - 0.5, and  m_jitterPos/sqrt(2pi) = w + w**3 R(w**2)/S(w**2)).
  *
  *
  * ACCURACY:
@@ -473,8 +473,8 @@ struct erfc_impl<double> {
  * ERROR MESSAGES:
  *
  *   message         condition    value returned
- * ndtri domain       x <= 0        -MAXNUM
- * ndtri domain       x >= 1         MAXNUM
+ * ndtri domain       m_jitterPos <= 0        -MAXNUM
+ * ndtri domain       m_jitterPos >= 1         MAXNUM
  *
  */
  /*
@@ -730,10 +730,10 @@ enum IgammaComputationMode { VALUE, DERIVATIVE, SAMPLE_DERIVATIVE };
 template <typename Scalar>
 EIGEN_DEVICE_FUNC
 static EIGEN_STRONG_INLINE Scalar main_igamma_term(Scalar a, Scalar x) {
-    /* Compute  x**a * exp(-x) / gamma(a)  */
+    /* Compute  m_jitterPos**a * exp(-m_jitterPos) / gamma(a)  */
     Scalar logax = a * numext::log(x) - x - lgamma_impl<Scalar>::run(a);
     if (logax < -numext::log(NumTraits<Scalar>::highest()) ||
-        // Assuming x and a aren't Nan.
+        // Assuming m_jitterPos and a aren't Nan.
         (numext::isnan)(logax)) {
       return Scalar(0);
     }
@@ -760,14 +760,14 @@ int igamma_num_iterations() {
 
 template <typename Scalar, IgammaComputationMode mode>
 struct igammac_cf_impl {
-  /* Computes igamc(a, x) or derivative (depending on the mode)
+  /* Computes igamc(a, m_jitterPos) or derivative (depending on the mode)
    * using the continued fraction expansion of the complementary
    * incomplete Gamma function.
    *
    * Preconditions:
    *   a > 0
-   *   x >= 1
-   *   x >= a
+   *   m_jitterPos >= 1
+   *   m_jitterPos >= a
    */
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
@@ -860,7 +860,7 @@ struct igammac_cf_impl {
       }
     }
 
-    /* Compute  x**a * exp(-x) / gamma(a)  */
+    /* Compute  m_jitterPos**a * exp(-m_jitterPos) / gamma(a)  */
     Scalar dlogax_da = numext::log(x) - digamma_impl<Scalar>::run(a);
     Scalar dax_da = ax * dlogax_da;
 
@@ -878,13 +878,13 @@ struct igammac_cf_impl {
 
 template <typename Scalar, IgammaComputationMode mode>
 struct igamma_series_impl {
-  /* Computes igam(a, x) or its derivative (depending on the mode)
+  /* Computes igam(a, m_jitterPos) or its derivative (depending on the mode)
    * using the series expansion of the incomplete Gamma function.
    *
    * Preconditions:
-   *   x > 0
+   *   m_jitterPos > 0
    *   a > 0
-   *   !(x > 1 && x > a)
+   *   !(m_jitterPos > 1 && m_jitterPos > a)
    */
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
@@ -952,7 +952,7 @@ struct igamma_series_impl {
 template <typename Scalar>
 struct igammac_impl {
   EIGEN_DEVICE_FUNC
-  static Scalar run(Scalar a, Scalar x) {
+  static Scalar run(Scalar a, Scalar m_jitterPos) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
     return Scalar(0);
@@ -973,16 +973,16 @@ struct igammac_impl {
      *
      * SYNOPSIS:
      *
-     * double a, x, y, igamc();
+     * double a, m_jitterPos, y, igamc();
      *
-     * y = igamc( a, x );
+     * y = igamc( a, m_jitterPos );
      *
      * DESCRIPTION:
      *
      * The function is defined by
      *
      *
-     *  igamc(a,x)   =   1 - igam(a,x)
+     *  igamc(a,m_jitterPos)   =   1 - igam(a,m_jitterPos)
      *
      *                            inf.
      *                              -
@@ -990,13 +990,13 @@ struct igammac_impl {
      *               =   -----     |   e   t   dt.
      *                    -      | |
      *                   | (a)    -
-     *                             x
+     *                             m_jitterPos
      *
      *
      * In this implementation both arguments must be positive.
      * The integral is evaluated by either a power series or
      * continued fraction expansion, depending on the relative
-     * values of a and x.
+     * values of a and m_jitterPos.
      *
      * ACCURACY (float):
      *
@@ -1007,8 +1007,8 @@ struct igammac_impl {
      *
      * ACCURACY (double):
      *
-     * Tested at random a, x.
-     *                a         x                      Relative error:
+     * Tested at random a, m_jitterPos.
+     *                a         m_jitterPos                      Relative error:
      * arithmetic   domain   domain     # trials      peak         rms
      *    IEEE     0.5,100   0,100      200000       1.9e-14     1.7e-15
      *    IEEE     0.01,0.5  0,100      200000       1.4e-13     1.6e-15
@@ -1051,7 +1051,7 @@ struct igammac_impl {
 template <typename Scalar, IgammaComputationMode mode>
 struct igamma_generic_impl {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar x) {
+  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar m_jitterPos) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
     return Scalar(0);
@@ -1065,10 +1065,10 @@ struct igamma_generic_impl {
   EIGEN_DEVICE_FUNC
   static Scalar run(Scalar a, Scalar x) {
     /* Depending on the mode, returns
-     * - VALUE: incomplete Gamma function igamma(a, x)
-     * - DERIVATIVE: derivative of incomplete Gamma function d/da igamma(a, x)
+     * - VALUE: incomplete Gamma function igamma(a, m_jitterPos)
+     * - DERIVATIVE: derivative of incomplete Gamma function d/da igamma(a, m_jitterPos)
      * - SAMPLE_DERIVATIVE: implicit derivative of a Gamma random variable
-     * x ~ Gamma(x | a, 1), dx/da = -1 / Gamma(x | a, 1) * d igamma(a, x) / dx
+     * m_jitterPos ~ Gamma(m_jitterPos | a, 1), dx/da = -1 / Gamma(m_jitterPos | a, 1) * d igamma(a, m_jitterPos) / dx
      *
      * Derivatives are implemented by forward-mode differentiation.
      */
@@ -1111,10 +1111,10 @@ struct igamma_impl : igamma_generic_impl<Scalar, VALUE> {
   /* igam()
    * Incomplete gamma integral.
    *
-   * The CDF of Gamma(a, 1) random variable at the point x.
+   * The CDF of Gamma(a, 1) random variable at the point m_jitterPos.
    *
    * Accuracy estimation. For each a in [10^-2, 10^-1...10^3] we sample
-   * 50 Gamma random variables x ~ Gamma(x | a, 1), a total of 300 points.
+   * 50 Gamma random variables m_jitterPos ~ Gamma(m_jitterPos | a, 1), a total of 300 points.
    * The ground truth is computed by mpmath. Mean absolute error:
    * float: 1.26713e-05
    * double: 2.33606e-12
@@ -1123,18 +1123,18 @@ struct igamma_impl : igamma_generic_impl<Scalar, VALUE> {
    *
    * SYNOPSIS:
    *
-   * double a, x, y, igam();
+   * double a, m_jitterPos, y, igam();
    *
-   * y = igam( a, x );
+   * y = igam( a, m_jitterPos );
    *
    * DESCRIPTION:
    *
    * The function is defined by
    *
-   *                           x
+   *                           m_jitterPos
    *                            -
    *                   1       | |  -t  a-1
-   *  igam(a,x)  =   -----     |   e   t   dt.
+   *  igam(a,m_jitterPos)  =   -----     |   e   t   dt.
    *                  -      | |
    *                 | (a)    -
    *                           0
@@ -1143,7 +1143,7 @@ struct igamma_impl : igamma_generic_impl<Scalar, VALUE> {
    * In this implementation both arguments must be positive.
    * The integral is evaluated by either a power series or
    * continued fraction expansion, depending on the relative
-   * values of a and x.
+   * values of a and m_jitterPos.
    *
    * ACCURACY (double):
    *
@@ -1169,8 +1169,8 @@ struct igamma_impl : igamma_generic_impl<Scalar, VALUE> {
   /* left tail of incomplete gamma function:
    *
    *          inf.      k
-   *   a  -x   -       x
-   *  x  e     >   ----------
+   *   a  -m_jitterPos   -       m_jitterPos
+   *  m_jitterPos  e     >   ----------
    *           -     -
    *          k=0   | (a+k+1)
    *
@@ -1184,10 +1184,10 @@ template <typename Scalar>
 struct igamma_der_a_impl : igamma_generic_impl<Scalar, DERIVATIVE> {
   /* Derivative of the incomplete Gamma function with respect to a.
    *
-   * Computes d/da igamma(a, x) by forward differentiation of the igamma code.
+   * Computes d/da igamma(a, m_jitterPos) by forward differentiation of the igamma code.
    *
    * Accuracy estimation. For each a in [10^-2, 10^-1...10^3] we sample
-   * 50 Gamma random variables x ~ Gamma(x | a, 1), a total of 300 points.
+   * 50 Gamma random variables m_jitterPos ~ Gamma(m_jitterPos | a, 1), a total of 300 points.
    * The ground truth is computed by mpmath. Mean absolute error:
    * float: 6.17992e-07
    * double: 4.60453e-12
@@ -1314,9 +1314,9 @@ struct zeta_impl {
          *
          * SYNOPSIS:
          *
-         * double x, q, y, zeta();
+         * double m_jitterPos, q, y, zeta();
          *
-         * y = zeta( x, q );
+         * y = zeta( m_jitterPos, q );
          *
          *
          *
@@ -1325,29 +1325,29 @@ struct zeta_impl {
          *
          *
          *                 inf.
-         *                  -        -x
-         *   zeta(x,q)  =   >   (k+q)
+         *                  -        -m_jitterPos
+         *   zeta(m_jitterPos,q)  =   >   (k+q)
          *                  -
          *                 k=0
          *
-         * where x > 1 and q is not a negative integer or zero.
+         * where m_jitterPos > 1 and q is not a negative integer or zero.
          * The Euler-Maclaurin summation formula is used to obtain
          * the expansion
          *
          *                n
-         *                -       -x
-         * zeta(x,q)  =   >  (k+q)
+         *                -       -m_jitterPos
+         * zeta(m_jitterPos,q)  =   >  (k+q)
          *                -
          *               k=1
          *
-         *           1-x                 inf.  B   x(x+1)...(x+2j)
+         *           1-m_jitterPos                 inf.  B   m_jitterPos(m_jitterPos+1)...(m_jitterPos+2j)
          *      (n+q)           1         -     2j
          *  +  ---------  -  -------  +   >    --------------------
-         *        x-1              x      -                   x+2j+1
+         *        m_jitterPos-1              m_jitterPos      -                   m_jitterPos+2j+1
          *                   2(n+q)      j=1       (2j)! (n+q)
          *
          * where the B2j are Bernoulli numbers.  Note that (see zetac.c)
-         * zeta(x,1) = zetac(x) + 1.
+         * zeta(m_jitterPos,1) = zetac(m_jitterPos) + 1.
          *
          *
          *
@@ -1412,7 +1412,7 @@ struct zeta_impl {
 
         /* Permit negative q but continue sum until n+q > +9 .
          * This case should be handled by a reflection formula.
-         * If q<0 and x is an integer, there is a relation to
+         * If q<0 and m_jitterPos is an integer, there is a relation to
          * the polygamma function.
          */
         s = numext::pow( q, -x );
@@ -1461,7 +1461,7 @@ struct polygamma_retval {
 template <typename Scalar>
 struct polygamma_impl {
     EIGEN_DEVICE_FUNC
-    static EIGEN_STRONG_INLINE Scalar run(Scalar n, Scalar x) {
+    static EIGEN_STRONG_INLINE Scalar run(Scalar n, Scalar m_jitterPos) {
         EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                             THIS_TYPE_IS_NOT_SUPPORTED);
         return Scalar(0);
@@ -1510,7 +1510,7 @@ struct betainc_retval {
 template <typename Scalar>
 struct betainc_impl {
   EIGEN_DEVICE_FUNC
-  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar b, Scalar x) {
+  static EIGEN_STRONG_INLINE Scalar run(Scalar a, Scalar b, Scalar m_jitterPos) {
     EIGEN_STATIC_ASSERT((internal::is_same<Scalar, Scalar>::value == false),
                         THIS_TYPE_IS_NOT_SUPPORTED);
     return Scalar(0);
@@ -1530,17 +1530,17 @@ struct betainc_impl {
      *
      * SYNOPSIS:
      *
-     * float a, b, x, y, betaincf();
+     * float a, b, m_jitterPos, y, betaincf();
      *
-     * y = betaincf( a, b, x );
+     * y = betaincf( a, b, m_jitterPos );
      *
      *
      * DESCRIPTION:
      *
      * Returns incomplete beta integral of the arguments, evaluated
-     * from zero to x.  The function is defined as
+     * from zero to m_jitterPos.  The function is defined as
      *
-     *                  x
+     *                  m_jitterPos
      *     -            -
      *    | (a+b)      | |  a-1     b-1
      *  -----------    |   t   (1-t)   dt.
@@ -1548,12 +1548,12 @@ struct betainc_impl {
      *  | (a) | (b)   -
      *                 0
      *
-     * The domain of definition is 0 <= x <= 1.  In this
+     * The domain of definition is 0 <= m_jitterPos <= 1.  In this
      * implementation a and b are restricted to positive values.
-     * The integral from x to 1 may be obtained by the symmetry
+     * The integral from m_jitterPos to 1 may be obtained by the symmetry
      * relation
      *
-     *    1 - betainc( a, b, x )  =  betainc( b, a, 1-x ).
+     *    1 - betainc( a, b, m_jitterPos )  =  betainc( b, a, 1-m_jitterPos ).
      *
      * The integral is evaluated by a continued fraction expansion.
      * If a < 1, the function calls itself recursively after a
@@ -1561,8 +1561,8 @@ struct betainc_impl {
      *
      * ACCURACY (float):
      *
-     * Tested at random points (a,b,x) with a and b in the indicated
-     * interval and x between 0 and 1.
+     * Tested at random points (a,b,m_jitterPos) with a and b in the indicated
+     * interval and m_jitterPos between 0 and 1.
      *
      * arithmetic   domain     # trials      peak         rms
      * Relative error:
@@ -1588,7 +1588,7 @@ struct betainc_impl {
      *
      * ERROR MESSAGES:
      *   message         condition      value returned
-     * incbet domain      x<0, x>1          nan
+     * incbet domain      m_jitterPos<0, m_jitterPos>1          nan
      * incbet underflow                     nan
      */
 
@@ -1722,7 +1722,7 @@ struct betainc_helper<float> {
 
     onemx = 1.0f - xx;
 
-    /* see if x is greater than the mean */
+    /* see if m_jitterPos is greater than the mean */
     if (xx > (aa / (aa + bb))) {
       reversed_a_b = true;
       a = bb;
@@ -1849,7 +1849,7 @@ struct betainc_helper<double> {
     /*
     if ((a + b) < maxgam && numext::abs(u) < maxlog) {
       t = gamma(a + b) / (gamma(a) * gamma(b));
-      s = s * t * pow(x, a);
+      s = s * t * pow(m_jitterPos, a);
     }
     */
     t = lgamma_impl<double>::run(a + b) - lgamma_impl<double>::run(a) -
@@ -1886,7 +1886,7 @@ struct betainc_impl<double> {
 
     w = 1.0 - xx;
 
-    /* Reverse a and b if x is greater than the mean. */
+    /* Reverse a and b if m_jitterPos is greater than the mean. */
     if (xx > (aa / (aa + bb))) {
       reversed_a_b = true;
       a = bb;
@@ -1920,7 +1920,7 @@ struct betainc_impl<double> {
 
     /* Multiply w by the factor
          a      b   _             _     _
-        x  (1-x)   | (a+b) / ( a | (a) | (b) ) .   */
+        m_jitterPos  (1-m_jitterPos)   | (a+b) / ( a | (a) | (b) ) .   */
 
     y = a * numext::log(x);
     t = b * numext::log(xc);
@@ -1929,7 +1929,7 @@ struct betainc_impl<double> {
     if ((a + b) < maxgam && numext::abs(y) < maxlog && numext::abs(t) < maxlog)
     {
       t = pow(xc, b);
-      t *= pow(x, a);
+      t *= pow(m_jitterPos, a);
       t /= a;
       t *= w;
       t *= gamma(a + b) / (gamma(a) * gamma(b));

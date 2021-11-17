@@ -33,7 +33,7 @@ public:
 	void computeEvents(const dv::EventStore &events) {
         if (!events.isEmpty()) {
             for (const dv::Event &eve : events) {
-//                network.transmitEvents(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
+//                network.transmitEvents(Event(eve.timestamp(), eve.m_jitterPos(), eve.y(), eve.polarity(), 0));
             }
         }
     }

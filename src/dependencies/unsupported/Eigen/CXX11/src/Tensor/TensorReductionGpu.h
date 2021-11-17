@@ -121,8 +121,8 @@ __device__ inline void atomicReduce(float* output, float accum, SumReducer<float
 
 template <typename CoeffType, typename Index>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitKernel(const CoeffType val, Index num_preserved_coeffs, CoeffType* output) {
-  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
-  const Index num_threads = blockDim.x * gridDim.x;
+  const Index thread_id = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
+  const Index num_threads = blockDim.m_jitterPos * gridDim.m_jitterPos;
   for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
     output[i] = val;
   }
@@ -135,14 +135,14 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernel(Reducer reducer
                                     typename Self::CoeffReturnType* output, unsigned int* semaphore) {
 #if (defined(EIGEN_HIP_DEVICE_COMPILE) && defined(__HIP_ARCH_HAS_WARP_SHUFFLE__)) || (EIGEN_CUDA_ARCH >= 300)
   // Initialize the output value
-  const Index first_index = blockIdx.x * BlockSize * NumPerThread + threadIdx.x;
-  if (gridDim.x == 1) {
+  const Index first_index = blockIdx.m_jitterPos * BlockSize * NumPerThread + threadIdx.m_jitterPos;
+  if (gridDim.m_jitterPos == 1) {
     if (first_index == 0) {
       *output = reducer.initialize();
     }
   }
   else {
-    if (threadIdx.x == 0) {
+    if (threadIdx.m_jitterPos == 0) {
       unsigned int block = atomicCAS(semaphore, 0u, 1u);
       if (block == 0) {
         // We're the first block to run, initialize the output value
@@ -164,7 +164,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernel(Reducer reducer
 
   __syncthreads();
 
-  eigen_assert(gridDim.x == 1 || *semaphore >= 2u);
+  eigen_assert(gridDim.m_jitterPos == 1 || *semaphore >= 2u);
 
   typename Self::CoeffReturnType accum = reducer.initialize();
   Index max_iter = numext::mini<Index>(num_coeffs - first_index, NumPerThread*BlockSize);
@@ -193,13 +193,13 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernel(Reducer reducer
   #endif
   }
 
-  if ((threadIdx.x & (warpSize - 1)) == 0) {
+  if ((threadIdx.m_jitterPos & (warpSize - 1)) == 0) {
     atomicReduce(output, accum, reducer);
   }
 
-  if (gridDim.x > 1 && threadIdx.x == 0) {
+  if (gridDim.m_jitterPos > 1 && threadIdx.m_jitterPos == 0) {
     // Let the last block reset the semaphore
-    atomicInc(semaphore, gridDim.x + 1);
+    atomicInc(semaphore, gridDim.m_jitterPos + 1);
 #if defined(EIGEN_HIPCC)
     __threadfence_system();
 #endif
@@ -215,8 +215,8 @@ template <typename Self,
           typename Reducer, typename Index>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs,
                                                       packet_traits<Eigen::half>::type* scratch) {
-  eigen_assert(blockDim.x == 1);
-  eigen_assert(gridDim.x == 1);
+  eigen_assert(blockDim.m_jitterPos == 1);
+  eigen_assert(gridDim.m_jitterPos == 1);
   typedef packet_traits<Eigen::half>::type packet_type;
   Index packet_remainder =
       num_coeffs % Index(unpacket_traits<packet_type>::size);
@@ -239,8 +239,8 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitFullReduxKernelHalfFlo
 template <typename Self,
           typename Reducer, typename Index>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionInitKernelHalfFloat(Reducer reducer, const Self input, Index num_coeffs, half* output) {
-  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
-  const Index num_threads = blockDim.x * gridDim.x;
+  const Index thread_id = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
+  const Index num_threads = blockDim.m_jitterPos * gridDim.m_jitterPos;
   typedef typename packet_traits<Eigen::half>::type PacketType;
 
   const Index num_packets =
@@ -264,11 +264,11 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reduce
   const int packet_width = unpacket_traits<PacketType>::size;
   eigen_assert(NumPerThread % packet_width == 0);
   const Index first_index =
-      blockIdx.x * BlockSize * NumPerThread + packet_width * threadIdx.x;
+      blockIdx.m_jitterPos * BlockSize * NumPerThread + packet_width * threadIdx.m_jitterPos;
 
   // Initialize the output value if it wasn't initialized by the ReductionInitKernel
 
-  if (gridDim.x == 1) {
+  if (gridDim.m_jitterPos == 1) {
     if (first_index == 0) {
       int rem = num_coeffs % packet_width;
       if (rem != 0) {
@@ -336,7 +336,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reduce
   #endif
   }
 
-  if ((threadIdx.x & (warpSize - 1)) == 0) {
+  if ((threadIdx.m_jitterPos & (warpSize - 1)) == 0) {
     atomicReduce(scratch, accum, reducer);
   }
 
@@ -347,7 +347,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reduce
     reducer.reducePacket(rv1[3], rv1 + 1);
     reducer.reducePacket(rv1[1], rv1);
   }
-  if (gridDim.x == 1) {
+  if (gridDim.m_jitterPos == 1) {
     if (first_index == 0) {
       half tmp = __low2half(*rv1);
       reducer.reduce(__high2half(*rv1), &tmp);
@@ -358,7 +358,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void FullReductionKernelHalfFloat(Reduce
 
 template <typename Op>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void ReductionCleanupKernelHalfFloat(Op reducer, half* output, packet_traits<Eigen::half>::type* scratch) {
-  eigen_assert(threadIdx.x == 1);
+  eigen_assert(threadIdx.m_jitterPos == 1);
   half2* pscratch = reinterpret_cast<half2*>(scratch);
   half tmp = __float2half(0.f);
   typedef packet_traits<Eigen::half>::type packet_type;
@@ -487,33 +487,33 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernel(Reducer reduce
   const int unroll_times = 16;
   eigen_assert(NumPerThread % unroll_times == 0);
 
-  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread);
+  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.m_jitterPos * NumPerThread);
   const Index num_input_blocks = input_col_blocks * num_preserved_coeffs;
 
-  const Index num_threads = blockDim.x * gridDim.x;
-  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index num_threads = blockDim.m_jitterPos * gridDim.m_jitterPos;
+  const Index thread_id = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
 
   // Initialize the output values if they weren't initialized by the ReductionInitKernel
-  if (gridDim.x == 1) {
+  if (gridDim.m_jitterPos == 1) {
     for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
       output[i] = reducer.initialize();
     }
     __syncthreads();
   }
 
-  for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
+  for (Index i = blockIdx.m_jitterPos; i < num_input_blocks; i += gridDim.m_jitterPos) {
     const Index row = i / input_col_blocks;
 
     if (row < num_preserved_coeffs) {
       const Index col_block = i % input_col_blocks;
-      const Index col_begin = col_block * blockDim.x * NumPerThread + threadIdx.x;
+      const Index col_begin = col_block * blockDim.m_jitterPos * NumPerThread + threadIdx.m_jitterPos;
 
       Type reduced_val = reducer.initialize();
 
       for (Index j = 0; j < NumPerThread; j += unroll_times) {
-        const Index last_col = col_begin + blockDim.x * (j + unroll_times - 1);
+        const Index last_col = col_begin + blockDim.m_jitterPos * (j + unroll_times - 1);
         if (last_col >= num_coeffs_to_reduce) {
-          for (Index col = col_begin + blockDim.x * j; col < num_coeffs_to_reduce; col += blockDim.x) {
+          for (Index col = col_begin + blockDim.m_jitterPos * j; col < num_coeffs_to_reduce; col += blockDim.m_jitterPos) {
             const Type val = input.m_impl.coeff(row * num_coeffs_to_reduce + col);
             reducer.reduce(val, &reduced_val);
           }
@@ -522,7 +522,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernel(Reducer reduce
           // Faster version of the loop with no branches after unrolling.
 #pragma unroll
           for (int k = 0; k < unroll_times; ++k) {
-            const Index col = col_begin + blockDim.x * (j + k);
+            const Index col = col_begin + blockDim.m_jitterPos * (j + k);
             reducer.reduce(input.m_impl.coeff(row * num_coeffs_to_reduce + col), &reduced_val);
           }
         }
@@ -546,7 +546,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernel(Reducer reduce
       #endif
       }
 
-      if ((threadIdx.x & (warpSize - 1)) == 0) {
+      if ((threadIdx.m_jitterPos & (warpSize - 1)) == 0) {
         atomicReduce(&(output[row]), reduced_val, reducer);
       }
     }
@@ -573,14 +573,14 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernelHalfFloat(Reduc
   eigen_assert(NumPerThread % unroll_times == 0);
   eigen_assert(unroll_times % 2 == 0);
 
-  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.x * NumPerThread * 2);
+  const Index input_col_blocks = divup<Index>(num_coeffs_to_reduce, blockDim.m_jitterPos * NumPerThread * 2);
   const Index num_input_blocks = divup<Index>(input_col_blocks * num_preserved_coeffs, 2);
 
-  const Index num_threads = blockDim.x * gridDim.x;
-  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index num_threads = blockDim.m_jitterPos * gridDim.m_jitterPos;
+  const Index thread_id = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
 
   // Initialize the output values if they weren't initialized by the ReductionInitKernel
-  if (gridDim.x == 1) {
+  if (gridDim.m_jitterPos == 1) {
     Index i = packet_width * thread_id;
     for (; i + packet_width <= num_preserved_coeffs;
          i += packet_width * num_threads) {
@@ -593,24 +593,24 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernelHalfFloat(Reduc
     __syncthreads();
   }
 
-  for (Index i = blockIdx.x; i < num_input_blocks; i += gridDim.x) {
+  for (Index i = blockIdx.m_jitterPos; i < num_input_blocks; i += gridDim.m_jitterPos) {
     const Index row = 2 * (i / input_col_blocks);  // everybody takes 2 rows
 
     if (row + 1 < num_preserved_coeffs) {
       const Index col_block = i % input_col_blocks;
       const Index col_begin =
-          packet_width * (col_block * blockDim.x * NumPerThread + threadIdx.x);
+          packet_width * (col_block * blockDim.m_jitterPos * NumPerThread + threadIdx.m_jitterPos);
 
       PacketType reduced_val1 = reducer.template initializePacket<PacketType>();
       PacketType reduced_val2 = reducer.template initializePacket<PacketType>();
 
       for (Index j = 0; j < NumPerThread; j += unroll_times) {
         const Index last_col =
-            col_begin + blockDim.x * (j + unroll_times - 1) * packet_width;
+            col_begin + blockDim.m_jitterPos * (j + unroll_times - 1) * packet_width;
         if (last_col >= num_coeffs_to_reduce) {
-          Index col = col_begin + blockDim.x * j;
+          Index col = col_begin + blockDim.m_jitterPos * j;
           for (; col + packet_width <= num_coeffs_to_reduce;
-               col += blockDim.x) {
+               col += blockDim.m_jitterPos) {
             const PacketType val1 = input.m_impl.template packet<Unaligned>(
                 row * num_coeffs_to_reduce + col);
             reducer.reducePacket(val1, &reduced_val1);
@@ -652,7 +652,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernelHalfFloat(Reduc
           // Faster version of the loop with no branches after unrolling.
 #pragma unroll
           for (int k = 0; k < unroll_times; ++k) {
-            const Index col = col_begin + blockDim.x * (j + k) * packet_width;
+            const Index col = col_begin + blockDim.m_jitterPos * (j + k) * packet_width;
             reducer.reducePacket(input.m_impl.template packet<Unaligned>(
                                      row * num_coeffs_to_reduce + col),
                                  &reduced_val1);
@@ -733,7 +733,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void InnerReductionKernelHalfFloat(Reduc
       half val2 = __low2half(*rv2);
       reducer.reduce(__high2half(*rv2), &val2);
       val = __halves2half2(val1, val2);
-      if ((threadIdx.x & (warpSize - 1)) == 0) {
+      if ((threadIdx.m_jitterPos & (warpSize - 1)) == 0) {
         half* loc = output + row;
         atomicReduce((half2*)loc, val, reducer);
       }
@@ -869,10 +869,10 @@ template <int NumPerThread, typename Self,
           typename Reducer, typename Index>
 __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void OuterReductionKernel(Reducer reducer, const Self input, Index num_coeffs_to_reduce, Index num_preserved_coeffs,
                                      typename Self::CoeffReturnType* output) {
-  const Index num_threads = blockDim.x * gridDim.x;
-  const Index thread_id = blockIdx.x * blockDim.x + threadIdx.x;
+  const Index num_threads = blockDim.m_jitterPos * gridDim.m_jitterPos;
+  const Index thread_id = blockIdx.m_jitterPos * blockDim.m_jitterPos + threadIdx.m_jitterPos;
   // Initialize the output values if they weren't initialized by the ReductionInitKernel
-  if (gridDim.x == 1) {
+  if (gridDim.m_jitterPos == 1) {
     for (Index i = thread_id; i < num_preserved_coeffs; i += num_threads) {
       output[i] = reducer.initialize();
     }

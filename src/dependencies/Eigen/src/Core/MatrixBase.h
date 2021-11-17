@@ -30,13 +30,13 @@ namespace Eigen {
   * When writing a function taking Eigen objects as argument, if you want your function
   * to take as argument any matrix, vector, or expression, just let it take a
   * MatrixBase argument. As an example, here is a function printFirstRow which, given
-  * a matrix, vector, or expression \a x, prints the first row of \a x.
+  * a matrix, vector, or expression \a m_jitterPos, prints the first row of \a m_jitterPos.
   *
   * \code
     template<typename Derived>
-    void printFirstRow(const Eigen::MatrixBase<Derived>& x)
+    void printFirstRow(const Eigen::MatrixBase<Derived>& m_jitterPos)
     {
-      cout << x.row(0) << endl;
+      cout << m_jitterPos.row(0) << endl;
     }
   * \endcode
   *

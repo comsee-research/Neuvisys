@@ -244,7 +244,7 @@ struct inplace_transpose_selector<MatrixType,true,false> { // square matrix
 };
 
 template<typename MatrixType>
-struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize x PacketSize
+struct inplace_transpose_selector<MatrixType,true,true> { // PacketSize m_jitterPos PacketSize
   static void run(MatrixType& m) {
     typedef typename MatrixType::Scalar Scalar;
     typedef typename internal::packet_traits<typename MatrixType::Scalar>::type Packet;

@@ -979,9 +979,9 @@ struct scalar_logistic_op {
   * \brief Template specialization of the logistic function for float.
   *
   *  Uses just a 9/10-degree rational interpolant which
-  *  interpolates 1/(1+exp(-x)) - 0.5 up to a couple of ulps in the range
+  *  interpolates 1/(1+exp(-m_jitterPos)) - 0.5 up to a couple of ulps in the range
   *  [-9, 18]. Below -9 we use the more accurate approximation
-  *  1/(1+exp(-x)) ~= exp(x), and above 18 the logistic function is 1 withing
+  *  1/(1+exp(-m_jitterPos)) ~= exp(m_jitterPos), and above 18 the logistic function is 1 withing
   *  one ulp. The shifted logistic is interpolated because it was easier to
   *  make the fit converge.
   *
@@ -999,7 +999,7 @@ struct scalar_logistic_op<float> {
     const Packet lt_mask = pcmp_lt<Packet>(_x, cutoff_lower);
     const bool any_small = predux_any(lt_mask);
 
-    // The upper cut-off is the smallest x for which the rational approximation evaluates to 1.
+    // The upper cut-off is the smallest m_jitterPos for which the rational approximation evaluates to 1.
     // Choosing this value saves us a few instructions clamping the results at the end.
 #ifdef EIGEN_VECTORIZE_FMA
     const Packet cutoff_upper = pset1<Packet>(15.7243833541870117f);
@@ -1023,7 +1023,7 @@ struct scalar_logistic_op<float> {
     const Packet beta_8 = pset1<Packet>(5.76102136993427e-09f);
     const Packet beta_10 = pset1<Packet>(6.10247389755681e-13f);
 
-    // Since the polynomials are odd/even, we need x^2.
+    // Since the polynomials are odd/even, we need m_jitterPos^2.
     const Packet x2 = pmul(x, x);
 
     // Evaluate the numerator polynomial p.

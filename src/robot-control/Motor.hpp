@@ -9,29 +9,22 @@
 #include <std_msgs/Bool.h>
 #include "ros/ros.h"
 #include <cstdlib>
-#include <cmath>
-#include <random>
+#include "../network/Utils.hpp"
 
 class Motor {
     ros::Publisher m_motorPub{};
-    double x = 0;
+    double m_jitterPos = 0;
     std_msgs::Float32 m_speed{};
-
-    std::random_device r;
-    std::default_random_engine generator = std::default_random_engine(r());
-    std::normal_distribution<double> distribution = std::normal_distribution<double>(0.0, 1.0);
 
 public:
     Motor(ros::NodeHandle &n, const std::string& name);
-    void jitter(double dt);
+    void jitter(double dt, double jitter = 0);
     void incrementSpeed(float increment);
     void move();
 
-    float getSpeed() { return m_speed.data; }
+    [[nodiscard]] float getSpeed() const { return m_speed.data; }
+    [[nodiscard]] double getJitterPos() const { return m_jitterPos; }
     void setSpeed(float speed) { m_speed.data = speed; }
-
-private:
-    void OrnsteinUhlenbeckProcess(double dt, double theta, double mu, double sigma);
 };
 
 #endif //NEUVISYS_MOTOR_H

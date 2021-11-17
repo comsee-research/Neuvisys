@@ -91,7 +91,7 @@ struct type_casting_traits<Eigen::half, float> {
 };
 
 template<> EIGEN_STRONG_INLINE Packet4f pcast<Packet4h, Packet4f>(const Packet4h& a) {
-  __int64_t a64 = _mm_cvtm64_si64(a.x);
+  __int64_t a64 = _mm_cvtm64_si64(a.m_jitterPos);
   Eigen::half h = raw_uint16_to_half(static_cast<unsigned short>(a64));
   float f1 = static_cast<float>(h);
   h = raw_uint16_to_half(static_cast<unsigned short>(a64 >> 16));
@@ -121,7 +121,7 @@ template<> EIGEN_STRONG_INLINE Packet4h pcast<Packet4f, Packet4h>(const Packet4f
   Eigen::half h3(aux[3]);
 
   Packet4h result;
-  result.x = _mm_set_pi16(h3.x, h2.x, h1.x, h0.x);
+  result.m_jitterPos = _mm_set_pi16(h3.m_jitterPos, h2.m_jitterPos, h1.m_jitterPos, h0.m_jitterPos);
   return result;
 }
 

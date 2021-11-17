@@ -19,10 +19,10 @@ namespace Eigen {
 // On WINCE, std::abs is defined for int only, so let's defined our own overloads:
 // This issue has been confirmed with MSVC 2008 only, but the issue might exist for more recent versions too.
 #if EIGEN_OS_WINCE && EIGEN_COMP_MSVC && EIGEN_COMP_MSVC<=1500
-long        abs(long        x) { return (labs(x));  }
-double      abs(double      x) { return (fabs(x));  }
-float       abs(float       x) { return (fabsf(x)); }
-long double abs(long double x) { return (fabsl(x)); }
+long        abs(long        m_jitterPos) { return (labs(m_jitterPos));  }
+double      abs(double      m_jitterPos) { return (fabs(m_jitterPos));  }
+float       abs(float       m_jitterPos) { return (fabsf(m_jitterPos)); }
+long double abs(long double m_jitterPos) { return (fabsl(m_jitterPos)); }
 #endif
 
 namespace internal {
@@ -102,9 +102,9 @@ struct real_impl<std::complex<T> >
 {
   typedef T RealScalar;
   EIGEN_DEVICE_FUNC
-  static inline T run(const std::complex<T>& x)
+  static inline T run(const std::complex<T>& m_jitterPos)
   {
-    return x.real();
+    return m_jitterPos.real();
   }
 };
 #endif
@@ -150,9 +150,9 @@ struct imag_impl<std::complex<T> >
 {
   typedef T RealScalar;
   EIGEN_DEVICE_FUNC
-  static inline T run(const std::complex<T>& x)
+  static inline T run(const std::complex<T>& m_jitterPos)
   {
-    return x.imag();
+    return m_jitterPos.imag();
   }
 };
 #endif
@@ -265,9 +265,9 @@ template<typename T>
 struct conj_impl<std::complex<T> >
 {
   EIGEN_DEVICE_FUNC
-  static inline std::complex<T> run(const std::complex<T>& x)
+  static inline std::complex<T> run(const std::complex<T>& m_jitterPos)
   {
-    return std::complex<T>(x.real(), -x.imag());
+    return std::complex<T>(m_jitterPos.real(), -m_jitterPos.imag());
   }
 };
 #endif
@@ -415,12 +415,12 @@ inline NewType cast(const OldType& x)
   struct round_impl
   {
     EIGEN_DEVICE_FUNC
-    static inline Scalar run(const Scalar& x)
+    static inline Scalar run(const Scalar& m_jitterPos)
     {
       EIGEN_STATIC_ASSERT((!NumTraits<Scalar>::IsComplex), NUMERIC_TYPE_MUST_BE_REAL)
       EIGEN_USING_STD(floor);
       EIGEN_USING_STD(ceil);
-      return (x > Scalar(0)) ? floor(x + Scalar(0.5)) : ceil(x - Scalar(0.5));
+      return (m_jitterPos > Scalar(0)) ? floor(m_jitterPos + Scalar(0.5)) : ceil(m_jitterPos - Scalar(0.5));
     }
   };
 #endif
@@ -452,17 +452,17 @@ struct rint_impl {
 template<>
 struct rint_impl<double> {
   EIGEN_DEVICE_FUNC
-  static inline double run(const double& x)
+  static inline double run(const double& m_jitterPos)
   {
-    return ::rint(x);
+    return ::rint(m_jitterPos);
   }
 };
 template<>
 struct rint_impl<float> {
   EIGEN_DEVICE_FUNC
-  static inline float run(const float& x)
+  static inline float run(const float& m_jitterPos)
   {
-    return ::rintf(x);
+    return ::rintf(m_jitterPos);
   }
 };
 #endif
@@ -498,9 +498,9 @@ struct rint_retval
   {
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_DEVICE_FUNC
-    static inline RealScalar run(const Scalar& x)
+    static inline RealScalar run(const Scalar& m_jitterPos)
     {
-      return (x < Scalar(0)) ? Scalar(EIGEN_PI) : Scalar(0); }
+      return (m_jitterPos < Scalar(0)) ? Scalar(EIGEN_PI) : Scalar(0); }
   };
 
   template<typename Scalar>
@@ -508,10 +508,10 @@ struct rint_retval
   {
     typedef typename NumTraits<Scalar>::Real RealScalar;
     EIGEN_DEVICE_FUNC
-    static inline RealScalar run(const Scalar& x)
+    static inline RealScalar run(const Scalar& m_jitterPos)
     {
       EIGEN_USING_STD(arg);
-      return arg(x);
+      return arg(m_jitterPos);
     }
   };
 
@@ -577,14 +577,14 @@ struct expm1_impl<std::complex<RealScalar> > {
     RealScalar xr = x.real();
     RealScalar xi = x.imag();
     // expm1(z) = exp(z) - 1
-    //          = exp(x +  i * y) - 1
-    //          = exp(x) * (cos(y) + i * sin(y)) - 1
-    //          = exp(x) * cos(y) - 1 + i * exp(x) * sin(y)
-    // Imag(expm1(z)) = exp(x) * sin(y)
-    // Real(expm1(z)) = exp(x) * cos(y) - 1
-    //          = exp(x) * cos(y) - 1.
-    //          = expm1(x) + exp(x) * (cos(y) - 1)
-    //          = expm1(x) + exp(x) * (2 * sin(y / 2) ** 2)
+    //          = exp(m_jitterPos +  i * y) - 1
+    //          = exp(m_jitterPos) * (cos(y) + i * sin(y)) - 1
+    //          = exp(m_jitterPos) * cos(y) - 1 + i * exp(m_jitterPos) * sin(y)
+    // Imag(expm1(z)) = exp(m_jitterPos) * sin(y)
+    // Real(expm1(z)) = exp(m_jitterPos) * cos(y) - 1
+    //          = exp(m_jitterPos) * cos(y) - 1.
+    //          = expm1(m_jitterPos) + exp(m_jitterPos) * (cos(y) - 1)
+    //          = expm1(m_jitterPos) + exp(m_jitterPos) * (2 * sin(y / 2) ** 2)
 
     // TODO better use numext::expm1 and numext::sin (but that would require forward declarations or moving this specialization down).
     RealScalar erm1 = expm1_impl<RealScalar>::run(xr);
@@ -873,12 +873,12 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isfinite_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
-    return (::isfinite)(x);
+    return (::isfinite)(m_jitterPos);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isfinite;
     return isfinite EIGEN_NOT_A_MACRO (x);
   #else
-    return x<=NumTraits<T>::highest() && x>=NumTraits<T>::lowest();
+    return m_jitterPos<=NumTraits<T>::highest() && m_jitterPos>=NumTraits<T>::lowest();
   #endif
 }
 
@@ -888,12 +888,12 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isinf_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
-    return (::isinf)(x);
+    return (::isinf)(m_jitterPos);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isinf;
     return isinf EIGEN_NOT_A_MACRO (x);
   #else
-    return x>NumTraits<T>::highest() || x<NumTraits<T>::lowest();
+    return m_jitterPos>NumTraits<T>::highest() || m_jitterPos<NumTraits<T>::lowest();
   #endif
 }
 
@@ -903,12 +903,12 @@ typename internal::enable_if<(!internal::is_integral<T>::value)&&(!NumTraits<T>:
 isnan_impl(const T& x)
 {
   #if defined(EIGEN_GPU_COMPILE_PHASE)
-    return (::isnan)(x);
+    return (::isnan)(m_jitterPos);
   #elif EIGEN_USE_STD_FPCLASSIFY
     using std::isnan;
     return isnan EIGEN_NOT_A_MACRO (x);
   #else
-    return x != x;
+    return m_jitterPos != m_jitterPos;
   #endif
 }
 
@@ -916,19 +916,19 @@ isnan_impl(const T& x)
 
 #if EIGEN_COMP_MSVC
 
-template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T x)
+template<typename T> EIGEN_DEVICE_FUNC bool isinf_msvc_helper(T m_jitterPos)
 {
-  return _fpclass(x)==_FPCLASS_NINF || _fpclass(x)==_FPCLASS_PINF;
+  return _fpclass(m_jitterPos)==_FPCLASS_NINF || _fpclass(m_jitterPos)==_FPCLASS_PINF;
 }
 
 //MSVC defines a _isnan builtin function, but for double only
-EIGEN_DEVICE_FUNC inline bool isnan_impl(const long double& x) { return _isnan(x)!=0; }
-EIGEN_DEVICE_FUNC inline bool isnan_impl(const double& x)      { return _isnan(x)!=0; }
-EIGEN_DEVICE_FUNC inline bool isnan_impl(const float& x)       { return _isnan(x)!=0; }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const long double& m_jitterPos) { return _isnan(m_jitterPos)!=0; }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const double& m_jitterPos)      { return _isnan(m_jitterPos)!=0; }
+EIGEN_DEVICE_FUNC inline bool isnan_impl(const float& m_jitterPos)       { return _isnan(m_jitterPos)!=0; }
 
-EIGEN_DEVICE_FUNC inline bool isinf_impl(const long double& x) { return isinf_msvc_helper(x); }
-EIGEN_DEVICE_FUNC inline bool isinf_impl(const double& x)      { return isinf_msvc_helper(x); }
-EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& x)       { return isinf_msvc_helper(x); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const long double& m_jitterPos) { return isinf_msvc_helper(m_jitterPos); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const double& m_jitterPos)      { return isinf_msvc_helper(m_jitterPos); }
+EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& m_jitterPos)       { return isinf_msvc_helper(m_jitterPos); }
 
 #elif (defined __FINITE_MATH_ONLY__ && __FINITE_MATH_ONLY__ && EIGEN_COMP_GNUC)
 
@@ -940,12 +940,12 @@ EIGEN_DEVICE_FUNC inline bool isinf_impl(const float& x)       { return isinf_ms
   #define EIGEN_TMP_NOOPT_ATTRIB EIGEN_DEVICE_FUNC inline __attribute__((noinline,optimize("no-finite-math-only")))
 #endif
 
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const long double& x) { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const double& x)      { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const float& x)       { return __builtin_isnan(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const double& x)      { return __builtin_isinf(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const float& x)       { return __builtin_isinf(x); }
-template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const long double& x) { return __builtin_isinf(x); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const long double& m_jitterPos) { return __builtin_isnan(m_jitterPos); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const double& m_jitterPos)      { return __builtin_isnan(m_jitterPos); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isnan_impl(const float& m_jitterPos)       { return __builtin_isnan(m_jitterPos); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const double& m_jitterPos)      { return __builtin_isinf(m_jitterPos); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const float& m_jitterPos)       { return __builtin_isinf(m_jitterPos); }
+template<> EIGEN_TMP_NOOPT_ATTRIB bool isinf_impl(const long double& m_jitterPos) { return __builtin_isinf(m_jitterPos); }
 
 #undef EIGEN_TMP_NOOPT_ATTRIB
 
@@ -986,61 +986,61 @@ EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
 #else
 template<typename T>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE T mini(const T& x, const T& y)
+EIGEN_ALWAYS_INLINE T mini(const T& m_jitterPos, const T& y)
 {
-  return y < x ? y : x;
+  return y < m_jitterPos ? y : m_jitterPos;
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE float mini(const float& x, const float& y)
+EIGEN_ALWAYS_INLINE float mini(const float& m_jitterPos, const float& y)
 {
-  return fminf(x, y);
+  return fminf(m_jitterPos, y);
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE double mini(const double& x, const double& y)
+EIGEN_ALWAYS_INLINE double mini(const double& m_jitterPos, const double& y)
 {
-  return fmin(x, y);
+  return fmin(m_jitterPos, y);
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE long double mini(const long double& x, const long double& y)
+EIGEN_ALWAYS_INLINE long double mini(const long double& m_jitterPos, const long double& y)
 {
 #if defined(EIGEN_HIPCC)
   // no "fminl" on HIP yet
-  return (x < y) ? x : y;
+  return (m_jitterPos < y) ? m_jitterPos : y;
 #else
-  return fminl(x, y);
+  return fminl(m_jitterPos, y);
 #endif
 }
 
 template<typename T>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE T maxi(const T& x, const T& y)
+EIGEN_ALWAYS_INLINE T maxi(const T& m_jitterPos, const T& y)
 {
-  return x < y ? y : x;
+  return m_jitterPos < y ? y : m_jitterPos;
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE float maxi(const float& x, const float& y)
+EIGEN_ALWAYS_INLINE float maxi(const float& m_jitterPos, const float& y)
 {
-  return fmaxf(x, y);
+  return fmaxf(m_jitterPos, y);
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE double maxi(const double& x, const double& y)
+EIGEN_ALWAYS_INLINE double maxi(const double& m_jitterPos, const double& y)
 {
-  return fmax(x, y);
+  return fmax(m_jitterPos, y);
 }
 template<>
 EIGEN_DEVICE_FUNC
-EIGEN_ALWAYS_INLINE long double maxi(const long double& x, const long double& y)
+EIGEN_ALWAYS_INLINE long double maxi(const long double& m_jitterPos, const long double& y)
 {
 #if defined(EIGEN_HIPCC)
   // no "fmaxl" on HIP yet
-  return (x > y) ? x : y;
+  return (m_jitterPos > y) ? m_jitterPos : y;
 #else
-  return fmaxl(x, y);
+  return fmaxl(m_jitterPos, y);
 #endif
 }
 #endif
@@ -1087,8 +1087,8 @@ EIGEN_ALWAYS_INLINE long double maxi(const long double& x, const long double& y)
 #define SYCL_SPECIALIZE_GEN_UNARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE) \
 template<>                                               \
   EIGEN_DEVICE_FUNC                                      \
-  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE& x) { \
-    return cl::sycl::FUNC(x);                            \
+  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE& m_jitterPos) { \
+    return cl::sycl::FUNC(m_jitterPos);                            \
   }
 
 #define SYCL_SPECIALIZE_UNARY_FUNC(NAME, FUNC, TYPE) \
@@ -1097,8 +1097,8 @@ template<>                                               \
 #define SYCL_SPECIALIZE_GEN1_BINARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE1, ARG_TYPE2) \
   template<>                                                                  \
   EIGEN_DEVICE_FUNC                                                           \
-  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE1& x, const ARG_TYPE2& y) { \
-    return cl::sycl::FUNC(x, y);                                              \
+  EIGEN_ALWAYS_INLINE RET_TYPE NAME(const ARG_TYPE1& m_jitterPos, const ARG_TYPE2& y) { \
+    return cl::sycl::FUNC(m_jitterPos, y);                                              \
   }
 
 #define SYCL_SPECIALIZE_GEN2_BINARY_FUNC(NAME, FUNC, RET_TYPE, ARG_TYPE) \
@@ -1240,10 +1240,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(log1p, log1p)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float log1p(const float &x) { return ::log1pf(x); }
+float log1p(const float &m_jitterPos) { return ::log1pf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double log1p(const double &x) { return ::log1p(x); }
+double log1p(const double &m_jitterPos) { return ::log1p(m_jitterPos); }
 #endif
 
 template<typename ScalarX,typename ScalarY>
@@ -1299,10 +1299,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(floor, floor)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float floor(const float &x) { return ::floorf(x); }
+float floor(const float &m_jitterPos) { return ::floorf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double floor(const double &x) { return ::floor(x); }
+double floor(const double &m_jitterPos) { return ::floor(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1319,15 +1319,15 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(ceil, ceil)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float ceil(const float &x) { return ::ceilf(x); }
+float ceil(const float &m_jitterPos) { return ::ceilf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double ceil(const double &x) { return ::ceil(x); }
+double ceil(const double &m_jitterPos) { return ::ceil(m_jitterPos); }
 #endif
 
 
 /** Log base 2 for 32 bits positive integers.
-  * Conveniently returns 0 for x==0. */
+  * Conveniently returns 0 for m_jitterPos==0. */
 inline int log2(int x)
 {
   eigen_assert(x>=0);
@@ -1341,10 +1341,10 @@ inline int log2(int x)
   return table[(v * 0x07C4ACDDU) >> 27];
 }
 
-/** \returns the square root of \a x.
+/** \returns the square root of \a m_jitterPos.
   *
   * It is essentially equivalent to
-  * \code using std::sqrt; return sqrt(x); \endcode
+  * \code using std::sqrt; return sqrt(m_jitterPos); \endcode
   * but slightly faster for float/double and some compilers (e.g., gcc), thanks to
   * specializations when SSE is enabled.
   *
@@ -1376,10 +1376,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(log, log)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float log(const float &x) { return ::logf(x); }
+float log(const float &m_jitterPos) { return ::logf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double log(const double &x) { return ::log(x); }
+double log(const double &m_jitterPos) { return ::log(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1404,19 +1404,19 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(abs, fabs)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float abs(const float &x) { return ::fabsf(x); }
+float abs(const float &m_jitterPos) { return ::fabsf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double abs(const double &x) { return ::fabs(x); }
+double abs(const double &m_jitterPos) { return ::fabs(m_jitterPos); }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float abs(const std::complex<float>& x) {
-  return ::hypotf(x.real(), x.imag());
+float abs(const std::complex<float>& m_jitterPos) {
+  return ::hypotf(m_jitterPos.real(), m_jitterPos.imag());
 }
 
 template <> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double abs(const std::complex<double>& x) {
-  return ::hypot(x.real(), x.imag());
+double abs(const std::complex<double>& m_jitterPos) {
+  return ::hypot(m_jitterPos.real(), m_jitterPos.imag());
 }
 #endif
 
@@ -1433,24 +1433,24 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(exp, exp)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float exp(const float &x) { return ::expf(x); }
+float exp(const float &m_jitterPos) { return ::expf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double exp(const double &x) { return ::exp(x); }
+double exp(const double &m_jitterPos) { return ::exp(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-std::complex<float> exp(const std::complex<float>& x) {
-  float com = ::expf(x.real());
-  float res_real = com * ::cosf(x.imag());
-  float res_imag = com * ::sinf(x.imag());
+std::complex<float> exp(const std::complex<float>& m_jitterPos) {
+  float com = ::expf(m_jitterPos.real());
+  float res_real = com * ::cosf(m_jitterPos.imag());
+  float res_imag = com * ::sinf(m_jitterPos.imag());
   return std::complex<float>(res_real, res_imag);
 }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-std::complex<double> exp(const std::complex<double>& x) {
-  double com = ::exp(x.real());
-  double res_real = com * ::cos(x.imag());
-  double res_imag = com * ::sin(x.imag());
+std::complex<double> exp(const std::complex<double>& m_jitterPos) {
+  double com = ::exp(m_jitterPos.real());
+  double res_real = com * ::cos(m_jitterPos.imag());
+  double res_imag = com * ::sin(m_jitterPos.imag());
   return std::complex<double>(res_real, res_imag);
 }
 #endif
@@ -1468,10 +1468,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(expm1, expm1)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float expm1(const float &x) { return ::expm1f(x); }
+float expm1(const float &m_jitterPos) { return ::expm1f(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double expm1(const double &x) { return ::expm1(x); }
+double expm1(const double &m_jitterPos) { return ::expm1(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1487,10 +1487,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(cos,cos)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float cos(const float &x) { return ::cosf(x); }
+float cos(const float &m_jitterPos) { return ::cosf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double cos(const double &x) { return ::cos(x); }
+double cos(const double &m_jitterPos) { return ::cos(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1506,10 +1506,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(sin, sin)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float sin(const float &x) { return ::sinf(x); }
+float sin(const float &m_jitterPos) { return ::sinf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double sin(const double &x) { return ::sin(x); }
+double sin(const double &m_jitterPos) { return ::sin(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1525,10 +1525,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(tan, tan)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float tan(const float &x) { return ::tanf(x); }
+float tan(const float &m_jitterPos) { return ::tanf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double tan(const double &x) { return ::tan(x); }
+double tan(const double &m_jitterPos) { return ::tan(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1554,10 +1554,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(acosh, acosh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float acos(const float &x) { return ::acosf(x); }
+float acos(const float &m_jitterPos) { return ::acosf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double acos(const double &x) { return ::acos(x); }
+double acos(const double &m_jitterPos) { return ::acos(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1583,10 +1583,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(asinh, asinh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float asin(const float &x) { return ::asinf(x); }
+float asin(const float &m_jitterPos) { return ::asinf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double asin(const double &x) { return ::asin(x); }
+double asin(const double &m_jitterPos) { return ::asin(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1612,10 +1612,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(atanh, atanh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float atan(const float &x) { return ::atanf(x); }
+float atan(const float &m_jitterPos) { return ::atanf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double atan(const double &x) { return ::atan(x); }
+double atan(const double &m_jitterPos) { return ::atan(m_jitterPos); }
 #endif
 
 
@@ -1632,10 +1632,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(cosh, cosh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float cosh(const float &x) { return ::coshf(x); }
+float cosh(const float &m_jitterPos) { return ::coshf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double cosh(const double &x) { return ::cosh(x); }
+double cosh(const double &m_jitterPos) { return ::cosh(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1651,10 +1651,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(sinh, sinh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float sinh(const float &x) { return ::sinhf(x); }
+float sinh(const float &m_jitterPos) { return ::sinhf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double sinh(const double &x) { return ::sinh(x); }
+double sinh(const double &m_jitterPos) { return ::sinh(m_jitterPos); }
 #endif
 
 template<typename T>
@@ -1675,10 +1675,10 @@ SYCL_SPECIALIZE_FLOATING_TYPES_UNARY(tanh, tanh)
 
 #if defined(EIGEN_GPUCC)
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-float tanh(const float &x) { return ::tanhf(x); }
+float tanh(const float &m_jitterPos) { return ::tanhf(m_jitterPos); }
 
 template<> EIGEN_DEVICE_FUNC EIGEN_ALWAYS_INLINE
-double tanh(const double &x) { return ::tanh(x); }
+double tanh(const double &m_jitterPos) { return ::tanh(m_jitterPos); }
 #endif
 
 template <typename T>

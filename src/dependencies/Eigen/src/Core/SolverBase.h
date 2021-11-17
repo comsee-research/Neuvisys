@@ -53,11 +53,11 @@ struct solve_assertion<CwiseUnaryOp<Eigen::internal::scalar_conjugate_op<Scalar>
   * Any matrix decomposition inheriting this base class provide the following API:
   *
   * \code
-  * MatrixType A, b, x;
+  * MatrixType A, b, m_jitterPos;
   * DecompositionType dec(A);
-  * x = dec.solve(b);             // solve A   * x = b
-  * x = dec.transpose().solve(b); // solve A^T * x = b
-  * x = dec.adjoint().solve(b);   // solve A'  * x = b
+  * m_jitterPos = dec.solve(b);             // solve A   * m_jitterPos = b
+  * m_jitterPos = dec.transpose().solve(b); // solve A^T * m_jitterPos = b
+  * m_jitterPos = dec.adjoint().solve(b);   // solve A'  * m_jitterPos = b
   * \endcode
   *
   * \warning Currently, any other usage of transpose() and adjoint() are not supported and will produce compilation errors.
@@ -99,7 +99,7 @@ class SolverBase : public EigenBase<Derived>
 
     using Base::derived;
 
-    /** \returns an expression of the solution x of \f$ A x = b \f$ using the current decomposition of A.
+    /** \returns an expression of the solution m_jitterPos of \f$ A m_jitterPos = b \f$ using the current decomposition of A.
       */
     template<typename Rhs>
     inline const Solve<Derived, Rhs>
@@ -113,8 +113,8 @@ class SolverBase : public EigenBase<Derived>
     typedef typename internal::add_const<Transpose<const Derived> >::type ConstTransposeReturnType;
     /** \returns an expression of the transposed of the factored matrix.
       *
-      * A typical usage is to solve for the transposed problem A^T x = b:
-      * \code x = dec.transpose().solve(b); \endcode
+      * A typical usage is to solve for the transposed problem A^T m_jitterPos = b:
+      * \code m_jitterPos = dec.transpose().solve(b); \endcode
       *
       * \sa adjoint(), solve()
       */
@@ -130,8 +130,8 @@ class SolverBase : public EigenBase<Derived>
                      >::type AdjointReturnType;
     /** \returns an expression of the adjoint of the factored matrix
       *
-      * A typical usage is to solve for the adjoint problem A' x = b:
-      * \code x = dec.adjoint().solve(b); \endcode
+      * A typical usage is to solve for the adjoint problem A' m_jitterPos = b:
+      * \code m_jitterPos = dec.adjoint().solve(b); \endcode
       *
       * For real scalar types, this function is equivalent to transpose().
       *

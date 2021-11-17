@@ -45,12 +45,12 @@ Packet pndtri(const Packet& a) {
   using internal::generic_ndtri; return generic_ndtri<Packet, ScalarType>(a);
 }
 
-/** \internal \returns the incomplete gamma function igamma(\a a, \a x) */
+/** \internal \returns the incomplete gamma function igamma(\a a, \a m_jitterPos) */
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pigamma(const Packet& a, const Packet& x) { using numext::igamma; return igamma(a, x); }
 
 /** \internal \returns the derivative of the incomplete gamma function
- * igamma_der_a(\a a, \a x) */
+ * igamma_der_a(\a a, \a m_jitterPos) */
 template <typename Packet>
 EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet pigamma_der_a(const Packet& a, const Packet& x) {
   using numext::igamma_der_a; return igamma_der_a(a, x);
@@ -64,11 +64,11 @@ EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE Packet pgamma_sample_der_alpha(const Packe
   using numext::gamma_sample_der_alpha; return gamma_sample_der_alpha(alpha, sample);
 }
 
-/** \internal \returns the complementary incomplete gamma function igammac(\a a, \a x) */
+/** \internal \returns the complementary incomplete gamma function igammac(\a a, \a m_jitterPos) */
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pigammac(const Packet& a, const Packet& x) { using numext::igammac; return igammac(a, x); }
 
-/** \internal \returns the complementary incomplete gamma function betainc(\a a, \a b, \a x) */
+/** \internal \returns the complementary incomplete gamma function betainc(\a a, \a b, \a m_jitterPos) */
 template<typename Packet> EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
 Packet pbetainc(const Packet& a, const Packet& b,const Packet& x) { using numext::betainc; return betainc(a, b, x); }
 

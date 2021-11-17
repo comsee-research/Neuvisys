@@ -112,7 +112,7 @@ EIGEN_DEVICE_FUNC bool DenseBase<Derived>::isApprox(
   * within the precision determined by \a prec.
   *
   * \note The fuzzy compares are done multiplicatively. A vector \f$ v \f$ is
-  * considered to be much smaller than \f$ x \f$ within precision \f$ p \f$ if
+  * considered to be much smaller than \f$ m_jitterPos \f$ within precision \f$ p \f$ if
   * \f[ \Vert v \Vert \leqslant p\,\vert x\vert. \f]
   *
   * For matrices, the comparison is done using the Hilbert-Schmidt norm. For this reason,

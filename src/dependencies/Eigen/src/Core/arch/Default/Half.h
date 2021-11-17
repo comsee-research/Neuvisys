@@ -66,9 +66,9 @@ struct half;
 namespace internal {
 template <typename RealScalar>
 struct cast_impl<half, std::complex<RealScalar> > {
-  EIGEN_DEVICE_FUNC static inline std::complex<RealScalar> run(const half &x)
+  EIGEN_DEVICE_FUNC static inline std::complex<RealScalar> run(const half &m_jitterPos)
   {
-    return static_cast<std::complex<RealScalar> >(static_cast<RealScalar>(x));
+    return static_cast<std::complex<RealScalar> >(static_cast<RealScalar>(m_jitterPos));
   }
 };
 } // namespace internal
@@ -81,9 +81,9 @@ namespace half_impl {
 struct __half_raw {
   EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw() : x(0) {}
 #if defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
-  explicit EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw(numext::uint16_t raw) : x(numext::bit_cast<__fp16>(raw)) {
+  explicit EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw(numext::uint16_t raw) : m_jitterPos(numext::bit_cast<__fp16>(raw)) {
   }
-  __fp16 x;
+  __fp16 m_jitterPos;
 #else
   explicit EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw(numext::uint16_t raw) : x(raw) {}
   numext::uint16_t x;
@@ -114,7 +114,7 @@ struct half_base : public __half_raw {
 
 #if defined(EIGEN_HAS_GPU_FP16)
  #if defined(EIGEN_HAS_HIP_FP16)
-  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR half_base(const __half& h) { x = __half_as_ushort(h); }
+  EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR half_base(const __half& h) { m_jitterPos = __half_as_ushort(h); }
  #elif defined(EIGEN_HAS_CUDA_FP16)
   #if (defined(EIGEN_CUDA_SDK_VER) && EIGEN_CUDA_SDK_VER >= 90000)
   EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR half_base(const __half& h) : __half_raw(*(__half_raw*)&h) {}
@@ -176,7 +176,7 @@ struct half : public half_impl::half_base {
   EIGEN_DEVICE_FUNC EIGEN_EXPLICIT_CAST(bool) const {
     // +0.0 and -0.0 become false, everything else becomes true.
   #if defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
-    return (numext::bit_cast<numext::uint16_t>(x) & 0x7fff) != 0;
+    return (numext::bit_cast<numext::uint16_t>(m_jitterPos) & 0x7fff) != 0;
   #else
     return (x & 0x7fff) != 0;
   #endif
@@ -358,53 +358,53 @@ EIGEN_STRONG_INLINE __device__ bool operator >= (const half& a, const half& b) {
 
 #if defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator + (const half& a, const half& b) {
-  return half(vaddh_f16(a.x, b.x));
+  return half(vaddh_f16(a.m_jitterPos, b.m_jitterPos));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator * (const half& a, const half& b) {
-  return half(vmulh_f16(a.x, b.x));
+  return half(vmulh_f16(a.m_jitterPos, b.m_jitterPos));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a, const half& b) {
-  return half(vsubh_f16(a.x, b.x));
+  return half(vsubh_f16(a.m_jitterPos, b.m_jitterPos));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, const half& b) {
-  return half(vdivh_f16(a.x, b.x));
+  return half(vdivh_f16(a.m_jitterPos, b.m_jitterPos));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator - (const half& a) {
-  return half(vnegh_f16(a.x));
+  return half(vnegh_f16(a.m_jitterPos));
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator += (half& a, const half& b) {
-  a = half(vaddh_f16(a.x, b.x));
+  a = half(vaddh_f16(a.m_jitterPos, b.m_jitterPos));
   return a;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator *= (half& a, const half& b) {
-  a = half(vmulh_f16(a.x, b.x));
+  a = half(vmulh_f16(a.m_jitterPos, b.m_jitterPos));
   return a;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator -= (half& a, const half& b) {
-  a = half(vsubh_f16(a.x, b.x));
+  a = half(vsubh_f16(a.m_jitterPos, b.m_jitterPos));
   return a;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half& operator /= (half& a, const half& b) {
-  a = half(vdivh_f16(a.x, b.x));
+  a = half(vdivh_f16(a.m_jitterPos, b.m_jitterPos));
   return a;
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator == (const half& a, const half& b) {
-  return vceqh_f16(a.x, b.x);
+  return vceqh_f16(a.m_jitterPos, b.m_jitterPos);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator != (const half& a, const half& b) {
-  return !vceqh_f16(a.x, b.x);
+  return !vceqh_f16(a.m_jitterPos, b.m_jitterPos);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator < (const half& a, const half& b) {
-  return vclth_f16(a.x, b.x);
+  return vclth_f16(a.m_jitterPos, b.m_jitterPos);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator <= (const half& a, const half& b) {
-  return vcleh_f16(a.x, b.x);
+  return vcleh_f16(a.m_jitterPos, b.m_jitterPos);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator > (const half& a, const half& b) {
-  return vcgth_f16(a.x, b.x);
+  return vcgth_f16(a.m_jitterPos, b.m_jitterPos);
 }
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool operator >= (const half& a, const half& b) {
-  return vcgeh_f16(a.x, b.x);
+  return vcgeh_f16(a.m_jitterPos, b.m_jitterPos);
 }
 // We need to distinguish ‘clang as the CUDA compiler’ from ‘clang as the host compiler,
 // invoked by NVCC’ (e.g. on MacOS). The former needs to see both host and device implementation
@@ -493,7 +493,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half operator / (const half& a, Index b) {
 // also possible to vectorize directly.
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw raw_uint16_to_half(numext::uint16_t x) {
-  // We cannot simply do a "return __half_raw(x)" here, because __half_raw is union type
+  // We cannot simply do a "return __half_raw(m_jitterPos)" here, because __half_raw is union type
   // in the hip_fp16 header file, and that will trigger a compile error
   // On the other hand, having anything but a return statement also triggers a compile error
   // because this is constexpr function.
@@ -501,7 +501,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC EIGEN_CONSTEXPR __half_raw raw_uint16_to_h
   // of this catch22 by having separate bodies for GPU / non GPU
 #if defined(EIGEN_HAS_GPU_FP16)
    __half_raw h;
-   h.x = x;
+   h.m_jitterPos = m_jitterPos;
   return h;
 #else
   return __half_raw(x);
@@ -521,12 +521,12 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC __half_raw float_to_half_rtne(float ff) {
 
 #elif defined(EIGEN_HAS_FP16_C)
   __half_raw h;
-  h.x = _cvtss_sh(ff, 0);
+  h.m_jitterPos = _cvtss_sh(ff, 0);
   return h;
 
 #elif defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
   __half_raw h;
-  h.x = static_cast<__fp16>(ff);
+  h.m_jitterPos = static_cast<__fp16>(ff);
   return h;
 
 #else
@@ -582,9 +582,9 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half_raw h) {
   (defined(EIGEN_HAS_HIP_FP16) && defined(EIGEN_HIP_DEVICE_COMPILE))
   return __half2float(h);
 #elif defined(EIGEN_HAS_FP16_C)
-  return _cvtsh_ss(h.x);
+  return _cvtsh_ss(h.m_jitterPos);
 #elif defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
-  return static_cast<float>(h.x);
+  return static_cast<float>(h.m_jitterPos);
 #else
   const float32_bits magic = { 113 << 23 };
   const unsigned int shifted_exp = 0x7c00 << 13; // exponent mask after shift
@@ -611,7 +611,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC float half_to_float(__half_raw h) {
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isinf)(const half& a) {
 #ifdef EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC
-  return (numext::bit_cast<numext::uint16_t>(a.x) & 0x7fff) == 0x7c00;
+  return (numext::bit_cast<numext::uint16_t>(a.m_jitterPos) & 0x7fff) == 0x7c00;
 #else
   return (a.x & 0x7fff) == 0x7c00;
 #endif
@@ -621,7 +621,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isnan)(const half& a) {
   (defined(EIGEN_HAS_HIP_FP16) && defined(EIGEN_HIP_DEVICE_COMPILE))
   return __hisnan(a);
 #elif defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
-  return (numext::bit_cast<numext::uint16_t>(a.x) & 0x7fff) > 0x7c00;
+  return (numext::bit_cast<numext::uint16_t>(a.m_jitterPos) & 0x7fff) > 0x7c00;
 #else
   return (a.x & 0x7fff) > 0x7c00;
 #endif
@@ -632,7 +632,7 @@ EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC bool (isfinite)(const half& a) {
 
 EIGEN_STRONG_INLINE EIGEN_DEVICE_FUNC half abs(const half& a) {
 #if defined(EIGEN_HAS_ARM64_FP16_SCALAR_ARITHMETIC)
-  return half(vabsh_f16(a.x));
+  return half(vabsh_f16(a.m_jitterPos));
 #else
   half result;
   result.x = a.x & 0x7FFF;
