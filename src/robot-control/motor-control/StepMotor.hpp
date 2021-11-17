@@ -10,16 +10,18 @@
 #include "libserie/Faulhaber.hpp"
 
 class StepMotor {
-    ros::NodeHandle nh;
-    ros::Subscriber m_motorSub{};
-
-    std::string m_topic;
+    ros::NodeHandle m_nh;
+    ros::Subscriber m_positionSub{};
+    ros::Subscriber m_speedSub{};
     Faulhaber m_motor;
 
 public:
     StepMotor(const std::string &topic, size_t motorAdress, const std::string &port);
     ~StepMotor();
+    void setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &position);
     void setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position);
+    void setSpeed(int speed);
+    void setPosition(int position);
 };
 
 

@@ -21,7 +21,6 @@ void Faulhaber::StartDrive() {
     flush();
 
     std::cout << "Drive " << Adresse_moteur_ << " actif." << std::endl;
-//  usleep(5000);
 }
 
 void Faulhaber::StopDrive() {
@@ -44,16 +43,12 @@ void Faulhaber::GetPosition(string &position) {
     flush();
 
     std::cout << "Position moteur " << Adresse_moteur_ << " : ";
-    // usleep(10000);
     int nbTrames = 0;
-//    while (nbTrames <= 10)
     {
         while (recevoir(&octet, 1)) {
             if (octet == '\n') ++nbTrames;
             std::cout << octet;
-//            usleep(1000);
         }
-//        else cout << "timeout" << endl;
     }
 
 }
@@ -68,8 +63,6 @@ void Faulhaber::SetAbsolutePosition(int position) {
     chaine += Adresse_moteur_ + "M\r\n";   //Move
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
-
-//  usleep(1000);
 }
 
 void Faulhaber::SetRelativePosition(int position) {
@@ -77,13 +70,10 @@ void Faulhaber::SetRelativePosition(int position) {
     chaine = Adresse_moteur_ + "LR" + std::to_string(position) + "\r\n"; //Set absolute speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
-    chaine = "";
     chaine = Adresse_moteur_ + "NP\r\n";  // Stop on the command M until the speed is reached
     chaine += Adresse_moteur_ + "M\r\n";   //Move
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
-
-//    usleep(200000);
 }
 
 void Faulhaber::SetSpeed(int speed) {
@@ -91,11 +81,4 @@ void Faulhaber::SetSpeed(int speed) {
     chaine = Adresse_moteur_ + "V" + std::to_string(speed) + "\r\n"; //Set speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
-    chaine = "";
-
-    //chaine=Adresse_moteur_+"NV"+std::to_string(speed)+"\r\n" ; //Set speed*/
-    //  envoyer((const uint8_t *)(chaine.c_str()),uint32_t(chaine.length()));
-    //  flush();
-
-//    usleep(1000);
 }
