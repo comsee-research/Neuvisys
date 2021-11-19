@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
     while (ros::ok()) {
         ros::spinOnce();
         time = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration<double>(time - timePosition).count() > 1000000) {
+        if (std::chrono::duration_cast<std::chrono::microseconds>(time - timePosition).count() > 1000000) {
             timePosition = std::chrono::high_resolution_clock::now();
             // get position
             double position = 0;
