@@ -80,7 +80,7 @@ void NeuvisysThread::multiplePass(NetworkHandle &network) {
 }
 
 void NeuvisysThread::rosPass(NetworkHandle &network) {
-    SimulationInterface sim(1. / 150);
+    SimulationInterface sim;
     sim.enableSyncMode(true);
     sim.startSimulation();
 
