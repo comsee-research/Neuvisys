@@ -14,7 +14,7 @@ public:
 
     void StopDrive();
 
-    void GetPosition(string &position);
+    double GetPosition();
 
     void SetAbsolutePosition(int position);
 

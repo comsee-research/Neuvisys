@@ -34,8 +34,9 @@ void Faulhaber::StopDrive() {
 }
 
 
-void Faulhaber::GetPosition(string &position) {
+double Faulhaber::GetPosition() {
     uint8_t octet = 0;
+    std::string position;
     while (recevoir(&octet, 1));  //vide le buffer de reception
     string chaine;
     chaine = Adresse_moteur_ + "POS\r\n"; //Get actual speed*/
@@ -47,10 +48,10 @@ void Faulhaber::GetPosition(string &position) {
     {
         while (recevoir(&octet, 1)) {
             if (octet == '\n') ++nbTrames;
-            std::cout << octet;
+            position.push_back(octet);
         }
     }
-
+    return std::stod(position);
 }
 
 void Faulhaber::SetAbsolutePosition(int position) {

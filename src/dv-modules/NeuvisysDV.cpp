@@ -9,6 +9,11 @@ class Neuvisys : public dv::ModuleBase {
 private:
     dv::EventStreamSlicer slicer;
     NetworkHandle network = NetworkHandle(config.getString("networkPath"));
+    std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point updateTime = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point actionTime = std::chrono::high_resolution_clock::now();
+    std::chrono::high_resolution_clock::time_point consoleTime = std::chrono::high_resolution_clock::now();
+    size_t actor, iteration;
 
 public:
     Neuvisys() {
@@ -31,9 +36,34 @@ public:
 	}
 
 	void computeEvents(const dv::EventStore &events) {
+        time = std::chrono::high_resolution_clock::now();
         if (!events.isEmpty()) {
+            network.transmitReward(0);
             for (const dv::Event &eve : events) {
-//                network.transmitEvents(Event(eve.timestamp(), eve.m_jitterPos(), eve.y(), eve.polarity(), 0));
+                network.transmitEvent(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
+            }
+
+            if (std::chrono::duration<double>(time - updateTime).count() > static_cast<double>(UPDATE_INTERVAL) / E6) {
+                updateTime = std::chrono::high_resolution_clock::now();
+                network.updateNeuronStates(UPDATE_INTERVAL);
+            }
+
+            if (std::chrono::duration<double>(time - actionTime).count() > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
+                actionTime = std::chrono::high_resolution_clock::now();
+                if (actor != -1) {
+                    network.updateActor(events.back().timestamp(), actor);
+                }
+                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+            }
+
+            if (std::chrono::duration<double>(time - consoleTime).count() > SCORE_INTERVAL) {
+                consoleTime = std::chrono::high_resolution_clock::now();
+                network.learningDecay(iteration);
+                ++iteration;
+                std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_INTERVAL * E3 / DT)) +
+                        "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
+                        "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
+                std::cout << msg << std::endl;
             }
         }
     }

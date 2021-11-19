@@ -18,10 +18,11 @@ class StepMotor {
 public:
     StepMotor(const std::string &topic, size_t motorAdress, const std::string &port);
     ~StepMotor();
-    void setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &position);
+    void setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &speed);
     void setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position);
     void setSpeed(int speed);
     void setPosition(int position);
+    double getPosition();
 };
 
 

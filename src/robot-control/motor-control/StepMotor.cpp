@@ -3,6 +3,7 @@
 //
 
 #include "StepMotor.hpp"
+#include <string>
 
 StepMotor::StepMotor(const std::string &topic, const size_t motorAdress, const std::string &port) : m_motor(static_cast<int>(motorAdress), port) {
     m_positionSub = m_nh.subscribe<std_msgs::Float32>(topic + "Speed", 1000, [this](auto && PH1) {
@@ -13,8 +14,8 @@ StepMotor::StepMotor(const std::string &topic, const size_t motorAdress, const s
     m_motor.StartDrive();
 }
 
-void StepMotor::setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &position) {
-    m_motor.SetSpeed(static_cast<int>(position.getMessage()->data));
+void StepMotor::setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &speed) {
+    m_motor.SetSpeed(static_cast<int>(speed.getMessage()->data));
 }
 
 void StepMotor::setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position) {
@@ -33,9 +34,14 @@ StepMotor::~StepMotor() {
     m_motor.StopDrive();
 }
 
+double StepMotor::getPosition() {
+    return m_motor.GetPosition();
+}
+
 int main(int argc, char* argv[]) {
     ros::init(argc, argv, "neuvisysControl");
     if (!ros::master::check()) {
+        std::cout << "ROS not launched" << std::endl;
         return 0;
     }
     ros::start();
@@ -43,9 +49,8 @@ int main(int argc, char* argv[]) {
 
     auto stepMotor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
-//    stepMotor.setSpeed(100);
-
     while (ros::ok()) {
-        ros::spin();
+        ros::spinOnce();
+        std::cout << stepMotor.getPosition() << std::endl;
     }
 }

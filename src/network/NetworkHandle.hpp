@@ -33,6 +33,7 @@ public:
     void storeLearningMetrics(double time, size_t nbEvents);
     void transmitReward(double reward);
     void transmitEvents(const std::vector<Event> &eventPacket);
+    void transmitEvent(const Event &event);
     std::vector<uint64_t> resolveMotor();
     void learningDecay(size_t iteration);
     void save(size_t nbRun, const std::string &eventFileName);

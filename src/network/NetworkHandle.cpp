@@ -221,6 +221,10 @@ void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
     }
 }
 
+void NetworkHandle::transmitEvent(const Event &event) {
+    m_spinet.addEvent(event);
+}
+
 std::vector<uint64_t> NetworkHandle::resolveMotor() {
     std::vector<uint64_t> motorActivations(m_spinet.getNetworkStructure().back(), 0);
 
