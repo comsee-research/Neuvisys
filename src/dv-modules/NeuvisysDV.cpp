@@ -1,22 +1,33 @@
 #include <dv-sdk/module.hpp>
 #include <dv-sdk/processing/core.hpp>
 #include <thread>
-#include "../network/NetworkHandle.hpp"
 
-#define CONFIG "/home/alphat/neuvisys-dv/configuration/network/configs/network_config.json"
+#include <src/robot-control/motor-control/StepMotor.hpp>
+#include <src/network/NetworkHandle.hpp>
+
+#define CONFIG "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json"
 
 class Neuvisys : public dv::ModuleBase {
 private:
     dv::EventStreamSlicer slicer;
-    NetworkHandle network = NetworkHandle(config.getString("networkPath"));
+    NetworkHandle network = NetworkHandle(CONFIG);
     std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point updateTime = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point actionTime = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point consoleTime = std::chrono::high_resolution_clock::now();
-    size_t actor, iteration;
+    int actor = 0;
+    size_t iteration = 0;
+    std::vector<std::pair<uint64_t, float>> motorMapping;
+    StepMotor m_motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
 public:
     Neuvisys() {
+        log.info << "Opening network : " + config.getString("networkPath") << dv::logEnd;
+
+        motorMapping.emplace_back(std::make_pair(0, 150)); // left horizontal -> left movement
+        motorMapping.emplace_back(std::make_pair(0, 0)); // no movement
+        motorMapping.emplace_back(std::make_pair(0, -150)); // left horizontal  -> right movement
+
         /***** Slicers *****/
         slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
             computeEvents(data);
@@ -39,6 +50,7 @@ public:
         time = std::chrono::high_resolution_clock::now();
         if (!events.isEmpty()) {
             network.transmitReward(0);
+            network.storeLearningMetrics(static_cast<double>(events.back().timestamp()), events.size());
             for (const dv::Event &eve : events) {
                 network.transmitEvent(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
             }
@@ -53,7 +65,14 @@ public:
                 if (actor != -1) {
                     network.updateActor(events.back().timestamp(), actor);
                 }
-                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+                motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+
+                double position = 0;
+                if (position < -1000) {
+                    m_motor.setSpeed(0);
+                } else if (position > 1000) {
+                    m_motor.setSpeed(0);
+                }
             }
 
             if (std::chrono::duration<double>(time - consoleTime).count() > SCORE_INTERVAL) {
@@ -78,10 +97,39 @@ public:
     }
 
     static void initConfigOptions(dv::RuntimeConfig &config) {
-        config.add("networkPath", dv::ConfigOption::fileOpenOption("Network Path"));
+        config.add("networkPath", dv::ConfigOption::directoryOption("Network Path"));
     }
 
     void configUpdate() override {
+    }
+
+    bool motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
+        bool exploration = false;
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_real_distribution<double> distReal(0.0, 1.0);
+        std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
+
+        auto real = 100 * distReal(gen);
+        if (real >= explorationFactor) {
+            selectedMotor = Util::winnerTakeAll(motorActivation);
+        } else {
+            selectedMotor = distInt(gen);
+            exploration = true;
+        }
+
+        if (selectedMotor != -1) {
+            activateMotor(selectedMotor);
+        }
+        return exploration;
+    }
+
+    void activateMotor(uint64_t motor) {
+        switch (motorMapping[motor].first) {
+            case 0:
+                m_motor.setSpeed(motorMapping[motor].second);
+                break;
+        }
     }
 };
 
