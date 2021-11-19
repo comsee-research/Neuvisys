@@ -45,12 +45,24 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     ros::start();
-    ros::Time::init();
+
+    std::chrono::high_resolution_clock::time_point time;
+    std::chrono::high_resolution_clock::time_point timePosition = std::chrono::high_resolution_clock::now();
 
     auto stepMotor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
     while (ros::ok()) {
         ros::spinOnce();
-        std::cout << stepMotor.getPosition() << std::endl;
+        time = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration_cast<std::chrono::microseconds>(time - timePosition).count() > 1000000) {
+            timePosition = std::chrono::high_resolution_clock::now();
+            // get position
+            double position = 0;
+            if (position < -1000) {
+                stepMotor.setSpeed(0);
+            } else if (position > 1000) {
+                stepMotor.setSpeed(0);
+            }
+        }
     }
 }

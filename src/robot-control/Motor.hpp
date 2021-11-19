@@ -12,17 +12,20 @@
 #include "../network/Utils.hpp"
 
 class Motor {
-    ros::Publisher m_motorPub{};
+    ros::Publisher m_motorSpeedPub{};
+    ros::Publisher m_motorPositionPub{};
     double m_jitterPos = 0;
     std_msgs::Float32 m_speed{};
+    std_msgs::Float32 m_position{};
 
 public:
-    Motor(ros::NodeHandle &n, const std::string& name);
+    Motor(ros::NodeHandle &n, const std::string &topic);
     void jitter(double dt, double jitter = 0);
-    void incrementSpeed(float increment);
-    void move();
+    void moveSpeed(float speed);
+    void movePosition(float position);
 
     [[nodiscard]] float getSpeed() const { return m_speed.data; }
+    [[nodiscard]] float getPosition() const { return m_position.data; }
     [[nodiscard]] double getJitterPos() const { return m_jitterPos; }
     void setSpeed(float speed) { m_speed.data = speed; }
 };

@@ -4,8 +4,9 @@
 
 #include "Motor.hpp"
 
-Motor::Motor(ros::NodeHandle &n, const std::string& name) {
-    m_motorPub = n.advertise<std_msgs::Float32>(name, 1000);
+Motor::Motor(ros::NodeHandle &n, const std::string &topic) {
+    m_motorSpeedPub = n.advertise<std_msgs::Float32>(topic + "Speed", 1000);
+    m_motorPositionPub = n.advertise<std_msgs::Float32>(topic + "Position", 1000);
 }
 
 void Motor::jitter(double dt, double jitter) {
@@ -15,13 +16,15 @@ void Motor::jitter(double dt, double jitter) {
         m_jitterPos = jitter;
     }
     m_speed.data = static_cast<float>(m_jitterPos);
-    m_motorPub.publish(m_speed);
+    m_motorSpeedPub.publish(m_speed);
 }
 
-void Motor::move() {
-    m_motorPub.publish(m_speed);
+void Motor::moveSpeed(float speed) {
+    m_speed.data = speed;
+    m_motorSpeedPub.publish(m_speed);
 }
 
-void Motor::incrementSpeed(float increment) {
-    m_speed.data += increment;
+void Motor::movePosition(float position) {
+    m_position.data = position;
+    m_motorPositionPub.publish(m_position);
 }

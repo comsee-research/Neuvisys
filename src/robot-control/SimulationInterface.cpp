@@ -4,7 +4,7 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface(double lambda) : m_lambda(lambda) {
+SimulationInterface::SimulationInterface() {
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
@@ -117,24 +117,16 @@ void SimulationInterface::motorsJitter(double dt) {
 void SimulationInterface::activateMotor(uint64_t motor) {
     switch (motorMapping[motor].first) {
         case 0:
-            m_leftMotor1Pub.setSpeed(motorMapping[motor].second);
-//            m_leftMotor1Pub.incrementSpeed(motorMapping[motor].second);
-            m_leftMotor1Pub.move();
+            m_leftMotor1Pub.moveSpeed(motorMapping[motor].second);
             break;
         case 1:
-            m_leftMotor2Pub.setSpeed(motorMapping[motor].second);
-//            m_leftMotor2Pub.incrementSpeed(motorMapping[motor].second);
-            m_leftMotor2Pub.move();
+            m_leftMotor2Pub.moveSpeed(motorMapping[motor].second);
             break;
         case 2:
-            m_rightMotor1Pub.setSpeed(motorMapping[motor].second);
-//            m_rightMotor1Pub.incrementSpeed(motorMapping[motor].second);
-            m_rightMotor1Pub.move();
+            m_rightMotor1Pub.moveSpeed(motorMapping[motor].second);
             break;
         case 3:
-            m_rightMotor2Pub.setSpeed(motorMapping[motor].second);
-//            m_rightMotor2Pub.incrementSpeed(motorMapping[motor].second);
-            m_rightMotor2Pub.move();
+            m_rightMotor2Pub.moveSpeed(motorMapping[motor].second);
             break;
     }
 }

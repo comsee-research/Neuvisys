@@ -44,7 +44,7 @@ class SimulationInterface {
     std::vector<std::pair<uint64_t, float>> motorMapping;
 
 public:
-    explicit SimulationInterface(double lambda);
+    explicit SimulationInterface();
     void update();
     bool motorAction(const std::vector<uint64_t> &motorActivation, double explorationFactor, int &selectedMotor);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
@@ -53,7 +53,6 @@ public:
     [[nodiscard]] bool simStepDone() const { return m_simStepDone; }
     [[nodiscard]] double getSimulationTime() const { return m_time; }
     [[nodiscard]] double getSimulationTimeStep() const { return m_timeStep; }
-    void activateMotors(std::vector<uint64_t> motorActivation);
     void motorsJitter(double dt);
     void activateMotor(uint64_t motor);
     void enableSyncMode(bool enable);

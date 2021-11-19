@@ -7,7 +7,7 @@
 int launchLearning(std::string &networkPath) {
     NetworkHandle network(networkPath);
 
-    SimulationInterface sim(1. / 150);
+    SimulationInterface sim;
     sim.enableSyncMode(true);
     sim.startSimulation();
 
