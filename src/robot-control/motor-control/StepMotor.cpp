@@ -39,13 +39,24 @@ int main(int argc, char* argv[]) {
         return 0;
     }
     ros::start();
-    ros::Time::init();
+
+    std::chrono::high_resolution_clock::time_point time;
+    std::chrono::high_resolution_clock::time_point timePosition = std::chrono::high_resolution_clock::now();
 
     auto stepMotor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
-//    stepMotor.setSpeed(100);
-
     while (ros::ok()) {
-        ros::spin();
+        ros::spinOnce();
+        time = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<double>(time - timePosition).count() > 1000000) {
+            timePosition = std::chrono::high_resolution_clock::now();
+            // get position
+            double position = 0;
+            if (position < -1000) {
+                stepMotor.setSpeed(0);
+            } else if (position > 1000) {
+                stepMotor.setSpeed(0);
+            }
+        }
     }
 }
