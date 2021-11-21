@@ -11,20 +11,21 @@ Motor::Motor(ros::NodeHandle &n, const std::string &topic) {
 
 void Motor::jitter(double dt, double jitter) {
     if (jitter == 0) {
-        m_jitterPos = Util::ornsteinUhlenbeckProcess(dt, m_jitterPos, 25, 0., 0.05);
+        m_jitterSpeed = Util::ornsteinUhlenbeckProcess(dt, m_jitterSpeed, 25, 0., 0.05);
     } else {
-        m_jitterPos = jitter;
+        m_jitterSpeed = jitter;
     }
-    m_speed.data = static_cast<float>(m_jitterPos);
+    m_speed.data = static_cast<float>(m_motion + m_jitterSpeed);
     m_motorSpeedPub.publish(m_speed);
 }
 
-void Motor::moveSpeed(float speed) {
-    m_speed.data = speed;
+void Motor::changeSpeed(float speed) {
+    m_motion = speed;
+    m_speed.data = static_cast<float>(m_motion + m_jitterSpeed);
     m_motorSpeedPub.publish(m_speed);
 }
 
-void Motor::movePosition(float position) {
+void Motor::changePosition(float position) {
     m_position.data = position;
     m_motorPositionPub.publish(m_position);
 }

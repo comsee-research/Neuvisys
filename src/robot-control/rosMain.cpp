@@ -37,7 +37,7 @@ int launchLearning(std::string &networkPath) {
                 if (actor != -1) {
                     network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
                 }
-                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+                sim.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
             }
 
             if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {

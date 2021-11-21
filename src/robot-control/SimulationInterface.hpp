@@ -40,13 +40,14 @@ class SimulationInterface {
     FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
     cv::Mat leftReference, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightThresholdmap, rightEim;
+    bool firstLeftImage = true, firstRightImage = true;
     std::vector<Event> leftEvents, rightEvents;
-    std::vector<std::pair<uint64_t, float>> motorMapping;
+    std::vector<std::map<uint64_t, float>> actionMapping;
 
 public:
     explicit SimulationInterface();
     void update();
-    bool motorAction(const std::vector<uint64_t> &motorActivation, double explorationFactor, int &selectedMotor);
+    bool actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor, int &selectedAction);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     [[nodiscard]] double getReward() const { return m_rewardStored; }
@@ -54,7 +55,7 @@ public:
     [[nodiscard]] double getSimulationTime() const { return m_time; }
     [[nodiscard]] double getSimulationTimeStep() const { return m_timeStep; }
     void motorsJitter(double dt);
-    void activateMotor(uint64_t motor);
+    void activateMotors(uint64_t action);
     void enableSyncMode(bool enable);
     void triggerNextTimeStep();
     void startSimulation();

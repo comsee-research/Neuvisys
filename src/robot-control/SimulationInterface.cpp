@@ -24,21 +24,27 @@ SimulationInterface::SimulationInterface() {
         sleep_t.sleep();
     }
 
-    motorMapping.emplace_back(std::make_pair(0, 0.15)); // left horizontal -> left movement
-    motorMapping.emplace_back(std::make_pair(0, 0)); // no movement
-    motorMapping.emplace_back(std::make_pair(0, -0.15)); // left horizontal  -> right movement
+    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
+    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
+    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
 
-//    motorMapping.emplace_back(std::make_pair(0, 0.05)); // increment speed left
-//    motorMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
+//    actionMapping.emplace_back(std::mak_pair(0, 0.05)); // increment speed left
+//    actionMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
     if (topic == "left") {
         leftEvents.clear();
-        frameConverter.frameConversion(topic, frame, leftReference, leftThresholdmap, leftEim, leftEvents, 0);
+        frameConverter.frameConversion(topic, frame, leftReference, leftThresholdmap, leftEim, leftEvents, 0, firstLeftImage);
+        if (firstLeftImage) {
+            firstLeftImage = false;
+        }
     } else if (topic == "right") {
-//        rightEvents.clear();
-//        frameConverter.frameConversion(topic, frame, rightReference, rightThresholdmap, rightEim, rightEvents, 1);
+        rightEvents.clear();
+        frameConverter.frameConversion(topic, frame, rightReference, rightThresholdmap, rightEim, rightEvents, 1, firstRightImage);
+        if (firstRightImage) {
+            firstRightImage = false;
+        }
     } else {
         std::cout << "wrong camera topic" << std::endl;
         return;
@@ -70,23 +76,23 @@ void SimulationInterface::update() {
     motorsJitter(dt);
 }
 
-bool SimulationInterface::motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
+bool SimulationInterface::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor, int &selectedAction) {
     bool exploration = false;
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> distReal(0.0, 1.0);
-    std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
+    std::uniform_int_distribution<> distInt(0, static_cast<int>(actionsActivations.size() - 1));
 
     auto real = 100 * distReal(gen);
     if (real >= explorationFactor) {
-        selectedMotor = Util::winnerTakeAll(motorActivation);
+        selectedAction = Util::winnerTakeAll(actionsActivations);
     } else {
-        selectedMotor = distInt(gen);
+        selectedAction = distInt(gen);
         exploration = true;
     }
 
-    if (selectedMotor != -1) {
-        activateMotor(selectedMotor);
+    if (selectedAction != -1) {
+        activateMotors(selectedAction);
     }
     return exploration;
 }
@@ -114,20 +120,24 @@ void SimulationInterface::motorsJitter(double dt) {
     m_rightMotor2Pub.jitter(dt, m_leftMotor2Pub.getJitterPos());
 }
 
-void SimulationInterface::activateMotor(uint64_t motor) {
-    switch (motorMapping[motor].first) {
-        case 0:
-            m_leftMotor1Pub.moveSpeed(motorMapping[motor].second);
-            break;
-        case 1:
-            m_leftMotor2Pub.moveSpeed(motorMapping[motor].second);
-            break;
-        case 2:
-            m_rightMotor1Pub.moveSpeed(motorMapping[motor].second);
-            break;
-        case 3:
-            m_rightMotor2Pub.moveSpeed(motorMapping[motor].second);
-            break;
+void SimulationInterface::activateMotors(uint64_t action) {
+    for (const auto &[motor, speed] : actionMapping[action]) {
+        switch (motor) {
+            case 0:
+                m_leftMotor1Pub.changeSpeed(speed);
+                break;
+            case 1:
+                m_leftMotor2Pub.changeSpeed(speed);
+                break;
+            case 2:
+                m_rightMotor1Pub.changeSpeed(speed);
+                break;
+            case 3:
+                m_rightMotor2Pub.changeSpeed(speed);
+                break;
+            default:
+                break;
+        }
     }
 }
 

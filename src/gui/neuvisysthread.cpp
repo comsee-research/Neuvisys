@@ -111,7 +111,7 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
                 if (actor != -1) {
                     network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
                 }
-                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+                sim.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
 
                 if (actor != -1) {
                     m_motorDisplay[actor] = true;
