@@ -50,7 +50,7 @@ public:
         time = std::chrono::high_resolution_clock::now();
         if (!events.isEmpty()) {
             network.transmitReward(0);
-            network.storeLearningMetrics(static_cast<double>(events.back().timestamp()), events.size());
+            network.saveValueMetrics(static_cast<double>(events.back().timestamp()), events.size());
             for (const dv::Event &eve : events) {
                 network.transmitEvent(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
             }

@@ -30,7 +30,8 @@ public:
 
     void multiplePass(const std::string &events, size_t nbPass);
     void updateActor(long timestamp, size_t actor);
-    void storeLearningMetrics(double time, size_t nbEvents);
+    void saveValueMetrics(double time, size_t nbEvents);
+    void saveActionMetrics(size_t action, bool exploration);
     void transmitReward(double reward);
     void transmitEvents(const std::vector<Event> &eventPacket);
     void transmitEvent(const Event &event);

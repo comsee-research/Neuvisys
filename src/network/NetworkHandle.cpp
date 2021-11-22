@@ -178,7 +178,7 @@ double NetworkHandle::getScore(long time) {
     return mean;
 }
 
-void NetworkHandle::storeLearningMetrics(double time, size_t nbEvents) {
+void NetworkHandle::saveValueMetrics(double time, size_t nbEvents) {
     m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
 
     auto V = valueFunction(time);
@@ -189,6 +189,11 @@ void NetworkHandle::storeLearningMetrics(double time, size_t nbEvents) {
     m_saveData["value"].push_back(V);
     m_saveData["valueDot"].push_back(VDot);
     m_saveData["tdError"].push_back(tdError);
+}
+
+void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
+    m_saveData["action"].push_back(static_cast<double>(action));
+    m_saveData["exploration"].push_back(exploration);
 }
 
 double NetworkHandle::valueFunction(double time) {
@@ -214,7 +219,7 @@ void NetworkHandle::transmitReward(const double reward) {
 }
 
 void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
-    storeLearningMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
+    saveValueMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
 
     for (auto event : eventPacket) {
         m_spinet.addEvent(event);

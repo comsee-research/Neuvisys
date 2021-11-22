@@ -15,7 +15,8 @@ int launchLearning(std::string &networkPath) {
 
     double actionTime = 0, updateTime = 0, consoleTime = 0;
     size_t iteration = 0;
-    int actor = 0;
+    int action = 0;
+    bool exploration = false;
     while (ros::ok() && sim.getSimulationTime() < 300) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
@@ -34,10 +35,11 @@ int launchLearning(std::string &networkPath) {
 
             if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
                 actionTime = sim.getSimulationTime();
-                if (actor != -1) {
-                    network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+                if (action != -1) {
+                    network.updateActor(sim.getLeftEvents().back().timestamp(), action);
                 }
-                sim.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+                exploration = sim.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
+                network.saveActionMetrics(action, exploration);
             }
 
             if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {
