@@ -8,25 +8,26 @@ FrameToEvents::FrameToEvents(int n_max, int blocksize, int log_threshold, float 
 
 }
 
-void FrameToEvents::frameConversion(const std::string &topic, const ros::MessageEvent<sensor_msgs::Image const> &frame, cv::Mat &reference, cv::Mat &thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera) {
+void FrameToEvents::frameConversion(const std::string &topic, const ros::MessageEvent<sensor_msgs::Image const> &frame, cv::Mat &reference, cv::Mat
+&thresholdmap, cv::Mat &eim, std::vector<Event> &events, int camera, bool firstImage) {
+    cv::Mat input;
     try {
         cv::cvtColor(cv_bridge::toCvCopy(frame.getMessage(), sensor_msgs::image_encodings::BGR8)->image, input, CV_BGR2GRAY);
         input.convertTo(input, CV_32F);
         cv::Mat output;
         logFrame(input);
-        if (first) {
+        if (firstImage) {
             thresholdmap = cv::Mat(input.size(), CV_32F);
             thresholdmap = map_threshold;
             reference = input.clone();
-            first = false;
         } else {
             convertFrameToEvent(input, reference, thresholdmap, events, static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000), camera);
 
-//            if (!events.empty()) {
-//                eim = eventImage(input.size(), events);
-//
-//                cv::imshow(topic, eim);
-//            }
+            if (!events.empty()) {
+                eim = eventImage(input.size(), events);
+
+                cv::imshow(topic, eim);
+            }
         }
         prevTime = static_cast<long>(frame.getMessage()->header.stamp.toNSec() / 1000);
     } catch (cv_bridge::Exception& e) {
@@ -35,9 +36,10 @@ void FrameToEvents::frameConversion(const std::string &topic, const ros::Message
     }
 }
 
-void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long time, int camera) const {
-    for (int row = 0; row < input.rows; row = row + blocksize) {
-        for (int col = 0; col < input.cols; col = col + blocksize) {
+void FrameToEvents::convertFrameToEvent(const cv::Mat &inputFrame, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long
+time, int camera) const {
+    for (int row = 0; row < inputFrame.rows; row = row + blocksize) {
+        for (int col = 0; col < inputFrame.cols; col = col + blocksize) {
             // Find local maxima --
             // Set blocksize to 0 to disable Local Inhibition
             float diff;
@@ -46,7 +48,7 @@ void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference
             int col_shift = 0;
             for (int row_block = 0; row_block < blocksize; row_block++) {
                 for (int col_block = 0; col_block < blocksize; col_block++) {
-                    diff = abs(input.at<float>(row + row_block, col + col_block) - reference.at<float>(row + row_block, col + col_block));
+                    diff = abs(inputFrame.at<float>(row + row_block, col + col_block) - reference.at<float>(row + row_block, col + col_block));
                     if (diff > diff_) {
                         diff_ = diff;
                         row_shift = row_block;
@@ -56,14 +58,14 @@ void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference
             }
 
             // delta_B: Brightness Difference
-            float delta_B = input.at<float>(row + row_shift, col + col_shift) - reference.at<float>(row + row_shift, col + col_shift);
+            float delta_B = inputFrame.at<float>(row + row_shift, col + col_shift) - reference.at<float>(row + row_shift, col + col_shift);
 
             if (delta_B > thresholdmap.at<float>(row + row_shift, col + col_shift)) {
-                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, input.rows - row + row_shift, 1, camera);
+                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, inputFrame.rows - row + row_shift, 1, camera);
 
                 // Update reference
                 if (method == 2) {
-                    reference.at<float>(row, col) = input.at<float>(row, col);
+                    reference.at<float>(row, col) = inputFrame.at<float>(row, col);
                 }
                 if (method == 3) {
                     reference.at<float>(row, col) = reference.at<float>(row, col) + event_num * thresholdmap.at<float>(row, col);
@@ -75,11 +77,11 @@ void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference
 
             else if (delta_B < -thresholdmap.at<float>(row + row_shift, col + col_shift)) {
                 delta_B = -delta_B;
-                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, input.rows - row + row_shift, 0, camera);
+                int event_num = write_event(events, delta_B, thresholdmap.at<float>(row + row_shift, col + col_shift), time, col + col_shift, inputFrame.rows - row + row_shift, 0, camera);
 
                 // Update reference
                 if (method == 2) {
-                    reference.at<float>(row, col) = input.at<float>(row, col);
+                    reference.at<float>(row, col) = inputFrame.at<float>(row, col);
                 }
                 if (method == 3) {
                     reference.at<float>(row, col) = reference.at<float>(row, col) - event_num * thresholdmap.at<float>(row, col);
@@ -97,7 +99,7 @@ void FrameToEvents::convertFrameToEvent(const cv::Mat& input, cv::Mat &reference
             if (method == 1) {
                 for (int m = 0; m < blocksize; m++) {
                     for (int n = 0; n < blocksize; n++) {
-                        reference.at<float>(row + m, col + n) = input.at<float>(row + m, col + n);
+                        reference.at<float>(row + m, col + n) = inputFrame.at<float>(row + m, col + n);
                     }
                 }
             }

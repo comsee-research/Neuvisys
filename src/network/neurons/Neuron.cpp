@@ -4,7 +4,7 @@
  * index: unique id.
  * layer: depth of the neuron in the spiking network.
  * conf: configuration file.
- * m_jitterPos: indicates the position of the neuron relative to the other neurons of the layer.
+ * m_jitterSpeed: indicates the position of the neuron relative to the other neurons of the layer.
  * offset: removed to the position in order to access the correct weights of the neuron.
  */
 Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :

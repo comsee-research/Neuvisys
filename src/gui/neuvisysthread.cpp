@@ -86,7 +86,8 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
 
     m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
-    int actor = 0;
+    int action = 0;
+    bool exploration = false;
     double actionTime = 0, displayTime = 0, updateTime = 0, trackTime = 0, consoleTime = 0;
     size_t iteration = 0;
     while (!m_stop) {
@@ -108,13 +109,14 @@ void NeuvisysThread::rosPass(NetworkHandle &network) {
 
             if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
                 actionTime = sim.getSimulationTime();
-                if (actor != -1) {
-                    network.updateActor(sim.getLeftEvents().back().timestamp(), actor);
+                if (action != -1) {
+                    network.updateActor(sim.getLeftEvents().back().timestamp(), action);
                 }
-                sim.motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
+                exploration = sim.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
+                network.saveActionMetrics(action, exploration);
 
-                if (actor != -1) {
-                    m_motorDisplay[actor] = true;
+                if (action != -1) {
+                    m_motorDisplay[action] = true;
                 }
             }
 
