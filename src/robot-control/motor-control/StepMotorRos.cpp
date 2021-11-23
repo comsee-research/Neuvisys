@@ -10,8 +10,6 @@ StepMotorRos::StepMotorRos(const std::string &topic, const size_t motorAdress, c
         setSpeedCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_speedSub = m_nh.subscribe<std_msgs::Float32>(topic + "Position", 1000, [this](auto && PH1) {
         setPositionCallBack(std::forward<decltype(PH1)>(PH1)); });
-
-    m_motor.StartDrive();
 }
 
 void StepMotorRos::setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &speed) {
@@ -34,19 +32,23 @@ int main(int argc, char* argv[]) {
     std::chrono::high_resolution_clock::time_point timePosition = std::chrono::high_resolution_clock::now();
 
     auto stepMotor = StepMotorRos("leftmotor1", 0, "/dev/ttyUSB0");
+    stepMotor.setSpeed(300);
 
     while (ros::ok()) {
         ros::spinOnce();
         time = std::chrono::high_resolution_clock::now();
         if (std::chrono::duration_cast<std::chrono::microseconds>(time - timePosition).count() > 1000000) {
             timePosition = std::chrono::high_resolution_clock::now();
-            // get position
-            double position = 0;
-            if (position < -1000) {
-                stepMotor.setSpeed(0);
-            } else if (position > 1000) {
-                stepMotor.setSpeed(0);
+
+            double position;
+            position = stepMotor.getPosition();
+            std::cout << position << std::endl;
+            if (position < -100000) {
+                stepMotor.setSpeed(300);
+            } else if (position > 100000) {
+                stepMotor.setSpeed(-300);
             }
         }
     }
+    stepMotor.setSpeed(0);
 }

@@ -15,7 +15,8 @@ private:
     std::chrono::high_resolution_clock::time_point updateTime = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point actionTime = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point consoleTime = std::chrono::high_resolution_clock::now();
-    int actor = 0;
+    std::chrono::high_resolution_clock::time_point motorTime = std::chrono::high_resolution_clock::now();
+    int action = 0;
     size_t iteration = 0;
     std::vector<std::pair<uint64_t, float>> motorMapping;
     StepMotor m_motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
@@ -62,19 +63,12 @@ public:
 
             if (std::chrono::duration<double>(time - actionTime).count() > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
                 actionTime = std::chrono::high_resolution_clock::now();
-                if (actor != -1) {
-                    network.updateActor(events.back().timestamp(), actor);
+                if (action != -1) {
+                    network.updateActor(events.back().timestamp(), action);
                 }
-                motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
-
-                double position = 0;
-                position = m_motor.getPosition();
-                log.info << "Position : " << position << dv::logEnd;
-                if (position < -1000) {
-                    m_motor.setSpeed(0);
-                } else if (position > 1000) {
-                    m_motor.setSpeed(0);
-                }
+                motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
+                auto explo = motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
+                network.saveActionMetrics(action, explo);
             }
 
             if (std::chrono::duration<double>(time - consoleTime).count() > SCORE_INTERVAL) {
@@ -85,6 +79,18 @@ public:
                         "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
                         "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
                 std::cout << msg << std::endl;
+            }
+
+            if (std::chrono::duration<double>(time - motorTime).count() > 1) {
+                motorTime = std::chrono::high_resolution_clock::now();
+                double position;
+                position = m_motor.getPosition();
+                log.info << "Position : " << position << dv::logEnd;
+                if (position < -100000) {
+                    m_motor.setSpeed(250);
+                } else if (position > 100000) {
+                    m_motor.setSpeed(-250);
+                }
             }
         }
     }
@@ -130,7 +136,6 @@ private:
     void activateMotor(uint64_t motor) {
         switch (motorMapping[motor].first) {
             case 0:
-                log.info << "Speed : " << motorMapping[motor].second << dv::logEnd;
                 m_motor.setSpeed(motorMapping[motor].second);
                 break;
         }

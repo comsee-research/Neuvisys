@@ -4,7 +4,7 @@
 
 Faulhaber::Faulhaber(int Adresse_moteur, const string &port) : ComSerie() {
     std::cout << " Ouverture de " << port << std::endl;
-    ouvrir(port, B9600 | CS8 | CLOCAL | CREAD, 10);
+    ouvrir(port, B9600 | CS8 | CLOCAL | CREAD, 1);
     Adresse_moteur_ = std::to_string(Adresse_moteur);
 }
 
@@ -33,23 +33,22 @@ void Faulhaber::StopDrive() {
     std::cout << "Drive " << Adresse_moteur_ << " inactif." << std::endl;
 }
 
-
 double Faulhaber::GetPosition() {
     uint8_t octet = 0;
     std::string position;
-    while (recevoir(&octet, 1));  //vide le buffer de reception
+//    while (recevoir(&octet, 1));  //vide le buffer de reception
     string chaine;
     chaine = Adresse_moteur_ + "POS\r\n"; //Get actual speed*/
     envoyer((const uint8_t *) (chaine.c_str()), uint32_t(chaine.length()));
     flush();
 
-    std::cout << "Position moteur " << Adresse_moteur_ << " : ";
+    std::cout << "Position moteur " << Adresse_moteur_ << " : " << std::endl;
     int nbTrames = 0;
-    {
-        while (recevoir(&octet, 1)) {
-            if (octet == '\n') ++nbTrames;
-            position.push_back(octet);
+    while (recevoir(&octet, 1)) {
+        if (octet == '\n') {
+            ++nbTrames;
         }
+        position.push_back(octet);
     }
     return std::stod(position);
 }
