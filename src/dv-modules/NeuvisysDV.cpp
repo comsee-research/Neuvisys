@@ -24,9 +24,9 @@ public:
     Neuvisys() {
         log.info << "Opening network : " + config.getString("networkPath") << dv::logEnd;
 
-        motorMapping.emplace_back(std::make_pair(0, 150)); // left horizontal -> left movement
+        motorMapping.emplace_back(std::make_pair(0, 250)); // left horizontal -> left movement
         motorMapping.emplace_back(std::make_pair(0, 0)); // no movement
-        motorMapping.emplace_back(std::make_pair(0, -150)); // left horizontal  -> right movement
+        motorMapping.emplace_back(std::make_pair(0, -250)); // left horizontal  -> right movement
 
         /***** Slicers *****/
         slicer.doEveryTimeInterval(Conf::EVENT_FREQUENCY, [this](const dv::EventStore &data) {
@@ -68,6 +68,8 @@ public:
                 motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), actor);
 
                 double position = 0;
+                position = m_motor.getPosition();
+                log.info << "Position : " << position << dv::logEnd;
                 if (position < -1000) {
                     m_motor.setSpeed(0);
                 } else if (position > 1000) {
@@ -103,6 +105,7 @@ public:
     void configUpdate() override {
     }
 
+private:
     bool motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
         bool exploration = false;
         std::random_device rd;
@@ -127,6 +130,7 @@ public:
     void activateMotor(uint64_t motor) {
         switch (motorMapping[motor].first) {
             case 0:
+                log.info << "Speed : " << motorMapping[motor].second << dv::logEnd;
                 m_motor.setSpeed(motorMapping[motor].second);
                 break;
         }

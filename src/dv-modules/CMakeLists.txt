@@ -1,7 +1,3 @@
-#find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
-#
-#include_directories(${catkin_INCLUDE_DIRS})
-
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH}
         ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}/dv /usr/${CMAKE_INSTALL_DATAROOTDIR}/dv
         ${CMAKE_INSTALL_PREFIX}/share/dv /usr/share/dv
@@ -21,7 +17,9 @@ set(PROJECT_SOURCES
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
         ../network/NetworkHandle.cpp
-        ../robot-control/motor-control/StepMotor.cpp)
+        ../robot-control/motor-control/StepMotor.cpp
+        ../robot-control/motor-control/libserie/Faulhaber.cpp
+        ../robot-control/motor-control/libserie/comserie.cpp)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED NeuvisysDV.cpp ${PROJECT_SOURCES})
