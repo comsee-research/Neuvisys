@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
+        ../dv-modules/DavisHandle.cpp
         ../network/SpikingNetwork.cpp
         ../network/Utils.cpp
         ../network/Config.cpp
@@ -52,7 +53,7 @@ else()
 endif()
 
 target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} cnpy)
+        ${PYTHON_LIBRARIES} cnpy caer)
 
 add_executable(neuvisys ${GUI_SOURCES} ${PROJECT_SOURCES} ${ROS_SOURCES})
 target_link_libraries(neuvisys PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}

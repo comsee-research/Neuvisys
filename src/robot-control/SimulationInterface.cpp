@@ -76,27 +76,6 @@ void SimulationInterface::update() {
     motorsJitter(dt);
 }
 
-bool SimulationInterface::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor, int &selectedAction) {
-    bool exploration = false;
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<double> distReal(0.0, 1.0);
-    std::uniform_int_distribution<> distInt(0, static_cast<int>(actionsActivations.size() - 1));
-
-    auto real = 100 * distReal(gen);
-    if (real >= explorationFactor) {
-        selectedAction = Util::winnerTakeAll(actionsActivations);
-    } else {
-        selectedAction = distInt(gen);
-        exploration = true;
-    }
-
-    if (selectedAction != -1) {
-        activateMotors(selectedAction);
-    }
-    return exploration;
-}
-
 bool SimulationInterface::poissonProcess() {
     std::random_device rd;
     std::mt19937 gen(rd());

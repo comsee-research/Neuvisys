@@ -47,7 +47,6 @@ class SimulationInterface {
 public:
     explicit SimulationInterface();
     void update();
-    bool actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor, int &selectedAction);
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }
     [[nodiscard]] double getReward() const { return m_rewardStored; }

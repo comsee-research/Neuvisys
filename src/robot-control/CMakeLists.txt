@@ -3,6 +3,7 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
+        ../dv-modules/DavisHandle.cpp
         ../network/SpikingNetwork.cpp
         ../network/Utils.cpp
         ../network/Config.cpp

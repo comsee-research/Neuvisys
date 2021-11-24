@@ -67,9 +67,9 @@ public:
                 if (action != -1) {
                     network.updateActor(events.back().timestamp(), action);
                 }
-                motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
-                auto explo = motorAction(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor(), action);
-                network.saveActionMetrics(action, explo);
+                auto choice = network.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor());
+                action = choice.first;
+                network.saveActionMetrics(action, choice.second);
             }
 
             if (std::chrono::duration<double>(time - consoleTime).count() > SCORE_INTERVAL) {
@@ -112,27 +112,6 @@ public:
     }
 
 private:
-    bool motorAction(const std::vector<uint64_t> &motorActivation, const double explorationFactor, int &selectedMotor) {
-        bool exploration = false;
-        std::random_device rd;
-        std::mt19937 gen(rd());
-        std::uniform_real_distribution<double> distReal(0.0, 1.0);
-        std::uniform_int_distribution<> distInt(0, static_cast<int>(motorActivation.size() - 1));
-
-        auto real = 100 * distReal(gen);
-        if (real >= explorationFactor) {
-            selectedMotor = Util::winnerTakeAll(motorActivation);
-        } else {
-            selectedMotor = distInt(gen);
-            exploration = true;
-        }
-
-        if (selectedMotor != -1) {
-            activateMotor(selectedMotor);
-        }
-        return exploration;
-    }
-
     void activateMotor(uint64_t motor) {
         switch (motorMapping[motor].first) {
             case 0:

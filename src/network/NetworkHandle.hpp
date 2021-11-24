@@ -44,6 +44,7 @@ public:
     static std::vector<Event> stereo(const std::string &events, size_t nbPass);
     double valueFunction(double time);
     double valueDerivative(const std::vector<double> &value);
+    std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
