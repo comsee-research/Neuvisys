@@ -57,8 +57,9 @@ public:
     void run() override;
 
 private:
-    void multiplePass(NetworkHandle &network);
-    void rosPass(NetworkHandle &network);
+    void launchNetwork(NetworkHandle &network);
+    void launchSimulation(NetworkHandle &network);
+    int launchReal(NetworkHandle &network);
     void display(NetworkHandle &network, size_t sizeArray, double time);
     void addEventToDisplay(const Event &event);
     void prepareSpikes(NetworkHandle &network);

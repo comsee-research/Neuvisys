@@ -6,7 +6,6 @@
 #define NEUVISYS_DAVISHANDLE_HPP
 
 #include <libcaercpp/devices/davis.hpp>
-
 #include <atomic>
 #include <csignal>
 

@@ -22,7 +22,10 @@ set(PROJECT_SOURCES
 set(ROS_SOURCES
         ../robot-control/SimulationInterface.cpp
         ../robot-control/FrameToEvents.cpp
-        ../robot-control/Motor.cpp)
+        ../robot-control/Motor.cpp
+        ../robot-control/motor-control/StepMotor.cpp
+        ../robot-control/motor-control/libserie/Faulhaber.cpp
+        ../robot-control/motor-control/libserie/comserie.cpp)
 
 set(GUI_SOURCES
         guiMain.cpp
