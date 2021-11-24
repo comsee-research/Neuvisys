@@ -18,6 +18,7 @@ private:
     std::chrono::high_resolution_clock::time_point motorTime = std::chrono::high_resolution_clock::now();
     int action = 0;
     size_t iteration = 0;
+    double position = 0;
     std::vector<std::pair<uint64_t, float>> motorMapping;
     StepMotor m_motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
@@ -50,7 +51,7 @@ public:
 	void computeEvents(const dv::EventStore &events) {
         time = std::chrono::high_resolution_clock::now();
         if (!events.isEmpty()) {
-            network.transmitReward(0);
+            network.transmitReward(80 * (55000 - abs(3000 - position)) / 55000);
             network.saveValueMetrics(static_cast<double>(events.back().timestamp()), events.size());
             for (const dv::Event &eve : events) {
                 network.transmitEvent(Event(eve.timestamp(), eve.x(), eve.y(), eve.polarity(), 0));
@@ -83,12 +84,11 @@ public:
 
             if (std::chrono::duration<double>(time - motorTime).count() > 1) {
                 motorTime = std::chrono::high_resolution_clock::now();
-                double position;
                 position = m_motor.getPosition();
                 log.info << "Position : " << position << dv::logEnd;
-                if (position < -100000) {
+                if (position < -55000) {
                     m_motor.setSpeed(250);
-                } else if (position > 100000) {
+                } else if (position > 55000) {
                     m_motor.setSpeed(-250);
                 }
             }

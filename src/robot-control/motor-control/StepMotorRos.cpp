@@ -32,23 +32,18 @@ int main(int argc, char* argv[]) {
     std::chrono::high_resolution_clock::time_point timePosition = std::chrono::high_resolution_clock::now();
 
     auto stepMotor = StepMotorRos("leftmotor1", 0, "/dev/ttyUSB0");
-    stepMotor.setSpeed(300);
+    stepMotor.setSpeed(100);
 
-    while (ros::ok()) {
+    double position = stepMotor.getPosition();
+    std::cout << position << std::endl;
+    while (ros::ok() && position < 3000) {
         ros::spinOnce();
         time = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration_cast<std::chrono::microseconds>(time - timePosition).count() > 1000000) {
+        if (std::chrono::duration_cast<std::chrono::microseconds>(time - timePosition).count() > 100000) {
             timePosition = std::chrono::high_resolution_clock::now();
 
-            double position;
             position = stepMotor.getPosition();
             std::cout << position << std::endl;
-            if (position < -100000) {
-                stepMotor.setSpeed(300);
-            } else if (position > 100000) {
-                stepMotor.setSpeed(-300);
-            }
         }
     }
-    stepMotor.setSpeed(0);
 }
