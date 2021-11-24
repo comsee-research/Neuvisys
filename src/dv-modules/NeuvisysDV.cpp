@@ -69,6 +69,7 @@ public:
                 }
                 auto choice = network.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor());
                 action = choice.first;
+                activateMotor(action);
                 network.saveActionMetrics(action, choice.second);
             }
 

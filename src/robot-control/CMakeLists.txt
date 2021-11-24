@@ -3,7 +3,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
-        ../dv-modules/DavisHandle.cpp
         ../network/SpikingNetwork.cpp
         ../network/Utils.cpp
         ../network/Config.cpp
@@ -12,11 +11,15 @@ set(PROJECT_SOURCES
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
         ../network/NetworkHandle.cpp
+        ../dv-modules/DavisHandle.cpp
+        motor-control/StepMotor.cpp
+        motor-control/libserie/Faulhaber.cpp
+        motor-control/libserie/comserie.cpp
         SimulationInterface.cpp
         Motor.cpp
         FrameToEvents.cpp)
 
 add_executable(neuvisys-ros rosMain.cpp ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy)
+target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy caer)
 
 add_subdirectory(motor-control)

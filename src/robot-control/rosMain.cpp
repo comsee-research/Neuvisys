@@ -6,6 +6,21 @@
 #include "SimulationInterface.hpp"
 #include "../dv-modules/DavisHandle.hpp"
 
+static atomic_bool globalShutdown(false);
+
+static void globalShutdownSignalHandler(int signal) {
+    // Simply set the running flag to false on SIGTERM and SIGINT (CTRL+C) for global shutdown.
+    if (signal == SIGTERM || signal == SIGINT) {
+        globalShutdown.store(true);
+    }
+}
+
+static void usbShutdownHandler(void *ptr) {
+    (void) (ptr); // UNUSED.
+
+    globalShutdown.store(true);
+}
+
 int launchLearningSimulation(std::string &networkPath) {
     NetworkHandle network(networkPath);
 
@@ -71,23 +86,98 @@ int launchLearningDavis(std::string &networkPath) {
     std::chrono::high_resolution_clock::time_point consoleTime = std::chrono::high_resolution_clock::now();
     std::chrono::high_resolution_clock::time_point motorTime = std::chrono::high_resolution_clock::now();
 
-    StepMotor m_motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
+    StepMotor motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
+
+    std::vector<double> motorMapping;
+    motorMapping.emplace_back(350); // left horizontal -> left movement
+    motorMapping.emplace_back(0); // no movement
+    motorMapping.emplace_back(-350); // left horizontal  -> right movement
+
     NetworkHandle network(networkPath);
 
-    libcaer::devices::davis davis(1);
-    prepareCamera(davis);
+    // Install signal handler for global shutdown.
+    struct sigaction shutdownAction;
+
+    shutdownAction.sa_handler = &globalShutdownSignalHandler;
+    shutdownAction.sa_flags = 0;
+    sigemptyset(&shutdownAction.sa_mask);
+    sigaddset(&shutdownAction.sa_mask, SIGTERM);
+    sigaddset(&shutdownAction.sa_mask, SIGINT);
+
+    if (sigaction(SIGTERM, &shutdownAction, NULL) == -1) {
+        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                          "Failed to set signal handler for SIGTERM. Error: %d.", errno);
+        return (EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGINT, &shutdownAction, NULL) == -1) {
+        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                          "Failed to set signal handler for SIGINT. Error: %d.", errno);
+        return (EXIT_FAILURE);
+    }
+
+    // Open a DAVIS, give it a device ID of 1, and don't care about USB bus or SN restrictions.
+    libcaer::devices::davis davis = libcaer::devices::davis(1);
+
+    // Let's take a look at the information we have on the device.
+    struct caer_davis_info davis_info = davis.infoGet();
+
+    printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
+           davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
+           davis_info.logicVersion);
+
+    // Send the default configuration before using the device.
+    // No configuration is sent automatically!
+    davis.sendDefaultConfig();
+
+    // Tweak some biases, to increase bandwidth in this case.
+    struct caer_bias_coarsefine coarseFineBias;
+
+    coarseFineBias.coarseValue = 2;
+    coarseFineBias.fineValue = 116;
+    coarseFineBias.enabled = true;
+    coarseFineBias.sexN = false;
+    coarseFineBias.typeNormal = true;
+    coarseFineBias.currentLevelNormal = true;
+
+    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP, caerBiasCoarseFineGenerate(coarseFineBias));
+
+    coarseFineBias.coarseValue = 1;
+    coarseFineBias.fineValue = 33;
+    coarseFineBias.enabled = true;
+    coarseFineBias.sexN = false;
+    coarseFineBias.typeNormal = true;
+    coarseFineBias.currentLevelNormal = true;
+
+    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
+
+    // Let's verify they really changed!
+    uint32_t prBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
+    uint32_t prsfBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
+
+    printf("New bias values --- PR-coarse: %d, PR-fine: %d, PRSF-coarse: %d, PRSF-fine: %d.\n",
+           caerBiasCoarseFineParse(prBias).coarseValue, caerBiasCoarseFineParse(prBias).fineValue,
+           caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
+
+    // Now let's get start getting some data from the device. We just loop in blocking mode,
+    // no notification needed regarding new events. The shutdown notification, for example if
+    // the device is disconnected, should be listened to.
+    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
+
+    // Let's turn on blocking data-get mode to avoid wasting resources.
+    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
+//    prepareCamera(davis);
 
     std::vector<size_t> vecEvents;
 
     size_t iteration = 0;
+    double position = 0;
     int action = 0;
-    while (iteration < E6) {
+    while (!globalShutdown.load(memory_order_relaxed)) {
         std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
         if (packetContainer == nullptr) {
             continue; // Skip if nothing there.
         }
-
-        printf("\nGot event container with %d packets (allocated).\n", packetContainer->size());
 
         for (auto &packet : *packetContainer) {
             if (packet == nullptr) {
@@ -95,10 +185,11 @@ int launchLearningDavis(std::string &networkPath) {
             }
 
             if (packet->getEventType() == POLARITY_EVENT) {
+                time = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
                         = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
-                network.transmitReward(0);
+                network.transmitReward(80 * (55000 - abs(position)) / 55000);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
                 for (const auto &eve : *polarity) {
                     network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
@@ -116,6 +207,7 @@ int launchLearningDavis(std::string &networkPath) {
                     }
                     auto choice = network.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor());
                     action = choice.first;
+                    motor.setSpeed(motorMapping[action]);
                     network.saveActionMetrics(action, choice.second);
                 }
 
@@ -132,11 +224,14 @@ int launchLearningDavis(std::string &networkPath) {
                 if (std::chrono::duration<double>(time - motorTime).count() > 1) {
                     motorTime = std::chrono::high_resolution_clock::now();
 
-                    double position = m_motor.getPosition();
-                    if (position < -100000) {
-                        m_motor.setSpeed(250);
-                    } else if (position > 100000) {
-                        m_motor.setSpeed(-250);
+                    position = motor.getPosition();
+                    std::cout << position << std::endl;
+                    if (position < -55000) {
+                        std::cout << "overreach right" << std::endl;
+                        motor.setSpeed(350);
+                    } else if (position > 55000) {
+                        std::cout << "overreach left" << std::endl;
+                        motor.setSpeed(-350);
                     }
                 }
             }
@@ -150,22 +245,25 @@ int launchLearningDavis(std::string &networkPath) {
     return 0;
 }
 
-
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
+//    std::string type = argv[1];
+    std::string type = "real";
+
     std::string networkPath;
-    if (std::strcmp(argv[1], "multi") != 0) {
+    if (type == "multi") {
         for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
             networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
             std::cout << networkPath << std::endl;
             launchLearningSimulation(networkPath);
         }
-    } else if (std::strcmp(argv[1], "simulation") != 0) {
+    } else if (type == "simulation") {
         networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
         launchLearningSimulation(networkPath);
-    }  else if (std::strcmp(argv[1], "real") != 0) {
-        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
+    }  else if (type == "real") {
+//        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
+        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
         launchLearningDavis(networkPath);
     } else {
         networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
