@@ -298,3 +298,22 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
 void NetworkHandle::updateNeuronStates(long timeInterval) {
     m_spinet.updateNeuronsStates(timeInterval);
 }
+
+std::pair<int, bool> NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
+    bool exploration = false;
+    int selectedAction = 0;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_real_distribution<double> distReal(0.0, 1.0);
+    std::uniform_int_distribution<> distInt(0, static_cast<int>(actionsActivations.size() - 1));
+
+    auto real = 100 * distReal(gen);
+    if (real >= explorationFactor) {
+        selectedAction = Util::winnerTakeAll(actionsActivations);
+    } else {
+        selectedAction = distInt(gen);
+        exploration = true;
+    }
+
+    return std::make_pair(selectedAction, exploration);
+}

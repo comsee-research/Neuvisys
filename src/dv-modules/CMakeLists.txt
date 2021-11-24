@@ -19,9 +19,11 @@ set(PROJECT_SOURCES
         ../network/NetworkHandle.cpp
         ../robot-control/motor-control/StepMotor.cpp
         ../robot-control/motor-control/libserie/Faulhaber.cpp
-        ../robot-control/motor-control/libserie/comserie.cpp)
+        ../robot-control/motor-control/libserie/comserie.cpp DavisHandle.hpp)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED NeuvisysDV.cpp ${PROJECT_SOURCES})
 target_link_libraries(neuvisys-dv PRIVATE ${DV_LIBRARIES} cnpy)
 install(TARGETS neuvisys-dv DESTINATION ${DV_MODULES_DIR})
+
+find_package(libcaer)
