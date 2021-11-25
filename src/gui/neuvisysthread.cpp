@@ -88,8 +88,9 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
     int action = 0;
-    double actionTime = 0, displayTime = 0, updateTime = 0, trackTime = 0, consoleTime = 0;
-    size_t iteration = 0;
+    double displayTime = 0, trackTime = 0;
+    std::string msg;
+
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -98,39 +99,14 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
 
         sim.update();
         if (!sim.getLeftEvents().empty()) {
-            network.transmitReward(sim.getReward());
-            network.transmitEvents(sim.getLeftEvents());
             m_eventRate += static_cast<double>(sim.getLeftEvents().size());
+            action = network.mainLoop(sim.getLeftEvents(), sim.getReward(), sim.getSimulationTime(), msg);
 
-            if (sim.getSimulationTime() - updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
-                updateTime = sim.getSimulationTime();
-                network.updateNeuronStates(UPDATE_INTERVAL);
-            }
-
-            if (sim.getSimulationTime() - actionTime > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
-                actionTime = sim.getSimulationTime();
-                if (action != -1) {
-                    network.updateActor(sim.getLeftEvents().back().timestamp(), action);
-                }
-                auto choice = network.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor());
-                action = choice.first;
+            if (action != -1) {
                 sim.activateMotors(action);
-                network.saveActionMetrics(action, choice.second);
-
-                if (action != -1) {
-                    m_motorDisplay[action] = true;
-                }
+                m_motorDisplay[action] = true;
             }
-
-            if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {
-                consoleTime = sim.getSimulationTime();
-                network.learningDecay(iteration);
-                ++iteration;
-                std::string msg = "\n\nAverage reward: " + std::to_string(network.getScore(SCORE_INTERVAL * E3 / DT)) +
-                                  "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                                  "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
-                emit consoleMessage(msg);
-            }
+            emit consoleMessage(msg);
 
             /*** GUI Display ***/
             if (sim.getSimulationTime() - displayTime > m_displayRate / E6) {
@@ -377,6 +353,7 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     std::chrono::high_resolution_clock::time_point trackTime = std::chrono::high_resolution_clock::now();
 
     StepMotor motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
+    motor.setBounds(-55000, 55000);
 
     std::vector<double> motorMapping;
     motorMapping.emplace_back(350); // left horizontal -> left movement
@@ -457,9 +434,10 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
     std::vector<size_t> vecEvents;
 
-    size_t iteration = 0;
     double position = 0;
     int action = 0;
+    double reward = 0;
+    std::string msg;
     while (!globalShutdown.load(memory_order_relaxed)) {
         std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
         if (packetContainer == nullptr) {
@@ -476,17 +454,27 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
                         = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
-                network.transmitReward(80 * (55000 - abs(position)) / 55000);
-                network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
-                for (const auto &eve : *polarity) {
-                    network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
+                if (motor.isActionValid(position, 0)) {
+                    reward = 80 * (55000 - abs(position)) / 55000;
+                } else {
+                    reward = -100;
                 }
 
-                if (std::chrono::duration<double>(time - updateTime).count() > static_cast<double>(UPDATE_INTERVAL) / E6) {
-                    updateTime = std::chrono::high_resolution_clock::now();
-                    network.updateNeuronStates(UPDATE_INTERVAL);
+                network.mainLoop(*polarity, reward, time, msg);
+
+//                for (const auto &eve : *polarity) {
+//
+//                }
+
+                if (action != -1) {
+                    if (motor.isActionValid(position, 0)) {
+                        motor.setSpeed(motorMapping[action]);;
+                    } else {
+                        motor.setSpeed(0);
+                    }
                 }
 
+                /*** GUI Display ***/
                 if (std::chrono::duration<double>(time - displayTime).count() > m_displayRate / E6) {
                     displayTime = std::chrono::high_resolution_clock::now();
                     display(network, 0, 0);
@@ -499,40 +487,9 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                     }
                 }
 
-
-                if (std::chrono::duration<double>(time - actionTime).count() > static_cast<double>(network.getNetworkConfig().getActionRate()) / E6) {
-                    actionTime = std::chrono::high_resolution_clock::now();
-                    if (action != -1) {
-                        network.updateActor(polarity->back().getTimestamp(), action);
-                    }
-                    auto choice = network.actionSelection(network.resolveMotor(), network.getNetworkConfig().getExplorationFactor());
-                    action = choice.first;
-                    motor.setSpeed(motorMapping[action]);
-                    network.saveActionMetrics(action, choice.second);
-                }
-
-                if (std::chrono::duration<double>(time - consoleTime).count() > SCORE_INTERVAL) {
-                    consoleTime = std::chrono::high_resolution_clock::now();
-                    network.learningDecay(iteration);
-                    ++iteration;
-                    std::string msg = "Average reward: " + std::to_string(network.getScore(SCORE_INTERVAL * E3 / DT)) +
-                                      "\nExploration factor: " + std::to_string(network.getNetworkConfig().getExplorationFactor()) +
-                                      "\nAction rate: " + std::to_string(network.getNetworkConfig().getActionRate());
-                    std::cout << msg << std::endl;
-                }
-
                 if (std::chrono::duration<double>(time - motorTime).count() > 1) {
                     motorTime = std::chrono::high_resolution_clock::now();
-
                     position = motor.getPosition();
-                    std::cout << position << std::endl;
-                    if (position < -55000) {
-                        std::cout << "overreach right" << std::endl;
-                        motor.setSpeed(350);
-                    } else if (position > 55000) {
-                        std::cout << "overreach left" << std::endl;
-                        motor.setSpeed(-350);
-                    }
                 }
             }
         }

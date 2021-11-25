@@ -58,8 +58,8 @@ int launchLearningSimulation(std::string &networkPath) {
                 action = choice.first;
                 if (action != -1) {
                     sim.activateMotors(action);
+                    network.saveActionMetrics(action, choice.second);
                 }
-                network.saveActionMetrics(action, choice.second);
             }
 
             if (sim.getSimulationTime() - consoleTime > SCORE_INTERVAL) {

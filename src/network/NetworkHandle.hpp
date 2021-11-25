@@ -25,6 +25,9 @@ class NetworkHandle {
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
 
+    double m_actionTime = 0, m_displayTime = 0, m_updateTime = 0, m_trackTime = 0, m_consoleTime = 0;
+    int m_action{};
+    size_t m_iteration{};
 public:
     explicit NetworkHandle(const std::string &networkPath);
 
@@ -58,6 +61,8 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     NeuronConfig getCriticNeuronConfig() { return m_criticNeuronConf; }
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
+
+    int mainLoop(const std::vector<Event> &events, double reward, double time, std::string &msg);
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

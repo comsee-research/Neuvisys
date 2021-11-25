@@ -23,3 +23,11 @@ StepMotor::~StepMotor() {
 double StepMotor::getPosition() {
     return m_motor.GetPosition();
 }
+
+bool StepMotor::isActionValid(double position, double projection) {
+    auto projectedPosition = position + projection;
+    if (projectedPosition < m_lowerBound || projectedPosition > m_upperBound) {
+        return false;
+    }
+    return true;
+}

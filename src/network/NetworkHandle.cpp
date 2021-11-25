@@ -155,6 +155,40 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
     return eventPacket;
 }
 
+int NetworkHandle::mainLoop(const std::vector<Event> &events, double reward, double time, std::string &msg) {
+    transmitReward(reward);
+    transmitEvents(events);
+    saveValueMetrics(static_cast<double>(events.back().timestamp()), events.size());
+
+    if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
+        m_updateTime = time;
+        updateNeuronStates(UPDATE_INTERVAL);
+    }
+
+    if (time - m_consoleTime > SCORE_INTERVAL) {
+        m_consoleTime = time;
+        learningDecay(m_iteration);
+        ++m_iteration;
+        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL * E3 / DT)) +
+              "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
+              "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
+    }
+
+    if (time - m_actionTime > static_cast<double>(getNetworkConfig().getActionRate()) / E6) {
+        m_actionTime = time;
+        if (m_action != -1) {
+            updateActor(events.back().timestamp(), m_action);
+        }
+        auto choice = actionSelection(resolveMotor(), getNetworkConfig().getExplorationFactor());
+        m_action = choice.first;
+        if (m_action != -1) {
+            saveActionMetrics(m_action, choice.second);
+            return m_action;
+        }
+    }
+    return -1;
+}
+
 void NetworkHandle::updateActor(long timestamp, size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
