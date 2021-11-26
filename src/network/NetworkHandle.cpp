@@ -8,11 +8,12 @@
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
  */
-NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath), m_networkConf(NetworkConfig(networkPath)),
+NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_spinet(networkPath), m_networkConf(NetworkConfig(networkPath)),
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                                m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
                                                                m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3) {
+                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",
+                                                                                 3), m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
     m_spinet.loadWeights();
 }
 
@@ -155,11 +156,7 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
     return eventPacket;
 }
 
-int NetworkHandle::mainLoop(const std::vector<Event> &events, double reward, double time, std::string &msg) {
-    transmitReward(reward);
-    transmitEvents(events);
-    saveValueMetrics(static_cast<double>(events.back().timestamp()), events.size());
-
+int NetworkHandle::learningLoop(long lastTimestamp, double time, std::string &msg) {
     if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
         m_updateTime = time;
         updateNeuronStates(UPDATE_INTERVAL);
@@ -177,7 +174,7 @@ int NetworkHandle::mainLoop(const std::vector<Event> &events, double reward, dou
     if (time - m_actionTime > static_cast<double>(getNetworkConfig().getActionRate()) / E6) {
         m_actionTime = time;
         if (m_action != -1) {
-            updateActor(events.back().timestamp(), m_action);
+            updateActor(lastTimestamp, m_action);
         }
         auto choice = actionSelection(resolveMotor(), getNetworkConfig().getExplorationFactor());
         m_action = choice.first;

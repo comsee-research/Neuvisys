@@ -33,7 +33,7 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, 
 }
 
 void NeuvisysThread::run() {
-    auto network = NetworkHandle(m_networkPath.toStdString());
+    auto network = NetworkHandle(m_networkPath.toStdString(), 0);
 
     emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                               network.getNetworkConfig().getLayerPatches()[0],
@@ -100,7 +100,9 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         sim.update();
         if (!sim.getLeftEvents().empty()) {
             m_eventRate += static_cast<double>(sim.getLeftEvents().size());
-            action = network.mainLoop(sim.getLeftEvents(), sim.getReward(), sim.getSimulationTime(), msg);
+            network.transmitReward(sim.getReward());
+            network.transmitEvents(sim.getLeftEvents());
+            action = network.learningLoop(sim.getLeftEvents().back().timestamp(), sim.getSimulationTime(), msg);
 
             if (action != -1) {
                 sim.activateMotors(action);
@@ -343,14 +345,9 @@ static void usbShutdownHandler(void *ptr) {
 }
 
 int NeuvisysThread::launchReal(NetworkHandle &network) {
-    std::chrono::high_resolution_clock::time_point time = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point updateTime = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point actionTime = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point consoleTime = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point motorTime = std::chrono::high_resolution_clock::now();
-
-    std::chrono::high_resolution_clock::time_point displayTime = std::chrono::high_resolution_clock::now();
-    std::chrono::high_resolution_clock::time_point trackTime = std::chrono::high_resolution_clock::now();
+    auto time = std::chrono::high_resolution_clock::now();
+    auto displayTime = std::chrono::high_resolution_clock::now();
+    auto trackTime = std::chrono::high_resolution_clock::now();
 
     StepMotor motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
     motor.setBounds(-55000, 55000);
@@ -360,79 +357,30 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     motorMapping.emplace_back(0); // no movement
     motorMapping.emplace_back(-350); // left horizontal  -> right movement
 
-    // Install signal handler for global shutdown.
-    struct sigaction shutdownAction;
-
+    struct sigaction shutdownAction{};
     shutdownAction.sa_handler = &globalShutdownSignalHandler;
     shutdownAction.sa_flags = 0;
     sigemptyset(&shutdownAction.sa_mask);
     sigaddset(&shutdownAction.sa_mask, SIGTERM);
     sigaddset(&shutdownAction.sa_mask, SIGINT);
-
-    if (sigaction(SIGTERM, &shutdownAction, NULL) == -1) {
+    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
         libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
                           "Failed to set signal handler for SIGTERM. Error: %d.", errno);
         return (EXIT_FAILURE);
     }
-
-    if (sigaction(SIGINT, &shutdownAction, NULL) == -1) {
+    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
         libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
                           "Failed to set signal handler for SIGINT. Error: %d.", errno);
         return (EXIT_FAILURE);
     }
-
     // Open a DAVIS, give it a device ID of 1, and don't care about USB bus or SN restrictions.
-    libcaer::devices::davis davis = libcaer::devices::davis(1);
-
+    auto davis = libcaer::devices::davis(1);
     // Let's take a look at the information we have on the device.
     struct caer_davis_info davis_info = davis.infoGet();
-
     printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
            davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
            davis_info.logicVersion);
-
-    // Send the default configuration before using the device.
-    // No configuration is sent automatically!
-    davis.sendDefaultConfig();
-
-    // Tweak some biases, to increase bandwidth in this case.
-    struct caer_bias_coarsefine coarseFineBias;
-
-    coarseFineBias.coarseValue = 2;
-    coarseFineBias.fineValue = 116;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    coarseFineBias.coarseValue = 1;
-    coarseFineBias.fineValue = 33;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    // Let's verify they really changed!
-    uint32_t prBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
-    uint32_t prsfBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
-
-    printf("New bias values --- PR-coarse: %d, PR-fine: %d, PRSF-coarse: %d, PRSF-fine: %d.\n",
-           caerBiasCoarseFineParse(prBias).coarseValue, caerBiasCoarseFineParse(prBias).fineValue,
-           caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
-
-    // Now let's get start getting some data from the device. We just loop in blocking mode,
-    // no notification needed regarding new events. The shutdown notification, for example if
-    // the device is disconnected, should be listened to.
-    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
-
-    // Let's turn on blocking data-get mode to avoid wasting resources.
-    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
-
-    std::vector<size_t> vecEvents;
+    changeBiases(davis);
 
     double position = 0;
     int action = 0;
@@ -451,8 +399,8 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
             if (packet->getEventType() == POLARITY_EVENT) {
                 time = std::chrono::high_resolution_clock::now();
-                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity
-                        = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
+                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
+                        std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
                 if (motor.isActionValid(position, 0)) {
                     reward = 80 * (55000 - abs(position)) / 55000;
@@ -460,13 +408,18 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                     reward = -100;
                 }
 
-                network.mainLoop(*polarity, reward, time, msg);
+                network.transmitReward(reward);
+                network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
+                for (const auto &eve : *polarity) {
 
-//                for (const auto &eve : *polarity) {
-//
-//                }
+                    network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
+                }
+
+                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count());
+                action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
 
                 if (action != -1) {
+                    position = motor.getPosition();
                     if (motor.isActionValid(position, 0)) {
                         motor.setSpeed(motorMapping[action]);;
                     } else {
@@ -485,11 +438,6 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                     if (!polarity->empty()) {
                         network.trackNeuron(polarity->back().getTimestamp(), m_id, m_layer);
                     }
-                }
-
-                if (std::chrono::duration<double>(time - motorTime).count() > 1) {
-                    motorTime = std::chrono::high_resolution_clock::now();
-                    position = motor.getPosition();
                 }
             }
         }

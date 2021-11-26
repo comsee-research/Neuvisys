@@ -20,8 +20,8 @@ static void usbShutdownHandler(void *ptr) {
 }
 
 int prepareCamera(libcaer::devices::davis &davis) {
-// Install signal handler for global shutdown.
-    struct sigaction shutdownAction;
+    // Install signal handler for global shutdown.
+    struct sigaction shutdownAction{};
 
     shutdownAction.sa_handler = &globalShutdownSignalHandler;
     shutdownAction.sa_flags = 0;
@@ -29,13 +29,13 @@ int prepareCamera(libcaer::devices::davis &davis) {
     sigaddset(&shutdownAction.sa_mask, SIGTERM);
     sigaddset(&shutdownAction.sa_mask, SIGINT);
 
-    if (sigaction(SIGTERM, &shutdownAction, NULL) == -1) {
+    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
         libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
                           "Failed to set signal handler for SIGTERM. Error: %d.", errno);
         return (EXIT_FAILURE);
     }
 
-    if (sigaction(SIGINT, &shutdownAction, NULL) == -1) {
+    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
         libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
                           "Failed to set signal handler for SIGINT. Error: %d.", errno);
         return (EXIT_FAILURE);
@@ -50,13 +50,16 @@ int prepareCamera(libcaer::devices::davis &davis) {
     printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
            davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
            davis_info.logicVersion);
+    return 0;
+}
 
+void changeBiases(libcaer::devices::davis &davis) {
     // Send the default configuration before using the device.
     // No configuration is sent automatically!
     davis.sendDefaultConfig();
 
     // Tweak some biases, to increase bandwidth in this case.
-    struct caer_bias_coarsefine coarseFineBias;
+    struct caer_bias_coarsefine coarseFineBias{};
 
     coarseFineBias.coarseValue = 2;
     coarseFineBias.fineValue = 116;

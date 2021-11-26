@@ -25,11 +25,11 @@ class NetworkHandle {
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
 
-    double m_actionTime = 0, m_displayTime = 0, m_updateTime = 0, m_trackTime = 0, m_consoleTime = 0;
+    double m_actionTime{}, m_updateTime{}, m_consoleTime{};
     int m_action{};
     size_t m_iteration{};
 public:
-    explicit NetworkHandle(const std::string &networkPath);
+    NetworkHandle(const std::string &networkPath, double time);
 
     void multiplePass(const std::string &events, size_t nbPass);
     void updateActor(long timestamp, size_t actor);
@@ -47,7 +47,8 @@ public:
     static std::vector<Event> stereo(const std::string &events, size_t nbPass);
     double valueFunction(double time);
     double valueDerivative(const std::vector<double> &value);
-    std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor);
+    std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
+    int learningLoop(long lastTimestamp, double time, std::string &msg);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
@@ -61,8 +62,6 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     NeuronConfig getCriticNeuronConfig() { return m_criticNeuronConf; }
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
-
-    int mainLoop(const std::vector<Event> &events, double reward, double time, std::string &msg);
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP
