@@ -383,8 +383,8 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     changeBiases(davis);
 
     double position = 0;
-    int action = 0;
-    double reward = 0;
+    int action;
+    double reward;
     std::string msg;
     while (!globalShutdown.load(memory_order_relaxed)) {
         std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
@@ -408,18 +408,18 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                     reward = -100;
                 }
 
+                m_eventRate += static_cast<double>(polarity->size());
                 network.transmitReward(reward);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
                 for (const auto &eve : *polarity) {
-
                     network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
                 }
 
-                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count());
+                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
                 action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
 
                 if (action != -1) {
-                    position = motor.getPosition();
+//                    position = motor.getPosition();
                     if (motor.isActionValid(position, 0)) {
                         motor.setSpeed(motorMapping[action]);;
                     } else {
