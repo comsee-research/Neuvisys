@@ -87,7 +87,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
 
     m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
-    int action = 0;
+    int action;
     double displayTime = 0, trackTime = 0;
     std::string msg;
 

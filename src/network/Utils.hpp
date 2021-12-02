@@ -20,7 +20,7 @@ namespace Util {
     int winnerTakeAll(std::vector<size_t> vec);
     double secondOrderNumericalDifferentiationMean(const std::vector<double> &vec, long n);
     bool fileExist(std::string &path);
-    double ornsteinUhlenbeckProcess(double dt, double pos, double theta, double mu, double sigma);
+    double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
 }
 
 class Luts {

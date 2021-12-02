@@ -11,7 +11,7 @@ Motor::Motor(ros::NodeHandle &n, const std::string &topic) {
 
 void Motor::jitter(double dt, double jitter) {
     if (jitter == 0) {
-        m_jitterSpeed = Util::ornsteinUhlenbeckProcess(dt, m_jitterSpeed, 25, 0., 0.05);
+        Util::ornsteinUhlenbeckProcess(m_jitterSpeed, dt, 25, 0., 0.05);
     } else {
         m_jitterSpeed = jitter;
     }
