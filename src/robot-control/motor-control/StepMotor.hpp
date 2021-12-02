@@ -19,13 +19,13 @@ protected:
     double m_upperBound{};
 
 public:
-    StepMotor(const std::string &topic, size_t motorAdress, const std::string &port);
+    StepMotor(size_t motorAdress, const std::string &port);
     ~StepMotor();
     void setSpeed(int speed);
     void setPosition(int position);
     double getPosition();
     void setBounds(double lower, double upper) { m_lowerBound = lower; m_upperBound = upper; }
-    bool isActionValid(double position, double projection) const;
+    [[nodiscard]] bool isActionValid(double position, double projection) const;
     void jitterPos(double dt);
 
     void jitterSpeed(double dt);

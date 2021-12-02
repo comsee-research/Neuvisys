@@ -4,7 +4,7 @@
 
 #include "StepMotor.hpp"
 
-StepMotor::StepMotor(const std::string &topic, const size_t motorAdress, const std::string &port) : m_motor(static_cast<int>(motorAdress), port) {
+StepMotor::StepMotor(const size_t motorAdress, const std::string &port) : m_motor(static_cast<int>(motorAdress), port) {
     m_motor.StartDrive();
 }
 
@@ -36,10 +36,10 @@ bool StepMotor::isActionValid(double position, double projection) const {
 
 void StepMotor::jitterPos(double dt) {
     Util::ornsteinUhlenbeckProcess(m_jitterPos, dt, 25, 0, 0.05);
-    setPosition(static_cast<int>(m_pos + m_jitterPos));
+    m_motor.SetAbsolutePosition(static_cast<int>(m_pos + m_jitterPos));
 }
 
 void StepMotor::jitterSpeed(double dt) {
     Util::ornsteinUhlenbeckProcess(m_jitterSpeed, dt, 25, 0, 0.05);
-    setSpeed(static_cast<int>(m_speed + m_jitterSpeed));
+    m_motor.SetSpeed(static_cast<int>(m_speed + m_jitterSpeed));
 }

@@ -46,8 +46,8 @@ void NeuvisysThread::run() {
     m_motorDisplay = std::vector<bool>(2, false);
 
     if (m_realtime) {
-//        launchSimulation(network);
-        launchReal(network);
+        launchSimulation(network);
+//        launchReal(network);
     } else {
         launchNetwork(network);
     }
@@ -90,7 +90,6 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     int action;
     double displayTime = 0, trackTime = 0;
     std::string msg;
-
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -349,8 +348,10 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     auto displayTime = std::chrono::high_resolution_clock::now();
     auto trackTime = std::chrono::high_resolution_clock::now();
 
-    StepMotor motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
-    motor.setBounds(-55000, 55000);
+    StepMotor lXMotor(0, "/dev/ttyUSB0");
+    lXMotor.setBounds(-55000, 55000);
+    StepMotor lYMotor(1, "/dev/ttyUSB0");
+    lYMotor.setBounds(-55000, 55000);
 
     std::vector<double> motorMapping;
     motorMapping.emplace_back(350); // left horizontal -> left movement
@@ -398,11 +399,15 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
             }
 
             if (packet->getEventType() == POLARITY_EVENT) {
+                auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
+                lXMotor.jitterSpeed(static_cast<double>(dt));
+                lYMotor.jitterSpeed(static_cast<double>(dt));
+
                 time = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
                         std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
-                if (motor.isActionValid(position, 0)) {
+                if (lXMotor.isActionValid(position, 0)) {
                     reward = 80 * (55000 - abs(position)) / 55000;
                 } else {
                     reward = -100;
@@ -419,11 +424,11 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
 
                 if (action != -1) {
-//                    position = motor.getPosition();
-                    if (motor.isActionValid(position, 0)) {
-                        motor.setSpeed(motorMapping[action]);;
+//                    position = lXMotor.getPosition();
+                    if (lXMotor.isActionValid(position, 0)) {
+                        lXMotor.setSpeed(motorMapping[action]);;
                     } else {
-                        motor.setSpeed(0);
+                        lXMotor.setSpeed(0);
                     }
                 }
 

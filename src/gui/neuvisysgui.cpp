@@ -364,6 +364,8 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
                                                                            static_cast<int>(1.5 * 260));
     ui->left_event_video->setPixmap(leftPixmap);
     ui->right_event_video->setPixmap(rightPixmap);
+    ui->left_event_video->show();
+    ui->right_event_video->show();
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
