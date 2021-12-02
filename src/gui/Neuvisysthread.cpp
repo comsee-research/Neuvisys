@@ -1,4 +1,4 @@
-#include "neuvisysthread.h"
+#include "Neuvisysthread.h"
 #include "../robot-control/motor-control/StepMotor.hpp"
 #include "../dv-modules/DavisHandle.hpp"
 #include <utility>
@@ -46,8 +46,8 @@ void NeuvisysThread::run() {
     m_motorDisplay = std::vector<bool>(2, false);
 
     if (m_realtime) {
-        launchSimulation(network);
-//        launchReal(network);
+//        launchSimulation(network);
+        launchReal(network);
     } else {
         launchNetwork(network);
     }
@@ -165,6 +165,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+//            cv::imshow("topic", m_leftEventDisplay);
             emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
@@ -348,10 +349,10 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     auto displayTime = std::chrono::high_resolution_clock::now();
     auto trackTime = std::chrono::high_resolution_clock::now();
 
-    StepMotor lXMotor(0, "/dev/ttyUSB0");
-    lXMotor.setBounds(-55000, 55000);
-    StepMotor lYMotor(1, "/dev/ttyUSB0");
-    lYMotor.setBounds(-55000, 55000);
+//    StepMotor lXMotor(0, "/dev/ttyUSB0");
+//    lXMotor.setBounds(-55000, 55000);
+//    StepMotor lYMotor(1, "/dev/ttyUSB0");
+//    lYMotor.setBounds(-55000, 55000);
 
     std::vector<double> motorMapping;
     motorMapping.emplace_back(350); // left horizontal -> left movement
@@ -382,6 +383,10 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
            davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
            davis_info.logicVersion);
     changeBiases(davis);
+//    davis.sendDefaultConfig();
+//    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
+//    // Let's turn on blocking data-get mode to avoid wasting resources.
+//    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
     double position = 0;
     int action;
@@ -400,24 +405,26 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
             if (packet->getEventType() == POLARITY_EVENT) {
                 auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
-                lXMotor.jitterSpeed(static_cast<double>(dt));
-                lYMotor.jitterSpeed(static_cast<double>(dt));
+//                lXMotor.jitterSpeed(static_cast<double>(dt));
+//                lYMotor.jitterSpeed(static_cast<double>(dt));
 
                 time = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
                         std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
 
-                if (lXMotor.isActionValid(position, 0)) {
-                    reward = 80 * (55000 - abs(position)) / 55000;
-                } else {
-                    reward = -100;
-                }
+//                if (lXMotor.isActionValid(position, 0)) {
+//                    reward = 80 * (55000 - abs(position)) / 55000;
+//                } else {
+//                    reward = -100;
+//                }
 
                 m_eventRate += static_cast<double>(polarity->size());
                 network.transmitReward(reward);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
                 for (const auto &eve : *polarity) {
-                    network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
+                    Event event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0);
+                    addEventToDisplay(event);
+//                    network.transmitEvent(event);
                 }
 
                 auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
@@ -425,11 +432,11 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
                 if (action != -1) {
 //                    position = lXMotor.getPosition();
-                    if (lXMotor.isActionValid(position, 0)) {
-                        lXMotor.setSpeed(motorMapping[action]);;
-                    } else {
-                        lXMotor.setSpeed(0);
-                    }
+//                    if (lXMotor.isActionValid(position, 0)) {
+//                        lXMotor.setSpeed(motorMapping[action]);;
+//                    } else {
+//                        lXMotor.setSpeed(0);
+//                    }
                 }
 
                 /*** GUI Display ***/

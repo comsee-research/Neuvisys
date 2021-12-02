@@ -29,9 +29,9 @@ set(ROS_SOURCES
 
 set(GUI_SOURCES
         guiMain.cpp
-        neuvisysgui.cpp
-        neuvisysthread.cpp
-        neuvisysgui.ui)
+        Neuvisysgui.cpp
+        Neuvisysthread.cpp
+        neuvisysgui.ui GLWidget.cpp GLWidget.h)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-qt

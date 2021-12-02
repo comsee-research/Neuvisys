@@ -42,7 +42,7 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>854</width>
+             <width>852</width>
              <height>588</height>
             </rect>
            </property>
@@ -51,18 +51,10 @@
              <enum>QLayout::SetMinAndMaxSize</enum>
             </property>
             <item>
-             <widget class="QLabel" name="left_event_video">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
+             <widget class="GLWidget" name="opengl_left_events"/>
             </item>
             <item>
-             <widget class="QLabel" name="right_event_video">
-              <property name="text">
-               <string/>
-              </property>
-             </widget>
+             <widget class="GLWidget" name="opengl_right_events"/>
             </item>
            </layout>
           </widget>
@@ -194,8 +186,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>854</width>
-             <height>632</height>
+             <width>852</width>
+             <height>634</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
@@ -665,7 +657,7 @@
      <x>0</x>
      <y>0</y>
      <width>1402</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuNeuvisys_gui">
@@ -681,6 +673,11 @@
    <class>QChartView</class>
    <extends>QGraphicsView</extends>
    <header>QtCharts</header>
+  </customwidget>
+  <customwidget>
+   <class>GLWidget</class>
+   <extends>QOpenGLWidget</extends>
+   <header>GLWidget.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
