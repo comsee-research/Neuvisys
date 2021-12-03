@@ -411,7 +411,6 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 network.transmitReward(reward);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
                 for (const auto &eve : *polarity) {
-
                     network.transmitEvent(Event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0));
                 }
 
