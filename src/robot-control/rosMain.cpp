@@ -28,7 +28,7 @@ int launchLearningSimulation(std::string &networkPath) {
 
     NetworkHandle network(networkPath, sim.getSimulationTime());
 
-    int action = 0;
+    int action;
     std::string msg;
     while (ros::ok() && sim.getSimulationTime() < 300) {
         sim.triggerNextTimeStep();

@@ -9,7 +9,7 @@
 #include <QMessageBox>
 #include <QtCharts>
 
-#include "neuvisysthread.h"
+#include "Neuvisysthread.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeuvisysGUI; }
@@ -86,6 +86,9 @@ protected:
     QLineSeries *valueDotSeries;
     QLineSeries *tdSeries;
     QChart *rewardChart;
+
+    QImage m_leftImage;
+    QImage m_rightImage;
 
     size_t m_id{};
     size_t m_zcell{};

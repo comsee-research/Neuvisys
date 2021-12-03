@@ -152,9 +152,9 @@ namespace Util {
         }
     }
 
-    double ornsteinUhlenbeckProcess(double dt, double pos, double theta, double mu, double sigma) {
+    double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
         double noise = normalDistr(generator) * std::sqrt(dt);
-        return pos + theta * (mu - pos) * dt + sigma * noise;
+        pos = theta * (mu - pos) * dt + sigma * noise;
     }
 }
 

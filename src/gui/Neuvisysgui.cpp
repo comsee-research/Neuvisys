@@ -1,8 +1,15 @@
-#include "neuvisysgui.h"
+#include "Neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI),
                                                                    neuvisysThread(argc, argv) {
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setVersion(3, 2);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
     precisionEvent = 30000;
     precisionPotential = 10000;
     rangePotential = 1000000;
@@ -352,18 +359,19 @@ void NeuvisysGUI::onDisplayProgress(int progress, double simTime, double event_r
 }
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
-    QImage leftImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols,
+    m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols,
                       leftEventDisplay.rows,
                        static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
-    auto leftPixmap = QPixmap::fromImage(leftImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-                                                                         static_cast<int>(1.5 * 260));
-    QImage rightImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols,
+//    m_leftPixmap = QPixmap::fromImage(leftImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
+//                                                                         static_cast<int>(1.5 * 260));
+    m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols,
                        rightEventDisplay.rows,
                        static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
-    auto rightPixmap = QPixmap::fromImage(rightImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-                                                                           static_cast<int>(1.5 * 260));
-    ui->left_event_video->setPixmap(leftPixmap);
-    ui->right_event_video->setPixmap(rightPixmap);
+//    m_rightPixmap = QPixmap::fromImage(rightImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
+//                                                                           static_cast<int>(1.5 * 260));
+    ui->opengl_left_events->setImage(m_leftImage);
+    ui->opengl_left_events->update();
+//    ui->opengl_right_events->setPixmap(m_rightImage);
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {

@@ -1,4 +1,4 @@
-#include "neuvisysgui.h"
+#include "Neuvisysgui.h"
 #include <QApplication>
 
 int main(int argc, char *argv[]) {
