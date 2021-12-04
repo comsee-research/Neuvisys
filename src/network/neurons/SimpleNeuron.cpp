@@ -7,6 +7,7 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
     Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
     m_weights(weights),
+    m_inhibWeights(), // TODO: init
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
         m_delays.push_back(static_cast<long>(synapse * conf.SYNAPSE_DELAY));
@@ -26,6 +27,11 @@ inline bool SimpleNeuron::newEvent(Event event) {
             m_waitingList.emplace(event.timestamp() + delay, event.x(), event.y(), event.polarity(), event.camera(), synapse++);
         }
     }
+}
+
+void SimpleNeuron::newInhibitoryEvent(NeuronEvent event) {
+    m_inhibEvents.push_back(event);
+    m_potential -= m_inhibWeights(event.x(), event.y(), event.z());
 }
 
 bool SimpleNeuron::update() {
@@ -89,6 +95,15 @@ inline void SimpleNeuron::weightUpdate() {
 
         normalizeWeights();
         //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
+
+        for (NeuronEvent &event : m_inhibEvents) {
+            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+
+            if (m_inhibWeights(event.x(), event.y(), event.z()) < 0) {
+                m_inhibWeights(event.x(), event.y(), event.z()) = 0;
+            }
+        }
     }
     m_events.clear();
 }
@@ -119,10 +134,6 @@ void SimpleNeuron::saveWeights(std::string &saveFile) {
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
     Util::loadNumpyFileToSimpleTensor(filePath, m_weights);
-}
-
-double SimpleNeuron::getWeights(long p, long c, long s, long x, long y) {
-    return m_weights(p, c, s, x, y);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {

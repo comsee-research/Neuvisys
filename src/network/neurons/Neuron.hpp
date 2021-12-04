@@ -52,6 +52,7 @@ public:
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
     [[nodiscard]] virtual size_t getActivityCount();
     virtual double getWeights(long x, long y, long z) {};
+    virtual double getInhibWeights(long x, long y, long z) {};
     virtual double getWeights(long p, long c, long s, long x, long y) {};
     virtual std::vector<long> getWeightsDimension() {};
 
@@ -79,10 +80,11 @@ public:
     virtual void addOutConnection(Neuron &neuron) { m_outConnections.emplace_back(neuron); }
     virtual void addInConnection(Neuron &neuron) { m_inConnections.emplace_back(neuron); }
     virtual void addInhibitionConnection(Neuron &neuron) { m_inhibitionConnections.emplace_back(neuron); }
-    virtual bool newEvent(Event event) {}
-    virtual bool newEvent(NeuronEvent event) {}
-    virtual bool update() {}
-    virtual void setNeuromodulator(double neuromodulator) {}
+    virtual bool newEvent(Event event) {};
+    virtual bool newEvent(NeuronEvent event) {};
+    virtual void newInhibitoryEvent(NeuronEvent event) {};
+    virtual bool update() {};
+    virtual void setNeuromodulator(double neuromodulator) {};
     virtual void trackPotential(long time);
     virtual void updateState(long timeInterval, double alpha);
     virtual void spike(long time) {};

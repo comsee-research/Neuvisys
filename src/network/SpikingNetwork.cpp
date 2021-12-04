@@ -38,9 +38,9 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
 void SpikingNetwork::addEvent(const Event &event) {
     for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
                                     static_cast<uint32_t>(event.y())]) {
-        if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), event.x() - static_cast<int16_t>
-        (m_neurons[0][ind].get().getOffset().x()), event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset()
-                .y()), event.polarity(), event.camera()))) {
+        auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
+                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
+        if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()))) {
             m_neurons[0][ind].get().weightUpdate();
             for (auto &neuronToInhibit: m_neurons[0][ind].get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
@@ -59,25 +59,29 @@ void SpikingNetwork::addEvent(const Event &event) {
  * A neuron spikes activates inhibition connections to adjacent neurons.
  */
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
-    for (auto &nextNeuron: neuron.getOutConnections()) {
-        if (nextNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(),
-                                                  static_cast<int32_t>(neuron.getPos().x() -
-                                                                       nextNeuron.get().getOffset().x()),
-                                                  static_cast<int32_t>(neuron.getPos().y() -
-                                                                       nextNeuron.get().getOffset().y()),
-                                                  static_cast<int32_t>(neuron.getPos().z() -
-                                                                       nextNeuron.get().getOffset().z())))) {
-            if (nextNeuron.get().getLayer() == 2) {
-                nextNeuron.get().setNeuromodulator(computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
+    for (auto &forwardNeuron: neuron.getOutConnections()) {
+        auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
+                                 neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
+                                 neuron.getPos().z() - forwardNeuron.get().getOffset().z());
+        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+            if (forwardNeuron.get().getLayer() == 1) {
+                auto event = NeuronEvent(neuron.getSpikingTime(), forwardNeuron.get().getPos().x(), forwardNeuron.get().getPos().y(), forwardNeuron
+                .get().getPos().z()); // TODO : check positions
+                for (auto &backwardNeuron: forwardNeuron.get().getInConnections()) {
+                    backwardNeuron.get().newInhibitoryEvent(event);
+                }
             }
-            if (nextNeuron.get().getLayer() != 3) {
-                nextNeuron.get().weightUpdate();
+            if (forwardNeuron.get().getLayer() == 2) {
+                forwardNeuron.get().setNeuromodulator(computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
+            }
+            if (forwardNeuron.get().getLayer() != 3) {
+                forwardNeuron.get().weightUpdate();
             }
 
-            for (auto &neuronToInhibit: nextNeuron.get().getInhibitionConnections()) {
+            for (auto &neuronToInhibit: forwardNeuron.get().getInhibitionConnections()) {
                 neuronToInhibit.get().inhibition();
             }
-            addNeuronEvent(nextNeuron.get());
+            addNeuronEvent(forwardNeuron.get());
         }
     }
 }
@@ -289,7 +293,7 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
 }
 
 void SpikingNetwork::normalizeActions() {
-    auto layer = m_neurons.size()-1;
+    auto layer = m_neurons.size() - 1;
     auto norms = std::vector<double>(getNetworkStructure().back(), 0);
 
     double normMax = 0;

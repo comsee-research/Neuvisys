@@ -122,10 +122,6 @@ void ComplexNeuron::loadWeights(std::string &filePath) {
     Util::loadNumpyFileToComplexTensor(filePath, m_weights);
 }
 
-double ComplexNeuron::getWeights(long x, long y, long z) {
-    return m_weights(x, y, z);
-}
-
 std::vector<long> ComplexNeuron::getWeightsDimension() {
     const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
     std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
