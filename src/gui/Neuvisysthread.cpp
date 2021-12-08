@@ -67,6 +67,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     auto displayTime = eventPacket.front().timestamp();
     auto trackTime = eventPacket.front().timestamp();
     for (const auto &event: eventPacket) {
+        ++m_eventRate;
         ++m_iterations;
         addEventToDisplay(event);
         network.transmitEvent(event);
@@ -265,17 +266,10 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                     }
                 }
             }
-        } else if (network.getNetworkConfig().getSharingType() == "full") {
-            for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
-                m_weightDisplay[i] = network.getWeightNeuron(network.getLayout(0, Position(0, 0, i)), m_layer, m_camera,
-                                                             m_synapse, m_zcell);
-            }
         }
     } else {
         for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
             m_weightDisplay[count] = network.getSummedWeightNeuron(network.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer);
-//            m_weightDisplay[count] = network.getWeightNeuron(network.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer,
-//                                                            m_camera, m_synapse, m_depth);
             ++count;
         }
     }
@@ -291,10 +285,6 @@ void NeuvisysThread::onIndexChanged(size_t index) {
 
 void NeuvisysThread::onZcellChanged(size_t zcell) {
     m_zcell = zcell;
-}
-
-void NeuvisysThread::onDepthChanged(size_t depth) {
-    m_depth = depth;
 }
 
 void NeuvisysThread::onCameraChanged(size_t camera) {

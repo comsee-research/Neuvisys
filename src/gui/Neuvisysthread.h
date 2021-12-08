@@ -40,7 +40,6 @@ protected:
 
     size_t m_id = 0;
     size_t m_zcell = 0;
-    size_t m_depth = 0;
     size_t m_camera = 0;
     size_t m_synapse = 0;
     size_t m_layer = 0;
@@ -70,7 +69,6 @@ public slots:
     void onTabVizChanged(size_t index);
     void onIndexChanged(size_t index);
     void onZcellChanged(size_t zcell);
-    void onDepthChanged(size_t depth);
     void onCameraChanged(size_t camera);
     void onSynapseChanged(size_t synapse);
     void onPrecisionEventChanged(size_t displayRate);

@@ -41,7 +41,6 @@ signals:
     void tabVizChanged(size_t index);
     void indexChanged(size_t index);
     void zcellChanged(size_t zcell);
-    void depthChanged(size_t depth);
     void cameraChanged(size_t camera);
     void synapseChanged(size_t synapse);
     void precisionEventChanged(size_t precisionEvent);
@@ -62,10 +61,9 @@ private slots:
     void on_text_complex_cell_config_textChanged();
     void on_text_critic_cell_config_textChanged();
     void on_text_actor_cell_config_textChanged();
-    void on_button_selection_clicked();
+    void on_button_selection_clicked(int index);
     void on_tab_visualization_currentChanged(int index);
     void on_spin_zcell_selection_valueChanged(int arg1);
-    void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
     void on_spin_synapse_selection_valueChanged(int arg1);
     void on_slider_precision_event_sliderMoved(int position);
@@ -87,6 +85,7 @@ protected:
     QLineSeries *valueDotSeries;
     QLineSeries *tdSeries;
     QChart *rewardChart;
+    QButtonGroup *buttonSelectionGroup;
 
     QImage m_leftImage;
     QImage m_rightImage;
@@ -96,7 +95,6 @@ protected:
     size_t m_camera{};
     size_t m_synapse{};
     size_t m_layer{};
-    size_t m_depth{};
     size_t precisionEvent{};
     size_t precisionPotential{};
     size_t rangePotential{};
