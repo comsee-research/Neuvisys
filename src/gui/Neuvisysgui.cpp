@@ -37,7 +37,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->slider_range_potential->setMaximum(5000000);
     ui->slider_range_potential->setMinimum(1000);
     ui->slider_range_potential->setValue(static_cast<int>(rangePotential));
-    ui->slider_range_spiketrain->setMaximum(5000000);
+    ui->slider_range_spiketrain->setMaximum(10000000);
     ui->slider_range_spiketrain->setMinimum(100000);
     ui->slider_range_spiketrain->setValue(static_cast<int>(rangeSpiketrain));
 
@@ -239,63 +239,6 @@ void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
     file.close();
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
-                                         const std::vector<std::vector<size_t>> &layerPatches,
-                                         const std::vector<size_t> &layerSizes, const
-                                         std::vector<size_t> &neuronSizes) {
-    ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
-    ui->spin_zcell_selection->setValue(0);
-    buttonSelectionGroup = new QButtonGroup;
-
-    while (QLayoutItem *item = ui->gridSelection->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-    while (QLayoutItem *item = ui->weightLayout->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-
-    int count = 0;
-    for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
-        for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
-            auto *button = new QPushButton(this);
-            button->setText(QString::number(count));
-            button->setMinimumWidth(5);
-            button->setCheckable(true);
-            if (count == 0) {
-                button->setChecked(true);
-            }
-            buttonSelectionGroup->addButton(button);
-            buttonSelectionGroup->setId(button, count);
-            ui->gridSelection->addWidget(button, static_cast<int>(i), static_cast<int>(j));
-            button->show();
-            ++count;
-
-            if (sharingType == "none") {
-                auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, static_cast<int>(i), static_cast<int>(j));
-                label->show();
-            }
-        }
-    }
-    connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
-    if (sharingType == "patch") {
-        for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
-            for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
-                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
-                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
-                        auto *label = new QLabel(this);
-                        ui->weightLayout->addWidget(label, static_cast<int>(hp * layerSizes[2] + i),
-                                                    static_cast<int>(wp * layerSizes[2] + j));
-                        label->show();
-                    }
-                }
-            }
-        }
-    }
-}
-
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
                                     const std::vector<size_t> &networkStructure) {
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
@@ -318,6 +261,64 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
 
         ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
         label->show();
+    }
+}
+
+void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
+                                         const std::vector<std::vector<size_t>> &layerPatches,
+                                         const std::vector<size_t> &layerSizes, const
+                                         std::vector<size_t> &neuronSizes) {
+    ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
+    ui->spin_zcell_selection->setValue(0);
+    buttonSelectionGroup = new QButtonGroup;
+
+    while (QLayoutItem *item = ui->gridSelection->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+    while (QLayoutItem *item = ui->weightLayout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+
+    int count = 0;
+    for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
+        for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
+            auto *button = new QPushButton(this);
+            button->setText(QString::number(count));
+            button->setFixedWidth(30);
+            button->setFixedHeight(30);
+            button->setCheckable(true);
+            if (count == 0) {
+                button->setChecked(true);
+            }
+            buttonSelectionGroup->addButton(button);
+            buttonSelectionGroup->setId(button, count);
+            ui->gridSelection->addWidget(button, static_cast<int>(j), static_cast<int>(i));
+            button->show();
+            ++count;
+
+            if (sharingType == "none") {
+                auto *label = new QLabel(this);
+                ui->weightLayout->addWidget(label, static_cast<int>(j), static_cast<int>(i));
+                label->show();
+            }
+        }
+    }
+    connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
+    if (sharingType == "patch") {
+        for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
+            for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
+                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
+                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
+                        auto *label = new QLabel(this);
+                        ui->weightLayout->addWidget(label, static_cast<int>(hp * layerSizes[2] + i),
+                                                    static_cast<int>(wp * layerSizes[2] + j));
+                        label->show();
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -347,12 +348,13 @@ void NeuvisysGUI::on_tab_visualization_currentChanged(int index) {
     emit tabVizChanged(index);
 }
 
-void NeuvisysGUI::onDisplayProgress(int progress) {
+void NeuvisysGUI::onDisplayProgress(int progress, double time) {
     ui->progressBar->setValue(progress);
+    ui->lcd_sim_time->display(time);
 }
 
-void NeuvisysGUI::onDisplayStatistics(double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
-    ui->lcd_sim_time->display(simTime);
+void NeuvisysGUI::onDisplayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold,
+                                      double bias) {
     ui->lcd_event_rate->display(event_rate);
     ui->lcd_on_off_ratio->display(on_off_ratio);
     ui->lcd_spike_rate->display(spike_rate);
@@ -417,10 +419,13 @@ void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const 
     spikeSeries->setMarkerSize(8);
 
     size_t index = 0;
+    size_t nMax = 1000 / spikeTrains.size();
     for (const auto &spikeTrain: spikeTrains) {
+        size_t count = 0;
         for (auto spike = spikeTrain.get().rbegin(); spike != spikeTrain.get().rend(); ++spike) {
-            if (time - static_cast<double>(*spike) <= static_cast<double>(rangeSpiketrain)) {
+            if (time - static_cast<double>(*spike) <= static_cast<double>(rangeSpiketrain) && count < nMax) {
                 spikeSeries->append(static_cast<qreal>(*spike), static_cast<qreal>(index));
+                ++count;
             } else {
                 break;
             }

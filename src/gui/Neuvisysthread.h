@@ -2,14 +2,16 @@
 #define NEUVISYSTHREAD_H
 
 #include <QThread>
-#include <chrono>
-#include <random>
-#include <utility>
 
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
 #include "../robot-control/SimulationInterface.hpp"
+#include "../robot-control/motor-control/StepMotor.hpp"
+#include "../dv-modules/DavisHandle.hpp"
 #include "cnpy.h"
+#include <utility>
+#include <thread>
+#include <chrono>
 
 class NeuvisysThread : public QThread {
     Q_OBJECT
@@ -26,8 +28,6 @@ protected:
     std::map<size_t, cv::Mat> m_weightDisplay;
     std::vector<std::reference_wrapper<const std::vector<long>>> m_spikeTrain;
     std::vector<bool> m_motorDisplay;
-    double m_simTime{};
-    size_t m_simTimeStep = 1;
     double m_eventRate{};
     size_t m_mode = 0;
     bool m_stop = false;
@@ -79,8 +79,8 @@ public slots:
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress);
-    void displayStatistics(double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void displayProgress(int progress, double time);
+    void displayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);

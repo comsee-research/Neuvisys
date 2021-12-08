@@ -1,9 +1,4 @@
 #include "Neuvisysthread.h"
-#include "../robot-control/motor-control/StepMotor.hpp"
-#include "../dv-modules/DavisHandle.hpp"
-#include <utility>
-#include <thread>
-#include <chrono>
 
 using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
 
@@ -76,7 +71,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
         time = event.timestamp();
         if (time - displayTime > static_cast<long>(m_displayRate)) {
             displayTime = time;
-            display(network, eventPacket.size(), static_cast<double>(displayTime));
+            display(network, eventPacket.size(), static_cast<double>(displayTime) / E6);
         }
 
         if (time - trackTime > static_cast<long>(m_trackRate)) {
@@ -93,8 +88,6 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     SimulationInterface sim;
     sim.enableSyncMode(true);
     sim.startSimulation();
-
-    m_simTimeStep = static_cast<size_t>(sim.getSimulationTimeStep());
 
     int action;
     double displayTime = 0, trackTime = 0;
@@ -170,7 +163,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
 
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
     if (sizeArray != 0) {
-        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray));
+        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), time);
     }
     switch (m_currentTab) {
         case 0: // event viz
@@ -180,7 +173,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
-            emit displayStatistics(m_simTime, m_eventRate, on_off_ratio, network.getNeuron(m_id, m_layer).get().getSpikingRate(),
+            emit displayStatistics(m_eventRate, on_off_ratio, network.getNeuron(m_id, m_layer).get().getSpikingRate(),
                                    network.getNeuron(m_id, m_layer).get().getThreshold(), 0);
             break;
         case 2: // weights
@@ -313,6 +306,8 @@ void NeuvisysThread::onRangeSpikeTrainChanged(size_t rangeSpiketrain) {
 
 void NeuvisysThread::onLayerChanged(size_t layer) {
     m_layer = layer;
+    m_id = 0;
+    m_zcell = 0;
     m_change = true;
 }
 
