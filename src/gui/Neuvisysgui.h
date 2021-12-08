@@ -15,8 +15,7 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class NeuvisysGUI; }
 QT_END_NAMESPACE
 
-class NeuvisysGUI : public QMainWindow
-{
+class NeuvisysGUI : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -24,7 +23,8 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void onDisplayProgress(int progress);
+    void onDisplayStatistics(double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
@@ -51,6 +51,7 @@ signals:
     void layerChanged(size_t layer);
     void stopNetwork();
     void createNetwork(std::string fileName);
+
 private slots:
     void on_button_event_file_clicked();
     void on_button_network_directory_clicked();

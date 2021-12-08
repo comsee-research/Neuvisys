@@ -22,6 +22,9 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->spin_depth_selection->setMinimum(0);
+    ui->modeChoice->setId(ui->recording, 0);
+    ui->modeChoice->setId(ui->realtime, 1);
+    ui->modeChoice->setId(ui->simulation, 2);
 
     /* Selection parameters */
     ui->slider_precision_event->setMaximum(100000);
@@ -110,6 +113,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double, long>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
+    connect(&neuvisysThread, &NeuvisysThread::displayStatistics, this, &NeuvisysGUI::onDisplayStatistics);
     connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);
     connect(&neuvisysThread, &NeuvisysThread::displayPotential, this, &NeuvisysGUI::onDisplayPotential);
     connect(&neuvisysThread, &NeuvisysThread::displaySpike, this, &NeuvisysGUI::onDisplaySpike);
@@ -138,7 +142,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
 
     neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json",
                           ui->text_event_file->text(),
-                          static_cast<size_t>(ui->number_runs->value()), ui->realtime->isChecked());
+                          static_cast<size_t>(ui->number_runs->value()), ui->modeChoice->checkedId());
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
@@ -348,27 +352,24 @@ void NeuvisysGUI::on_tab_visualization_currentChanged(int index) {
     emit tabVizChanged(index);
 }
 
-void NeuvisysGUI::onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
+void NeuvisysGUI::onDisplayProgress(int progress) {
+    ui->progressBar->setValue(progress);
+}
+
+void NeuvisysGUI::onDisplayStatistics(double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
     ui->lcd_sim_time->display(simTime);
     ui->lcd_event_rate->display(event_rate);
     ui->lcd_on_off_ratio->display(on_off_ratio);
     ui->lcd_spike_rate->display(spike_rate);
     ui->lcd_threshold->display(threshold);
     ui->lcd_bias->display(bias);
-    ui->progressBar->setValue(progress);
 }
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
-    m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols,
-                      leftEventDisplay.rows,
-                       static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
-//    m_leftPixmap = QPixmap::fromImage(leftImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-//                                                                         static_cast<int>(1.5 * 260));
-    m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols,
-                       rightEventDisplay.rows,
-                       static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
-//    m_rightPixmap = QPixmap::fromImage(rightImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-//                                                                           static_cast<int>(1.5 * 260));
+    m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>
+    (leftEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
+    m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>
+    (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
     ui->opengl_left_events->setImage(m_leftImage);
     ui->opengl_left_events->update();
 //    ui->opengl_right_events->setPixmap(m_rightImage);

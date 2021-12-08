@@ -196,12 +196,13 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory);
     std::filesystem::create_directory(directory + "/configs");
     std::filesystem::create_directory(directory + "/figures");
+    std::filesystem::create_directory(directory + "/figures/0");
+    std::filesystem::create_directory(directory + "/figures/1");
+    std::filesystem::create_directory(directory + "/figures/2");
+    std::filesystem::create_directory(directory + "/figures/3");
     std::filesystem::create_directory(directory + "/figures/complex_directions");
-    std::filesystem::create_directory(directory + "/figures/complex_figures");
     std::filesystem::create_directory(directory + "/figures/complex_orientations");
     std::filesystem::create_directory(directory + "/figures/complex_weights_orientations");
-    std::filesystem::create_directory(directory + "/figures/motor_figures");
-    std::filesystem::create_directory(directory + "/figures/simple_figures");
     std::filesystem::create_directory(directory + "/gabors");
     std::filesystem::create_directory(directory + "/gabors/data");
     std::filesystem::create_directory(directory + "/gabors/figures");

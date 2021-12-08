@@ -16,7 +16,7 @@ class SimpleNeuron : public Neuron {
     boost::circular_buffer<Event> m_events;
     boost::circular_buffer<NeuronEvent> m_inhibEvents;
     Eigen::Tensor<double, SIMPLEDIM> &m_weights;
-    Eigen::Tensor<double, COMPLEXDIM> &m_inhibWeights;
+    Eigen::Tensor<double, COMPLEXDIM> m_inhibWeights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
 public:
     SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);

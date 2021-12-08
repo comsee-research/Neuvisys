@@ -7,7 +7,7 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
     Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
     m_weights(weights),
-    m_inhibWeights(), // TODO: init
+    m_inhibWeights(Util::uniformMatrixComplex(1, 1, 16)), // TODO: generic init
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
         m_delays.push_back(static_cast<long>(synapse * conf.SYNAPSE_DELAY));

@@ -29,7 +29,7 @@ protected:
     double m_simTime{};
     size_t m_simTimeStep = 1;
     double m_eventRate{};
-    bool m_realtime = false;
+    size_t m_mode = 0;
     bool m_stop = false;
     bool m_change = false;
     size_t m_currentTab = 0;
@@ -52,7 +52,7 @@ protected:
 
 public:
     NeuvisysThread(int argc, char** argv, QObject *parent = nullptr);
-    void render(QString networkPath, QString events, size_t nbPass, bool realtime);
+    void render(QString networkPath, QString events, size_t nbPass, size_t mode);
     bool init();
     void run() override;
 
@@ -81,7 +81,8 @@ public slots:
     void onStopNetwork();
 
 signals:
-    void displayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void displayProgress(int progress);
+    void displayStatistics(double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
     void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);

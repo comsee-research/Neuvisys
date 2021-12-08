@@ -122,7 +122,7 @@ void Neuron::writeJson(nlohmann::json &state) {
     for (auto neuron : m_inhibitionConnections) {
         inhibIndex.push_back(neuron.get().getIndex());
     }
-    state["speed"] = position;
+    state["position"] = position;
     state["offset"] = offset;
     state["in_connections"] = inIndex;
     state["out_connections"] = outIndex;

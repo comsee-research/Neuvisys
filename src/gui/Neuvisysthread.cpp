@@ -23,12 +23,12 @@ bool NeuvisysThread::init() {
     return true;
 }
 
-void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, bool realtime) {
+void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, size_t mode) {
     m_networkPath = std::move(networkPath);
     m_events = std::move(events);
     m_nbPass = nbPass;
     m_iterations = 0;
-    m_realtime = realtime;
+    m_mode = mode;
     start(HighPriority);
 }
 
@@ -45,11 +45,12 @@ void NeuvisysThread::run() {
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_motorDisplay = std::vector<bool>(2, false);
 
-    if (m_realtime) {
-//        launchSimulation(network);
-        launchReal(network);
-    } else {
+    if (m_mode == 0) {
         launchNetwork(network);
+    } else if (m_mode == 1) {
+        launchReal(network);
+    } else if (m_mode == 2) {
+        launchSimulation(network);
     }
     quit();
 }
@@ -61,19 +62,26 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     } else if (network.getNetworkConfig().getNbCameras() == 2) {
         eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
     }
-    emit displayProgress(100, 0, 0, 0, 0, 0, 0);
 
+    long time;
+    auto displayTime = eventPacket.front().timestamp();
+    auto trackTime = eventPacket.front().timestamp();
     for (const auto &event: eventPacket) {
+        ++m_iterations;
         addEventToDisplay(event);
         network.transmitEvent(event);
 
-//        if () { event clock (30ms)
-//            display(network, eventPacket.size());
-//        }
-//
-//        if () { event clock (10ms)
-//            network.trackNeuron(event.timestamp(), m_id, m_layer);
-//        }
+        /*** GUI Display ***/
+        time = event.timestamp();
+        if (time - displayTime > static_cast<long>(m_displayRate)) {
+            displayTime = time;
+            display(network, eventPacket.size(), static_cast<double>(displayTime));
+        }
+
+        if (time - trackTime > static_cast<long>(m_trackRate)) {
+            trackTime = time;
+            network.trackNeuron(time, m_id, m_layer);
+        }
     }
 
     network.save(m_nbPass, m_events.toStdString());
@@ -160,22 +168,19 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
     }
 
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
-    int progress = 0;
+    if (sizeArray != 0) {
+        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray));
+    }
     switch (m_currentTab) {
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-//            cv::imshow("topic", m_leftEventDisplay);
             emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
-            if (sizeArray != 0) {
-                progress = static_cast<int>(100 * m_iterations / sizeArray);
-            }
-            emit displayProgress(progress, m_simTime, m_eventRate, on_off_ratio,
-                                 network.getNeuron(m_id, m_layer).get().getSpikingRate(),
-                                 network.getNeuron(m_id, m_layer).get().getThreshold(), 0);
+            emit displayStatistics(m_simTime, m_eventRate, on_off_ratio, network.getNeuron(m_id, m_layer).get().getSpikingRate(),
+                                   network.getNeuron(m_id, m_layer).get().getThreshold(), 0);
             break;
         case 2: // weights
             prepareWeights(network);
@@ -214,16 +219,12 @@ inline void NeuvisysThread::sensingZone(NetworkHandle &network) {
             auto offsetYPatch = static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j] +
                                                  network.getNetworkConfig().getLayerSizes()[0][1] *
                                                  network.getNetworkConfig().getNeuronSizes()[0][1]);
-            cv::rectangle(m_leftEventDisplay,
-                          cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
-                                    static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
-                          cv::Point(offsetXPatch, offsetYPatch),
-                          cv::Scalar(255, 0, 0));
-            cv::rectangle(m_rightEventDisplay,
-                          cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
-                                    static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
-                          cv::Point(offsetXPatch, offsetYPatch),
-                          cv::Scalar(255, 0, 0));
+            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
+                                                        static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
+                          cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
+            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
+                                                         static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
+                          cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
         }
     }
 }
@@ -398,7 +399,7 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
             continue; // Skip if nothing there.
         }
 
-        for (auto &packet : *packetContainer) {
+        for (auto &packet: *packetContainer) {
             if (packet == nullptr) {
                 continue; // Skip if nothing there.
             }
@@ -421,7 +422,7 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 m_eventRate += static_cast<double>(polarity->size());
                 network.transmitReward(reward);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
-                for (const auto &eve : *polarity) {
+                for (const auto &eve: *polarity) {
                     Event event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0);
                     addEventToDisplay(event);
                     network.transmitEvent(event);
