@@ -5,7 +5,7 @@
 #include "GLWidget.h"
 
 GLWidget::GLWidget(QWidget *parent) : QOpenGLWidget(parent) {
-    m_image = QImage("/home/thomas/Images/weights.png");
+    m_image = QImage("");
 }
 
 void GLWidget::initializeGL() {

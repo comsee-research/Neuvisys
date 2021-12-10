@@ -30,7 +30,8 @@ set(GUI_SOURCES
         guiMain.cpp
         Neuvisysgui.cpp
         Neuvisysthread.cpp
-        neuvisysgui.ui GLWidget.cpp GLWidget.h)
+        GLWidget.cpp
+        neuvisysgui.ui)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-qt
