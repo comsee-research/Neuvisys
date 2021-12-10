@@ -9,7 +9,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
-        ../dv-modules/DavisHandle.cpp
         ../network/SpikingNetwork.cpp
         ../network/Utils.cpp
         ../network/Config.cpp
@@ -23,7 +22,7 @@ set(ROS_SOURCES
         ../robot-control/SimulationInterface.cpp
         ../robot-control/FrameToEvents.cpp
         ../robot-control/Motor.cpp
-        ../robot-control/motor-control/StepMotor.cpp
+        ../robot-control/motor-control/BrushlessMotor.cpp
         ../robot-control/motor-control/libserie/Faulhaber.cpp
         ../robot-control/motor-control/libserie/comserie.cpp)
 

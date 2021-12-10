@@ -2,13 +2,13 @@
 // Created by thomas on 19/11/2021.
 //
 
-#ifndef NEUVISYS_STEPMOTOR_HPP
-#define NEUVISYS_STEPMOTOR_HPP
+#ifndef NEUVISYS_BRUSHLESSMOTOR_HPP
+#define NEUVISYS_BRUSHLESSMOTOR_HPP
 
 #include "libserie/Faulhaber.hpp"
 #include "../../network/Utils.hpp"
 
-class StepMotor {
+class BrushlessMotor {
 protected:
     Faulhaber m_motor;
     double m_pos{};
@@ -19,8 +19,8 @@ protected:
     double m_upperBound{};
 
 public:
-    StepMotor(size_t motorAdress, const std::string &port);
-    ~StepMotor();
+    BrushlessMotor(size_t motorAdress, const std::string &port);
+    ~BrushlessMotor();
     void setSpeed(int speed);
     void setPosition(int position);
     double getPosition();
@@ -31,4 +31,4 @@ public:
     void jitterSpeed(double dt);
 };
 
-#endif //NEUVISYS_STEPMOTOR_HPP
+#endif //NEUVISYS_BRUSHLESSMOTOR_HPP

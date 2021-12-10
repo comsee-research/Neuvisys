@@ -1,9 +1,4 @@
 #include "Neuvisysthread.h"
-#include "../robot-control/motor-control/StepMotor.hpp"
-#include "../dv-modules/DavisHandle.hpp"
-#include <utility>
-#include <thread>
-#include <chrono>
 
 using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
 
@@ -335,14 +330,69 @@ static void usbShutdownHandler(void *ptr) {
     globalShutdown.store(true);
 }
 
+int prepareContext() {
+    // Install signal handler for global shutdown.
+    struct sigaction shutdownAction{};
+
+    shutdownAction.sa_handler = &globalShutdownSignalHandler;
+    shutdownAction.sa_flags = 0;
+    sigemptyset(&shutdownAction.sa_mask);
+    sigaddset(&shutdownAction.sa_mask, SIGTERM);
+    sigaddset(&shutdownAction.sa_mask, SIGINT);
+
+    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
+        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                          "Failed to set signal handler for SIGTERM. Error: %d.", errno);
+        return (EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
+        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
+                          "Failed to set signal handler for SIGINT. Error: %d.", errno);
+        return (EXIT_FAILURE);
+    }
+    return 0;
+}
+
+void changeBiases(libcaer::devices::davis &davis) {
+    // Tweak some biases, to increase bandwidth in this case.
+    struct caer_bias_coarsefine coarseFineBias{};
+
+    coarseFineBias.coarseValue = 2;
+    coarseFineBias.fineValue = 116;
+    coarseFineBias.enabled = true;
+    coarseFineBias.sexN = false;
+    coarseFineBias.typeNormal = true;
+    coarseFineBias.currentLevelNormal = true;
+
+    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP, caerBiasCoarseFineGenerate(coarseFineBias));
+
+    coarseFineBias.coarseValue = 1;
+    coarseFineBias.fineValue = 33;
+    coarseFineBias.enabled = true;
+    coarseFineBias.sexN = false;
+    coarseFineBias.typeNormal = true;
+    coarseFineBias.currentLevelNormal = true;
+
+    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
+
+    // Let's verify they really changed!
+    uint32_t prBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
+    uint32_t prsfBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
+
+    printf("New bias values --- PR-coarse: %d, PR-fine: %d, PRSF-coarse: %d, PRSF-fine: %d.\n",
+           caerBiasCoarseFineParse(prBias).coarseValue, caerBiasCoarseFineParse(prBias).fineValue,
+           caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
+}
+
 int NeuvisysThread::launchReal(NetworkHandle &network) {
     auto time = std::chrono::high_resolution_clock::now();
     auto displayTime = std::chrono::high_resolution_clock::now();
     auto trackTime = std::chrono::high_resolution_clock::now();
 
-//    StepMotor lXMotor(0, "/dev/ttyUSB0");
+//    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
 //    lXMotor.setBounds(-55000, 55000);
-//    StepMotor lYMotor(1, "/dev/ttyUSB0");
+//    BrushlessMotor lYMotor(1, "/dev/ttyUSB0");
 //    lYMotor.setBounds(-55000, 55000);
 
     std::vector<double> motorMapping;
@@ -350,34 +400,15 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     motorMapping.emplace_back(0); // no movement
     motorMapping.emplace_back(-350); // left horizontal  -> right movement
 
-    struct sigaction shutdownAction{};
-    shutdownAction.sa_handler = &globalShutdownSignalHandler;
-    shutdownAction.sa_flags = 0;
-    sigemptyset(&shutdownAction.sa_mask);
-    sigaddset(&shutdownAction.sa_mask, SIGTERM);
-    sigaddset(&shutdownAction.sa_mask, SIGINT);
-    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGTERM. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGINT. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-    // Open a DAVIS, give it a device ID of 1, and don't care about USB bus or SN restrictions.
+    prepareContext();
     auto davis = libcaer::devices::davis(1);
-    // Let's take a look at the information we have on the device.
     struct caer_davis_info davis_info = davis.infoGet();
     printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
            davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
            davis_info.logicVersion);
-    changeBiases(davis);
-//    davis.sendDefaultConfig();
-//    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
-//    // Let's turn on blocking data-get mode to avoid wasting resources.
-//    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
+    davis.sendDefaultConfig();
+    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
+    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
 
     double position = 0;
     int action;
