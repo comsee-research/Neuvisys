@@ -169,6 +169,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+            cv::imshow("events", m_leftEventDisplay);
             emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
@@ -387,13 +388,13 @@ void changeBiases(libcaer::devices::davis &davis) {
 
 int NeuvisysThread::launchReal(NetworkHandle &network) {
     auto time = std::chrono::high_resolution_clock::now();
-    auto displayTime = std::chrono::high_resolution_clock::now();
-    auto trackTime = std::chrono::high_resolution_clock::now();
+    auto displayTime = time;
+    auto trackTime = time;
+    auto motorTime = time;
+    auto positionTime = time;
 
 //    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
 //    lXMotor.setBounds(-55000, 55000);
-//    BrushlessMotor lYMotor(1, "/dev/ttyUSB0");
-//    lYMotor.setBounds(-55000, 55000);
 
     std::vector<double> motorMapping;
     motorMapping.emplace_back(350); // left horizontal -> left movement
@@ -409,6 +410,8 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     davis.sendDefaultConfig();
     davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
+
+    auto eventFilter = Ynoise(346, 260);
 
     double position = 0;
     int action;
@@ -428,11 +431,11 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
             if (packet->getEventType() == POLARITY_EVENT) {
                 auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
 //                lXMotor.jitterSpeed(static_cast<double>(dt));
-//                lYMotor.jitterSpeed(static_cast<double>(dt));
 
                 time = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
                         std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
+                auto events = eventFilter.run(*polarity);
 
 //                if (lXMotor.isActionValid(position, 0)) {
 //                    reward = 80 * (55000 - abs(position)) / 55000;
@@ -443,8 +446,7 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 m_eventRate += static_cast<double>(polarity->size());
                 network.transmitReward(reward);
                 network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
-                for (const auto &eve: *polarity) {
-                    Event event(eve.getTimestamp(), eve.getX(), eve.getY(), eve.getPolarity(), 0);
+                for (const auto &event: events) {
                     addEventToDisplay(event);
                     network.transmitEvent(event);
                 }
@@ -452,23 +454,31 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
                 auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
                 action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
 
-                if (action != -1) {
-//                    position = lXMotor.getPosition();
+//                if (action != -1) {
+//                    position += motorMapping[action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
 //                    if (lXMotor.isActionValid(position, 0)) {
-//                        lXMotor.setSpeed(motorMapping[action]);;
+//                        motorTime = time;
+//                        lXMotor.setSpeed(motorMapping[action]);
 //                    } else {
 //                        lXMotor.setSpeed(0);
 //                    }
-                }
+//                }
+//
+//                if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
+//                    positionTime = time;
+//                    std::cout << "Before: " << position << std::endl;
+//                    position = lXMotor.getPosition();
+//                    std::cout << "After: " << position << std::endl;
+//                }
 
                 /*** GUI Display ***/
                 if (std::chrono::duration<double>(time - displayTime).count() > m_displayRate / E6) {
-                    displayTime = std::chrono::high_resolution_clock::now();
+                    displayTime = time;
                     display(network, 0, 0);
                 }
 
                 if (std::chrono::duration<double>(time - trackTime).count() > m_displayRate / E6) {
-                    trackTime = std::chrono::high_resolution_clock::now();
+                    trackTime = time;
                     if (!polarity->empty()) {
                         network.trackNeuron(polarity->back().getTimestamp(), m_id, m_layer);
                     }

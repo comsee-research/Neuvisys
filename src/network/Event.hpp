@@ -12,7 +12,8 @@ class Event {
     uint16_t m_synapse;
 public:
     Event() = default;
-    inline Event(int64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity), m_camera(camera) {m_synapse = 0;}
+    inline Event(int64_t timestamp, uint16_t x, uint16_t y, bool polarity) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity), m_camera(0) { m_synapse = 0; }
+    inline Event(int64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity), m_camera(camera) { m_synapse = 0; }
     inline Event(int64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera, uint16_t synapse) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity), m_camera(camera), m_synapse(synapse) {}
     [[nodiscard]] inline int64_t timestamp() const {return m_timestamp;}
     [[nodiscard]] inline uint16_t x() const {return m_x;}

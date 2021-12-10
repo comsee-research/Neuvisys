@@ -19,7 +19,7 @@ set(PROJECT_SOURCES
         ../network/NetworkHandle.cpp
         ../robot-control/motor-control/BrushlessMotor.cpp
         ../robot-control/motor-control/libserie/Faulhaber.cpp
-        ../robot-control/motor-control/libserie/comserie.cpp)
+        ../robot-control/motor-control/libserie/comserie.cpp Ynoise.cpp Ynoise.hpp)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED NeuvisysDV.cpp ${PROJECT_SOURCES})
