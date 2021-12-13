@@ -10,7 +10,7 @@ protected:
 public:
     ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, COMPLEXDIM> &weights);
     bool newEvent(NeuronEvent event) override;
-    double getWeights(long x, long y, long z) override;
+    double getWeights(long x, long y, long z) override { return m_weights(x, y, z); }
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &saveFile) override;
     void loadWeights(std::string &filePath) override;
@@ -19,7 +19,7 @@ public:
 private:
     bool membraneUpdate(NeuronEvent event);
     void spike(long time) override;
-    void normalizeWeights();
+    void normalizeWeights() override;
 };
 
 #endif //NEUVISYS_DV_COMPLEXNEURON_HPP

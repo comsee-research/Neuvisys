@@ -11,8 +11,7 @@ set(PROJECT_SOURCES
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
         ../network/NetworkHandle.cpp
-        ../dv-modules/DavisHandle.cpp
-        motor-control/StepMotor.cpp
+        motor-control/BrushlessMotor.cpp
         motor-control/libserie/Faulhaber.cpp
         motor-control/libserie/comserie.cpp
         SimulationInterface.cpp

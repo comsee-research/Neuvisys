@@ -9,14 +9,13 @@
 #include <QMessageBox>
 #include <QtCharts>
 
-#include "neuvisysthread.h"
+#include "Neuvisysthread.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeuvisysGUI; }
 QT_END_NAMESPACE
 
-class NeuvisysGUI : public QMainWindow
-{
+class NeuvisysGUI : public QMainWindow {
     Q_OBJECT
 
 public:
@@ -24,7 +23,9 @@ public:
     ~NeuvisysGUI() override;
 
 public slots:
-    void onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void onDisplayProgress(int progress, double time);
+    void onDisplayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold,
+                             double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
     void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
@@ -41,7 +42,6 @@ signals:
     void tabVizChanged(size_t index);
     void indexChanged(size_t index);
     void zcellChanged(size_t zcell);
-    void depthChanged(size_t depth);
     void cameraChanged(size_t camera);
     void synapseChanged(size_t synapse);
     void precisionEventChanged(size_t precisionEvent);
@@ -51,6 +51,7 @@ signals:
     void layerChanged(size_t layer);
     void stopNetwork();
     void createNetwork(std::string fileName);
+
 private slots:
     void on_button_event_file_clicked();
     void on_button_network_directory_clicked();
@@ -61,10 +62,9 @@ private slots:
     void on_text_complex_cell_config_textChanged();
     void on_text_critic_cell_config_textChanged();
     void on_text_actor_cell_config_textChanged();
-    void on_button_selection_clicked();
+    void on_button_selection_clicked(int index);
     void on_tab_visualization_currentChanged(int index);
     void on_spin_zcell_selection_valueChanged(int arg1);
-    void on_spin_depth_selection_valueChanged(int arg1);
     void on_spin_camera_selection_valueChanged(int arg1);
     void on_spin_synapse_selection_valueChanged(int arg1);
     void on_slider_precision_event_sliderMoved(int position);
@@ -86,6 +86,10 @@ protected:
     QLineSeries *valueDotSeries;
     QLineSeries *tdSeries;
     QChart *rewardChart;
+    QButtonGroup *buttonSelectionGroup;
+
+    QImage m_leftImage;
+    QImage m_rightImage;
 
     QGraphicsPixmapItem leftEvents;
     QGraphicsPixmapItem rightEvents;
@@ -95,7 +99,6 @@ protected:
     size_t m_camera{};
     size_t m_synapse{};
     size_t m_layer{};
-    size_t m_depth{};
     size_t precisionEvent{};
     size_t precisionPotential{};
     size_t rangePotential{};

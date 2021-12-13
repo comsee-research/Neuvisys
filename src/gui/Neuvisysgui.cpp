@@ -1,8 +1,15 @@
-#include "neuvisysgui.h"
+#include "Neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI),
                                                                    neuvisysThread(argc, argv) {
+    QSurfaceFormat format;
+    format.setDepthBufferSize(24);
+    format.setStencilBufferSize(8);
+    format.setVersion(3, 2);
+    format.setProfile(QSurfaceFormat::CoreProfile);
+    QSurfaceFormat::setDefaultFormat(format);
+
     precisionEvent = 30000;
     precisionPotential = 10000;
     rangePotential = 1000000;
@@ -14,7 +21,10 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
-    ui->spin_depth_selection->setMinimum(0);
+    ui->modeChoice->setId(ui->recording, 0);
+    ui->modeChoice->setId(ui->realtime, 1);
+    ui->modeChoice->setId(ui->simulation, 2);
+    buttonSelectionGroup = new QButtonGroup(this);
 
     /* Selection parameters */
     ui->slider_precision_event->setMaximum(100000);
@@ -27,7 +37,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->slider_range_potential->setMaximum(5000000);
     ui->slider_range_potential->setMinimum(1000);
     ui->slider_range_potential->setValue(static_cast<int>(rangePotential));
-    ui->slider_range_spiketrain->setMaximum(5000000);
+    ui->slider_range_spiketrain->setMaximum(10000000);
     ui->slider_range_spiketrain->setMinimum(100000);
     ui->slider_range_spiketrain->setValue(static_cast<int>(rangeSpiketrain));
 
@@ -104,6 +114,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double, long>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
+    connect(&neuvisysThread, &NeuvisysThread::displayStatistics, this, &NeuvisysGUI::onDisplayStatistics);
     connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);
     connect(&neuvisysThread, &NeuvisysThread::displayPotential, this, &NeuvisysGUI::onDisplayPotential);
     connect(&neuvisysThread, &NeuvisysThread::displaySpike, this, &NeuvisysGUI::onDisplaySpike);
@@ -119,7 +130,6 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(this, &NeuvisysGUI::tabVizChanged, &neuvisysThread, &NeuvisysThread::onTabVizChanged);
     connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
     connect(this, &NeuvisysGUI::zcellChanged, &neuvisysThread, &NeuvisysThread::onZcellChanged);
-    connect(this, &NeuvisysGUI::depthChanged, &neuvisysThread, &NeuvisysThread::onDepthChanged);
     connect(this, &NeuvisysGUI::cameraChanged, &neuvisysThread, &NeuvisysThread::onCameraChanged);
     connect(this, &NeuvisysGUI::synapseChanged, &neuvisysThread, &NeuvisysThread::onSynapseChanged);
     connect(this, &NeuvisysGUI::precisionEventChanged, &neuvisysThread, &NeuvisysThread::onPrecisionEventChanged);
@@ -132,7 +142,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
 
     neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json",
                           ui->text_event_file->text(),
-                          static_cast<size_t>(ui->number_runs->value()), ui->realtime->isChecked());
+                          static_cast<size_t>(ui->number_runs->value()), ui->modeChoice->checkedId());
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
@@ -230,64 +240,6 @@ void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
     file.close();
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
-                                         const std::vector<std::vector<size_t>> &layerPatches,
-                                         const std::vector<size_t> &layerSizes, const
-                                         std::vector<size_t> &neuronSizes) {
-    ui->spin_depth_selection->setMaximum(static_cast<int>(neuronSizes[2] - 1));
-    ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
-
-    while (QLayoutItem *item = ui->gridSelection->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-    while (QLayoutItem *item = ui->weightLayout->takeAt(0)) {
-        delete item->widget();
-        delete item;
-    }
-
-    int count = 0;
-    for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
-        for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
-            auto *button = new QPushButton(this);
-            button->setText(QString::number(count));
-            button->setMinimumWidth(5);
-            ui->gridSelection->addWidget(button, static_cast<int>(i), static_cast<int>(j));
-            connect(button, SIGNAL(clicked()), this, SLOT(on_button_selection_clicked()));
-            button->show();
-            ++count;
-
-            if (sharingType == "none") {
-                auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, static_cast<int>(i), static_cast<int>(j));
-                label->show();
-            }
-        }
-    }
-    if (sharingType == "patch") {
-        for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
-            for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
-                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
-                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
-                        auto *label = new QLabel(this);
-                        ui->weightLayout->addWidget(label, static_cast<int>(hp * layerSizes[2] + i),
-                                                    static_cast<int>(wp * layerSizes[2] + j));
-                        label->show();
-                    }
-                }
-            }
-        }
-    } else if (sharingType == "full") {
-        for (int i = 0; i < std::sqrt(layerSizes[2]); ++i) {
-            for (int j = 0; j < std::sqrt(layerSizes[2]); ++j) {
-                auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, i, j);
-                label->show();
-            }
-        }
-    }
-}
-
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
                                     const std::vector<size_t> &networkStructure) {
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
@@ -313,19 +265,74 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     }
 }
 
-void NeuvisysGUI::on_button_selection_clicked() {
-    auto *button = dynamic_cast<QPushButton *>(sender());
-    m_id = static_cast<size_t>(ui->spin_depth_selection->value()) * button->text().toULong();
+void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
+                                         const std::vector<std::vector<size_t>> &layerPatches,
+                                         const std::vector<size_t> &layerSizes, const
+                                         std::vector<size_t> &neuronSizes) {
+    ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
+    ui->spin_zcell_selection->setValue(0);
+    buttonSelectionGroup = new QButtonGroup;
+
+    while (QLayoutItem *item = ui->gridSelection->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+    while (QLayoutItem *item = ui->weightLayout->takeAt(0)) {
+        delete item->widget();
+        delete item;
+    }
+
+    int count = 0;
+    for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
+        for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
+            auto *button = new QPushButton(this);
+            button->setText(QString::number(count));
+            button->setFixedWidth(30);
+            button->setFixedHeight(30);
+            button->setCheckable(true);
+            if (count == 0) {
+                button->setChecked(true);
+            }
+            buttonSelectionGroup->addButton(button);
+            buttonSelectionGroup->setId(button, count);
+            ui->gridSelection->addWidget(button, static_cast<int>(j), static_cast<int>(i));
+            button->show();
+            ++count;
+
+            if (sharingType == "none") {
+                auto *label = new QLabel(this);
+                ui->weightLayout->addWidget(label, static_cast<int>(j), static_cast<int>(i));
+                label->show();
+            }
+        }
+    }
+    connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
+    if (sharingType == "patch") {
+        for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
+            for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
+                for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
+                    for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
+                        auto *label = new QLabel(this);
+                        ui->weightLayout->addWidget(label, static_cast<int>(hp * layerSizes[2] + i),
+                                                    static_cast<int>(wp * layerSizes[2] + j));
+                        label->show();
+                    }
+                }
+            }
+        }
+    }
+}
+
+void NeuvisysGUI::on_button_selection_clicked(int index) {
+    m_id = static_cast<size_t>(ui->spin_zcell_selection->value() + 1) * index;
+    emit indexChanged(m_id);
 }
 
 void NeuvisysGUI::on_spin_zcell_selection_valueChanged(int arg1) {
     m_zcell = static_cast<size_t>(arg1);
+    m_id = static_cast<size_t>(m_zcell + 1) * buttonSelectionGroup->checkedId();
     emit zcellChanged(m_zcell);
-}
-
-void NeuvisysGUI::on_spin_depth_selection_valueChanged(int arg1) {
-    m_depth = static_cast<size_t>(arg1);
-    emit depthChanged(m_depth);
+    emit indexChanged(m_id);
 }
 
 void NeuvisysGUI::on_spin_camera_selection_valueChanged(int arg1) {
@@ -342,29 +349,29 @@ void NeuvisysGUI::on_tab_visualization_currentChanged(int index) {
     emit tabVizChanged(index);
 }
 
-void NeuvisysGUI::onDisplayProgress(int progress, double simTime, double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias) {
-    ui->lcd_sim_time->display(simTime);
+void NeuvisysGUI::onDisplayProgress(int progress, double time) {
+    ui->progressBar->setValue(progress);
+    ui->lcd_sim_time->display(time);
+}
+
+void NeuvisysGUI::onDisplayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold,
+                                      double bias) {
     ui->lcd_event_rate->display(event_rate);
     ui->lcd_on_off_ratio->display(on_off_ratio);
     ui->lcd_spike_rate->display(spike_rate);
     ui->lcd_threshold->display(threshold);
     ui->lcd_bias->display(bias);
-    ui->progressBar->setValue(progress);
 }
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
-    QImage leftImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols,
-                      leftEventDisplay.rows,
-                       static_cast<int>(leftEventDisplay.step), QImage::Format_RGB888);
-    auto leftPixmap = QPixmap::fromImage(leftImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-                                                                         static_cast<int>(1.5 * 260));
-    QImage rightImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols,
-                       rightEventDisplay.rows,
-                       static_cast<int>(rightEventDisplay.step), QImage::Format_RGB888);
-    auto rightPixmap = QPixmap::fromImage(rightImage.rgbSwapped()).scaled(static_cast<int>(1.5 * 346),
-                                                                           static_cast<int>(1.5 * 260));
-    ui->left_event_video->setPixmap(leftPixmap);
-    ui->right_event_video->setPixmap(rightPixmap);
+    m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>
+    (leftEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
+    m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>
+    (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
+    ui->opengl_left_events->setImage(m_leftImage);
+    ui->opengl_left_events->update();
+//    ui->opengl_right_events->setPixmap(m_rightImage);
+//    ui->opengl_right_events->update();
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
@@ -413,10 +420,13 @@ void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const 
     spikeSeries->setMarkerSize(8);
 
     size_t index = 0;
+    size_t nMax = 1000 / spikeTrains.size();
     for (const auto &spikeTrain: spikeTrains) {
+        size_t count = 0;
         for (auto spike = spikeTrain.get().rbegin(); spike != spikeTrain.get().rend(); ++spike) {
-            if (time - static_cast<double>(*spike) <= static_cast<double>(rangeSpiketrain)) {
+            if (time - static_cast<double>(*spike) <= static_cast<double>(rangeSpiketrain) && count < nMax) {
                 spikeSeries->append(static_cast<qreal>(*spike), static_cast<qreal>(index));
+                ++count;
             } else {
                 break;
             }
@@ -501,13 +511,15 @@ void NeuvisysGUI::on_slider_range_spiketrain_sliderMoved(int position) {
 
 void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
     m_layer = position;
+    m_id = 0;
+    m_zcell = 0;
     emit layerChanged(m_layer);
-}
-
-void NeuvisysGUI::onNetworkDestruction() {
-    ui->console->insertPlainText(QString("Finished."));
 }
 
 void NeuvisysGUI::onConsoleMessage(const std::string &msg) {
     ui->console->insertPlainText(QString::fromStdString(msg));
+}
+
+void NeuvisysGUI::onNetworkDestruction() {
+    ui->console->insertPlainText(QString("Finished."));
 }

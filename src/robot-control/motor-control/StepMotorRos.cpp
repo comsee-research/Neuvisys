@@ -5,7 +5,7 @@
 #include "StepMotorRos.hpp"
 #include <string>
 
-StepMotorRos::StepMotorRos(const std::string &topic, const size_t motorAdress, const std::string &port) : StepMotor(topic, motorAdress, port) {
+StepMotorRos::StepMotorRos(const std::string &topic, const size_t motorAdress, const std::string &port) : BrushlessMotor(topic, motorAdress, port) {
     m_positionSub = m_nh.subscribe<std_msgs::Float32>(topic + "Speed", 1000, [this](auto && PH1) {
         setSpeedCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_speedSub = m_nh.subscribe<std_msgs::Float32>(topic + "Position", 1000, [this](auto && PH1) {

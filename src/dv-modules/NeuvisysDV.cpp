@@ -2,7 +2,7 @@
 #include <dv-sdk/processing/core.hpp>
 #include <thread>
 
-#include <src/robot-control/motor-control/StepMotor.hpp>
+#include <src/robot-control/motor-control/BrushlessMotor.hpp>
 #include <src/network/NetworkHandle.hpp>
 
 #define CONFIG "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json"
@@ -20,7 +20,7 @@ private:
     size_t iteration = 0;
     double position = 0;
     std::vector<std::pair<uint64_t, float>> motorMapping;
-    StepMotor m_motor = StepMotor("leftmotor1", 0, "/dev/ttyUSB0");
+    BrushlessMotor m_motor = BrushlessMotor("leftmotor1", 0, "/dev/ttyUSB0");
 
 public:
     Neuvisys() {

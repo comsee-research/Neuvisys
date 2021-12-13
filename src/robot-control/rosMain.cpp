@@ -2,24 +2,8 @@
 // Created by thomas on 28/06/2021.
 //
 
-#include <motor-control/StepMotor.hpp>
+#include <motor-control/BrushlessMotor.hpp>
 #include "SimulationInterface.hpp"
-#include "../dv-modules/DavisHandle.hpp"
-
-static atomic_bool globalShutdown(false);
-
-static void globalShutdownSignalHandler(int signal) {
-    // Simply set the running flag to false on SIGTERM and SIGINT (CTRL+C) for global shutdown.
-    if (signal == SIGTERM || signal == SIGINT) {
-        globalShutdown.store(true);
-    }
-}
-
-static void usbShutdownHandler(void *ptr) {
-    (void) (ptr); // UNUSED.
-
-    globalShutdown.store(true);
-}
 
 int launchLearningSimulation(std::string &networkPath) {
     SimulationInterface sim;

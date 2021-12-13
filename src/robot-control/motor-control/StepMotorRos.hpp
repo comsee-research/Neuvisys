@@ -5,11 +5,11 @@
 #ifndef NEUVISYS_STEPMOTORROS_HPP
 #define NEUVISYS_STEPMOTORROS_HPP
 
-#include "StepMotor.hpp"
+#include "BrushlessMotor.hpp"
 #include <std_msgs/Float32.h>
 #include "ros/ros.h"
 
-class StepMotorRos : public StepMotor {
+class StepMotorRos : public BrushlessMotor {
     ros::NodeHandle m_nh;
     ros::Subscriber m_positionSub{};
     ros::Subscriber m_speedSub{};
