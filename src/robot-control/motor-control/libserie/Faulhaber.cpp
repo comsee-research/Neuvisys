@@ -4,7 +4,7 @@
 
 Faulhaber::Faulhaber(int Adresse_moteur, const string &port) : ComSerie() {
     std::cout << " Ouverture de " << port << std::endl;
-    ouvrir(port, B115200 | CS8 | CLOCAL | CREAD, 1);
+    ouvrir(port, B9600 | CS8 | CLOCAL | CREAD, 1);
     Adresse_moteur_ = std::to_string(Adresse_moteur);
 }
 

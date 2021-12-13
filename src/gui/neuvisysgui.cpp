@@ -36,6 +36,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
 
+
     /* Qt charts */
     potentialSeries = new QLineSeries();
     potentialChart = new QChart();
@@ -364,8 +365,6 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
                                                                            static_cast<int>(1.5 * 260));
     ui->left_event_video->setPixmap(leftPixmap);
     ui->right_event_video->setPixmap(rightPixmap);
-    ui->left_event_video->show();
-    ui->right_event_video->show();
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {

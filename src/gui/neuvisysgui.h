@@ -87,6 +87,9 @@ protected:
     QLineSeries *tdSeries;
     QChart *rewardChart;
 
+    QGraphicsPixmapItem leftEvents;
+    QGraphicsPixmapItem rightEvents;
+
     size_t m_id{};
     size_t m_zcell{};
     size_t m_camera{};

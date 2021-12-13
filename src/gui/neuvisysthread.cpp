@@ -46,8 +46,8 @@ void NeuvisysThread::run() {
     m_motorDisplay = std::vector<bool>(2, false);
 
     if (m_realtime) {
-        launchSimulation(network);
-//        launchReal(network);
+//        launchSimulation(network);
+        launchReal(network);
     } else {
         launchNetwork(network);
     }
@@ -400,8 +400,8 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
             if (packet->getEventType() == POLARITY_EVENT) {
                 auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
-                lXMotor.jitterSpeed(static_cast<double>(dt));
-                lYMotor.jitterSpeed(static_cast<double>(dt));
+//                lXMotor.jitterSpeed(static_cast<double>(dt));
+//                lYMotor.jitterSpeed(static_cast<double>(dt));
 
                 time = std::chrono::high_resolution_clock::now();
                 std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
