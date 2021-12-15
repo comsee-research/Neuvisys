@@ -10,6 +10,7 @@
 #include <thread>
 #include <libcaercpp/devices/davis.hpp>
 
+#include "../dv-modules/Ynoise.hpp"
 #include "../robot-control/motor-control/BrushlessMotor.hpp"
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
