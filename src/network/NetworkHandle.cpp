@@ -12,8 +12,8 @@ NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_sp
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                                m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
                                                                m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",
-                                                                                 3), m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
+                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
+                                                               m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
     m_spinet.loadWeights();
 }
 

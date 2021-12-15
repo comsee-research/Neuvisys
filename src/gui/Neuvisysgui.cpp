@@ -241,10 +241,12 @@ void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
 
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
                                     const std::vector<size_t> &networkStructure) {
+    ui->console->clear();
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
     ui->slider_layer->setMaximum(static_cast<int>(networkStructure.size() - 1));
 
+    ui->console->insertPlainText(QString("Network started:\n"));
     QString message = QString("Network structure: ");
     for (auto structure: networkStructure) {
         message.append(QString::number(structure));
@@ -253,15 +255,15 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
-    std::vector<QString> labels = {QString("Left"), QString("None"), QString("Right")};
-    assert(labels.size() >= networkStructure.back());
-    for (size_t i = 0; i < networkStructure.back(); ++i) {
-        auto *label = new QLabel(this);
-        label->setText(QString(labels[i]));
-
-        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-        label->show();
-    }
+//    std::vector<QString> labels;
+//    for (size_t i = 0; i < networkStructure.back(); ++i) { // TODO: add explicit reference to number of actions.
+//        labels.push_back(QString::number(i));
+//        auto *label = new QLabel(this);
+//        label->setText(QString(labels[i]));
+//
+//        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
+//        label->show();
+//    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -520,5 +522,5 @@ void NeuvisysGUI::onConsoleMessage(const std::string &msg) {
 }
 
 void NeuvisysGUI::onNetworkDestruction() {
-    ui->console->insertPlainText(QString("Finished."));
+    ui->console->insertPlainText(QString("Finished.\n"));
 }
