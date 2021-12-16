@@ -170,7 +170,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             cv::imshow("events", m_leftEventDisplay);
-            emit displayAction(m_motorDisplay);
+//            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;

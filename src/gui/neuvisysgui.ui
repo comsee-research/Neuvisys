@@ -36,7 +36,7 @@
        </size>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="launch_options">
        <property name="sizePolicy">
@@ -477,7 +477,7 @@
     <item row="0" column="1">
      <widget class="QTabWidget" name="tab_visualization">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="event_viz">
        <attribute name="title">
