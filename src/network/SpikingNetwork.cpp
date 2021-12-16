@@ -329,17 +329,15 @@ void SpikingNetwork::saveNetwork() {
 }
 
 void SpikingNetwork::saveNeuronsStates() {
-    size_t count, layer = 0;
+    size_t layer = 0;
     std::string fileName;
 
     for (auto &neurons: m_neurons) {
-        count = 0;
         for (auto &neuron: neurons) {
             fileName =
-                    m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/" + std::to_string(count);
+                    m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
             neuron.get().saveState(fileName);
             neuron.get().saveWeights(fileName);
-            ++count;
         }
         ++layer;
     }
