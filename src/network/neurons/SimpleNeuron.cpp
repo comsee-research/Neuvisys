@@ -139,7 +139,8 @@ void SimpleNeuron::saveWeights(std::string &saveFile) {
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileToSimpleTensor(filePath, m_weights);
+    Util::loadNumpyFileToSimpleTensor(filePath + m_index, m_weights);
+    Util::loadNumpyFileToSimpleTensor(filePath + "inhib" + m_index, m_inhibWeights);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {
