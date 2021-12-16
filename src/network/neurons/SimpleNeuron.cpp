@@ -93,13 +93,10 @@ inline void SimpleNeuron::weightUpdate() {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }
         }
-
         normalizeWeights();
+
         //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
 
-        if (m_index == 0) {
-            std::cout << m_inhibEvents.size() << std::endl;
-        }
         for (NeuronEvent &event : m_inhibEvents) {
             m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
             m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
@@ -136,14 +133,14 @@ inline void SimpleNeuron::normalizeWeights() {
 void SimpleNeuron::saveWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     Util::saveSimpleTensorToNumpyFile(m_weights, weightsFile);
-    weightsFile = filePath + "inhib" + std::to_string(m_index);
+    weightsFile = filePath + std::to_string(m_index) + "inhib";
     Util::saveComplexTensorToNumpyFile(m_inhibWeights, weightsFile);
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     Util::loadNumpyFileToSimpleTensor(weightsFile, m_weights);
-    weightsFile = filePath + "inhib" + std::to_string(m_index);
+    weightsFile = filePath + std::to_string(m_index) + "inhib";
     Util::loadNumpyFileToComplexTensor(weightsFile, m_inhibWeights);
 }
 
