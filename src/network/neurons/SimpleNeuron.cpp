@@ -134,7 +134,8 @@ inline void SimpleNeuron::normalizeWeights() {
 }
 
 void SimpleNeuron::saveWeights(std::string &saveFile) {
-    Util::saveSimpleTensorToNumpyFile(m_weights, saveFile);
+    Util::saveSimpleTensorToNumpyFile(m_weights, saveFile + m_index);
+    Util::saveSimpleTensorToNumpyFile(m_inhibWeights, saveFile + "inhib" + m_index);
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
