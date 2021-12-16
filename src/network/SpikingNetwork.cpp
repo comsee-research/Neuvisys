@@ -329,17 +329,15 @@ void SpikingNetwork::saveNetwork() {
 }
 
 void SpikingNetwork::saveNeuronsStates() {
-    size_t count, layer = 0;
+    size_t layer = 0;
     std::string fileName;
 
     for (auto &neurons: m_neurons) {
-        count = 0;
         for (auto &neuron: neurons) {
             fileName =
-                    m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/" + std::to_string(count);
+                    m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
             neuron.get().saveState(fileName);
             neuron.get().saveWeights(fileName);
-            ++count;
         }
         ++layer;
     }
@@ -347,18 +345,15 @@ void SpikingNetwork::saveNeuronsStates() {
 
 void SpikingNetwork::loadWeights() {
     std::string fileName;
-    size_t count, layer = 0;
+    size_t layer = 0;
 
     for (auto &neurons: m_neurons) {
-        count = 0;
         std::string path(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0.npy");
         if (Util::fileExist(path)) {
             for (auto &neuron: neurons) {
-                fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/" +
-                           std::to_string(count);
+                fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
                 neuron.get().loadState(fileName);
                 neuron.get().loadWeights(fileName);
-                ++count;
             }
             std::cout << "Layer " << layer << ": weights loaded from file" << std::endl;
         } else {

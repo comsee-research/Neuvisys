@@ -6,6 +6,7 @@
 SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
     Neuron(index, layer, conf, pos, offset),
     m_events(boost::circular_buffer<Event>(1000)),
+    m_inhibEvents(boost::circular_buffer<NeuronEvent>(1000)),
     m_weights(weights),
     m_inhibWeights(Util::uniformMatrixComplex(1, 1, 16)), // TODO: generic init
     m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
@@ -96,6 +97,9 @@ inline void SimpleNeuron::weightUpdate() {
         normalizeWeights();
         //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
 
+        if (m_index == 0) {
+            std::cout << m_inhibEvents.size() << std::endl;
+        }
         for (NeuronEvent &event : m_inhibEvents) {
             m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
             m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
@@ -106,6 +110,7 @@ inline void SimpleNeuron::weightUpdate() {
         }
     }
     m_events.clear();
+    m_inhibEvents.clear();
 }
 
 /* Weight normalization using tensor calculations.
@@ -129,11 +134,13 @@ inline void SimpleNeuron::normalizeWeights() {
 }
 
 void SimpleNeuron::saveWeights(std::string &saveFile) {
-    Util::saveSimpleTensorToNumpyFile(m_weights, saveFile);
+    Util::saveSimpleTensorToNumpyFile(m_weights, saveFile + m_index);
+    Util::saveSimpleTensorToNumpyFile(m_inhibWeights, saveFile + "inhib" + m_index);
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileToSimpleTensor(filePath, m_weights);
+    Util::loadNumpyFileToSimpleTensor(filePath + m_index, m_weights);
+    Util::loadNumpyFileToSimpleTensor(filePath + "inhib" + m_index, m_inhibWeights);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {
