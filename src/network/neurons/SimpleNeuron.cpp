@@ -133,14 +133,18 @@ inline void SimpleNeuron::normalizeWeights() {
     }
 }
 
-void SimpleNeuron::saveWeights(std::string &saveFile) {
-    Util::saveSimpleTensorToNumpyFile(m_weights, saveFile + m_index);
-    Util::saveSimpleTensorToNumpyFile(m_inhibWeights, saveFile + "inhib" + m_index);
+void SimpleNeuron::saveWeights(std::string &filePath) {
+    auto weightsFile = filePath + std::to_string(m_index);
+    Util::saveSimpleTensorToNumpyFile(m_weights, weightsFile);
+    weightsFile = filePath + "inhib" + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_inhibWeights, weightsFile);
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileToSimpleTensor(filePath + m_index, m_weights);
-    Util::loadNumpyFileToSimpleTensor(filePath + "inhib" + m_index, m_inhibWeights);
+    auto weightsFile = filePath + std::to_string(m_index);
+    Util::loadNumpyFileToSimpleTensor(weightsFile, m_weights);
+    weightsFile = filePath + "inhib" + std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(weightsFile, m_inhibWeights);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {

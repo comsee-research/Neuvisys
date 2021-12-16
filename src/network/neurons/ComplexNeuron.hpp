@@ -12,7 +12,7 @@ public:
     bool newEvent(NeuronEvent event) override;
     double getWeights(long x, long y, long z) override { return m_weights(x, y, z); }
     std::vector<long> getWeightsDimension() override;
-    void saveWeights(std::string &saveFile) override;
+    void saveWeights(std::string &filePath) override;
     void loadWeights(std::string &filePath) override;
     void weightUpdate() override;
     cv::Mat summedWeightMatrix() override;
