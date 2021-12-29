@@ -20,7 +20,7 @@ public:
     void spike(long time) override;
     double getWeights(long x, long y, long z) override;
     std::vector<long> getWeightsDimension() override;
-    void saveWeights(std::string &saveFile) override;
+    void saveWeights(std::string &filePath) override;
     void loadWeights(std::string &filePath) override;
     void normalizeWeights() override;
     void setNeuromodulator(double neuromodulator) override;

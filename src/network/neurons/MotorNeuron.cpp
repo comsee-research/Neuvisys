@@ -125,12 +125,14 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
     return mat;
 }
 
-void MotorNeuron::saveWeights(std::string &saveFile) {
-    Util::saveComplexTensorToNumpyFile(m_weights, saveFile);
+void MotorNeuron::saveWeights(std::string &filePath) {
+    auto weightFile = filePath + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
 }
 
 void MotorNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileToComplexTensor(filePath, m_weights);
+    auto weightFile = filePath + std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(weightFile, m_weights);
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {
