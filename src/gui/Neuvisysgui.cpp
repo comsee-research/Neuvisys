@@ -24,6 +24,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->modeChoice->setId(ui->recording, 0);
     ui->modeChoice->setId(ui->realtime, 1);
     ui->modeChoice->setId(ui->simulation, 2);
+    ui->modeChoice->setId(ui->events_only, 3);
     buttonSelectionGroup = new QButtonGroup(this);
 
     /* Selection parameters */
@@ -371,8 +372,8 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
     (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
     ui->opengl_left_events->setImage(m_leftImage);
     ui->opengl_left_events->update();
-//    ui->opengl_right_events->setPixmap(m_rightImage);
-//    ui->opengl_right_events->update();
+    ui->opengl_right_events->setImage(m_rightImage);
+    ui->opengl_right_events->update();
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {

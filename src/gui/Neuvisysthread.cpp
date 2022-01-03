@@ -28,26 +28,60 @@ void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, 
 }
 
 void NeuvisysThread::run() {
-    auto network = NetworkHandle(m_networkPath.toStdString(), 0);
-
-    emit networkConfiguration(network.getNetworkConfig().getSharingType(),
-                              network.getNetworkConfig().getLayerPatches()[0],
-                              network.getNetworkConfig().getLayerSizes()[0],
-                              network.getNetworkConfig().getNeuronSizes()[0]);
-    emit networkCreation(network.getNetworkConfig().getNbCameras(), network.getNetworkConfig().getNeuron1Synapses(),
-                         network.getNetworkStructure());
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
-    m_motorDisplay = std::vector<bool>(2, false);
+    if (m_mode == 3) {
+        readEvents();
+    } else {
+        auto network = NetworkHandle(m_networkPath.toStdString(), 0);
 
-    if (m_mode == 0) {
-        launchNetwork(network);
-    } else if (m_mode == 1) {
-        launchReal(network);
-    } else if (m_mode == 2) {
-        launchSimulation(network);
+        emit networkConfiguration(network.getNetworkConfig().getSharingType(),
+                                  network.getNetworkConfig().getLayerPatches()[0],
+                                  network.getNetworkConfig().getLayerSizes()[0],
+                                  network.getNetworkConfig().getNeuronSizes()[0]);
+        emit networkCreation(network.getNetworkConfig().getNbCameras(), network.getNetworkConfig().getNeuron1Synapses(),
+                             network.getNetworkStructure());
+        m_motorDisplay = std::vector<bool>(2, false);
+
+        if (m_mode == 0) {
+            launchNetwork(network);
+        } else if (m_mode == 1) {
+            launchReal(network);
+        } else if (m_mode == 2) {
+            launchSimulation(network);
+        }
     }
     quit();
+}
+
+void NeuvisysThread::readEvents() {
+    auto eventPacket = std::vector<Event>();
+    eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
+//    eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
+
+    long time;
+    auto displayTime = eventPacket.front().timestamp();
+    auto rtime = std::chrono::high_resolution_clock::now();
+    auto rdisplayTime = rtime;
+    for (const auto &event: eventPacket) {
+        addEventToDisplay(event);
+
+        std::this_thread::sleep_for(std::chrono::nanoseconds(20));
+
+        time = event.timestamp();
+        if (time - displayTime > static_cast<long>(m_displayRate)) {
+            displayTime = time;
+
+            m_leftEventDisplay = 0;
+            m_rightEventDisplay = 0;
+        }
+
+        rtime = std::chrono::high_resolution_clock::now();
+        if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+            rdisplayTime = rtime;
+            emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+        }
+    }
 }
 
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {

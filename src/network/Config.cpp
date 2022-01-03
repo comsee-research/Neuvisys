@@ -71,6 +71,8 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             ifs >> conf;
             ETA_LTP = conf["ETA_LTP"];
             ETA_LTD = conf["ETA_LTD"];
+            ETA_ILTP = conf["ETA_ILTP"];
+            ETA_ILTD = conf["ETA_ILTD"];
             ETA_SR = conf["ETA_TA"];
             DELTA_RP = conf["ETA_RP"];
             DELTA_SRA = conf["ETA_SRA"];
@@ -255,9 +257,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
-                    {"ETA_SRA",    0.6},
-                    {"ETA_TA",        0},
-                    {"ETA_RP",    1},
+                    {"ETA_ILTP",   7.7},
+                    {"ETA_ILTD",      -2.1},
+                    {"ETA_SRA",   0.6},
+                    {"ETA_TA", 0},
+                    {"ETA_RP", 1},
                     {"ETA_INH", 20},
             },
             {

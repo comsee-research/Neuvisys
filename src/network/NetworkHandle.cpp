@@ -50,7 +50,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
 }
 
 /* Saves information about the network actual state.
- * Number of times the network has been launched and the name of the event file use can be precised.
+ * Number of times the network has been launched and the name of the event file use can be specified.
  */
 void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileName = "") {
     std::cout << "Saving Network..." << std::endl;
