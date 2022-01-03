@@ -29,13 +29,20 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     }
 
     long time = eventPacket.front().timestamp();
-
-    for (auto event : eventPacket) {
-        m_spinet.addEvent(event);
+    long displayTime = eventPacket.front().timestamp();
+    size_t iteration = 0;
+    for (const auto &event : eventPacket) {
+        ++iteration;
+        transmitEvent(event);
 
         if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
             time = event.timestamp();
             updateNeuronStates(UPDATE_INTERVAL);
+        }
+
+        if (event.timestamp() - displayTime > 5 * E6) {
+            displayTime = event.timestamp();
+            std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
         }
     }
 

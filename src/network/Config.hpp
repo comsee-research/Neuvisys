@@ -112,7 +112,7 @@ public:
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV
 
-    bool STDP_LEARNING{};
+    std::string STDP_LEARNING{};
     std::string TRACKING{};
 private:
     void loadSimpleNeuronsParameters(const std::string& fileName);

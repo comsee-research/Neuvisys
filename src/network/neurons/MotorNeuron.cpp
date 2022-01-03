@@ -50,7 +50,7 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::weightUpdate() {
-    if (conf.STDP_LEARNING) {
+    if (conf.STDP_LEARNING == "excitatory" || conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_events) {
             m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- (static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / conf.TAU_E);
             m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);

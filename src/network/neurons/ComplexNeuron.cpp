@@ -43,7 +43,7 @@ inline void ComplexNeuron::spike(const long time) {
 }
 
 inline void ComplexNeuron::weightUpdate() {
-    if (conf.STDP_LEARNING) {
+    if (conf.STDP_LEARNING == "excitatory" || conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_events) {
             if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
                 m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTP;
@@ -51,34 +51,6 @@ inline void ComplexNeuron::weightUpdate() {
             if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
                 m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTD;
             }
-            // Step Window
-            //        if (m_networkConf.STDP == "step_sym") {
-            //            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_networkConf.TAU_LTP && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTP;
-            //            }
-            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_networkConf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTD;
-            //            }
-            //        } else if (m_networkConf.STDP == "step_left") {
-            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_networkConf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTD;
-            //            }
-            //        } else if (m_networkConf.STDP == "lin_sym") {
-            //            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_networkConf.TAU_LTP  && static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTP * (1 - static_cast<double>(m_spikingTime - event.timestamp()));
-            //            }
-            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_networkConf.TAU_LTD && static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTD * (1 - static_cast<double>(event.timestamp() - m_lastSpikingTime));
-            //            }
-            //        } else if (m_networkConf.STDP == "exp_sym") {
-            //            if (static_cast<double>(m_spikingTime - event.timestamp()) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_networkConf.TAU_LTP);
-            //            }
-            //            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) >= 0) {
-            //                m_weights(event.m_jitterSpeed(), event.y(), event.z()) += m_learningDecay * m_networkConf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_networkConf.TAU_LTD);
-            //            }
-            //        }
-
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
