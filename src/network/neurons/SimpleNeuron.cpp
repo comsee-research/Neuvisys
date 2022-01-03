@@ -32,7 +32,7 @@ inline bool SimpleNeuron::newEvent(Event event) {
 
 void SimpleNeuron::newInhibitoryEvent(NeuronEvent event) {
     m_inhibEvents.push_back(event);
-    m_potential -= m_inhibWeights(event.x(), event.y(), event.z());
+    m_potential -= 200 * m_inhibWeights(event.x(), event.y(), event.z());
 }
 
 bool SimpleNeuron::update() {
@@ -85,26 +85,26 @@ inline void SimpleNeuron::spike(const long time) {
  */
 inline void SimpleNeuron::weightUpdate() {
     if (conf.STDP_LEARNING) {
-        for (Event &event : m_events) {
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
-
-            if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
-                m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
-            }
-        }
-        normalizeWeights();
+//        for (Event &event : m_events) {
+//            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+//            m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+//
+//            if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
+//                m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
+//            }
+//        }
+//        normalizeWeights();
 
         //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
 
-        for (NeuronEvent &event : m_inhibEvents) {
-            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
-
-            if (m_inhibWeights(event.x(), event.y(), event.z()) < 0) {
-                m_inhibWeights(event.x(), event.y(), event.z()) = 0;
-            }
-        }
+//        for (NeuronEvent &event : m_inhibEvents) {
+//            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+//            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_LTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+//
+//            if (m_inhibWeights(event.x(), event.y(), event.z()) < 0) {
+//                m_inhibWeights(event.x(), event.y(), event.z()) = 0;
+//            }
+//        }
     }
     m_events.clear();
     m_inhibEvents.clear();
