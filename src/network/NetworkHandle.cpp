@@ -151,10 +151,10 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
             l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
             r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
             if (right >= sizeRightArray || l_t <= r_t) {
-                event = Event(l_t / E3, l_x[left], l_y[left], l_polarities[left], 0);
+                event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
                 ++left;
             } else if (left >= sizeLeftArray || l_t > r_t) {
-                event = Event(r_t / E3, r_x[right], r_y[right], r_polarities[right], 1);
+                event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
                 ++right;
             }
             eventPacket.push_back(event);

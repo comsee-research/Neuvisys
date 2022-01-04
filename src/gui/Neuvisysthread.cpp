@@ -51,6 +51,7 @@ void NeuvisysThread::run() {
             launchSimulation(network);
         }
     }
+    std::cout << "end" << std::endl;
     quit();
 }
 
@@ -61,15 +62,16 @@ void NeuvisysThread::readEvents() {
 
     long time;
     auto displayTime = eventPacket.front().timestamp();
+    std::cout << displayTime << std::endl;
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
     for (const auto &event: eventPacket) {
         addEventToDisplay(event);
 
-        std::this_thread::sleep_for(std::chrono::nanoseconds(20));
-
         time = event.timestamp();
+        std::cout << time << std::endl;
         if (time - displayTime > static_cast<long>(m_displayRate)) {
+            std::cout << "hey" << std::endl;
             displayTime = time;
 
             m_leftEventDisplay = 0;
