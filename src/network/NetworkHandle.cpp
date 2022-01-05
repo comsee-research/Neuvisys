@@ -31,6 +31,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     long time = eventPacket.front().timestamp();
     long displayTime = eventPacket.front().timestamp();
     size_t iteration = 0;
+    std::cout << "Unpacking events..." << std::endl;
     for (const auto &event : eventPacket) {
         ++iteration;
         transmitEvent(event);
