@@ -96,6 +96,8 @@ public:
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV
+    double ETA_ILTP{}; // mV
+    double ETA_ILTD{}; // mV
     double ETA_SR{}; // mV
     double DELTA_RP{}; // mv
     double DELTA_SRA{}; // mV
@@ -112,7 +114,7 @@ public:
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV
 
-    bool STDP_LEARNING{};
+    std::string STDP_LEARNING{};
     std::string TRACKING{};
 private:
     void loadSimpleNeuronsParameters(const std::string& fileName);

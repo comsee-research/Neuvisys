@@ -50,7 +50,7 @@ inline void MotorNeuron::spike(long time) {
 }
 
 inline void MotorNeuron::weightUpdate() {
-    if (conf.STDP_LEARNING) {
+    if (conf.STDP_LEARNING == "excitatory" || conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_events) {
             m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(- (static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / conf.TAU_E);
             m_eligibilityTrace(event.x(), event.y(), event.z()) += conf.ETA_LTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
@@ -125,12 +125,14 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
     return mat;
 }
 
-void MotorNeuron::saveWeights(std::string &saveFile) {
-    Util::saveComplexTensorToNumpyFile(m_weights, saveFile);
+void MotorNeuron::saveWeights(std::string &filePath) {
+    auto weightFile = filePath + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
 }
 
 void MotorNeuron::loadWeights(std::string &filePath) {
-    Util::loadNumpyFileToComplexTensor(filePath, m_weights);
+    auto weightFile = filePath + std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(weightFile, m_weights);
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {

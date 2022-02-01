@@ -18,12 +18,13 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
     ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
-    openConfigFiles();
+    openConfigFiles(false);
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->modeChoice->setId(ui->recording, 0);
     ui->modeChoice->setId(ui->realtime, 1);
     ui->modeChoice->setId(ui->simulation, 2);
+    ui->modeChoice->setId(ui->events_only, 3);
     buttonSelectionGroup = new QButtonGroup(this);
 
     /* Selection parameters */
@@ -206,23 +207,23 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::openConfigFiles() {
+void NeuvisysGUI::openConfigFiles(bool warning) {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
-    ui->text_network_config->setText(readConfFile(confDir));
+    ui->text_network_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/simple_cell_config.json";
-    ui->text_simple_cell_config->setText(readConfFile(confDir));
+    ui->text_simple_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/complex_cell_config.json";
-    ui->text_complex_cell_config->setText(readConfFile(confDir));
+    ui->text_complex_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/critic_cell_config.json";
-    ui->text_critic_cell_config->setText(readConfFile(confDir));
+    ui->text_critic_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/actor_cell_config.json";
-    ui->text_actor_cell_config->setText(readConfFile(confDir));
+    ui->text_actor_cell_config->setText(readConfFile(confDir, warning));
 }
 
-QString NeuvisysGUI::readConfFile(QString &directory) {
+QString NeuvisysGUI::readConfFile(QString &directory, bool warning) {
     QFile file(directory);
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+    if (warning && !file.open(QIODevice::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
     }
     QString networkText = QTextStream(&file).readAll();
@@ -233,19 +234,22 @@ QString NeuvisysGUI::readConfFile(QString &directory) {
 void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
     QFile file(directory);
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
+    } else {
+        QTextStream out(&file);
+        out << text;
     }
-    QTextStream out(&file);
-    out << text;
     file.close();
 }
 
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
                                     const std::vector<size_t> &networkStructure) {
+    ui->console->clear();
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
     ui->slider_layer->setMaximum(static_cast<int>(networkStructure.size() - 1));
 
+    ui->console->insertPlainText(QString("Network started:\n"));
     QString message = QString("Network structure: ");
     for (auto structure: networkStructure) {
         message.append(QString::number(structure));
@@ -254,15 +258,15 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
-    std::vector<QString> labels = {QString("Left"), QString("None"), QString("Right")};
-    assert(labels.size() >= networkStructure.back());
-    for (size_t i = 0; i < networkStructure.back(); ++i) {
-        auto *label = new QLabel(this);
-        label->setText(QString(labels[i]));
-
-        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-        label->show();
-    }
+//    std::vector<QString> labels;
+//    for (size_t i = 0; i < networkStructure.back(); ++i) { // TODO: add explicit reference to number of actions.
+//        labels.push_back(QString::number(i));
+//        auto *label = new QLabel(this);
+//        label->setText(QString(labels[i]));
+//
+//        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
+//        label->show();
+//    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -370,8 +374,8 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
     (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
     ui->opengl_left_events->setImage(m_leftImage);
     ui->opengl_left_events->update();
-//    ui->opengl_right_events->setPixmap(m_rightImage);
-//    ui->opengl_right_events->update();
+    ui->opengl_right_events->setImage(m_rightImage);
+    ui->opengl_right_events->update();
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
@@ -521,5 +525,5 @@ void NeuvisysGUI::onConsoleMessage(const std::string &msg) {
 }
 
 void NeuvisysGUI::onNetworkDestruction() {
-    ui->console->insertPlainText(QString("Finished."));
+    ui->console->insertPlainText(QString("Finished.\n"));
 }

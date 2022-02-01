@@ -71,6 +71,8 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             ifs >> conf;
             ETA_LTP = conf["ETA_LTP"];
             ETA_LTD = conf["ETA_LTD"];
+            ETA_ILTP = conf["ETA_ILTP"];
+            ETA_ILTD = conf["ETA_ILTD"];
             ETA_SR = conf["ETA_TA"];
             DELTA_RP = conf["ETA_RP"];
             DELTA_SRA = conf["ETA_SRA"];
@@ -250,14 +252,16 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_LTD",       14},
                     {"TARGET_SPIKE_RATE", 0.75},
                     {"SYNAPSE_DELAY", 0},
-                    {"STDP_LEARNING", true},
+                    {"STDP_LEARNING", "all"},
                     {"NORM_FACTOR", 4},
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
-                    {"ETA_SRA",    0.6},
-                    {"ETA_TA",        0},
-                    {"ETA_RP",    1},
+                    {"ETA_ILTP",   7.7},
+                    {"ETA_ILTD",      -2.1},
+                    {"ETA_SRA",   0.6},
+                    {"ETA_TA", 0},
+                    {"ETA_RP", 1},
                     {"ETA_INH", 20},
             },
             {
@@ -268,7 +272,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_LTP",        20},
                     {"TAU_LTD",          20},
                     {"TAU_RP",                30},
-                    {"STDP_LEARNING", true},
+                    {"STDP_LEARNING", "all"},
                     {"NORM_FACTOR",       10},
                     {"ETA_LTP",       0.2},
                     {"ETA_LTD",       0.2},
@@ -286,7 +290,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
-                    {"STDP_LEARNING", true},
+                    {"STDP_LEARNING", "all"},
                     {"NU_K",        200},
                     {"MIN_NU_K",   100},
                     {"TAU_K",   50},
@@ -305,7 +309,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
-                    {"STDP_LEARNING", true},
+                    {"STDP_LEARNING", "all"},
                     {"TAU_E",       250},
                     {"ETA",        0.2}
             }

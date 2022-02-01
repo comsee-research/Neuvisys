@@ -63,6 +63,7 @@ private:
     void launchNetwork(NetworkHandle &network);
     void launchSimulation(NetworkHandle &network);
     int launchReal(NetworkHandle &network);
+    void readEvents();
     void display(NetworkHandle &network, size_t sizeArray, double time);
     void addEventToDisplay(const Event &event);
     void prepareSpikes(NetworkHandle &network);

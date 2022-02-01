@@ -12,8 +12,8 @@ NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_sp
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
                                                                m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
                                                                m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",
-                                                                                 3), m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
+                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
+                                                               m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
     m_spinet.loadWeights();
 }
 
@@ -29,13 +29,21 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     }
 
     long time = eventPacket.front().timestamp();
-
-    for (auto event : eventPacket) {
-        m_spinet.addEvent(event);
+    long displayTime = eventPacket.front().timestamp();
+    size_t iteration = 0;
+    std::cout << "Unpacking events..." << std::endl;
+    for (const auto &event : eventPacket) {
+        ++iteration;
+        transmitEvent(event);
 
         if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
             time = event.timestamp();
             updateNeuronStates(UPDATE_INTERVAL);
+        }
+
+        if (event.timestamp() - displayTime > 5 * E6) {
+            displayTime = event.timestamp();
+            std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
         }
     }
 
@@ -43,7 +51,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
 }
 
 /* Saves information about the network actual state.
- * Number of times the network has been launched and the name of the event file use can be precised.
+ * Number of times the network has been launched and the name of the event file use can be specified.
  */
 void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileName = "") {
     std::cout << "Saving Network..." << std::endl;
@@ -144,10 +152,10 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
             l_t = l_timestamps[left] + static_cast<long>(pass) * (lastLeftTimestamp - firstLeftTimestamp);
             r_t = r_timestamps[right] + static_cast<long>(pass) * (lastRightTimestamp - firstRightTimestamp);
             if (right >= sizeRightArray || l_t <= r_t) {
-                event = Event(l_t / E3, l_x[left], l_y[left], l_polarities[left], 0);
+                event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
                 ++left;
             } else if (left >= sizeLeftArray || l_t > r_t) {
-                event = Event(r_t / E3, r_x[right], r_y[right], r_polarities[right], 1);
+                event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
                 ++right;
             }
             eventPacket.push_back(event);

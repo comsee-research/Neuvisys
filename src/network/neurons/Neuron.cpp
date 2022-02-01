@@ -81,7 +81,7 @@ void Neuron::saveState(std::string &fileName) {
 
     writeJson(state);
 
-    std::ofstream ofs(fileName + ".json");
+    std::ofstream ofs(fileName + std::to_string(m_index) + ".json");
     if (ofs.is_open()) {
         ofs << std::setw(4) << state << std::endl;
     } else {
@@ -92,7 +92,7 @@ void Neuron::saveState(std::string &fileName) {
 
 void Neuron::loadState(std::string &fileName) {
     nlohmann::json state;
-    std::ifstream ifs(fileName + ".json");
+    std::ifstream ifs(fileName + std::to_string(m_index) + ".json");
     if (ifs.is_open()) {
         try {
             ifs >> state;
