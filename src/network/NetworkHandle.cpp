@@ -56,16 +56,35 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
 void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileName = "") {
     std::cout << "Saving Network..." << std::endl;
     std::string fileName;
-    fileName = m_networkConf.getNetworkPath() + "networkState";
+    fileName = m_networkConf.getNetworkPath() + "networkState.json";
 
     json state;
-    state["event_file_name"] = eventFileName;
-    state["nb_run"] = nbRun;
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        try {
+            ifs >> state;
+            auto eventFileNames = static_cast<std::vector<std::string>>(state["event_file_name"]);
+            auto nbRuns = static_cast<std::vector<std::size_t>>(state["nb_run"]);
+            eventFileNames.push_back(eventFileName);
+            nbRuns.push_back(nbRun);
+            state["event_file_name"] = eventFileNames;
+            state["nb_run"] = nbRuns;
+        } catch (const std::exception& e) {
+            std::cerr << "In network state file: " << fileName << e.what() << std::endl;
+        }
+    } else {
+        std::cout << "Creating network state file" << std::endl;
+        std::vector<std::string> fileNames = {eventFileName};
+        std::vector<size_t> nbRuns = {nbRun};
+        state["event_file_name"] = fileNames;
+        state["nb_run"] = nbRuns;
+    }
+
     state["learning_data"] = m_saveData;
     state["action_rate"] = m_networkConf.getActionRate();
     state["exploration_factor"] = m_networkConf.getExplorationFactor();
 
-    std::ofstream ofs(fileName + ".json");
+    std::ofstream ofs(fileName);
     if (ofs.is_open()) {
         ofs << std::setw(4) << state << std::endl;
     } else {
