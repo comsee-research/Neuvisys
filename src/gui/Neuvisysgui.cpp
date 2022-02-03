@@ -18,7 +18,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
     ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
-    openConfigFiles();
+    openConfigFiles(false);
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->modeChoice->setId(ui->recording, 0);
@@ -206,23 +206,23 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::openConfigFiles() {
+void NeuvisysGUI::openConfigFiles(bool warning) {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
-    ui->text_network_config->setText(readConfFile(confDir));
+    ui->text_network_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/simple_cell_config.json";
-    ui->text_simple_cell_config->setText(readConfFile(confDir));
+    ui->text_simple_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/complex_cell_config.json";
-    ui->text_complex_cell_config->setText(readConfFile(confDir));
+    ui->text_complex_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/critic_cell_config.json";
-    ui->text_critic_cell_config->setText(readConfFile(confDir));
+    ui->text_critic_cell_config->setText(readConfFile(confDir, warning));
     confDir = dir + "/configs/actor_cell_config.json";
-    ui->text_actor_cell_config->setText(readConfFile(confDir));
+    ui->text_actor_cell_config->setText(readConfFile(confDir, warning));
 }
 
-QString NeuvisysGUI::readConfFile(QString &directory) {
+QString NeuvisysGUI::readConfFile(QString &directory, bool warning) {
     QFile file(directory);
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+    if (warning && !file.open(QIODevice::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
     }
     QString networkText = QTextStream(&file).readAll();
@@ -233,10 +233,11 @@ QString NeuvisysGUI::readConfFile(QString &directory) {
 void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
     QFile file(directory);
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
+    } else {
+        QTextStream out(&file);
+        out << text;
     }
-    QTextStream out(&file);
-    out << text;
     file.close();
 }
 
