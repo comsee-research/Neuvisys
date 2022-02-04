@@ -334,8 +334,7 @@ void SpikingNetwork::saveNeuronsStates() {
 
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
-            fileName =
-                    m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+            fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
             neuron.get().saveState(fileName);
             neuron.get().saveWeights(fileName);
         }
