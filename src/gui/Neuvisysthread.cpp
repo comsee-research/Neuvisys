@@ -201,7 +201,6 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            cv::imshow("events", m_leftEventDisplay);
 //            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics

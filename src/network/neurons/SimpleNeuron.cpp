@@ -43,7 +43,7 @@ bool SimpleNeuron::update() {
 }
 
 /* Updates the membrane potential using the newly arrived event.
- * Updates some homeostatic mechansims such as the refractory period, potential decay and spike rate adaptation.
+ * Updates some homeostatic mechanisms such as the refractory period, potential decay and spike rate adaptation.
  * If the membrane potential exceeds the threshold, the neuron spikes.
  */
 inline bool SimpleNeuron::membraneUpdate(Event event) {
@@ -79,7 +79,7 @@ inline void SimpleNeuron::spike(const long time) {
     }
 }
 
-/* Updates the synatic weights using the STDP learning rule.
+/* Updates the synaptic weights using the STDP learning rule.
  * Only the synapses from which events arrived are updated.
  * Normalizes the weights after the update.
  */

@@ -28,6 +28,7 @@ class NetworkHandle {
     double m_actionTime{}, m_updateTime{}, m_consoleTime{};
     int m_action{};
     size_t m_iteration{};
+    size_t saveCount{};
 public:
     NetworkHandle(const std::string &networkPath, double time);
 
@@ -62,6 +63,9 @@ public:
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
     NeuronConfig getCriticNeuronConfig() { return m_criticNeuronConf; }
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
+
+private:
+    void load();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

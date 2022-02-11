@@ -53,6 +53,8 @@ public:
     const std::vector<size_t> &getNetworkStructure() { return m_structure; }
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> &getLayout() { return m_layout; }
 
+    void intermediateSave(size_t saveCount);
+
 private:
     void updateNeurons(long time);
     void saveNeuronsStates();

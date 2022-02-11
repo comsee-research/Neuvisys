@@ -31,7 +31,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
 }
 
 /* Iterate the network on the event, updating every 1st layer neuron connected to the subsequent pixel.
- * Determines wich neuron to update depending on a mapping between pixels and neurons.
+ * Determines which neuron to update depending on a mapping between pixels and neurons.
  * If a neuron exceeds a threshold, it spikes and transmit another event towards deeper neurons.
  * A neuron spikes activates inhibition connections to adjacent neurons.
  */
@@ -325,6 +325,23 @@ void SpikingNetwork::saveNetwork() {
                         m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1],
                         m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2]},
                        "w");
+    }
+}
+
+void SpikingNetwork::intermediateSave(size_t saveCount) {
+    std::string fileName;
+    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/");
+    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/0/");
+    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/1/");
+
+    size_t layer = 0;
+    for (auto &neurons: m_neurons) {
+        for (size_t i = 0; i < m_networkConf.getLayerSizes()[layer][2]; ++i) {
+            fileName = m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/" + std::to_string(layer) + "/";
+            neurons[i].get().saveState(fileName);
+            neurons[i].get().saveWeights(fileName);
+        }
+        ++layer;
     }
 }
 

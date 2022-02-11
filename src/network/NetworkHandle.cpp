@@ -14,7 +14,7 @@ NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_sp
                                                                m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
                                                                m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
                                                                m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
-    m_spinet.loadWeights();
+    load();
 }
 
 /* Launches the spiking network on the specified event file 'nbPass' times.
@@ -41,13 +41,33 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
             updateNeuronStates(UPDATE_INTERVAL);
         }
 
-        if (event.timestamp() - displayTime > 5 * E6) {
+        if (event.timestamp() - displayTime > 0.8 * E6) {
             displayTime = event.timestamp();
             std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
+            m_spinet.intermediateSave(saveCount);
+            ++saveCount;
         }
     }
 
     save(nbPass, events);
+}
+
+void NetworkHandle::load() {
+    std::string fileName;
+    fileName = m_networkConf.getNetworkPath() + "networkState.json";
+
+    json state;
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        try {
+            ifs >> state;
+            saveCount = state["save_count"];
+        } catch (const std::exception& e) {
+            std::cerr << "In network state file: " << fileName << e.what() << std::endl;
+        }
+    }
+
+    m_spinet.loadWeights();
 }
 
 /* Saves information about the network actual state.
@@ -83,6 +103,7 @@ void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileNam
     state["learning_data"] = m_saveData;
     state["action_rate"] = m_networkConf.getActionRate();
     state["exploration_factor"] = m_networkConf.getExplorationFactor();
+    state["save_count"] = saveCount;
 
     std::ofstream ofs(fileName);
     if (ofs.is_open()) {
