@@ -21,6 +21,7 @@ NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_sp
  * The config file of the network must precise if the event file is stereo or mono.
  */
 void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
+    std::cout << "Unpacking events..." << std::endl;
     auto eventPacket = std::vector<Event>();
     if (m_networkConf.getNbCameras() == 1) {
         eventPacket = mono(events, nbPass);
@@ -31,14 +32,14 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     long time = eventPacket.front().timestamp();
     long displayTime = eventPacket.front().timestamp();
     size_t iteration = 0;
-    std::cout << "Unpacking events..." << std::endl;
     for (const auto &event : eventPacket) {
         ++iteration;
+        ++m_countEvents;
         transmitEvent(event);
 
         if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
             time = event.timestamp();
-            updateNeuronStates(UPDATE_INTERVAL);
+            m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         }
 
         if (event.timestamp() - displayTime > 0.8 * E6) {
@@ -62,6 +63,7 @@ void NetworkHandle::load() {
         try {
             ifs >> state;
             saveCount = state["save_count"];
+            m_countEvents = state["nb_events"];
         } catch (const std::exception& e) {
             std::cerr << "In network state file: " << fileName << e.what() << std::endl;
         }
@@ -104,6 +106,7 @@ void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileNam
     state["action_rate"] = m_networkConf.getActionRate();
     state["exploration_factor"] = m_networkConf.getExplorationFactor();
     state["save_count"] = saveCount;
+    state["nb_events"] = m_countEvents;
 
     std::ofstream ofs(fileName);
     if (ofs.is_open()) {
@@ -207,7 +210,7 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
 int NetworkHandle::learningLoop(long lastTimestamp, double time, std::string &msg) {
     if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
         m_updateTime = time;
-        updateNeuronStates(UPDATE_INTERVAL);
+        m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
     }
 
     if (time - m_consoleTime > SCORE_INTERVAL) {
@@ -322,7 +325,7 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 void NetworkHandle::learningDecay(size_t iteration) {
     double decay = 1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration);
 
-    m_spinet.getNeuron(0, 2).get().learningDecay(decay);
+    m_spinet.getNeuron(0, 2).get().learningDecay(decay); // changing conf instance reference
     m_spinet.getNeuron(0, 3).get().learningDecay(decay);
 
     m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() / decay);
@@ -372,10 +375,6 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
         return m_spinet.getNeuron(idNeuron, layer).get().summedWeightMatrix();
     }
     return cv::Mat::zeros(0, 0, CV_8UC3);
-}
-
-void NetworkHandle::updateNeuronStates(long timeInterval) {
-    m_spinet.updateNeuronsStates(timeInterval);
 }
 
 std::pair<int, bool> NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {

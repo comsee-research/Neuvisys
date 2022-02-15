@@ -110,6 +110,7 @@ public:
     size_t SYNAPSE_DELAY{}; // μs
 
     double NORM_FACTOR{};
+    double DECAY_RATE{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV

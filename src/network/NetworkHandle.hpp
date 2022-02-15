@@ -28,6 +28,7 @@ class NetworkHandle {
     double m_actionTime{}, m_updateTime{}, m_consoleTime{};
     int m_action{};
     size_t m_iteration{};
+    size_t m_countEvents{};
     size_t saveCount{};
 public:
     NetworkHandle(const std::string &networkPath, double time);
@@ -43,7 +44,6 @@ public:
     void learningDecay(size_t iteration);
     void save(size_t nbRun, const std::string &eventFileName);
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
-    void updateNeuronStates(long timeInterval);
     static std::vector<Event> mono(const std::string &events, size_t nbPass);
     static std::vector<Event> stereo(const std::string &events, size_t nbPass);
     double valueFunction(double time);
