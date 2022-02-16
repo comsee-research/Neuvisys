@@ -115,19 +115,19 @@ inline void SimpleNeuron::weightUpdate() {
 inline void SimpleNeuron::normalizeWeights() {
     const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = m_weights.dimensions();
 
-    for (long p = 0; p < d[0]; ++p) {
-        for (int c = 0; c < d[1]; ++c) {
-            for (long s = 0; s < d[2]; ++s) {
-                Eigen::array<long, SIMPLEDIM> start = {p, c, s, 0, 0};
-                Eigen::array<long, SIMPLEDIM> size = {1, 1, 1, d[3], d[4]};
-                Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
-
-                if (norm(0) != 0) {
-                    m_weights.slice(start, size) = conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
-                }
-            }
-        }
-    }
+//    for (long p = 0; p < d[0]; ++p) {
+//        for (int c = 0; c < d[1]; ++c) {
+//            for (long s = 0; s < d[2]; ++s) {
+//                Eigen::array<long, SIMPLEDIM> start = {p, c, s, 0, 0};
+//                Eigen::array<long, SIMPLEDIM> size = {1, 1, 1, d[3], d[4]};
+//                Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
+//
+//                if (norm(0) != 0) {
+//                    m_weights.slice(start, size) = conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
+//                }
+//            }
+//        }
+//    }
 
     // weight normalization on the camera axes
 //    for (long c = 0; c < d[1]; ++c) {
@@ -140,11 +140,11 @@ inline void SimpleNeuron::normalizeWeights() {
 //        }
 //    }
 
-//    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
-//
-//    if (norm(0) != 0) {
-//        m_weights = conf.NORM_FACTOR * m_weights / norm(0);
-//    }
+    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
+
+    if (norm(0) != 0) {
+        m_weights = conf.NORM_FACTOR * m_weights / norm(0);
+    }
 }
 
 void SimpleNeuron::saveWeights(std::string &filePath) {

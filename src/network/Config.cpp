@@ -255,7 +255,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"SYNAPSE_DELAY", 0},
                     {"STDP_LEARNING", "all"},
                     {"NORM_FACTOR", 4},
-                    {"DECAY_RATE", 0.01},
+                    {"DECAY_RATE", 0.005},
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
