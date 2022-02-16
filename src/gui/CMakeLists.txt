@@ -22,12 +22,12 @@ set(PROJECT_SOURCES
         ../network/NetworkHandle.cpp)
 
 set(ROS_SOURCES
-        ../robot-control/SimulationInterface.cpp
-        ../robot-control/FrameToEvents.cpp
-        ../robot-control/Motor.cpp
-        ../robot-control/motor-control/BrushlessMotor.cpp
-        ../robot-control/motor-control/libserie/Faulhaber.cpp
-        ../robot-control/motor-control/libserie/comserie.cpp)
+        ../simulator/SimulationInterface.cpp
+        ../simulator/FrameToEvents.cpp
+        ../simulator/Motor.cpp
+        ../motor-control/BrushlessMotor.cpp
+        ../motor-control/libserie/Faulhaber.cpp
+        ../motor-control/libserie/comserie.cpp)
 
 set(GUI_SOURCES
         guiMain.cpp

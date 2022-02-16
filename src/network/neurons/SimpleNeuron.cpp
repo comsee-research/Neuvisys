@@ -87,15 +87,17 @@ inline void SimpleNeuron::weightUpdate() {
     if (conf.STDP_LEARNING == "excitatory" || conf.STDP_LEARNING == "all") {
         for (Event &event: m_events) {
             m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
-                    m_decay * conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+                    conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
             m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
-                    m_decay * conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+                    conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
             if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }
         }
         normalizeWeights();
+
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
     } else if (conf.STDP_LEARNING == "inhibitory" || conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_inhibEvents) {
             m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
@@ -129,10 +131,10 @@ inline void SimpleNeuron::normalizeWeights() {
 //        }
 //    }
 
-    // weight normalization on the camera axes
-//    for (long c = 0; c < d[1]; ++c) {
-//        Eigen::array<long, SIMPLEDIM> start = {0, c, 0, 0, 0};
-//        Eigen::array<long, SIMPLEDIM> size = {d[0], 1, d[2], d[3], d[4]};
+    // weight normalization on the polarity axes
+//    for (long p = 0; p < d[0]; ++p) {
+//        Eigen::array<long, SIMPLEDIM> start = {p, 0, 0, 0, 0};
+//        Eigen::array<long, SIMPLEDIM> size = {1, d[1], d[2], d[3], d[4]};
 //        Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
 //
 //        if (norm(0) != 0) {
@@ -150,15 +152,15 @@ inline void SimpleNeuron::normalizeWeights() {
 void SimpleNeuron::saveWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     Util::saveSimpleTensorToNumpyFile(m_weights, weightsFile);
-//    weightsFile = filePath + std::to_string(m_index) + "inhib";
-//    Util::saveComplexTensorToNumpyFile(m_inhibWeights, weightsFile);
+    weightsFile = filePath + std::to_string(m_index) + "inhib";
+    Util::saveComplexTensorToNumpyFile(m_inhibWeights, weightsFile);
 }
 
 void SimpleNeuron::loadWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     Util::loadNumpyFileToSimpleTensor(weightsFile, m_weights);
-//    weightsFile = filePath + std::to_string(m_index) + "inhib";
-//    Util::loadNumpyFileToComplexTensor(weightsFile, m_inhibWeights);
+    weightsFile = filePath + std::to_string(m_index) + "inhib";
+    Util::loadNumpyFileToComplexTensor(weightsFile, m_inhibWeights);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {
