@@ -54,4 +54,5 @@ target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
 
 add_subdirectory(src/gui)
 add_subdirectory(src/dv-modules)
-add_subdirectory(src/robot-control)
+add_subdirectory(src/motor-control)
+add_subdirectory(src/simulator)

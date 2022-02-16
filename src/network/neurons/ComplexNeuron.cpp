@@ -57,7 +57,7 @@ inline void ComplexNeuron::weightUpdate() {
         }
 
         normalizeWeights();
-        //    m_decay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
+        //    m_learningDecay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
     }
     m_events.clear();
 }

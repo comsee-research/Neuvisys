@@ -30,11 +30,10 @@ public:
     void loadWeights(std::string &filePath) override;
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
     void weightUpdate() override;
-
 private:
     bool membraneUpdate(Event event);
     void spike(long time) override;
-    void normalizeWeights() override;
+    void normalizeWeights();
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

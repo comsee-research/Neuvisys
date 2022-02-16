@@ -17,9 +17,9 @@ set(PROJECT_SOURCES
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
         ../network/NetworkHandle.cpp
-        ../robot-control/motor-control/BrushlessMotor.cpp
-        ../robot-control/motor-control/libserie/Faulhaber.cpp
-        ../robot-control/motor-control/libserie/comserie.cpp Ynoise.cpp Ynoise.hpp)
+        ../motor-control/BrushlessMotor.cpp
+        ../motor-control/libserie/Faulhaber.cpp
+        ../motor-control/libserie/comserie.cpp Ynoise.cpp Ynoise.hpp)
 
 ##### Neuvisys DV Module #####
 add_library(neuvisys-dv SHARED NeuvisysDV.cpp ${PROJECT_SOURCES})
