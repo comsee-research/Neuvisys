@@ -33,7 +33,6 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
-    long m_iterations{};
     double m_neuromodulator{};
 
 public:
@@ -42,7 +41,7 @@ public:
     void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
     void addEvent(const Event &event);
-    void updateNeuronsStates(long timeInterval);
+    void updateNeuronsStates(long timeInterval, size_t nbEvents);
     void loadWeights();
     void saveNetwork();
     double computeNeuromodulator(double time);

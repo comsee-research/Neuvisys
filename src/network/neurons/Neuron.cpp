@@ -15,7 +15,7 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
         m_offset(offset),
         m_trackingSpikeTrain(std::vector<long>(0)) {
     m_threshold = conf.VTHRESH;
-    m_learningDecay = 1.0;
+    m_decay = 1.0;
     m_spike = false;
 }
 
@@ -44,6 +44,10 @@ void Neuron::updateState(long timeInterval, double alpha) {
     double spikesPerSecond = static_cast<double>(m_spikeRateCounter) * (E6 / static_cast<double>(timeInterval)); // spikes/s
     m_spikeRateCounter = 0;
     m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
+}
+
+void Neuron::learningDecay(double count) {
+    m_decay = 1 / (1 + conf.DECAY_RATE * count);
 }
 
 /* Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
@@ -132,7 +136,7 @@ void Neuron::writeJson(nlohmann::json &state) {
     state["threshold"] = m_threshold;
     state["lifespan"] = m_lifeSpan;
     state["spiking_rate"] = m_spikingRateAverage;
-    state["learning_decay"] = m_learningDecay;
+    state["learning_decay"] = m_decay;
     state["spike_train"] = m_trackingSpikeTrain;
     //    state["potential_train"] = m_trackingPotentialTrain;
 }
@@ -141,7 +145,7 @@ void Neuron::readJson(const nlohmann::json &state) {
     m_totalSpike = state["count_spike"];
     m_threshold = state["threshold"];
     m_lifeSpan = state["lifespan"];
-    m_learningDecay = state["learning_decay"];
+    m_decay = state["learning_decay"];
     m_spikingRateAverage = state["spiking_rate"];
 //    m_potential = state["potential"];
 }

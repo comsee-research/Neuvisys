@@ -26,14 +26,17 @@ public:
     double getWeights(long p, long c, long s, long x, long y) override { return m_weights(p, c, s, x, y); }
     double getInhibWeights(long x, long y, long z) override { return m_inhibWeights(x, y, z); }
     std::vector<long> getWeightsDimension() override;
-    void saveWeights(std::string &filePath) override;
-    void loadWeights(std::string &filePath) override;
+    void saveWeights(std::string &fileName) override;
+    void saveInhibWeights(std::string &fileName) override;
+    void loadWeights(std::string &fileName) override;
+    void loadInhibWeights(std::string &fileName) override;
     bool checkRemainingEvents(long time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
     void weightUpdate() override;
+
 private:
     bool membraneUpdate(Event event);
     void spike(long time) override;
-    void normalizeWeights();
+    void normalizeWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

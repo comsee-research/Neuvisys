@@ -27,7 +27,7 @@ protected:
     size_t m_totalSpike{};
     size_t m_spikeRateCounter{};
     size_t m_activityCounter{};
-    double m_learningDecay;
+    double m_decay;
     double m_potential{};
     double m_adaptationPotential{};
     double m_threshold;
@@ -48,7 +48,7 @@ public:
     [[nodiscard]] virtual double getThreshold() const { return m_threshold; }
     [[nodiscard]] virtual double getSpikingRate() const { return m_spikingRateAverage; }
     [[nodiscard]] virtual long getSpikingTime() const { return m_spikingTime; }
-    [[nodiscard]] virtual double getLearningDecay() const { return m_learningDecay; }
+    [[nodiscard]] virtual double getDecay() const { return m_decay; }
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
     [[nodiscard]] virtual size_t getActivityCount();
     virtual double getWeights(long x, long y, long z) {};
@@ -73,7 +73,9 @@ public:
     virtual void saveState(std::string &fileName);
     virtual void loadState(std::string &fileName);
     virtual void saveWeights(std::string &fileName) {};
+    virtual void saveInhibWeights(std::string &fileName) {};
     virtual void loadWeights(std::string &fileName) {};
+    virtual void loadInhibWeights(std::string &fileName) {};
     virtual void normalizeWeights() {};
     virtual void thresholdAdaptation();
     virtual void spikeRateAdaptation();
@@ -91,7 +93,7 @@ public:
     virtual double updateKernelSpikingRate(double time) {};
     virtual double computeNormWeights() {};
     virtual void rescaleWeights(double scale) {};
-    virtual void learningDecay(double decay) {};
+    virtual void learningDecay(double count);
 
 protected:
     void writeJson(json &state);
