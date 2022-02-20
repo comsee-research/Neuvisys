@@ -59,32 +59,73 @@ void SpikingNetwork::addEvent(const Event &event) {
  * A neuron spikes activates inhibition connections to adjacent neurons.
  */
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
-    for (auto &forwardNeuron: neuron.getOutConnections()) {
-        auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
-                                  neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
-                                  neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-        if (forwardNeuron.get().newEvent(
-                NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
-            if (forwardNeuron.get().getLayer() == 1) { // top down dynamic inhibition
-                for (auto &backwardNeuron: forwardNeuron.get().getInConnections()) {
-                    auto event = NeuronEvent(forwardNeuron.get().getSpikingTime(), 0, 0,
-                                             forwardNeuron.get().getPos().z()); // TODO : check positions
-                    backwardNeuron.get().newInhibitoryEvent(event);
+    auto stack = std::stack<std::vector<std::reference_wrapper<Neuron>>>();
+    stack.push(neuron.getOutConnections());
+    while(!stack.empty()) {
+        auto connections = stack.top();
+        stack.pop();
+        for (auto &forwardNeuron: connections) {
+            auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
+                                      neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
+                                      neuron.getPos().z() - forwardNeuron.get().getOffset().z());
+            if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+                if (forwardNeuron.get().getLayer() != 3) { // weight change
+                    forwardNeuron.get().weightUpdate();
+                }
+                lateralStaticInhibition(forwardNeuron.get());
+                topDownDynamicInhibition(forwardNeuron.get());
+                neuromodulation(forwardNeuron.get());
+                if (!forwardNeuron.get().getOutConnections().empty()) {
+                    stack.push(forwardNeuron.get().getOutConnections());
                 }
             }
-            if (forwardNeuron.get().getLayer() == 2) { // neuromodulation
-                forwardNeuron.get().setNeuromodulator(
-                        computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
-            }
-            if (forwardNeuron.get().getLayer() != 3) { // weight change
-                forwardNeuron.get().weightUpdate();
-            }
-
-            for (auto &neuronToInhibit: forwardNeuron.get().getInhibitionConnections()) { // lateral static inhibition
-                neuronToInhibit.get().inhibition();
-            }
-            addNeuronEvent(forwardNeuron.get());
         }
+    }
+
+//    for (auto &forwardNeuron: neuron.getOutConnections()) {
+//        auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
+//                                  neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
+//                                  neuron.getPos().z() - forwardNeuron.get().getOffset().z());
+//        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+//            if (forwardNeuron.get().getLayer() != 3) { // weight change
+//                forwardNeuron.get().weightUpdate();
+//            }
+//            lateralStaticInhibition(forwardNeuron.get());
+//            topDownDynamicInhibition(forwardNeuron.get());
+//            neuromodulation(forwardNeuron.get());
+//
+//            addNeuronEvent(forwardNeuron.get());
+//        }
+//    }
+}
+
+void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
+    if (neuron.getLayer() == 1) {
+        for (auto &backwardNeuron: neuron.getInConnections()) {
+            auto event = NeuronEvent(neuron.getSpikingTime(), 0, 0, neuron.getPos().z()); // TODO : check positions
+            backwardNeuron.get().newInhibitoryEvent(event);
+        }
+    }
+}
+
+//void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
+//    if (neuron.getLayer() == 0) {
+//        for (auto &lateralNeuron : neuron.getLateralInhibitionConnections()) {
+////            auto event = NeuronEvent(neuron.getSpikingTime(), 0, 0, neuron.getPos().z());
+//            lateralNeuron.get().newInhibitoryEvent(event);
+//        }
+//    }
+//}
+
+void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
+    for (auto &neuronToInhibit: neuron.getInhibitionConnections()) { // lateral static inhibition
+        neuronToInhibit.get().inhibition();
+    }
+}
+
+void SpikingNetwork::neuromodulation(Neuron &neuron) {
+    if (neuron.getLayer() == 2) {
+        neuron.setNeuromodulator(computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
     }
 }
 

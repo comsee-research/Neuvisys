@@ -4,6 +4,7 @@
 #include <utility>
 #include <vector>
 #include <array>
+#include <stack>
 #include "neurons/SimpleNeuron.hpp"
 #include "neurons/ComplexNeuron.hpp"
 #include "neurons/MotorNeuron.hpp"
@@ -60,6 +61,9 @@ private:
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
     void addNeuronEvent(const Neuron &neuron);
     void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+    static void topDownDynamicInhibition(Neuron &neuron);
+    static void lateralStaticInhibition(Neuron &neuron);
+    void neuromodulation(Neuron &neuron);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP
