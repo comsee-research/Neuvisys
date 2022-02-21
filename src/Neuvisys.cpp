@@ -10,9 +10,9 @@ int main(int argc, char *argv[]) {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
         std::string networkPath = "/home/thomas/Desktop/Experiment/network_0/configs/network_config.json";
-        std::string events = "/home/thomas/Videos/stereo_car.npz";
+        std::string events = "/home/thomas/Videos/disparity/base_disp/0.npz";
 
         NetworkHandle network(networkPath, 0);
-        network.multiplePass(events, 1);
+        network.multiplePass(events, 10);
     }
 }

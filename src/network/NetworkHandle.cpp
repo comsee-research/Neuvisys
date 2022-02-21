@@ -45,7 +45,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
         if (event.timestamp() - displayTime > 0.9 * E6) {
             displayTime = event.timestamp();
             std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
-            m_spinet.intermediateSave(saveCount);
+//            m_spinet.intermediateSave(saveCount);
             ++saveCount;
         }
     }
@@ -196,12 +196,17 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
         while (left < sizeLeftArray || right < sizeRightArray) {
             l_t = l_timestamps[left] + static_cast<long>(pass) * leftInterval;
             r_t = r_timestamps[right] + static_cast<long>(pass) * rightInterval;
-            if (right >= sizeRightArray || l_t <= r_t) {
-                event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
-                ++left;
-            } else if (left >= sizeLeftArray || l_t > r_t) {
-                event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
-                ++right;
+            if (left < sizeLeftArray) {
+                if (l_t <= r_t || right >= sizeRightArray) {
+                    event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
+                    ++left;
+                }
+            }
+            if (right < sizeRightArray) {
+                if (l_t > r_t || left >= sizeLeftArray) {
+                    event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
+                    ++right;
+                }
             }
             eventPacket.push_back(event);
         }
