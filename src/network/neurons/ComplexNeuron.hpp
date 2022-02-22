@@ -18,7 +18,7 @@ public:
     cv::Mat summedWeightMatrix() override;
 private:
     bool membraneUpdate(NeuronEvent event);
-    void spike(long time) override;
+    void spike(size_t time) override;
     void normalizeWeights() override;
 };
 

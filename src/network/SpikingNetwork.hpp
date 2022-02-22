@@ -38,32 +38,63 @@ class SpikingNetwork {
 
 public:
     SpikingNetwork();
+
     explicit SpikingNetwork(const std::string &networkPath);
-    void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition, const std::vector<std::vector<size_t>> &layerPatches,
-                  const std::vector<size_t>& layerSizes, const std::vector<size_t>& neuronSizes, const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
+
+    void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition,
+                  const std::vector<std::vector<size_t>> &layerPatches,
+                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes,
+                  const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
+
     void addEvent(const Event &event);
+
     void updateNeuronsStates(long timeInterval, size_t nbEvents);
+
     void loadWeights();
+
     void saveNetwork();
+
     double computeNeuromodulator(double time);
+
     void transmitNeuromodulator(double neuromodulator);
+
     void normalizeActions();
 
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
+
     const std::vector<size_t> &getNetworkStructure() { return m_structure; }
+
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> &getLayout() { return m_layout; }
 
     void intermediateSave(size_t saveCount);
 
 private:
     void updateNeurons(long time);
+
     void saveNeuronsStates();
+
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
+
     void addNeuronEvent(const Neuron &neuron);
-    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+
+    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes,
+                      const std::vector<size_t> &neuronSizes);
+
     static void topDownDynamicInhibition(Neuron &neuron);
+
     static void lateralStaticInhibition(Neuron &neuron);
+
+    static void lateralDynamicInhibition(Neuron &neuron);
+
     void neuromodulation(Neuron &neuron);
+
+    void
+    topDownConnection(Neuron &neuron, size_t currLayer, size_t layerToConnect, const std::vector<size_t> &neuronSizes);
+
+    void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
+
+    void
+    lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer, const std::vector<size_t> &layerSizes);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

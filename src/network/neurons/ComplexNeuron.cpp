@@ -27,7 +27,7 @@ inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     return false;
 }
 
-inline void ComplexNeuron::spike(const long time) {
+inline void ComplexNeuron::spike(const size_t time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
@@ -93,7 +93,7 @@ void ComplexNeuron::saveWeights(std::string &filePath) {
 
 void ComplexNeuron::loadWeights(std::string &filePath) {
     auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(weightFile, m_weights);
+    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
 }
 
 std::vector<long> ComplexNeuron::getWeightsDimension() {

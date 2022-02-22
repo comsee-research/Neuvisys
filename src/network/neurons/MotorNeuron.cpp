@@ -38,7 +38,7 @@ inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
     return false;
 }
 
-inline void MotorNeuron::spike(long time) {
+inline void MotorNeuron::spike(size_t time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
@@ -132,7 +132,7 @@ void MotorNeuron::saveWeights(std::string &filePath) {
 
 void MotorNeuron::loadWeights(std::string &filePath) {
     auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(weightFile, m_weights);
+    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {

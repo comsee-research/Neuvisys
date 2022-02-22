@@ -43,9 +43,8 @@ void SpikingNetwork::addEvent(const Event &event) {
         if (m_neurons[0][ind].get().newEvent(
                 Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()))) {
             m_neurons[0][ind].get().weightUpdate();
-            for (auto &neuronToInhibit: m_neurons[0][ind].get().getInhibitionConnections()) {
-                neuronToInhibit.get().inhibition();
-            }
+            lateralStaticInhibition(m_neurons[0][ind].get());
+            lateralDynamicInhibition(m_neurons[0][ind].get());
             if (m_neurons.size() > 1) {
                 addNeuronEvent(m_neurons[0][ind].get());
             }
@@ -61,14 +60,15 @@ void SpikingNetwork::addEvent(const Event &event) {
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
     auto stack = std::stack<std::vector<std::reference_wrapper<Neuron>>>();
     stack.push(neuron.getOutConnections());
-    while(!stack.empty()) {
+    while (!stack.empty()) {
         auto connections = stack.top();
         stack.pop();
         for (auto &forwardNeuron: connections) {
             auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
                                       neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
                                       neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-            if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+            if (forwardNeuron.get().newEvent(
+                    NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
                 if (forwardNeuron.get().getLayer() != 3) { // weight change
                     forwardNeuron.get().weightUpdate();
                 }
@@ -102,24 +102,22 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     if (neuron.getLayer() == 1) {
         for (auto &backwardNeuron: neuron.getInConnections()) {
-            auto event = NeuronEvent(neuron.getSpikingTime(), 0, 0, neuron.getPos().z()); // TODO : check positions
-            backwardNeuron.get().newInhibitoryEvent(event);
+            auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+            backwardNeuron.get().newTopDownInhibitoryEvent(event);
         }
     }
 }
 
-//void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
-//    if (neuron.getLayer() == 0) {
-//        for (auto &lateralNeuron : neuron.getLateralInhibitionConnections()) {
-////            auto event = NeuronEvent(neuron.getSpikingTime(), 0, 0, neuron.getPos().z());
-//            lateralNeuron.get().newInhibitoryEvent(event);
-//        }
-//    }
-//}
+void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
+    for (auto &lateralNeuron : neuron.getlateralDynamicInhibitionConnections()) {
+        auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+        lateralNeuron.get().newLateralInhibitoryEvent(event);
+    }
+}
 
 void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
-    for (auto &neuronToInhibit: neuron.getInhibitionConnections()) { // lateral static inhibition
-        neuronToInhibit.get().inhibition();
+    for (auto &lateralNeuron: neuron.getlateralStaticInhibitionConnections()) {
+        lateralNeuron.get().inhibition();
     }
 }
 
@@ -146,7 +144,7 @@ void SpikingNetwork::updateNeurons(const long time) {
     for (auto &simpleNeuron: m_simpleNeurons) {
         while (simpleNeuron.checkRemainingEvents(time)) {
             if (simpleNeuron.update()) {
-                for (auto &simpleNeuronToInhibit: simpleNeuron.getInhibitionConnections()) {
+                for (auto &simpleNeuronToInhibit: simpleNeuron.getlateralStaticInhibitionConnections()) {
                     simpleNeuronToInhibit.get().inhibition();
                 }
                 addNeuronEvent(simpleNeuron);
@@ -285,26 +283,48 @@ void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToCon
                                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     auto currLayer = m_neurons.size() - 1;
     for (auto &neuron: m_neurons[currLayer]) {
-        for (size_t i = neuron.get().getOffset().x(); i < neuron.get().getOffset().x() + neuronSizes[0]; ++i) {
-            for (size_t j = neuron.get().getOffset().y(); j < neuron.get().getOffset().y() + neuronSizes[1]; ++j) {
-                for (size_t k = neuron.get().getOffset().z(); k < neuron.get().getOffset().z() + neuronSizes[2]; ++k) {
-                    if (currLayer == 0) {
-                        m_pixelMapping[i * Conf::HEIGHT + j].push_back(neuron.get().getIndex());
-                    } else {
-                        neuron.get().addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
-                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(
-                                neuron.get());
-                    }
+        topDownConnection(neuron.get(), currLayer, layerToConnect, neuronSizes);
+        if (inhibition) {
+            lateralStaticInhibitionConnection(neuron.get(), currLayer, layerSizes);
+            lateralDynamicInhibitionConnection(neuron.get(), currLayer, layerSizes);
+        }
+    }
+}
+
+void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer, const size_t layerToConnect,
+                                       const std::vector<size_t> &neuronSizes) {
+    for (size_t i = neuron.getOffset().x(); i < neuron.getOffset().x() + neuronSizes[0]; ++i) {
+        for (size_t j = neuron.getOffset().y(); j < neuron.getOffset().y() + neuronSizes[1]; ++j) {
+            for (size_t k = neuron.getOffset().z(); k < neuron.getOffset().z() + neuronSizes[2]; ++k) {
+                if (currLayer == 0) {
+                    m_pixelMapping[i * Conf::HEIGHT + j].push_back(neuron.getIndex());
+                } else {
+                    neuron.addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
+                    m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron);
                 }
             }
         }
-        if (inhibition) {
-            for (size_t z = 0; z < layerSizes[2]; ++z) { // inhibition
-                if (z != neuron.get().getPos().z()) {
-                    neuron.get().addInhibitionConnection(m_neurons[currLayer][m_layout[currLayer][{
-                            neuron.get().getPos().x(), neuron.get().getPos().y(), z}]]);
+    }
+}
+
+void SpikingNetwork::lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer, const std::vector<size_t> &layerSizes) {
+    for (size_t x = neuron.getPos().x() - 1; x < neuron.getPos().x() + 2; ++x) {
+        for (size_t y = neuron.getPos().y() - 1; y < neuron.getPos().y() + 2; ++y) {
+            for (size_t z = 0; z < layerSizes[2]; ++z) {
+                if (x != neuron.getPos().x() && y != neuron.getPos().y() && x > 0 && y > 0 && x < layerSizes[0] && y < layerSizes[1]) {
+                    neuron.addLateralDynamicInhibitionConnections(m_neurons[currLayer][m_layout[currLayer][{x, y, z}]]);
                 }
             }
+        }
+    }
+}
+
+void SpikingNetwork::lateralStaticInhibitionConnection(Neuron &neuron, const size_t currLayer,
+                                                       const std::vector<size_t> &layerSizes) {
+    for (size_t z = 0; z < layerSizes[2]; ++z) {
+        if (z != neuron.getPos().z()) {
+            neuron.addLateralStaticInhibitionConnections(m_neurons[currLayer][m_layout[currLayer][{
+                    neuron.getPos().x(), neuron.getPos().y(), z}]]);
         }
     }
 }

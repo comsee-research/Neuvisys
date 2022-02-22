@@ -29,8 +29,8 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
         eventPacket = stereo(events, nbPass);
     }
 
-    long time = eventPacket.front().timestamp();
-    long displayTime = eventPacket.front().timestamp();
+    size_t time = eventPacket.front().timestamp();
+    size_t displayTime = eventPacket.front().timestamp();
     size_t iteration = 0;
     for (const auto &event : eventPacket) {
         ++iteration;

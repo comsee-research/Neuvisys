@@ -34,7 +34,7 @@ namespace Util {
         return mat;
     }
 
-    void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor) {
+    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
@@ -66,7 +66,7 @@ namespace Util {
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "w");
     }
 
-    void loadNumpyFileToSimpleTensor(std::string &filePath, Eigen::Tensor<double, SIMPLEDIM> &tensor) {
+    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
@@ -103,6 +103,27 @@ namespace Util {
             }
         }
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
+    }
+
+    void loadNumpyToWeights(std::unordered_map<size_t, double> &map, std::string &filePath) {
+        cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
+        auto *weights = array.data<double>();
+
+        size_t count = 0;
+        for (auto &element : map) {
+            element.second = weights[count];
+            ++count;
+        }
+    }
+
+    void saveWeightsToNumpy(std::unordered_map<size_t, double> &map, std::string &saveFile) {
+        std::vector<double> data(static_cast<size_t>(map.size()));
+        size_t count = 0;
+        for (auto const &element : map) {
+            data[count] = element.second;
+            ++count;
+        }
+        cnpy::npy_save(saveFile + ".npy", &data[0], {map.size()}, "w");
     }
 
     int winnerTakeAll(std::vector<size_t> vec) {

@@ -4,14 +4,13 @@
  * It also takes as input a weight tensor and the number of synapses used when delayed synapses are defined.
  */
 SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
-    Neuron(index, layer, conf, pos, offset),
-    m_events(boost::circular_buffer<Event>(1000)),
-    m_inhibEvents(boost::circular_buffer<NeuronEvent>(1000)),
-    m_weights(weights),
-    m_inhibWeights(Util::uniformMatrixComplex(1, 1, 16)), // TODO: generic init
-    m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
+        Neuron(index, layer, conf, pos, offset),
+        m_events(boost::circular_buffer<Event>(1000)),
+        m_topDownInhibitionEvents(boost::circular_buffer<NeuronEvent>(1000)),
+        m_weights(weights),
+        m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
-        m_delays.push_back(static_cast<long>(synapse * conf.SYNAPSE_DELAY));
+        m_delays.push_back(static_cast<size_t>(synapse * conf.SYNAPSE_DELAY));
     }
 }
 
@@ -30,9 +29,14 @@ inline bool SimpleNeuron::newEvent(Event event) {
     }
 }
 
-void SimpleNeuron::newInhibitoryEvent(NeuronEvent event) {
-    m_inhibEvents.push_back(event);
-    m_potential -= m_inhibWeights(event.x(), event.y(), event.z());
+void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
+    m_topDownInhibitionEvents.push_back(event);
+    m_potential -= m_topDownInhibitionWeights.at(event.id());
+}
+
+void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
+    m_lateralInhibitionEvents.push_back(event);
+    m_potential -= m_lateralInhibitionWeights.at(event.id());
 }
 
 bool SimpleNeuron::update() {
@@ -64,7 +68,7 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
 /* Updates the spike timings and spike counters.
  * Also increases the secondary membrane potential use in the spike rate adaptation mechanism.
  */
-inline void SimpleNeuron::spike(const long time) {
+inline void SimpleNeuron::spike(const size_t time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
@@ -97,17 +101,27 @@ inline void SimpleNeuron::weightUpdate() {
         }
         normalizeWeights();
     } else if (conf.STDP_LEARNING == "inhibitory" || conf.STDP_LEARNING == "all") {
-        for (NeuronEvent &event : m_inhibEvents) {
-            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
-            m_inhibWeights(event.x(), event.y(), event.z()) += conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+        for (NeuronEvent &event : m_topDownInhibitionEvents) {
+            m_topDownInhibitionWeights.at(event.id()) += conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_topDownInhibitionWeights.at(event.id()) += conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
 
-            if (m_inhibWeights(event.x(), event.y(), event.z()) < 0) {
-                m_inhibWeights(event.x(), event.y(), event.z()) = 0;
+            if (m_topDownInhibitionWeights.at(event.id()) < 0) {
+                m_topDownInhibitionWeights.at(event.id()) = 0;
+            }
+        }
+
+        for (NeuronEvent &event : m_lateralInhibitionEvents) {
+            m_lateralInhibitionWeights.at(event.id()) += conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
+            m_lateralInhibitionWeights.at(event.id()) += conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
+
+            if (m_lateralInhibitionWeights.at(event.id()) < 0) {
+                m_lateralInhibitionWeights.at(event.id()) = 0;
             }
         }
     }
     m_events.clear();
-    m_inhibEvents.clear();
+    m_topDownInhibitionEvents.clear();
+    m_lateralInhibitionEvents.clear();
 }
 
 /* Weight normalization using tensor calculations.
@@ -153,18 +167,22 @@ void SimpleNeuron::saveWeights(std::string &fileName) {
 }
 
 void SimpleNeuron::saveInhibWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index) + "inhib";
-    Util::saveComplexTensorToNumpyFile(m_inhibWeights, weightsFile);
+    auto weightsFile = fileName + std::to_string(m_index) + "tdi";
+    Util::saveWeightsToNumpy(m_topDownInhibitionWeights, weightsFile);
+    weightsFile = fileName + std::to_string(m_index) + "li";
+    Util::saveWeightsToNumpy(m_lateralInhibitionWeights, weightsFile);
 }
 
 void SimpleNeuron::loadWeights(std::string &fileName) {
     auto weightsFile = fileName + std::to_string(m_index);
-    Util::loadNumpyFileToSimpleTensor(weightsFile, m_weights);
+    Util::loadNumpyFileToSimpleTensor(m_weights, weightsFile);
 }
 
 void SimpleNeuron::loadInhibWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index) + "inhib";
-    Util::loadNumpyFileToComplexTensor(weightsFile, m_inhibWeights);
+    auto weightsFile = fileName + std::to_string(m_index) + "tdi";
+    Util::loadNumpyToWeights(m_topDownInhibitionWeights, weightsFile);
+    weightsFile = fileName + std::to_string(m_index) + "li";
+    Util::loadNumpyToWeights(m_lateralInhibitionWeights, weightsFile);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {

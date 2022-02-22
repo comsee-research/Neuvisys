@@ -13,11 +13,13 @@
 namespace Util {
     Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z);
     Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y);
-    void loadNumpyFileToSimpleTensor(std::string &filePath, Eigen::Tensor<double, SIMPLEDIM> &tensor);
+    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
     void saveSimpleTensorToNumpyFile(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &saveFile);
-    void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor);
+    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
     void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile);
     int winnerTakeAll(std::vector<size_t> vec);
+    void loadNumpyToWeights(std::unordered_map<size_t, double> &map, std::string &filePath);
+    void saveWeightsToNumpy(std::unordered_map<size_t, double> &map, std::string &saveFile);
     double secondOrderNumericalDifferentiationMean(const std::vector<double> &vec, long n);
     bool fileExist(std::string &path);
     double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);

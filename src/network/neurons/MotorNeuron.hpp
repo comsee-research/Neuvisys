@@ -17,7 +17,7 @@ class MotorNeuron : public Neuron {
 public:
     MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
     bool newEvent(NeuronEvent event) override;
-    void spike(long time) override;
+    void spike(size_t time) override;
     double getWeights(long x, long y, long z) override;
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &filePath) override;
