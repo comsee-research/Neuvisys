@@ -109,7 +109,7 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
 }
 
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
-    for (auto &lateralNeuron : neuron.getlateralDynamicInhibitionConnections()) {
+    for (auto &lateralNeuron: neuron.getlateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         lateralNeuron.get().newLateralInhibitoryEvent(event);
     }
@@ -307,12 +307,15 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer, c
     }
 }
 
-void SpikingNetwork::lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer, const std::vector<size_t> &layerSizes) {
-    for (size_t x = neuron.getPos().x() - 1; x < neuron.getPos().x() + 2; ++x) {
-        for (size_t y = neuron.getPos().y() - 1; y < neuron.getPos().y() + 2; ++y) {
+void SpikingNetwork::lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer,
+                                                        const std::vector<size_t> &layerSizes) {
+    for (int x = static_cast<int>(neuron.getPos().x()) - 1; x < static_cast<int>(neuron.getPos().x()) + 2; ++x) {
+        for (int y = static_cast<int>(neuron.getPos().y()) - 1; y < static_cast<int>(neuron.getPos().y()) + 2; ++y) {
             for (size_t z = 0; z < layerSizes[2]; ++z) {
-                if (x != neuron.getPos().x() && y != neuron.getPos().y() && x > 0 && y > 0 && x < layerSizes[0] && y < layerSizes[1]) {
-                    neuron.addLateralDynamicInhibitionConnections(m_neurons[currLayer][m_layout[currLayer][{x, y, z}]]);
+                if ((x != neuron.getPos().x() || y != neuron.getPos().y()) && x >= 0 && y >= 0 && x < layerSizes[0] &&
+                    y < layerSizes[1]) {
+                    neuron.addLateralDynamicInhibitionConnections(
+                            m_neurons[currLayer][m_layout[currLayer][{x, y, z}]]);
                 }
             }
         }

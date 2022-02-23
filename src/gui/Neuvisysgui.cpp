@@ -108,10 +108,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
     qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
     qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
-    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<long>>>>("std::vector<std::reference_wrapper<const std::vector<long>>>");
-    qRegisterMetaType<std::vector<std::vector<long>>>("std::vector<std::vector<long>>");
+    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<size_t>>>>("std::vector<std::reference_wrapper<const std::vector<size_t>>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
-    qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double, long>>");
+    qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
+    qRegisterMetaType<std::vector<std::pair<double, size_t>>>("std::vector<std::pair<double, size_t>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
     connect(&neuvisysThread, &NeuvisysThread::displayStatistics, this, &NeuvisysGUI::onDisplayStatistics);
@@ -397,16 +397,16 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
 }
 
 void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
-                                     const std::vector<std::pair<double, long>> &potentialTrain) {
+                                     const std::vector<std::pair<double, size_t>> &potentialTrain) {
     potentialChart->removeSeries(potentialSeries);
     potentialSeries = new QLineSeries();
-    long last = 0;
+    size_t last = 0;
     if (!potentialTrain.empty()) {
         last = potentialTrain.back().second;
     }
     for (auto it = potentialTrain.rbegin(); it != potentialTrain.rend(); ++it) {
         potentialSeries->append(static_cast<qreal>(it->second), it->first);
-        if (last - it->second > static_cast<long>(rangePotential)) {
+        if (last - it->second > static_cast<size_t>(rangePotential)) {
             break;
         }
     }
@@ -416,7 +416,7 @@ void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
     ui->potentialView->repaint();
 }
 
-void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrains, double time) {
+void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time) {
     spikeChart->removeSeries(spikeSeries);
     spikeSeries = new QScatterSeries();
     spikeSeries->setMarkerShape(QScatterSeries::MarkerShapeRectangle);

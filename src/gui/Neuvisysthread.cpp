@@ -59,7 +59,7 @@ void NeuvisysThread::readEvents() {
     eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
 //    eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
 
-    long time;
+    size_t time;
     auto displayTime = eventPacket.front().timestamp();
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
@@ -67,7 +67,7 @@ void NeuvisysThread::readEvents() {
         addEventToDisplay(event);
 
         time = event.timestamp();
-        if (time - displayTime > static_cast<long>(m_displayRate)) {
+        if (time - displayTime > static_cast<size_t>(m_displayRate)) {
             displayTime = time;
 
             m_leftEventDisplay = 0;
@@ -90,7 +90,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
         eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
     }
 
-    long time;
+    size_t time;
     auto displayTime = eventPacket.front().timestamp();
     auto trackTime = eventPacket.front().timestamp();
     for (const auto &event: eventPacket) {
@@ -101,12 +101,12 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
 
         /*** GUI Display ***/
         time = event.timestamp();
-        if (time - displayTime > static_cast<long>(m_displayRate)) {
+        if (time - displayTime > static_cast<size_t>(m_displayRate)) {
             displayTime = time;
             display(network, eventPacket.size(), static_cast<double>(displayTime) / E6);
         }
 
-        if (time - trackTime > static_cast<long>(m_trackRate)) {
+        if (time - trackTime > static_cast<size_t>(m_trackRate)) {
             trackTime = time;
             network.trackNeuron(time, m_id, m_layer);
         }

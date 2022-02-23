@@ -28,8 +28,8 @@ public slots:
                              double bias);
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
-    void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, long>> &potentialTrain);
-    void onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrains, double time);
+    void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+    void onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time);
     void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
     void onDisplayAction(const std::vector<bool> &motorActivation);
     void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const

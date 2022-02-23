@@ -37,12 +37,12 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
         ++m_countEvents;
         transmitEvent(event);
 
-        if (event.timestamp() - time > UPDATE_INTERVAL / E6) {
+        if (event.timestamp() - time > UPDATE_INTERVAL) {
             time = event.timestamp();
             m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         }
 
-        if (event.timestamp() - displayTime > 0.9 * E6) {
+        if (event.timestamp() - displayTime > static_cast<size_t>(0.9 * E6)) {
             displayTime = event.timestamp();
             std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
 //            m_spinet.intermediateSave(saveCount);

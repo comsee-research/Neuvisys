@@ -7,6 +7,7 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
         Neuron(index, layer, conf, pos, offset),
         m_events(boost::circular_buffer<Event>(1000)),
         m_topDownInhibitionEvents(boost::circular_buffer<NeuronEvent>(1000)),
+        m_lateralInhibitionEvents(boost::circular_buffer<NeuronEvent>(1000)),
         m_weights(weights),
         m_waitingList(std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp>()) {
     for (size_t synapse = 0; synapse < nbSynapses; synapse++) {
@@ -100,7 +101,8 @@ inline void SimpleNeuron::weightUpdate() {
             }
         }
         normalizeWeights();
-    } else if (conf.STDP_LEARNING == "inhibitory" || conf.STDP_LEARNING == "all") {
+    }
+    if (conf.STDP_LEARNING == "inhibitory" || conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_topDownInhibitionEvents) {
             m_topDownInhibitionWeights.at(event.id()) += conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / conf.TAU_LTP);
             m_topDownInhibitionWeights.at(event.id()) += conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / conf.TAU_LTD);
