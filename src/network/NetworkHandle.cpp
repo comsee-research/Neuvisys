@@ -28,6 +28,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     } else if (m_networkConf.getNbCameras() == 2) {
         eventPacket = stereo(events, nbPass);
     }
+    std::cout << "Feeding network: " << eventPacket.size() << " events..." << std::endl;
 
     size_t time = eventPacket.front().timestamp();
     size_t displayTime = eventPacket.front().timestamp();
@@ -42,7 +43,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
             m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         }
 
-        if (event.timestamp() - displayTime > static_cast<size_t>(0.9 * E6)) {
+        if (event.timestamp() - displayTime > static_cast<size_t>(1 * E6)) {
             displayTime = event.timestamp();
             std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
 //            m_spinet.intermediateSave(saveCount);

@@ -276,17 +276,18 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
         std::cout << "No matching cell type" << std::endl;
     }
     m_structure.push_back(m_neurons[layer].size());
-    connectLayer(inhibition, layerToConnect, layerSizes, neuronSizes);
+    connectLayer(inhibition, layerToConnect, layerPatches, layerSizes, neuronSizes);
 }
 
 void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToConnect,
+                                  const std::vector<std::vector<size_t>> &layerPatches,
                                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     auto currLayer = m_neurons.size() - 1;
     for (auto &neuron: m_neurons[currLayer]) {
         topDownConnection(neuron.get(), currLayer, layerToConnect, neuronSizes);
         if (inhibition) {
             lateralStaticInhibitionConnection(neuron.get(), currLayer, layerSizes);
-            lateralDynamicInhibitionConnection(neuron.get(), currLayer, layerSizes);
+            lateralDynamicInhibitionConnection(neuron.get(), currLayer, layerPatches, layerSizes);
         }
     }
 }
@@ -308,12 +309,14 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer, c
 }
 
 void SpikingNetwork::lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer,
+                                                        const std::vector<std::vector<size_t>> &layerPatches,
                                                         const std::vector<size_t> &layerSizes) {
     for (int x = static_cast<int>(neuron.getPos().x()) - 1; x < static_cast<int>(neuron.getPos().x()) + 2; ++x) {
         for (int y = static_cast<int>(neuron.getPos().y()) - 1; y < static_cast<int>(neuron.getPos().y()) + 2; ++y) {
             for (size_t z = 0; z < layerSizes[2]; ++z) {
-                if ((x != neuron.getPos().x() || y != neuron.getPos().y()) && x >= 0 && y >= 0 && x < layerSizes[0] &&
-                    y < layerSizes[1]) {
+                if ((x != neuron.getPos().x() || y != neuron.getPos().y()) && x >= 0 && y >= 0 &&
+                    x < layerPatches[0].size() * layerSizes[0] &&
+                    y < layerPatches[1].size() * layerSizes[1]) {
                     neuron.addLateralDynamicInhibitionConnections(
                             m_neurons[currLayer][m_layout[currLayer][{x, y, z}]]);
                 }

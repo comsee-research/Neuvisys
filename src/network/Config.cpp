@@ -39,7 +39,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
         } catch (const std::exception &e) {
-            std::cerr << "In network config file" << std::endl;
+            std::cerr << "In network config file:" << e.what() << std::endl;
             throw;
         }
     } else {

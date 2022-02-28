@@ -77,8 +77,8 @@ private:
 
     void addNeuronEvent(const Neuron &neuron);
 
-    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<size_t> &layerSizes,
-                      const std::vector<size_t> &neuronSizes);
+    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<std::vector<size_t>> &layerPatches,
+                      const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
 
     static void topDownDynamicInhibition(Neuron &neuron);
 
@@ -88,13 +88,14 @@ private:
 
     void neuromodulation(Neuron &neuron);
 
-    void
-    topDownConnection(Neuron &neuron, size_t currLayer, size_t layerToConnect, const std::vector<size_t> &neuronSizes);
+    void topDownConnection(Neuron &neuron, size_t currLayer,
+                           size_t layerToConnect, const std::vector<size_t> &neuronSizes);
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
 
-    void
-    lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer, const std::vector<size_t> &layerSizes);
+    void lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer,
+                                            const std::vector<std::vector<size_t>> &layerPatches,
+                                            const std::vector<size_t> &layerSizes);
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP
