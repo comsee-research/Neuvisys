@@ -73,7 +73,7 @@ void SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
     m_lastImageTime = m_imageTime;
 
-    motorsJitter(dt);
+//    motorsJitter(dt);
 }
 
 bool SimulationInterface::poissonProcess() {
@@ -124,12 +124,14 @@ void SimulationInterface::startSimulation() {
     std_msgs::Bool msg{};
     msg.data = true;
     m_startSimulation.publish(msg);
+    std::cout << "Starting simulation" << std::endl;
 }
 
 void SimulationInterface::stopSimulation() {
     std_msgs::Bool msg{};
     msg.data = true;
     m_stopSimulation.publish(msg);
+    std::cout << "Stopping simulation" << std::endl;
 }
 
 void SimulationInterface::enableSyncMode(bool enable) {

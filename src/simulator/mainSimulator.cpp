@@ -12,7 +12,6 @@ int launchLearningSimulation(std::string &networkPath) {
     NetworkHandle network(networkPath, sim.getSimulationTime());
 
     int action;
-    std::string msg;
     while (ros::ok() && sim.getSimulationTime() < 300) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
@@ -20,6 +19,7 @@ int launchLearningSimulation(std::string &networkPath) {
         }
 
         sim.update();
+        std::string msg;
         if (!sim.getLeftEvents().empty()) {
             network.transmitReward(sim.getReward());
             network.transmitEvents(sim.getLeftEvents());
@@ -28,7 +28,6 @@ int launchLearningSimulation(std::string &networkPath) {
             if (action != -1) {
                 sim.activateMotors(action);
             }
-            std::cout << msg << std::endl;
         }
     }
 
@@ -52,12 +51,11 @@ int main(int argc, char **argv) {
         }
     } else if (type == "simulation") {
         networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
-        launchLearningSimulation(networkPath);
     }  else if (type == "real") {
 //        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
-        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+        networkPath = "/home/thomas/Bureau/network/configs/network_config.json";
     } else {
         networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
-        launchLearningSimulation(networkPath);
     }
+    launchLearningSimulation(networkPath);
 }

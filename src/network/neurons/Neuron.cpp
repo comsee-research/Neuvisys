@@ -116,7 +116,8 @@ void Neuron::writeJson(nlohmann::json &state) {
     std::vector<size_t> offset = {m_offset.x(), m_offset.y(), m_offset.z()};
     std::vector<size_t> inIndex;
     std::vector<size_t> outIndex;
-    std::vector<size_t> inhibIndex;
+    std::vector<size_t> staticInhibitionIndex;
+    std::vector<size_t> liInhibitionIndex;
     for (auto neuron : m_inConnections) {
         inIndex.push_back(neuron.get().getIndex());
     }
@@ -124,13 +125,17 @@ void Neuron::writeJson(nlohmann::json &state) {
         outIndex.push_back(neuron.get().getIndex());
     }
     for (auto neuron : m_lateralStaticInhibitionConnections) {
-        inhibIndex.push_back(neuron.get().getIndex());
+        staticInhibitionIndex.push_back(neuron.get().getIndex());
+    }
+    for (auto neuron : m_lateralDynamicInhibitionConnections) {
+        liInhibitionIndex.push_back(neuron.get().getIndex());
     }
     state["position"] = position;
     state["offset"] = offset;
     state["in_connections"] = inIndex;
     state["out_connections"] = outIndex;
-    state["inhibition_connections"] = inhibIndex;
+    state["static_inhibition"] = staticInhibitionIndex;
+    state["lateral_dynamic_inhibition"] = liInhibitionIndex;
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
     state["threshold"] = m_threshold;

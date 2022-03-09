@@ -8,12 +8,26 @@
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
  */
-NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_spinet(networkPath), m_networkConf(NetworkConfig(networkPath)),
-                                                               m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0),
-                                                               m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1),
-                                                               m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2),
-                                                               m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
-                                                               m_actionTime(time), m_updateTime(time), m_consoleTime(time) {
+NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_spinet(networkPath),
+                                                                            m_networkConf(NetworkConfig(networkPath)),
+                                                                            m_simpleNeuronConf(
+                                                                                    m_networkConf.getNetworkPath() +
+                                                                                    "configs/simple_cell_config.json",
+                                                                                    0),
+                                                                            m_complexNeuronConf(
+                                                                                    m_networkConf.getNetworkPath() +
+                                                                                    "configs/complex_cell_config.json",
+                                                                                    1),
+                                                                            m_criticNeuronConf(
+                                                                                    m_networkConf.getNetworkPath() +
+                                                                                    "configs/critic_cell_config.json",
+                                                                                    2),
+                                                                            m_actorNeuronConf(
+                                                                                    m_networkConf.getNetworkPath() +
+                                                                                    "configs/actor_cell_config.json",
+                                                                                    3),
+                                                                            m_actionTime(time), m_updateTime(time),
+                                                                            m_consoleTime(time) {
     load();
 }
 
@@ -33,7 +47,7 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     size_t time = eventPacket.front().timestamp();
     size_t displayTime = eventPacket.front().timestamp();
     size_t iteration = 0;
-    for (const auto &event : eventPacket) {
+    for (const auto &event: eventPacket) {
         ++iteration;
         ++m_countEvents;
         transmitEvent(event);
@@ -65,7 +79,7 @@ void NetworkHandle::load() {
             ifs >> state;
             saveCount = state["save_count"];
             m_countEvents = state["nb_events"];
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             std::cerr << "In network state file: " << fileName << e.what() << std::endl;
         }
     }
@@ -92,7 +106,7 @@ void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileNam
             nbRuns.push_back(nbRun);
             state["event_file_name"] = eventFileNames;
             state["nb_run"] = nbRuns;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             std::cerr << "In network state file: " << fileName << e.what() << std::endl;
         }
     } else {
@@ -148,7 +162,8 @@ std::vector<Event> NetworkHandle::mono(const std::string &events, size_t nbPass 
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeLeftArray; ++count) {
-            event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count], l_y[count],
+            event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count],
+                          l_y[count],
                           l_polarities[count], 0);
             eventPacket.push_back(event);
         }
@@ -260,7 +275,8 @@ void NetworkHandle::updateActor(long timestamp, size_t actor) {
 
 double NetworkHandle::getScore(long time) {
     double mean = 0;
-    for (auto it = m_saveData["reward"].end(); it != m_saveData["reward"].end() - time && it != m_saveData["reward"].begin(); --it) {
+    for (auto it = m_saveData["reward"].end();
+         it != m_saveData["reward"].end() - time && it != m_saveData["reward"].begin(); --it) {
         mean += *it;
     }
     mean /= static_cast<double>(time);
@@ -291,7 +307,8 @@ double NetworkHandle::valueFunction(double time) {
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
         value += m_spinet.getNeuron(i, 2).get().updateKernelSpikingRate(time);
     }
-    return m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + m_networkConf.getV0();
+    return m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) +
+           m_networkConf.getV0();
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
@@ -311,7 +328,7 @@ void NetworkHandle::transmitReward(const double reward) {
 void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
     saveValueMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
 
-    for (auto event : eventPacket) {
+    for (auto event: eventPacket) {
         m_spinet.addEvent(event);
     }
 }
@@ -325,7 +342,8 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 
     size_t layer = m_spinet.getNetworkStructure().size() - 1;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getActivityCount();
+        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i,
+                                                                                             layer).get().getActivityCount();
     }
     return motorActivations;
 }
@@ -361,12 +379,14 @@ cv::Mat NetworkHandle::getWeightNeuron(size_t idNeuron, size_t layer, size_t cam
                 if (layer == 0) {
                     for (size_t p = 0; p < NBPOLARITY; p++) {
                         weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights(p, camera, synapse, x, y) * 255;
-                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>
-                                (weight);
+                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 -
+                                                                                                             p)] = static_cast<unsigned char>
+                        (weight);
                     }
                 } else {
                     weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights(x, y, z) * 255;
-                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
+                    weightImage.at<cv::Vec3b>(static_cast<int>(y),
+                                              static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
                 }
             }
         }
@@ -385,7 +405,8 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
-std::pair<int, bool> NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
+std::pair<int, bool>
+NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
     bool exploration = false;
     int selectedAction = 0;
     std::random_device rd;
