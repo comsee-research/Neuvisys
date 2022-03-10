@@ -341,15 +341,20 @@ void SpikingNetwork::lateralStaticInhibitionConnection(Neuron &neuron, const siz
  */
 void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
     size_t layer;
+    m_averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
-            neuron.get().updateState(timeInterval, 0.05);
+            neuron.get().updateState(timeInterval, 0.5);
+
             neuron.get().learningDecay(static_cast<double>(nbEvents) / E6);
             if (layer == 0) {
                 neuron.get().thresholdAdaptation();
+                m_averageActivity += neuron.get().getSpikingRate();
             }
         }
     }
+    m_averageActivity /= static_cast<double>(m_neurons[0].size());
+    std::cout << m_averageActivity << std::endl;
 }
 
 void SpikingNetwork::normalizeActions() {

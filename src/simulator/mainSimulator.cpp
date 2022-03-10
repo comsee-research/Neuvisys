@@ -12,7 +12,7 @@ int launchLearningSimulation(std::string &networkPath) {
     NetworkHandle network(networkPath, sim.getSimulationTime());
 
     int action;
-    while (ros::ok() && sim.getSimulationTime() < 300) {
+    while (ros::ok() && sim.getSimulationTime() < 6) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();

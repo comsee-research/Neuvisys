@@ -146,7 +146,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
             /*** GUI Display ***/
             if (sim.getSimulationTime() - displayTime > m_displayRate / E6) {
                 displayTime = sim.getSimulationTime();
-                display(network, 0, displayTime);
+                display(network, 1, displayTime);
             }
 
             if (sim.getSimulationTime() - trackTime > m_trackRate / E6) {

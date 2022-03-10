@@ -27,7 +27,7 @@ public:
     explicit FrameToEvents(int n_max=5, int blocksize=1, int log_threshold=20, float map_threshold=0.4, float adapt_thresh_coef_shift=0.05, int method=3);
     void logFrame(cv::Mat &frame) const;
     void convertFrameToEvent(const cv::Mat &inputFrame, cv::Mat &reference, cv::Mat &thresholdmap, std::vector<Event> &events, long time, int camera) const;
-    int write_event(std::vector<Event> &events, float delta_B, float threshold, long time, int x, int y, int polarity, int camera) const;
+    int write_event(std::vector<Event> &events, float delta_B, float threshold, long time, int x, int y, bool polarity, int camera) const;
     static cv::Mat eventImage(const cv::Size &size, const std::vector<Event> &events);
 };
 
