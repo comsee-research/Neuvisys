@@ -4,7 +4,9 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface() {
+SimulationInterface::SimulationInterface(bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
+    frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3, saveFrames, m_saveEvents);
+
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
@@ -132,6 +134,10 @@ void SimulationInterface::stopSimulation() {
     msg.data = true;
     m_stopSimulation.publish(msg);
     std::cout << "Stopping simulation" << std::endl;
+
+    if (m_saveEvents) {
+        frameConverter.saveEventsAsFile("/home/thomas/Desktop/events");
+    }
 }
 
 void SimulationInterface::enableSyncMode(bool enable) {

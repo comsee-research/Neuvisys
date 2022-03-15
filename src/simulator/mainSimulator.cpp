@@ -4,7 +4,7 @@
 
 #include "SimulationInterface.hpp"
 
-int launchLearningSimulation(std::string &networkPath) {
+int launchLearningSimulation(std::string &networkPath, double simTime) {
     SimulationInterface sim;
     sim.enableSyncMode(true);
     sim.startSimulation();
@@ -12,7 +12,7 @@ int launchLearningSimulation(std::string &networkPath) {
     NetworkHandle network(networkPath, sim.getSimulationTime());
 
     int action;
-    while (ros::ok() && sim.getSimulationTime() < 6) {
+    while (ros::ok() && sim.getSimulationTime() < simTime) {
         sim.triggerNextTimeStep();
         while(!sim.simStepDone()) {
             ros::spinOnce();
@@ -36,26 +36,54 @@ int launchLearningSimulation(std::string &networkPath) {
     return 0;
 }
 
+int launchSimulation(double simTime) {
+    SimulationInterface sim(false, true);
+    sim.enableSyncMode(true);
+    sim.startSimulation();
+
+    while (ros::ok() && sim.getSimulationTime() < simTime) {
+        sim.triggerNextTimeStep();
+        while(!sim.simStepDone()) {
+            ros::spinOnce();
+        }
+
+        sim.update();
+        Event old(0, 0, 0, true);
+        for (auto const &event : sim.getLeftEvents()) {
+            if (event.timestamp() < old.timestamp()) {
+                std::cout << "oups" << std::endl;
+            }
+            old = event;
+        }
+    }
+
+    sim.stopSimulation();
+    return 0;
+}
+
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
-//    std::string type = argv[1];
-    std::string type = "real";
+    launchSimulation(4);
 
-    std::string networkPath;
-    if (type == "multi") {
-        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-            std::cout << networkPath << std::endl;
-            launchLearningSimulation(networkPath);
-        }
-    } else if (type == "simulation") {
-        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
-    }  else if (type == "real") {
+//    std::string type = argv[1];
+//    std::string type = "real";
+//
+//    std::string networkPath;
+//    if (type == "multi") {
+//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+//            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+//            std::cout << networkPath << std::endl;
+//            launchLearningSimulation(networkPath);
+//        }
+//    } else if (type == "simulation") {
 //        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
-        networkPath = "/home/thomas/Bureau/network/configs/network_config.json";
-    } else {
-        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
-    }
-    launchLearningSimulation(networkPath);
+//        launchLearningSimulation(networkPath);
+//    }  else if (type == "real") {
+//        networkPath = static_cast<std::string>(argv[2]) + "/configs/network_config.json";
+//        launchLearningSimulation(networkPath);
+//    } else {
+//        networkPath = "/home/thomas/neuvisys-dv/configuration/network/configs/network_config.json";
+//        launchLearningSimulation(networkPath);
+//    }
 }

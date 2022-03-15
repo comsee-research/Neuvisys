@@ -1,4 +1,4 @@
-#include "Utils.hpp"
+#include "Util.hpp"
 
 std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
 std::normal_distribution<double> normalDistr(0.0, 1.0);
@@ -124,6 +124,19 @@ namespace Util {
             ++count;
         }
         cnpy::npy_save(saveFile + ".npy", &data[0], {map.size()}, "w");
+    }
+
+    void saveEventFile(std::vector<Event> &events, std::string &saveFile) {
+        std::vector<double> data(events.size() * 4);
+        size_t count = 0;
+        for (auto const &event : events) {
+            data[count] = static_cast<double>(event.timestamp());
+            data[count+1] = event.x();
+            data[count+2] = event.y();
+            data[count+3] = event.polarity();
+            count += 4;
+        }
+        cnpy::npz_save(saveFile + ".npz", "arr_0", &data[0], {events.size(), 4}, "w");
     }
 
     int winnerTakeAll(std::vector<size_t> vec) {

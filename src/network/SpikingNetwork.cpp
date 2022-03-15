@@ -58,45 +58,45 @@ void SpikingNetwork::addEvent(const Event &event) {
  * A neuron spikes activates inhibition connections to adjacent neurons.
  */
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
-//    auto stack = std::stack<std::vector<std::reference_wrapper<Neuron>>>();
-//    stack.push(neuron.getOutConnections());
-//    while (!stack.empty()) {
-//        auto connections = stack.top();
-//        stack.pop();
-//        for (auto &forwardNeuron: connections) {
-//            auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
-//                                      neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
-//                                      neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-//            if (forwardNeuron.get().newEvent(
-//                    NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
-//                if (forwardNeuron.get().getLayer() != 3) { // weight change
-//                    forwardNeuron.get().weightUpdate();
-//                }
-//                lateralStaticInhibition(forwardNeuron.get());
-//                topDownDynamicInhibition(forwardNeuron.get());
-//                neuromodulation(forwardNeuron.get());
-//                if (!forwardNeuron.get().getOutConnections().empty()) {
-//                    stack.push(forwardNeuron.get().getOutConnections());
-//                }
-//            }
-//        }
-//    }
-
-    for (auto &forwardNeuron: neuron.getOutConnections()) {
-        auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
-                                  neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
-                                  neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
-            if (forwardNeuron.get().getLayer() != 3) { // weight change
-                forwardNeuron.get().weightUpdate();
+    auto stack = std::stack<std::vector<std::reference_wrapper<Neuron>>>();
+    stack.push(neuron.getOutConnections());
+    while (!stack.empty()) {
+        auto connections = stack.top();
+        stack.pop();
+        for (auto &forwardNeuron: connections) {
+            auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
+                                      neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
+                                      neuron.getPos().z() - forwardNeuron.get().getOffset().z());
+            if (forwardNeuron.get().newEvent(
+                    NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+                if (forwardNeuron.get().getLayer() != 3) { // weight change
+                    forwardNeuron.get().weightUpdate();
+                }
+                lateralStaticInhibition(forwardNeuron.get());
+                topDownDynamicInhibition(forwardNeuron.get());
+                neuromodulation(forwardNeuron.get());
+                if (!forwardNeuron.get().getOutConnections().empty()) {
+                    stack.push(forwardNeuron.get().getOutConnections());
+                }
             }
-            lateralStaticInhibition(forwardNeuron.get());
-            topDownDynamicInhibition(forwardNeuron.get());
-            neuromodulation(forwardNeuron.get());
-
-            addNeuronEvent(forwardNeuron.get());
         }
     }
+
+//    for (auto &forwardNeuron: neuron.getOutConnections()) {
+//        auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
+//                                  neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
+//                                  neuron.getPos().z() - forwardNeuron.get().getOffset().z());
+//        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+//            if (forwardNeuron.get().getLayer() != 3) { // weight change
+//                forwardNeuron.get().weightUpdate();
+//            }
+//            lateralStaticInhibition(forwardNeuron.get());
+//            topDownDynamicInhibition(forwardNeuron.get());
+//            neuromodulation(forwardNeuron.get());
+//
+//            addNeuronEvent(forwardNeuron.get());
+//        }
+//    }
 }
 
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
@@ -354,7 +354,6 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
         }
     }
     m_averageActivity /= static_cast<double>(m_neurons[0].size());
-    std::cout << m_averageActivity << std::endl;
 }
 
 void SpikingNetwork::normalizeActions() {

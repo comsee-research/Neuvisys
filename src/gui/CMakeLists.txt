@@ -13,7 +13,7 @@ set(DV_SOURCES
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Utils.cpp
+        ../network/Util.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp

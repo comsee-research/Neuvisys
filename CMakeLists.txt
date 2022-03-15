@@ -38,7 +38,7 @@ set_source_files_properties(src/dependencies/* PROPERTIES COMPILE_OPTIONS "-w")
 
 set(PROJECT_SOURCES
         src/network/SpikingNetwork.cpp
-        src/network/Utils.cpp
+        src/network/Util.cpp
         src/network/Config.cpp
         src/network/neurons/Neuron.cpp
         src/network/neurons/SimpleNeuron.cpp

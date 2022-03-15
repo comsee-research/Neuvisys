@@ -24,7 +24,7 @@ public:
 };
 
 class NeuronEvent {
-    uint64_t m_timestamp;
+    uint64_t m_timestamp{};
     uint64_t m_x{};
     uint64_t m_y{};
     uint64_t m_z{};

@@ -1,10 +1,11 @@
-#ifndef NEUVISYS_DV_UTILS_HPP
-#define NEUVISYS_DV_UTILS_HPP
+#ifndef NEUVISYS_DV_UTIL_HPP
+#define NEUVISYS_DV_UTIL_HPP
 
 #include "../dependencies/unsupported/Eigen/CXX11/Tensor"
 #include <random>
 #include <chrono>
 #include "cnpy.h"
+#include "Event.hpp"
 
 #define SIMPLEDIM 5
 #define COMPLEXDIM 3
@@ -23,6 +24,7 @@ namespace Util {
     double secondOrderNumericalDifferentiationMean(const std::vector<double> &vec, long n);
     bool fileExist(std::string &path);
     double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
+    void saveEventFile(std::vector<Event> &events, std::string &saveFile);
 }
 
 class Luts {
@@ -48,4 +50,4 @@ public:
     [[nodiscard]] inline uint64_t z() const { return m_posz; }
 };
 
-#endif //NEUVISYS_DV_UTILS_HPP
+#endif //NEUVISYS_DV_UTIL_HPP
