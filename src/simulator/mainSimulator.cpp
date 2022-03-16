@@ -48,15 +48,7 @@ int launchSimulation(double simTime) {
         }
 
         sim.update();
-        Event old(0, 0, 0, true);
-        for (auto const &event : sim.getLeftEvents()) {
-            if (event.timestamp() < old.timestamp()) {
-                std::cout << "oups" << std::endl;
-            }
-            old = event;
-        }
     }
-
     sim.stopSimulation();
     return 0;
 }
@@ -64,7 +56,7 @@ int launchSimulation(double simTime) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
-    launchSimulation(4);
+    launchSimulation(3.5);
 
 //    std::string type = argv[1];
 //    std::string type = "real";

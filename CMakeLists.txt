@@ -48,7 +48,7 @@ set(PROJECT_SOURCES
 
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 
-target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy)
+target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy z)
 
 add_subdirectory(src/gui)
 add_subdirectory(src/dv-modules)

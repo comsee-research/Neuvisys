@@ -62,8 +62,8 @@ else()
 endif()
 
 target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} cnpy caer)
+        ${PYTHON_LIBRARIES} cnpy caer z)
 
 add_executable(neuvisys ${DV_SOURCES} ${GUI_SOURCES} ${PROJECT_SOURCES} ${ROS_SOURCES})
 target_link_libraries(neuvisys PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} cnpy)
+        ${PYTHON_LIBRARIES} cnpy z)
