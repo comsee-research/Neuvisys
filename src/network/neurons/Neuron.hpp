@@ -2,8 +2,7 @@
 #define NEUVISYS_DV_NEURON_HPP
 
 #include "../Config.hpp"
-#include "../Utils.hpp"
-#include "../Event.hpp"
+#include "../Util.hpp"
 #include <boost/circular_buffer.hpp>
 #include <cmath>
 #include <list>

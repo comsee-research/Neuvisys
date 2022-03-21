@@ -33,11 +33,12 @@ class SimulationInterface {
     double m_time{};
     double m_timeStep{};
     bool m_simStepDone = false;
+    bool m_saveEvents = false;
 
     size_t count = 0;
 
     double m_rewardStored{};
-    FrameToEvents frameConverter = FrameToEvents(5, 1, 1, 0.2, 0, 3);
+    FrameToEvents frameConverter;
     cv::Mat leftReference, leftThresholdmap, leftEim;
     cv::Mat rightReference, rightThresholdmap, rightEim;
     bool firstLeftImage = true, firstRightImage = true;
@@ -45,7 +46,7 @@ class SimulationInterface {
     std::vector<std::map<uint64_t, float>> actionMapping;
 
 public:
-    explicit SimulationInterface();
+    explicit SimulationInterface(bool saveFrames=false, bool saveEvents=false);
     void update();
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }

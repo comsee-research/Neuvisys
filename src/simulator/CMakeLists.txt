@@ -4,7 +4,7 @@ include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Utils.cpp
+        ../network/Util.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp
@@ -16,4 +16,4 @@ set(PROJECT_SOURCES
         FrameToEvents.cpp)
 
 add_executable(neuvisys-simulator mainSimulator.cpp ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-simulator ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy caer)
+target_link_libraries(neuvisys-simulator ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy caer z)

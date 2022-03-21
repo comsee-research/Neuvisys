@@ -207,7 +207,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
 //    std::filesystem::create_directory(directory + "/figures/2");
 //    std::filesystem::create_directory(directory + "/figures/3");
     std::filesystem::create_directory(directory + "/gabors");
-    std::filesystem::create_directory(directory + "/gabors/data");
+    std::filesystem::create_directory(directory + "/gabors/0");
+    std::filesystem::create_directory(directory + "/gabors/1");
     std::filesystem::create_directory(directory + "/gabors/figures");
     std::filesystem::create_directory(directory + "/gabors/hists");
     std::filesystem::create_directory(directory + "/images");
