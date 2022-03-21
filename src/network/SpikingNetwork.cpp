@@ -354,7 +354,6 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
         }
     }
     m_averageActivity /= static_cast<double>(m_neurons[0].size());
-    std::cout << m_averageActivity << std::endl;
 }
 
 void SpikingNetwork::normalizeActions() {

@@ -49,7 +49,6 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
     size_t iteration = 0;
     for (const auto &event: eventPacket) {
         ++iteration;
-        ++m_countEvents;
         transmitEvent(event);
 
         if (event.timestamp() - time > UPDATE_INTERVAL) {
@@ -329,11 +328,13 @@ void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
     saveValueMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
 
     for (auto event: eventPacket) {
+        ++m_countEvents;
         m_spinet.addEvent(event);
     }
 }
 
 void NetworkHandle::transmitEvent(const Event &event) {
+    ++m_countEvents;
     m_spinet.addEvent(event);
 }
 
