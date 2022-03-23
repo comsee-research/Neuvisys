@@ -33,7 +33,8 @@ class NetworkHandle {
 public:
     NetworkHandle(const std::string &networkPath, double time);
 
-    void multiplePass(const std::string &events, size_t nbPass);
+    std::vector<Event>  loadEvents(const std::string &events, size_t nbPass);
+    void feedEvents(const std::vector<Event> &events);
     void updateActor(long timestamp, size_t actor);
     void saveValueMetrics(double time, size_t nbEvents);
     void saveActionMetrics(size_t action, bool exploration);
@@ -42,7 +43,7 @@ public:
     void transmitEvent(const Event &event);
     std::vector<uint64_t> resolveMotor();
     void learningDecay(size_t iteration);
-    void save(size_t nbRun, const std::string &eventFileName);
+    void save(const std::string &eventFileName, const size_t nbRun);
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
     static std::vector<Event> mono(const std::string &events, size_t nbPass);
     static std::vector<Event> stereo(const std::string &events, size_t nbPass);

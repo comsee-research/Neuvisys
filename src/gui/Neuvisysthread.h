@@ -5,12 +5,8 @@
 #include <chrono>
 #include <random>
 #include <utility>
-#include <csignal>
-#include <atomic>
 #include <thread>
-#include <libcaercpp/devices/davis.hpp>
 
-#include "../dv-modules/Ynoise.hpp"
 #include "../motor-control/BrushlessMotor.hpp"
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"

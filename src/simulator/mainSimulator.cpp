@@ -32,7 +32,7 @@ int launchLearningSimulation(std::string &networkPath, double simTime) {
     }
 
     sim.stopSimulation();
-    network.save(1, "Simulation");
+    network.save("Simulation", 1);
     return 0;
 }
 

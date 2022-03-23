@@ -31,23 +31,25 @@ NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_sp
     load();
 }
 
-/* Launches the spiking network on the specified event file 'nbPass' times.
- * The config file of the network must precise if the event file is stereo or mono.
- */
-void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
+std::vector<Event> NetworkHandle::loadEvents(const std::string &events, size_t nbPass) {
     std::cout << "Unpacking events..." << std::endl;
     auto eventPacket = std::vector<Event>();
     if (m_networkConf.getNbCameras() == 1) {
-        eventPacket = mono(events, nbPass);
+        return mono(events, nbPass);
     } else if (m_networkConf.getNbCameras() == 2) {
-        eventPacket = stereo(events, nbPass);
+        return stereo(events, nbPass);
     }
-    std::cout << "Feeding network: " << eventPacket.size() << " events..." << std::endl;
+}
 
-    size_t time = eventPacket.front().timestamp();
-    size_t displayTime = eventPacket.front().timestamp();
+/* Launches the spiking network on the specified event file 'nbPass' times.
+ * The config file of the network must precise if the event file is stereo or mono.
+ */
+void NetworkHandle::feedEvents(const std::vector<Event> &events) {
+    std::cout << "Feeding network: " << events.size() << " events..." << std::endl;
+    size_t time = events.front().timestamp();
+    size_t displayTime = events.front().timestamp();
     size_t iteration = 0;
-    for (const auto &event: eventPacket) {
+    for (const auto &event: events) {
         ++iteration;
         transmitEvent(event);
 
@@ -58,13 +60,11 @@ void NetworkHandle::multiplePass(const std::string &events, size_t nbPass) {
 
         if (event.timestamp() - displayTime > static_cast<size_t>(5 * E6)) {
             displayTime = event.timestamp();
-            std::cout << static_cast<int>(100 * iteration / eventPacket.size()) << "%" << std::endl;
+            std::cout << static_cast<int>(100 * iteration / events.size()) << "%" << std::endl;
 //            m_spinet.intermediateSave(saveCount);
             ++saveCount;
         }
     }
-
-    save(nbPass, events);
 }
 
 void NetworkHandle::load() {
@@ -89,7 +89,7 @@ void NetworkHandle::load() {
 /* Saves information about the network actual state.
  * Number of times the network has been launched and the name of the event file use can be specified.
  */
-void NetworkHandle::save(const size_t nbRun = 0, const std::string &eventFileName = "") {
+void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbRun = 0) {
     std::cout << "Saving Network..." << std::endl;
     std::string fileName;
     fileName = m_networkConf.getNetworkPath() + "networkState.json";
