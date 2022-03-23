@@ -49,7 +49,7 @@ To compile the Neuvisys library, in the root folder:
 - Run ``mkdir build``, ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
 
 If you want to use some of the abovementioned functionnalities, you can compile them with:
-``cmake -DBUILD_CAMERA=ON -DBUILD_SIMULATOR=ON -DBUILD_MOTOR_CONTROL=ON -DBUILD_GUI=ON -DCMAKE_BUILD_TYPE=Release ..``
+- ``cmake -DBUILD_CAMERA=ON -DBUILD_SIMULATOR=ON -DBUILD_MOTOR_CONTROL=ON -DBUILD_GUI=ON -DCMAKE_BUILD_TYPE=Release ..``
 (put ``OFF`` on the functionnalities you do not want to use and compile).
 
 The core neuvisys library does not need any installation requirements except OPENCV. But adding more functionnalities means installing the adequate libraries (see Requirements section).
