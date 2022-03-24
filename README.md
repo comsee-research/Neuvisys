@@ -2,7 +2,7 @@
 
 The Neuvisys project stands for Neuromorphic Vision System. It is a library offering access to a Spiking Neural Network (SNN) with different possible kinds of neurons.
 The library is written in c++.
-It can be launched with command lines, via a Qt gui or via Inivation DV software as a DV module. There is also a possible connection with the Coppeliasim simulator, also known as V-REP, via a ROS interface.
+It can be launched with command lines or via a Qt gui. There is also a possible connection with the Coppeliasim simulator, also known as V-REP, via a ROS interface.
 
 ## Requirements
 
@@ -13,31 +13,15 @@ It can be launched with command lines, via a Qt gui or via Inivation DV software
 
 Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
 
+### Event Based Cameras
+
+To connect to event based cameras, and use the SNN live, you need to install caer: https://github.com/breznak/caer
+
 ### Qt
 install QT 5 with the **Qt Charts** module:
 
 ``sudo apt install qt5-default``
 ``sudo apt install libqt5charts5-dev``
-
-### DV software:
-install **dv-software**: https://inivation.gitlab.io/dv/dv-docs/docs/getting-started.html
-
-Don't forget to install the dv-runtime-dev package for it to work.
-
-**Documentation**: https://inivation.gitlab.io/dv/dv-docs
-
-### To connect the neuvisys library with the dv-software:
-Run the dv graphical interface either in your application launcher or by running ``dv-gui``
-
-#### Set up DV
-
-To test the neuvisys module, you will have to set up DV first. See the following documentation: https://inivation.gitlab.io/dv/dv-docs/docs/first-module/ on the **Set up DV** paragraph.
-
-Once setup, you can launch the dv-software runtime with:
-- ``/usr/bin/dv-runtime``
-
-and the GUI with:
-- ``/usr/bin/dv-gui``
 
 ### Coppeliasim / ROS
 
@@ -49,10 +33,26 @@ Install ROS Noetic (Other ROS distribution might work, but this is uncertain): h
 
 It is advised to use the **Desktop-Full Install**, though other lighter version may also work.
 
+## Neuvisys libraries
+
+By default, only the neuvisys library core is compiled.
+There is four more libraries that adds functionnality:
+
+- Camera: allows the connection to event based camera thanks to caer. With it activated, you can then use event based cameras and feed the events directly to the SNN in real time.
+- Simulator: allows the connection to Coppeliasim. With it activated, you can create complex environments and simulate event based cameras outputs, and feed it to the SNN in real time.
+- Motor control: allows the connection with Faulhaber Brushless motors. With it activated, you can pilot the motors in real time.
+- GUI: allows the use of a graphical user interface.
+
 ## Launch
 
 To compile the Neuvisys library, in the root folder:
 - Run ``mkdir build``, ``cd build``, ``cmake -DCMAKE_BUILD_TYPE=Release ..``
+
+If you want to use some of the abovementioned functionnalities, you can compile them with:
+- ``cmake -DBUILD_CAMERA=ON -DBUILD_SIMULATOR=ON -DBUILD_MOTOR_CONTROL=ON -DBUILD_GUI=ON -DCMAKE_BUILD_TYPE=Release ..``
+(put ``OFF`` on the functionnalities you do not want to use and compile).
+
+The core neuvisys library does not need any installation requirements except OPENCV. But adding more functionnalities means installing the adequate libraries (see Requirements section).
 
 If there is some errors, you may have to install the following python packages:
 ``pip install empy``
@@ -64,9 +64,9 @@ or
 
 - Run ``make [target-name]`` to compile only one target. possible targets are:
 - ``neuvisys-exe`` is the command line executable.
+- ``event-camera`` is a module to connect an event based camera (davis by default).
+- ``neuvisys-simulator`` is an executable that connects to Coppeliasim via ROS.
 - ``neuvisys-qt`` is similar to neuvisys but with an added Qt interface.
-- ``neuvisys-dv`` is a module that can be used with dv-software.
-- ``neuvisys-ros`` is an executable that connects to Coppeliasim via ROS.
 
 Compiled target are found in the "build/src" folder.
 

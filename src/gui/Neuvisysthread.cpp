@@ -83,12 +83,7 @@ void NeuvisysThread::readEvents() {
 }
 
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {
-    auto eventPacket = std::vector<Event>();
-    if (network.getNetworkConfig().getNbCameras() == 1) {
-        eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
-    } else if (network.getNetworkConfig().getNbCameras() == 2) {
-        eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
-    }
+    auto eventPacket = network.loadEvents(m_events.toStdString(), m_nbPass);
 
     size_t time;
     auto displayTime = eventPacket.front().timestamp();
@@ -112,7 +107,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
         }
     }
 
-    network.save(m_nbPass, m_events.toStdString());
+    network.save(m_events.toStdString(), m_nbPass);
     emit networkDestruction();
 }
 
@@ -158,7 +153,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
     }
     sim.stopSimulation();
-    network.save(1, "Simulation");
+    network.save("Simulation", 1);
     emit networkDestruction();
 }
 
@@ -347,180 +342,100 @@ void NeuvisysThread::onStopNetwork() {
     m_stop = true;
 }
 
-static atomic_bool globalShutdown(false);
-
-static void globalShutdownSignalHandler(int signal) {
-    // Simply set the running flag to false on SIGTERM and SIGINT (CTRL+C) for global shutdown.
-    if (signal == SIGTERM || signal == SIGINT) {
-        globalShutdown.store(true);
-    }
-}
-
-static void usbShutdownHandler(void *ptr) {
-    (void) (ptr); // UNUSED.
-
-    globalShutdown.store(true);
-}
-
-int prepareContext() {
-    // Install signal handler for global shutdown.
-    struct sigaction shutdownAction{};
-
-    shutdownAction.sa_handler = &globalShutdownSignalHandler;
-    shutdownAction.sa_flags = 0;
-    sigemptyset(&shutdownAction.sa_mask);
-    sigaddset(&shutdownAction.sa_mask, SIGTERM);
-    sigaddset(&shutdownAction.sa_mask, SIGINT);
-
-    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGTERM. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-
-    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGINT. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-    return 0;
-}
-
-void changeBiases(libcaer::devices::davis &davis) {
-    // Tweak some biases, to increase bandwidth in this case.
-    struct caer_bias_coarsefine coarseFineBias{};
-
-    coarseFineBias.coarseValue = 2;
-    coarseFineBias.fineValue = 116;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    coarseFineBias.coarseValue = 1;
-    coarseFineBias.fineValue = 33;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    // Let's verify they really changed!
-    uint32_t prBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
-    uint32_t prsfBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
-
-    printf("New bias values --- PR-coarse: %d, PR-fine: %d, PRSF-coarse: %d, PRSF-fine: %d.\n",
-           caerBiasCoarseFineParse(prBias).coarseValue, caerBiasCoarseFineParse(prBias).fineValue,
-           caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
-}
-
 int NeuvisysThread::launchReal(NetworkHandle &network) {
-    auto time = std::chrono::high_resolution_clock::now();
-    auto displayTime = time;
-    auto trackTime = time;
-    auto motorTime = time;
-    auto positionTime = time;
-
-//    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
-//    lXMotor.setBounds(-55000, 55000);
-
-    std::vector<double> motorMapping;
-    motorMapping.emplace_back(350); // left horizontal -> left movement
-    motorMapping.emplace_back(0); // no movement
-    motorMapping.emplace_back(-350); // left horizontal  -> right movement
-
-    prepareContext();
-    auto davis = libcaer::devices::davis(1);
-    struct caer_davis_info davis_info = davis.infoGet();
-    printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
-           davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
-           davis_info.logicVersion);
-    davis.sendDefaultConfig();
-    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
-    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
-
-    auto eventFilter = Ynoise(346, 260);
-
-    double position = 0;
-    int action;
-    double reward;
-    std::string msg;
-    while (!globalShutdown.load(memory_order_relaxed)) {
-        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
-        if (packetContainer == nullptr) {
-            continue; // Skip if nothing there.
-        }
-
-        for (auto &packet: *packetContainer) {
-            if (packet == nullptr) {
-                continue; // Skip if nothing there.
-            }
-
-            if (packet->getEventType() == POLARITY_EVENT) {
-                auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
-//                lXMotor.jitterSpeed(static_cast<double>(dt));
-
-                time = std::chrono::high_resolution_clock::now();
-                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
-                        std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
-                auto events = eventFilter.run(*polarity);
-
-//                if (lXMotor.isActionValid(position, 0)) {
-//                    reward = 80 * (55000 - abs(position)) / 55000;
-//                } else {
-//                    reward = -100;
-//                }
-
-                m_eventRate += static_cast<double>(polarity->size());
-                network.transmitReward(reward);
-                network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
-                for (const auto &event: events) {
-                    addEventToDisplay(event);
-                    network.transmitEvent(event);
-                }
-
-                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
-                action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
-
-//                if (action != -1) {
-//                    position += motorMapping[action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
-//                    if (lXMotor.isActionValid(position, 0)) {
-//                        motorTime = time;
-//                        lXMotor.setSpeed(motorMapping[action]);
-//                    } else {
-//                        lXMotor.setSpeed(0);
-//                    }
+//    auto time = std::chrono::high_resolution_clock::now();
+//    auto displayTime = time;
+//    auto trackTime = time;
+//    auto motorTime = time;
+//    auto positionTime = time;
+//
+////    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
+////    lXMotor.setBounds(-55000, 55000);
+//
+//    std::vector<double> motorMapping;
+//    motorMapping.emplace_back(350); // left horizontal -> left movement
+//    motorMapping.emplace_back(0); // no movement
+//    motorMapping.emplace_back(-350); // left horizontal  -> right movement
+//
+//    auto eventFilter = Ynoise(346, 260);
+//
+//    double position = 0;
+//    int action;
+//    double reward;
+//    std::string msg;
+//    while (!globalShutdown.load(memory_order_relaxed)) {
+//        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
+//        if (packetContainer == nullptr) {
+//            continue; // Skip if nothing there.
+//        }
+//
+//        for (auto &packet: *packetContainer) {
+//            if (packet == nullptr) {
+//                continue; // Skip if nothing there.
+//            }
+//
+//            if (packet->getEventType() == POLARITY_EVENT) {
+//                auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
+////                lXMotor.jitterSpeed(static_cast<double>(dt));
+//
+//                time = std::chrono::high_resolution_clock::now();
+//                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
+//                        std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
+//                auto events = eventFilter.run(*polarity);
+//
+////                if (lXMotor.isActionValid(position, 0)) {
+////                    reward = 80 * (55000 - abs(position)) / 55000;
+////                } else {
+////                    reward = -100;
+////                }
+//
+//                m_eventRate += static_cast<double>(polarity->size());
+//                network.transmitReward(reward);
+//                network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
+//                for (const auto &event: events) {
+//                    addEventToDisplay(event);
+//                    network.transmitEvent(event);
 //                }
 //
-//                if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
-//                    positionTime = time;
-//                    std::cout << "Before: " << position << std::endl;
-//                    position = lXMotor.getPosition();
-//                    std::cout << "After: " << position << std::endl;
+//                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
+//                action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
+//
+////                if (action != -1) {
+////                    position += motorMapping[action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
+////                    if (lXMotor.isActionValid(position, 0)) {
+////                        motorTime = time;
+////                        lXMotor.setSpeed(motorMapping[action]);
+////                    } else {
+////                        lXMotor.setSpeed(0);
+////                    }
+////                }
+////
+////                if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
+////                    positionTime = time;
+////                    std::cout << "Before: " << position << std::endl;
+////                    position = lXMotor.getPosition();
+////                    std::cout << "After: " << position << std::endl;
+////                }
+//
+//                /*** GUI Display ***/
+//                if (std::chrono::duration<double>(time - displayTime).count() > m_displayRate / E6) {
+//                    displayTime = time;
+//                    display(network, 0, 0);
 //                }
-
-                /*** GUI Display ***/
-                if (std::chrono::duration<double>(time - displayTime).count() > m_displayRate / E6) {
-                    displayTime = time;
-                    display(network, 0, 0);
-                }
-
-                if (std::chrono::duration<double>(time - trackTime).count() > m_displayRate / E6) {
-                    trackTime = time;
-                    if (!polarity->empty()) {
-                        network.trackNeuron(polarity->back().getTimestamp(), m_id, m_layer);
-                    }
-                }
-            }
-        }
-    }
-    davis.dataStop();
-
-    // Close automatically done by destructor.
-    printf("Shutdown successful.\n");
-    network.save(1, "Simulation");
-    return 0;
+//
+//                if (std::chrono::duration<double>(time - trackTime).count() > m_displayRate / E6) {
+//                    trackTime = time;
+//                    if (!polarity->empty()) {
+//                        network.trackNeuron(polarity->back().getTimestamp(), m_id, m_layer);
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    davis.dataStop();
+//
+//    // Close automatically done by destructor.
+//    printf("Shutdown successful.\n");
+//    network.save(1, "Simulation");
+//    return 0;
 }

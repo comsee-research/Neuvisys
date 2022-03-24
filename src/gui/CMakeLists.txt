@@ -5,11 +5,12 @@ set(CMAKE_AUTORCC ON)
 find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
+find_package(libcaer)
 
 include_directories(${catkin_INCLUDE_DIRS})
 
-set(DV_SOURCES
-        ../dv-modules/Ynoise.cpp)
+set(CAMERA_SOURCES
+        ../camera/Ynoise.cpp)
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
@@ -30,7 +31,7 @@ set(ROS_SOURCES
         ../motor-control/libserie/comserie.cpp)
 
 set(GUI_SOURCES
-        guiMain.cpp
+        Gui.cpp
         Neuvisysgui.cpp
         Neuvisysthread.cpp
         GLWidget.cpp
