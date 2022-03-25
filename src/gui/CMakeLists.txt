@@ -10,6 +10,7 @@ find_package(libcaer)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(CAMERA_SOURCES
+        ../camera/EventCamera.cpp
         ../camera/Ynoise.cpp)
 
 set(PROJECT_SOURCES
@@ -39,7 +40,7 @@ set(GUI_SOURCES
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-qt
-            ${DV_SOURCES}
+            ${CAMERA_SOURCES}
             ${GUI_SOURCES}
             ${PROJECT_SOURCES}
             ${ROS_SOURCES}
@@ -47,14 +48,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 else()
     if(ANDROID)
         add_library(neuvisys-qt SHARED
-                ${DV_SOURCES}
+                ${CAMERA_SOURCES}
                 ${GUI_SOURCES}
                 ${PROJECT_SOURCES}
                 ${ROS_SOURCES}
                 )
     else()
         add_executable(neuvisys-qt
-                ${DV_SOURCES}
+                ${CAMERA_SOURCES}
                 ${GUI_SOURCES}
                 ${PROJECT_SOURCES}
                 ${ROS_SOURCES}

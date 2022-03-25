@@ -2,10 +2,8 @@
 // Created by thomas on 23/03/2022.
 //
 
-#include "Ynoise.hpp"
-#include <atomic>
-#include <libcaercpp/devices/davis.hpp>
-#include <csignal>
+#include <iostream>
+#include "EventCamera.hpp"
 
 static std::atomic_bool globalShutdown(false);
 
@@ -22,7 +20,7 @@ static void usbShutdownHandler(void *ptr) {
     globalShutdown.store(true);
 }
 
-int prepareContext() {
+int EventCamera::prepareContext() {
     // Install signal handler for global shutdown.
     struct sigaction shutdownAction{};
 
@@ -46,7 +44,7 @@ int prepareContext() {
     return 0;
 }
 
-void changeBiases(libcaer::devices::davis &davis) {
+void EventCamera::changeBiases() {
     // Tweak some biases, to increase bandwidth in this case.
     struct caer_bias_coarsefine coarseFineBias{};
 
@@ -77,10 +75,29 @@ void changeBiases(libcaer::devices::davis &davis) {
            caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
 }
 
-int main(int argc, char *argv[]) {
+std::shared_ptr<const libcaer::events::PolarityEventPacket> EventCamera::receiveEvents(bool &received, bool &stop) {
+    if (!globalShutdown.load(std::memory_order_relaxed)) {
+        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
+        if (packetContainer != nullptr) {
+            for (auto &packet: *packetContainer) {
+                if (packet != nullptr) {
+                    if (packet->getEventType() == POLARITY_EVENT) {
+                        std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity = std::static_pointer_cast<libcaer::events::PolarityEventPacket>(
+                                packet);
+                        received = true;
+                        return polarity;
+                    }
+                }
+            }
+        }
+    } else {
+        stop = true;
+    }
+}
+
+EventCamera::EventCamera() {
     prepareContext();
 
-    auto davis = libcaer::devices::davis(1);
     struct caer_davis_info davis_info = davis.infoGet();
     printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
            davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
@@ -88,6 +105,8 @@ int main(int argc, char *argv[]) {
     davis.sendDefaultConfig();
     davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
     davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
+}
 
+EventCamera::~EventCamera() {
     davis.dataStop();
 }

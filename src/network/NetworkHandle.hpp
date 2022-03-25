@@ -39,7 +39,6 @@ public:
     void saveValueMetrics(double time, size_t nbEvents);
     void saveActionMetrics(size_t action, bool exploration);
     void transmitReward(double reward);
-    void transmitEvents(const std::vector<Event> &eventPacket);
     void transmitEvent(const Event &event);
     std::vector<uint64_t> resolveMotor();
     void learningDecay(size_t iteration);
@@ -50,7 +49,7 @@ public:
     double valueFunction(double time);
     double valueDerivative(const std::vector<double> &value);
     std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
-    int learningLoop(long lastTimestamp, double time, std::string &msg);
+    int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
     double getScore(long time);
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }

@@ -344,7 +344,7 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
     m_averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
-            neuron.get().updateState(timeInterval, 0.5);
+            neuron.get().updateState(timeInterval, 0.8);
 
             neuron.get().learningDecay(static_cast<double>(nbEvents) / E6);
             if (layer == 0) {

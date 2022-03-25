@@ -229,11 +229,15 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
     return eventPacket;
 }
 
-int NetworkHandle::learningLoop(long lastTimestamp, double time, std::string &msg) {
-    if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL) / E6) {
+int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
+    if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL)) {
         m_updateTime = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
+        m_reward = 250 * (m_spinet.getAverageActivity() - 0.5);
+        m_spinet.transmitNeuromodulator(m_reward);
     }
+
+    saveValueMetrics(lastTimestamp, nbEvents);
 
     if (time - m_consoleTime > SCORE_INTERVAL) {
         m_consoleTime = time;
@@ -244,7 +248,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, std::string &ms
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
     }
 
-    if (time - m_actionTime > static_cast<double>(getNetworkConfig().getActionRate()) / E6) {
+    if (time - m_actionTime > static_cast<double>(getNetworkConfig().getActionRate())) {
         m_actionTime = time;
         if (m_action != -1) {
             updateActor(lastTimestamp, m_action);
@@ -263,13 +267,21 @@ void NetworkHandle::updateActor(long timestamp, size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
     neuron.get().spike(timestamp);
 
-    auto V = valueFunction(static_cast<double>(timestamp));
-    double VDot = valueDerivative(m_saveData["value"]);
-    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
-
-    neuron.get().setNeuromodulator(tdError);
+    neuron.get().setNeuromodulator(m_saveData["tdError"].back());
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
     m_spinet.normalizeActions();
+}
+
+void NetworkHandle::saveValueMetrics(double time, size_t nbEvents) {
+    m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
+    m_saveData["reward"].push_back(m_reward);
+
+    auto V = valueFunction(time);
+    m_saveData["value"].push_back(V);
+//    double VDot = valueDerivative(m_saveData["value"]);
+//    m_saveData["valueDot"].push_back(VDot);
+//    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
+//    m_saveData["tdError"].push_back(tdError);
 }
 
 double NetworkHandle::getScore(long time) {
@@ -281,19 +293,6 @@ double NetworkHandle::getScore(long time) {
     mean /= static_cast<double>(time);
     m_saveData["score"].push_back(mean);
     return mean;
-}
-
-void NetworkHandle::saveValueMetrics(double time, size_t nbEvents) {
-    m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
-
-    auto V = valueFunction(time);
-    double VDot = valueDerivative(m_saveData["value"]);
-    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
-
-    m_saveData["reward"].push_back(m_reward);
-    m_saveData["value"].push_back(V);
-    m_saveData["valueDot"].push_back(VDot);
-    m_saveData["tdError"].push_back(tdError);
 }
 
 void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
@@ -313,7 +312,7 @@ double NetworkHandle::valueFunction(double time) {
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
     if (value.size() > nbPreviousTD) {
-        return 50 * Util::secondOrderNumericalDifferentiationMean(m_saveData["value"], nbPreviousTD);
+        return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
     }
@@ -322,15 +321,6 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
     m_spinet.transmitNeuromodulator(reward);
-}
-
-void NetworkHandle::transmitEvents(const std::vector<Event> &eventPacket) {
-    saveValueMetrics(static_cast<double>(eventPacket.back().timestamp()), eventPacket.size());
-
-    for (auto event: eventPacket) {
-        ++m_countEvents;
-        m_spinet.addEvent(event);
-    }
 }
 
 void NetworkHandle::transmitEvent(const Event &event) {
