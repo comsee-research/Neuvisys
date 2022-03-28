@@ -28,7 +28,9 @@ ENDIF()
 
 find_package(OpenCV 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
+find_package(HDF5 REQUIRED)
 
+include_directories(${HDF5_INCLUDE_DIRS})
 include_directories ("/usr/include/opencv4/")
 include_directories(${PYTHON_INCLUDE_DIRS})
 include_directories(PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/dependencies)
@@ -48,7 +50,7 @@ set(PROJECT_SOURCES
 
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 
-target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} cnpy z)
+target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} cnpy z)
 
 option(BUILD_CAMERA "Enable to use event based cameras live" OFF)
 option(BUILD_SIMULATOR "Enable to use Coppelia simulator" OFF)

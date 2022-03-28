@@ -3,6 +3,7 @@
 //
 
 #include "NetworkHandle.hpp"
+#include "H5Cpp.h"
 
 /* Creates the spiking neural network from the SpikingNetwork class.
  * Loads the configuration files locally.
