@@ -11,14 +11,15 @@
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
 #include "../simulator/SimulationInterface.hpp"
-
+#include "../camera/Ynoise.hpp"
+#include "../camera/EventCamera.hpp"
 
 class NeuvisysThread : public QThread {
-    Q_OBJECT
+Q_OBJECT
 
 protected:
     int m_initArgc;
-    char** m_initArgv;
+    char **m_initArgv;
     QString m_networkPath;
     QString m_events;
     size_t m_nbPass;
@@ -49,49 +50,92 @@ protected:
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
+    int m_action;
+    double m_displayTime = 0, m_trackTime = 0;
+    std::string m_msg;
+
 public:
-    NeuvisysThread(int argc, char** argv, QObject *parent = nullptr);
+    NeuvisysThread(int argc, char **argv, QObject *parent = nullptr);
+
     void render(QString networkPath, QString events, size_t nbPass, size_t mode);
+
     bool init();
+
     void run() override;
 
 private:
     void launchNetwork(NetworkHandle &network);
+
     void launchSimulation(NetworkHandle &network);
+
     int launchReal(NetworkHandle &network);
+
     void readEvents();
+
     void display(NetworkHandle &network, size_t sizeArray, double time);
+
     void addEventToDisplay(const Event &event);
+
     void prepareSpikes(NetworkHandle &network);
+
     void prepareWeights(NetworkHandle &network);
+
     void sensingZone(NetworkHandle &network);
 
+    void eventLoop(NetworkHandle &network, const vector<Event> &events, double time);
+
 public slots:
+
     void onTabVizChanged(size_t index);
+
     void onIndexChanged(size_t index);
+
     void onZcellChanged(size_t zcell);
+
     void onCameraChanged(size_t camera);
+
     void onSynapseChanged(size_t synapse);
+
     void onPrecisionEventChanged(size_t displayRate);
+
     void onRangePotentialChanged(size_t rangePotential);
+
     void onPrecisionPotentialChanged(size_t trackRate);
+
     void onRangeSpikeTrainChanged(size_t rangeSpiketrain);
+
     void onLayerChanged(size_t layer);
+
     void onStopNetwork();
 
 signals:
+
     void displayProgress(int progress, double time);
+
     void displayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
-    void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat& rightEventDisplay);
-    void displayWeights(const std::map<size_t, cv::Mat>& weightDisplay, size_t layer);
-    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+
+    void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
+
+    void displayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layer);
+
+    void
+    displayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+
     void displaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrain, double time);
-    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
+
+    void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain,
+                       const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
+
     void displayAction(const std::vector<bool> &motorActivation);
-    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes, const
-    std::vector<size_t> &neuronSizes);
+
+    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
+                              const std::vector<size_t> &layerSizes, const
+                              std::vector<size_t> &neuronSizes);
+
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
+
     void networkDestruction();
+
     void consoleMessage(const std::string &msg);
 };
 

@@ -61,6 +61,8 @@ public:
 
     void normalizeActions();
 
+    [[nodiscard]] double getAverageActivity() const { return m_averageActivity; }
+
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
 
     const std::vector<size_t> &getNetworkStructure() { return m_structure; }
