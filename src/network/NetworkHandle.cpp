@@ -36,23 +36,25 @@ std::vector<Event> NetworkHandle::loadEvents(const std::string &events, size_t n
     std::cout << "Unpacking events..." << std::endl;
 
     std::string hdf5 = ".h5";
+    char *version, *date;
+    register_blosc(&version, &date);
     if (std::equal(hdf5.rbegin(), hdf5.rend(), events.rbegin())) {
-//        H5::H5File file(events, H5F_ACC_RDONLY);
-//        H5::Group group = file.openGroup("events");
-//        H5::DataSet dataset = group.openDataSet("./x");
-//        H5::DataSpace dataSpace = dataset.getSpace();
-//
-//        hsize_t dims[1];
-//        dataSpace.getSimpleExtentDims(dims);
-//        H5::DataSpace memorySpace(1, dims);
-//
-//        auto vec = std::vector<int>(dims[0]); // buffer for dataset to be read
-//        auto memtype = dataset.getDataType();
-//        dataset.read(vec.data(), memtype);
-//
-//        for (int i = 0; i < dims[0]; i++) {
-//            std::cout << data_out[i] << std::endl;
-//        }
+        H5::H5File file(events, H5F_ACC_RDONLY);
+        H5::Group group = file.openGroup("events");
+        H5::DataSet dataset = group.openDataSet("./x");
+        H5::DataSpace dataSpace = dataset.getSpace();
+
+        hsize_t dims[1];
+        dataSpace.getSimpleExtentDims(dims);
+        H5::DataSpace memorySpace(1, dims);
+
+        auto vec = std::vector<int>(dims[0]); // buffer for dataset to be read
+        auto memtype = dataset.getDataType();
+        dataset.read(vec.data(), memtype);
+
+        for (int i = 0; i < dims[0]; i++) {
+            std::cout << vec[i] << std::endl;
+        }
     } else {
         if (m_networkConf.getNbCameras() == 1) {
             return mono(events, nbPass);

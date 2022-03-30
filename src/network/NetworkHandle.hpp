@@ -6,7 +6,9 @@
 #define NEUVISYS_DV_NETWORK_HANDLE_HPP
 
 #include "SpikingNetwork.hpp"
-//#include "H5Cpp.h"
+#include "H5Cpp.h"
+#include "hdf5.h"
+#include "blosc_filter.h"
 
 /*
  * Used as an abstraction layer on top of the SpikingNetwork class.
