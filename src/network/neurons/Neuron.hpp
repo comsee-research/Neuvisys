@@ -15,7 +15,7 @@ class Neuron {
 protected:
     size_t m_index;
     size_t m_layer;
-    NeuronConfig &conf;
+    NeuronConfig &m_conf;
     Position m_pos{};
     Position m_offset{};
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
@@ -152,7 +152,7 @@ public:
 
     virtual void spike(size_t time) {};
 
-    virtual double updateKernelSpikingRate(double time) {};
+    virtual double updateKernelSpikingRate(long time) {};
 
     virtual double computeNormWeights() {};
 

@@ -123,7 +123,7 @@ void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
 
 void SpikingNetwork::neuromodulation(Neuron &neuron) {
     if (neuron.getLayer() == 2) {
-        neuron.setNeuromodulator(computeNeuromodulator(static_cast<double>(neuron.getSpikingTime())));
+        neuron.setNeuromodulator(computeNeuromodulator(neuron.getSpikingTime()));
     }
 }
 
@@ -131,7 +131,7 @@ void SpikingNetwork::transmitNeuromodulator(double neuromodulator) {
     m_neuromodulator = neuromodulator;
 }
 
-inline double SpikingNetwork::computeNeuromodulator(double time) {
+inline double SpikingNetwork::computeNeuromodulator(long time) {
     double value = 0;
     for (const auto &critic: m_neurons[2]) {
         value += critic.get().updateKernelSpikingRate(time);
@@ -344,9 +344,9 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
     m_averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
-            neuron.get().updateState(timeInterval, 0.8);
+            neuron.get().updateState(timeInterval, 1);
 
-            neuron.get().learningDecay(static_cast<double>(nbEvents) / E6);
+//            neuron.get().learningDecay(static_cast<double>(nbEvents) / E6);
             if (layer == 0) {
                 neuron.get().thresholdAdaptation();
                 m_averageActivity += neuron.get().getSpikingRate();
@@ -354,7 +354,6 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
         }
     }
     m_averageActivity /= static_cast<double>(m_neurons[0].size());
-    std::cout << m_averageActivity << std::endl;
 }
 
 void SpikingNetwork::normalizeActions() {

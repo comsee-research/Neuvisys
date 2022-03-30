@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
         std::string networkPath = "/home/thomas/Desktop/Experiment/network_0/configs/network_config.json";
-        std::string events = "/home/thomas/Videos/lines/sim_vh.npz";
+        std::string events = "/home/thomas/Videos/dsec/interlaken_00_c/events/left/events.h5";
 
         NetworkHandle network(networkPath, 0);
         network.feedEvents(network.loadEvents(events, 1));

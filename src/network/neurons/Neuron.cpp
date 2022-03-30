@@ -3,14 +3,14 @@
 /* Defines an abstract neuron.
  * index: unique id.
  * layer: depth of the neuron in the spiking network.
- * conf: configuration file.
+ * m_conf: configuration file.
  * m_jitterSpeed: indicates the position of the neuron relative to the other neurons of the layer.
  * offset: removed to the position in order to access the correct weights of the neuron.
  */
 Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
         m_layer(layer),
-        conf(conf),
+        m_conf(conf),
         m_pos(pos),
         m_offset(offset),
         m_trackingSpikeTrain(std::vector<size_t>(0)) {
@@ -22,19 +22,19 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
 /* Returns the neuron's potential after the decay depending on the time passed from the last event.
  */
 inline double Neuron::getPotential(size_t time) {
-    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / conf.TAU_M);
+    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_M);
 }
 
 inline double Neuron::potentialDecay(size_t time) {
-    m_potential *= exp(- static_cast<double>(time) / conf.TAU_M);
+    m_potential *= exp(- static_cast<double>(time) / m_conf.TAU_M);
 }
 
 inline double Neuron::refractoryPotential(size_t time) {
-    return conf.DELTA_RP * exp(- static_cast<double>(time) / conf.TAU_RP);
+    return m_conf.DELTA_RP * exp(- static_cast<double>(time) / m_conf.TAU_RP);
 }
 
 inline double Neuron::adaptationPotentialDecay(size_t time) {
-    m_adaptationPotential *= exp(- static_cast<double>(time) / conf.TAU_SRA);
+    m_adaptationPotential *= exp(- static_cast<double>(time) / m_conf.TAU_SRA);
 }
 
 /* Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
@@ -47,25 +47,25 @@ void Neuron::updateState(size_t timeInterval, double alpha) {
 }
 
 void Neuron::learningDecay(double count) {
-    m_decay = 1 / (1 + conf.DECAY_RATE * count);
+    m_decay = 1 / (1 + m_conf.DECAY_RATE * count);
 }
 
 /* Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
  */
 inline void Neuron::thresholdAdaptation() {
-    if (m_spikingRateAverage > conf.TARGET_SPIKE_RATE) {
-        m_threshold += conf.ETA_SR * (1 - exp(conf.TARGET_SPIKE_RATE - m_spikingRateAverage));
+    if (m_spikingRateAverage > m_conf.TARGET_SPIKE_RATE) {
+        m_threshold += m_conf.ETA_SR * (1 - exp(m_conf.TARGET_SPIKE_RATE - m_spikingRateAverage));
     } else {
-        m_threshold -= conf.ETA_SR * (1 - exp(m_spikingRateAverage - conf.TARGET_SPIKE_RATE));
+        m_threshold -= m_conf.ETA_SR * (1 - exp(m_spikingRateAverage - m_conf.TARGET_SPIKE_RATE));
     }
 
-    if (m_threshold < conf.MIN_THRESH) {
-        m_threshold = conf.MIN_THRESH;
+    if (m_threshold < m_conf.MIN_THRESH) {
+        m_threshold = m_conf.MIN_THRESH;
     }
 }
 
 inline void Neuron::spikeRateAdaptation() {
-    m_adaptationPotential += conf.DELTA_SRA;
+    m_adaptationPotential += m_conf.DELTA_SRA;
 }
 
 inline bool Neuron::hasSpiked() {
@@ -77,7 +77,7 @@ inline bool Neuron::hasSpiked() {
 }
 
 inline void Neuron::inhibition() {
-    m_potential -= conf.ETA_INH;
+    m_potential -= m_conf.ETA_INH;
 }
 
 void Neuron::saveState(std::string &fileName) {

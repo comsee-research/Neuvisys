@@ -12,7 +12,7 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / conf.TAU_M);
+    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
 //    potentialDecay(event.timestamp() - m_timestampLastEvent);
 
     m_potential += m_weights(event.x(), event.y(), event.z())
@@ -33,23 +33,23 @@ inline void ComplexNeuron::spike(const size_t time) {
     m_spike = true;
     ++m_spikeRateCounter;
     ++m_totalSpike;
-    m_potential = conf.VRESET;
+    m_potential = m_conf.VRESET;
 
     spikeRateAdaptation();
 
-    if (conf.TRACKING == "partial") {
+    if (m_conf.TRACKING == "partial") {
         m_trackingSpikeTrain.push_back(time);
     }
 }
 
 inline void ComplexNeuron::weightUpdate() {
-    if (conf.STDP_LEARNING == "excitatory" || conf.STDP_LEARNING == "all") {
+    if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_events) {
-            if (static_cast<double>(m_spikingTime - event.timestamp()) < conf.TAU_LTP) {
-                m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTP;
+            if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
+                m_weights(event.x(), event.y(), event.z()) += m_conf.ETA_LTP;
             }
-            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < conf.TAU_LTD) {
-                m_weights(event.x(), event.y(), event.z()) += conf.ETA_LTD;
+            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
+                m_weights(event.x(), event.y(), event.z()) += m_conf.ETA_LTD;
             }
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
@@ -66,7 +66,7 @@ inline void ComplexNeuron::normalizeWeights() {
     Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
 
     if (norm(0) != 0) {
-        m_weights = conf.NORM_FACTOR * m_weights / norm(0);
+        m_weights = m_conf.NORM_FACTOR * m_weights / norm(0);
     }
 }
 

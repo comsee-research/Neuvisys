@@ -55,7 +55,7 @@ public:
 
     void saveNetwork();
 
-    double computeNeuromodulator(double time);
+    double computeNeuromodulator(long time);
 
     void transmitNeuromodulator(double neuromodulator);
 

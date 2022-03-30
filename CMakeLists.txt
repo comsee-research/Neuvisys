@@ -28,7 +28,7 @@ ENDIF()
 
 find_package(OpenCV 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
-find_package(HDF5 REQUIRED)
+find_package(HDF5 REQUIRED COMPONENTS C CXX)
 
 include_directories(${HDF5_INCLUDE_DIRS})
 include_directories ("/usr/include/opencv4/")
@@ -69,3 +69,8 @@ endif()
 if (BUILD_MOTOR_CONTROL)
     add_subdirectory(src/motor-control)
 endif()
+
+add_subdirectory(src/camera)
+add_subdirectory(src/simulator)
+add_subdirectory(src/gui)
+add_subdirectory(src/motor-control)

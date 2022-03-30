@@ -17,7 +17,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
+    ui->text_network_directory->setText("");
     openConfigFiles(false);
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
