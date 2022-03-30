@@ -5,6 +5,12 @@ project(neuvisys
         VERSION 1.0.0
         LANGUAGES C CXX)
 
+# Options
+option(BUILD_CAMERA "Enable to use event based cameras live" OFF)
+option(BUILD_SIMULATOR "Enable to use Coppelia simulator" OFF)
+option(BUILD_GUI "Enable to use graphical user interface" OFF)
+option(BUILD_MOTOR_CONTROL "Enable to be able to control motors" OFF)
+
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,11 +57,6 @@ set(PROJECT_SOURCES
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 
 target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} cnpy z blosc_filter)
-
-option(BUILD_CAMERA "Enable to use event based cameras live" OFF)
-option(BUILD_SIMULATOR "Enable to use Coppelia simulator" OFF)
-option(BUILD_GUI "Enable to use graphical user interface" OFF)
-option(BUILD_MOTOR_CONTROL "Enable to be able to control motors" OFF)
 
 if (BUILD_CAMERA)
     add_subdirectory(src/camera)

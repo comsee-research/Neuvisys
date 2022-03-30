@@ -10,6 +10,18 @@
 #include "hdf5.h"
 #include "blosc_filter.h"
 
+struct H5EventFile {
+    H5::H5File file;
+    H5::Group group;
+    H5::DataSet timestamps;
+    H5::DataSet x;
+    H5::DataSet y;
+    H5::DataSet polarities;
+    hsize_t dims;
+    hsize_t packetSize = 10000;
+    hsize_t offset;
+};
+
 /*
  * Used as an abstraction layer on top of the SpikingNetwork class.
  * It offers functions used for communication between the environment (mainly the incoming flow of events) and the spiking neural network.
@@ -21,22 +33,26 @@ class NetworkHandle {
     SpikingNetwork m_spinet;
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
-
+    std::string m_leftEventsPath, m_rightEventsPath;
     NetworkConfig m_networkConf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
-
     double m_actionTime{}, m_updateTime{}, m_consoleTime{};
     int m_action{};
     size_t m_iteration{};
     size_t m_countEvents{};
-    size_t saveCount{};
+    size_t m_saveCount{};
+    H5EventFile m_leftEvents;
+
 public:
     NetworkHandle(const std::string &networkPath, double time);
 
-    std::vector<Event> loadEvents(const std::string &events, size_t nbPass);
+    NetworkHandle(const std::string &networkPath, double time, std::string &leftEventsPath,
+                  std::string &rightEventsPath);
+
+    bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
     void feedEvents(const std::vector<Event> &events);
 
@@ -58,9 +74,9 @@ public:
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
-    static std::vector<Event> mono(const std::string &events, size_t nbPass);
+    void mono(std::vector<Event> &events, size_t nbPass = 1);
 
-    static std::vector<Event> stereo(const std::string &events, size_t nbPass);
+    void stereo(std::vector<Event> &events, size_t nbPass = 1);
 
     double valueFunction(long time);
 
@@ -96,6 +112,10 @@ public:
 
 private:
     void load();
+
+    void loadHDF5(std::vector<Event> &events);
+
+    void loadH5File();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

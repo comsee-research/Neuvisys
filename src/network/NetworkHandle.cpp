@@ -8,60 +8,78 @@
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
  */
-NetworkHandle::NetworkHandle(const std::string &networkPath, double time) : m_spinet(networkPath),
-                                                                            m_networkConf(NetworkConfig(networkPath)),
-                                                                            m_simpleNeuronConf(
-                                                                                    m_networkConf.getNetworkPath() +
-                                                                                    "configs/simple_cell_config.json",
-                                                                                    0),
-                                                                            m_complexNeuronConf(
-                                                                                    m_networkConf.getNetworkPath() +
-                                                                                    "configs/complex_cell_config.json",
-                                                                                    1),
-                                                                            m_criticNeuronConf(
-                                                                                    m_networkConf.getNetworkPath() +
-                                                                                    "configs/critic_cell_config.json",
-                                                                                    2),
-                                                                            m_actorNeuronConf(
-                                                                                    m_networkConf.getNetworkPath() +
-                                                                                    "configs/actor_cell_config.json",
-                                                                                    3),
-                                                                            m_actionTime(time), m_updateTime(time),
-                                                                            m_consoleTime(time) {
+NetworkHandle::NetworkHandle(const std::string &networkPath,
+                             double time) : m_spinet(networkPath),
+                                            m_networkConf(NetworkConfig(networkPath)),
+                                            m_simpleNeuronConf(
+                                                    m_networkConf.getNetworkPath() +
+                                                    "configs/simple_cell_config.json",
+                                                    0),
+                                            m_complexNeuronConf(
+                                                    m_networkConf.getNetworkPath() +
+                                                    "configs/complex_cell_config.json",
+                                                    1),
+                                            m_criticNeuronConf(
+                                                    m_networkConf.getNetworkPath() +
+                                                    "configs/critic_cell_config.json",
+                                                    2),
+                                            m_actorNeuronConf(
+                                                    m_networkConf.getNetworkPath() +
+                                                    "configs/actor_cell_config.json",
+                                                    3),
+                                            m_actionTime(time),
+                                            m_updateTime(time),
+                                            m_consoleTime(time) {
     load();
 }
 
-std::vector<Event> NetworkHandle::loadEvents(const std::string &events, size_t nbPass) {
-    auto eventPacket = std::vector<Event>();
-    std::cout << "Unpacking events..." << std::endl;
+NetworkHandle::NetworkHandle(const std::string &networkPath, double time, std::string &leftEventsPath,
+                             std::string &rightEventsPath) : NetworkHandle(networkPath, time) {
+    m_leftEventsPath = leftEventsPath;
+    m_rightEventsPath = rightEventsPath;
 
     std::string hdf5 = ".h5";
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+        loadH5File();
+    }
+}
+
+void NetworkHandle::loadH5File() {
     char *version, *date;
     register_blosc(&version, &date);
-    if (std::equal(hdf5.rbegin(), hdf5.rend(), events.rbegin())) {
-        H5::H5File file(events, H5F_ACC_RDONLY);
-        H5::Group group = file.openGroup("events");
-        H5::DataSet dataset = group.openDataSet("./x");
-        H5::DataSpace dataSpace = dataset.getSpace();
 
-        hsize_t dims[1];
-        dataSpace.getSimpleExtentDims(dims);
-        H5::DataSpace memorySpace(1, dims);
-
-        auto vec = std::vector<int>(dims[0]); // buffer for dataset to be read
-        auto memtype = dataset.getDataType();
-        dataset.read(vec.data(), memtype);
-
-        for (int i = 0; i < dims[0]; i++) {
-            std::cout << vec[i] << std::endl;
-        }
-    } else {
-        if (m_networkConf.getNbCameras() == 1) {
-            return mono(events, nbPass);
-        } else if (m_networkConf.getNbCameras() == 2) {
-            return stereo(events, nbPass);
-        }
+    if (!m_leftEventsPath.empty()) {
+        m_leftEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
+        m_leftEvents.group = m_leftEvents.file.openGroup("events");
+        m_leftEvents.timestamps = m_leftEvents.group.openDataSet("./t");
+        m_leftEvents.x = m_leftEvents.group.openDataSet("./x");
+        m_leftEvents.y = m_leftEvents.group.openDataSet("./y");
+        m_leftEvents.polarities = m_leftEvents.group.openDataSet("./p");
+        m_leftEvents.timestamps.getSpace().getSimpleExtentDims(&m_leftEvents.dims);
     }
+//        if (!m_rightEventsPath.empty()) {
+//            m_rightEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
+//            m_rightEvents.group = m_rightEvents.file.openGroup("events");
+//            m_rightEvents.timestamps = m_rightEvents.group.openDataSet("./t");
+//            m_rightEvents.x = m_rightEvents.group.openDataSet("./x");
+//            m_rightEvents.y = m_rightEvents.group.openDataSet("./y");
+//            m_rightEvents.polarities = m_rightEvents.group.openDataSet("./p");
+//        }
+}
+
+bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
+    loadHDF5(events);
+//    std::string hdf5 = ".h5";
+//    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+//        loadHDF5(events);
+//    } else {
+//        if (m_networkConf.getNbCameras() == 1) {
+//            mono(events, nbPass);
+//        } else if (m_networkConf.getNbCameras() == 2) {
+//            stereo(events, nbPass);
+//        }
+//    }
+    return true;
 }
 
 /* Launches the spiking network on the specified event file 'nbPass' times.
@@ -84,8 +102,8 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
         if (event.timestamp() - displayTime > static_cast<size_t>(5 * E6)) {
             displayTime = event.timestamp();
             std::cout << static_cast<int>(100 * iteration / events.size()) << "%" << std::endl;
-//            m_spinet.intermediateSave(saveCount);
-            ++saveCount;
+//            m_spinet.intermediateSave(m_saveCount);
+            ++m_saveCount;
         }
     }
 }
@@ -99,7 +117,7 @@ void NetworkHandle::load() {
     if (ifs.is_open()) {
         try {
             ifs >> state;
-            saveCount = state["save_count"];
+            m_saveCount = state["save_count"];
             m_countEvents = state["nb_events"];
         } catch (const std::exception &e) {
             std::cerr << "In network state file: " << fileName << e.what() << std::endl;
@@ -142,7 +160,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     state["learning_data"] = m_saveData;
     state["action_rate"] = m_networkConf.getActionRate();
     state["exploration_factor"] = m_networkConf.getExplorationFactor();
-    state["save_count"] = saveCount;
+    state["save_count"] = m_saveCount;
     state["nb_events"] = m_countEvents;
 
     std::ofstream ofs(fileName);
@@ -350,14 +368,14 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
  * Returns the vector of events.
  * Only for mono camera event files.
  */
-std::vector<Event> NetworkHandle::mono(const std::string &events, size_t nbPass = 1) {
-    std::vector<Event> eventPacket;
+void NetworkHandle::mono(std::vector<Event> &events, size_t nbPass) {
+    events.clear();
     size_t pass, count;
 
-    cnpy::NpyArray timestamps_array = cnpy::npz_load(events, "arr_0");
-    cnpy::NpyArray x_array = cnpy::npz_load(events, "arr_1");
-    cnpy::NpyArray y_array = cnpy::npz_load(events, "arr_2");
-    cnpy::NpyArray polarities_array = cnpy::npz_load(events, "arr_3");
+    cnpy::NpyArray timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_0");
+    cnpy::NpyArray x_array = cnpy::npz_load(m_leftEventsPath, "arr_1");
+    cnpy::NpyArray y_array = cnpy::npz_load(m_leftEventsPath, "arr_2");
+    cnpy::NpyArray polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_3");
     size_t sizeLeftArray = timestamps_array.shape[0];
 
     auto *l_timestamps = timestamps_array.data<long>();
@@ -374,22 +392,21 @@ std::vector<Event> NetworkHandle::mono(const std::string &events, size_t nbPass 
             event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count],
                           l_y[count],
                           l_polarities[count], 0);
-            eventPacket.push_back(event);
+            events.push_back(event);
         }
     }
-    return eventPacket;
 }
 
 /* Same as mono function but for stereo camera event files.
  */
-std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPass) {
-    std::vector<Event> eventPacket;
+void NetworkHandle::stereo(std::vector<Event> &events, size_t nbPass) {
+    events.clear();
     size_t pass, left, right;
 
-    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(events, "arr_0");
-    cnpy::NpyArray l_x_array = cnpy::npz_load(events, "arr_1");
-    cnpy::NpyArray l_y_array = cnpy::npz_load(events, "arr_2");
-    cnpy::NpyArray l_polarities_array = cnpy::npz_load(events, "arr_3");
+    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_0");
+    cnpy::NpyArray l_x_array = cnpy::npz_load(m_leftEventsPath, "arr_1");
+    cnpy::NpyArray l_y_array = cnpy::npz_load(m_leftEventsPath, "arr_2");
+    cnpy::NpyArray l_polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_3");
     size_t sizeLeftArray = l_timestamps_array.shape[0];
 
     auto *l_timestamps = l_timestamps_array.data<long>();
@@ -397,10 +414,10 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
     auto *l_y = l_y_array.data<int16_t>();
     auto *l_polarities = l_polarities_array.data<bool>();
 
-    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(events, "arr_4");
-    cnpy::NpyArray r_x_array = cnpy::npz_load(events, "arr_5");
-    cnpy::NpyArray r_y_array = cnpy::npz_load(events, "arr_6");
-    cnpy::NpyArray r_polarities_array = cnpy::npz_load(events, "arr_7");
+    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_4");
+    cnpy::NpyArray r_x_array = cnpy::npz_load(m_leftEventsPath, "arr_5");
+    cnpy::NpyArray r_y_array = cnpy::npz_load(m_leftEventsPath, "arr_6");
+    cnpy::NpyArray r_polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_7");
     size_t sizeRightArray = r_timestamps_array.shape[0];
 
     auto *r_timestamps = r_timestamps_array.data<long>();
@@ -433,8 +450,35 @@ std::vector<Event> NetworkHandle::stereo(const std::string &events, size_t nbPas
                     ++right;
                 }
             }
-            eventPacket.push_back(event);
+            events.push_back(event);
         }
     }
-    return eventPacket;
+}
+
+void NetworkHandle::loadHDF5(std::vector<Event> &events) {
+    events.clear();
+
+    m_leftEvents.packetSize = m_leftEvents.dims;
+
+    auto vecTimestamp = std::vector<uint64_t>(m_leftEvents.packetSize);
+    auto vecX = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto vecY = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto vecPolarity = std::vector<uint8_t>(m_leftEvents.packetSize);
+
+    H5::DataSpace filespace = m_leftEvents.timestamps.getSpace();
+    hsize_t dim[1] = {m_leftEvents.packetSize};
+    H5::DataSpace memspace(1, dim);
+
+//    hsize_t count[1] = {m_leftEvents.packetSize};
+//    hsize_t offset[1] = {m_leftEvents.offset};
+//    filespace.selectHyperslab(H5S_SELECT_SET, count, offset);
+    m_leftEvents.timestamps.read(vecTimestamp.data(), m_leftEvents.timestamps.getDataType(), memspace, filespace);
+    m_leftEvents.x.read(vecX.data(), m_leftEvents.x.getDataType(), memspace, filespace);
+    m_leftEvents.y.read(vecY.data(), m_leftEvents.y.getDataType(), memspace, filespace);
+    m_leftEvents.polarities.read(vecPolarity.data(), m_leftEvents.polarities.getDataType(), memspace, filespace);
+
+    m_leftEvents.offset += m_leftEvents.packetSize;
+    for (int i = 0; i < m_leftEvents.packetSize; i++) {
+        events.emplace_back(vecTimestamp[i], vecX[i], vecY[i], vecPolarity[i], 0);
+    }
 }

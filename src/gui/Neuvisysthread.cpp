@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0);
+        auto network = NetworkHandle(m_networkPath.toStdString(), 0, "", "");
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
