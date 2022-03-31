@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0, "", "");
+        auto network = NetworkHandle(m_networkPath.toStdString(), 0, m_events.toStdString());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -55,26 +55,49 @@ void NeuvisysThread::run() {
 }
 
 void NeuvisysThread::readEvents() {
-    auto camera = EventCamera();
-    auto eventFilter = Ynoise(346, 260);
+//    auto camera = EventCamera();
+//    auto eventFilter = Ynoise(346, 260);
+//
+//    bool received = false, stop = false;
+//    size_t time;
+//    auto displayTime = 0;
+//    auto rtime = std::chrono::high_resolution_clock::now();
+//    auto rdisplayTime = rtime;
+//
+//    while (!stop) {
+//        auto polarity = camera.receiveEvents(received, stop);
+//
+//        auto events = eventFilter.run(*polarity);
+//
+//        for (const auto &event : events) {
+//            addEventToDisplay(event);
+//
+//            time = event.timestamp();
+//            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
+//                displayTime = time;
+//
+//                m_leftEventDisplay = 0;
+//                m_rightEventDisplay = 0;
+//            }
+//
+//            rtime = std::chrono::high_resolution_clock::now();
+//            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+//                rdisplayTime = rtime;
+//                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+//            }
+//        }
+//    }
 
-    bool received = false, stop = false;
-    size_t time;
-    auto displayTime = 0;
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
-
-    while (!stop) {
-        auto polarity = camera.receiveEvents(received, stop);
-
-        auto events = eventFilter.run(*polarity);
-
-        for (const auto &event : events) {
+    auto network = NetworkHandle(m_events.toStdString());
+    auto events = std::vector<Event>();
+    while(network.loadEvents(events, 1)) {
+        for (const auto &event: events) {
             addEventToDisplay(event);
 
-            time = event.timestamp();
-            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-                displayTime = time;
+            if (static_cast<double>(event.timestamp()) - m_displayTime > m_displayRate) {
+                m_displayTime = static_cast<double>(event.timestamp());
 
                 m_leftEventDisplay = 0;
                 m_rightEventDisplay = 0;
@@ -85,30 +108,6 @@ void NeuvisysThread::readEvents() {
                 rdisplayTime = rtime;
                 emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             }
-        }
-    }
-
-    auto eventPacket = std::vector<Event>();
-    eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
-//    eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
-
-    displayTime = eventPacket.front().timestamp();
-
-    for (const auto &event: eventPacket) {
-        addEventToDisplay(event);
-
-        time = event.timestamp();
-        if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-            displayTime = time;
-
-            m_leftEventDisplay = 0;
-            m_rightEventDisplay = 0;
-        }
-
-        rtime = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
-            rdisplayTime = rtime;
-            emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
         }
     }
 }
@@ -122,7 +121,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             addEventToDisplay(event);
             network.transmitEvent(event);
         }
-        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
 
         emit consoleMessage(m_msg);
 
@@ -140,28 +139,10 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
 }
 
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {
-    auto events = network.loadEvents(m_events.toStdString(), m_nbPass);
+    std::vector<Event> events;
 
-    size_t time;
-    auto displayTime = events.front().timestamp();
-    auto trackTime = events.front().timestamp();
-    for (const auto &event: events) {
-        ++m_eventRate;
-        ++m_iterations;
-        addEventToDisplay(event);
-        network.transmitEvent(event);
-
-        /*** GUI Display ***/
-        time = event.timestamp();
-        if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-            displayTime = time;
-            display(network, events.size(), static_cast<double>(displayTime) / E6);
-        }
-
-        if (time - trackTime > static_cast<size_t>(m_trackRate)) {
-            trackTime = time;
-            network.trackNeuron(time, m_id, m_layer);
-        }
+    while (network.loadEvents(events, m_nbPass)) {
+        eventLoop(network, events, events.back().timestamp());
     }
 
     network.save(m_events.toStdString(), m_nbPass);

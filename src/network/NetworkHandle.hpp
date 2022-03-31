@@ -19,7 +19,16 @@ struct H5EventFile {
     H5::DataSet polarities;
     hsize_t dims;
     hsize_t packetSize = 10000;
-    hsize_t offset;
+    hsize_t offset = 0;
+};
+
+struct SaveTime {
+    double action{};
+    double update{};
+    double console{};
+    double display{};
+
+    explicit SaveTime(double initTime) : action(initTime), update(initTime), console(initTime), display(initTime) {};
 };
 
 /*
@@ -31,26 +40,33 @@ struct H5EventFile {
  */
 class NetworkHandle {
     SpikingNetwork m_spinet;
-    std::map<std::string, std::vector<double>> m_saveData;
-    double m_reward{};
-    std::string m_leftEventsPath, m_rightEventsPath;
     NetworkConfig m_networkConf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
-    double m_actionTime{}, m_updateTime{}, m_consoleTime{};
+    H5EventFile m_leftEvents, m_rightEvents;
+    SaveTime m_saveTime;
+
+    std::map<std::string, std::vector<double>> m_saveData;
+    double m_reward{};
+    std::string m_leftEventsPath, m_rightEventsPath;
+    size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
     size_t m_countEvents{};
     size_t m_saveCount{};
-    H5EventFile m_leftEvents;
+
 
 public:
+    NetworkHandle();
+
+    explicit NetworkHandle(std::string leftEventsPath, std::string rightEventsPath = std::string());
+
     NetworkHandle(const std::string &networkPath, double time);
 
-    NetworkHandle(const std::string &networkPath, double time, std::string &leftEventsPath,
-                  std::string &rightEventsPath);
+    NetworkHandle(const std::string &networkPath, double time, const std::string &leftEventsPath,
+                  const std::string &rightEventsPath = std::string());
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
@@ -113,9 +129,11 @@ public:
 private:
     void load();
 
-    void loadHDF5(std::vector<Event> &events);
-
     void loadH5File();
+
+    bool loadHDF5Events(std::vector<Event> &events);
+
+    bool loadHDF5EventsStereo(std::vector<Event> &events);
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

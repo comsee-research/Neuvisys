@@ -4,6 +4,22 @@
 
 #include "NetworkHandle.hpp"
 
+#include <utility>
+
+NetworkHandle::NetworkHandle() : m_saveTime(0) {
+
+}
+
+NetworkHandle::NetworkHandle(std::string leftEventsPath,
+                             std::string rightEventsPath) : m_saveTime(0),
+                                                            m_leftEventsPath(std::move(leftEventsPath)),
+                                                            m_rightEventsPath(std::move(rightEventsPath)) {
+    std::string hdf5 = ".h5";
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+        loadH5File();
+    }
+}
+
 /* Creates the spiking neural network from the SpikingNetwork class.
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
@@ -27,14 +43,12 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
                                                     m_networkConf.getNetworkPath() +
                                                     "configs/actor_cell_config.json",
                                                     3),
-                                            m_actionTime(time),
-                                            m_updateTime(time),
-                                            m_consoleTime(time) {
+                                            m_saveTime(time) {
     load();
 }
 
-NetworkHandle::NetworkHandle(const std::string &networkPath, double time, std::string &leftEventsPath,
-                             std::string &rightEventsPath) : NetworkHandle(networkPath, time) {
+NetworkHandle::NetworkHandle(const std::string &networkPath, double time, const std::string &leftEventsPath,
+                             const std::string &rightEventsPath) : NetworkHandle(networkPath, time) {
     m_leftEventsPath = leftEventsPath;
     m_rightEventsPath = rightEventsPath;
 
@@ -56,54 +70,58 @@ void NetworkHandle::loadH5File() {
         m_leftEvents.y = m_leftEvents.group.openDataSet("./y");
         m_leftEvents.polarities = m_leftEvents.group.openDataSet("./p");
         m_leftEvents.timestamps.getSpace().getSimpleExtentDims(&m_leftEvents.dims);
+        m_nbEvents += m_leftEvents.dims;
     }
-//        if (!m_rightEventsPath.empty()) {
-//            m_rightEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
-//            m_rightEvents.group = m_rightEvents.file.openGroup("events");
-//            m_rightEvents.timestamps = m_rightEvents.group.openDataSet("./t");
-//            m_rightEvents.x = m_rightEvents.group.openDataSet("./x");
-//            m_rightEvents.y = m_rightEvents.group.openDataSet("./y");
-//            m_rightEvents.polarities = m_rightEvents.group.openDataSet("./p");
-//        }
+    if (!m_rightEventsPath.empty()) {
+        m_rightEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
+        m_rightEvents.group = m_rightEvents.file.openGroup("events");
+        m_rightEvents.timestamps = m_rightEvents.group.openDataSet("./t");
+        m_rightEvents.x = m_rightEvents.group.openDataSet("./x");
+        m_rightEvents.y = m_rightEvents.group.openDataSet("./y");
+        m_rightEvents.polarities = m_rightEvents.group.openDataSet("./p");
+        m_rightEvents.timestamps.getSpace().getSimpleExtentDims(&m_rightEvents.dims);
+        m_nbEvents += m_rightEvents.dims;
+    }
 }
 
 bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
-    loadHDF5(events);
-//    std::string hdf5 = ".h5";
-//    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
-//        loadHDF5(events);
-//    } else {
-//        if (m_networkConf.getNbCameras() == 1) {
-//            mono(events, nbPass);
-//        } else if (m_networkConf.getNbCameras() == 2) {
-//            stereo(events, nbPass);
-//        }
-//    }
-    return true;
+    std::string hdf5 = ".h5";
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+        if (loadHDF5Events(events)) {
+            return false;
+        }
+        return true;
+    } else {
+        if (m_iteration > 0) {
+            return false;
+        }
+        if (m_networkConf.getNbCameras() == 1) {
+            mono(events, nbPass);
+        } else if (m_networkConf.getNbCameras() == 2) {
+            stereo(events, nbPass);
+        }
+        return true;
+    }
 }
 
 /* Launches the spiking network on the specified event file 'nbPass' times.
  * The config file of the network must precise if the event file is stereo or mono.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
-    std::cout << "Feeding network: " << events.size() << " events..." << std::endl;
-    size_t time = events.front().timestamp();
-    size_t displayTime = events.front().timestamp();
-    size_t iteration = 0;
     for (const auto &event: events) {
-        ++iteration;
+        ++m_iteration;
         transmitEvent(event);
 
-        if (event.timestamp() - time > UPDATE_INTERVAL) {
-            time = event.timestamp();
+        if (static_cast<double>(event.timestamp()) - m_saveTime.update > UPDATE_INTERVAL) {
+            m_saveTime.update = static_cast<double>(event.timestamp());
             m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         }
 
-        if (event.timestamp() - displayTime > static_cast<size_t>(5 * E6)) {
-            displayTime = event.timestamp();
-            std::cout << static_cast<int>(100 * iteration / events.size()) << "%" << std::endl;
+        if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(5 * E6)) {
+            m_saveTime.display = static_cast<double>(event.timestamp());
+            std::cout << static_cast<int>(100 * m_iteration / m_nbEvents) << "%" << std::endl;
 //            m_spinet.intermediateSave(m_saveCount);
-            ++m_saveCount;
+//            ++m_saveCount;
         }
     }
 }
@@ -177,8 +195,8 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
 }
 
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
-    if (time - m_updateTime > static_cast<double>(UPDATE_INTERVAL)) {
-        m_updateTime = time;
+    if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
+        m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         m_reward = 50 * m_spinet.getAverageActivity();
         m_spinet.transmitNeuromodulator(m_reward);
@@ -186,8 +204,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
 
     saveValueMetrics(lastTimestamp, nbEvents);
 
-    if (time - m_consoleTime > SCORE_INTERVAL) {
-        m_consoleTime = time;
+    if (time - m_saveTime.console > SCORE_INTERVAL) {
+        m_saveTime.console = time;
         learningDecay(m_iteration);
         ++m_iteration;
         msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL * E3 / DT)) +
@@ -195,8 +213,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
     }
 
-    if (time - m_actionTime > static_cast<double>(getNetworkConfig().getActionRate())) {
-        m_actionTime = time;
+    if (time - m_saveTime.action > static_cast<double>(getNetworkConfig().getActionRate())) {
+        m_saveTime.action = time;
         if (m_action != -1) {
             updateActor(lastTimestamp, m_action);
         }
@@ -403,82 +421,135 @@ void NetworkHandle::stereo(std::vector<Event> &events, size_t nbPass) {
     events.clear();
     size_t pass, left, right;
 
-    cnpy::NpyArray l_timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_0");
-    cnpy::NpyArray l_x_array = cnpy::npz_load(m_leftEventsPath, "arr_1");
-    cnpy::NpyArray l_y_array = cnpy::npz_load(m_leftEventsPath, "arr_2");
-    cnpy::NpyArray l_polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_3");
-    size_t sizeLeftArray = l_timestamps_array.shape[0];
+    cnpy::NpyArray lTimestampsArray = cnpy::npz_load(m_leftEventsPath, "arr_0");
+    cnpy::NpyArray lXArray = cnpy::npz_load(m_leftEventsPath, "arr_1");
+    cnpy::NpyArray lYArray = cnpy::npz_load(m_leftEventsPath, "arr_2");
+    cnpy::NpyArray lPolaritiesArray = cnpy::npz_load(m_leftEventsPath, "arr_3");
+    size_t sizeLeftArray = lTimestampsArray.shape[0];
 
-    auto *l_timestamps = l_timestamps_array.data<long>();
-    auto *l_x = l_x_array.data<int16_t>();
-    auto *l_y = l_y_array.data<int16_t>();
-    auto *l_polarities = l_polarities_array.data<bool>();
+    auto *lTimestamps = lTimestampsArray.data<long>();
+    auto *lX = lXArray.data<int16_t>();
+    auto *lY = lYArray.data<int16_t>();
+    auto *lPolarities = lPolaritiesArray.data<bool>();
 
-    cnpy::NpyArray r_timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_4");
-    cnpy::NpyArray r_x_array = cnpy::npz_load(m_leftEventsPath, "arr_5");
-    cnpy::NpyArray r_y_array = cnpy::npz_load(m_leftEventsPath, "arr_6");
-    cnpy::NpyArray r_polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_7");
-    size_t sizeRightArray = r_timestamps_array.shape[0];
+    cnpy::NpyArray rTimestampsArray = cnpy::npz_load(m_leftEventsPath, "arr_4");
+    cnpy::NpyArray rXArray = cnpy::npz_load(m_leftEventsPath, "arr_5");
+    cnpy::NpyArray rYArray = cnpy::npz_load(m_leftEventsPath, "arr_6");
+    cnpy::NpyArray rPolaritiesArray = cnpy::npz_load(m_leftEventsPath, "arr_7");
+    size_t sizeRightArray = rTimestampsArray.shape[0];
 
-    auto *r_timestamps = r_timestamps_array.data<long>();
-    auto *r_x = r_x_array.data<int16_t>();
-    auto *r_y = r_y_array.data<int16_t>();
-    auto *r_polarities = r_polarities_array.data<bool>();
+    auto *rTimestamps = rTimestampsArray.data<long>();
+    auto *rX = rXArray.data<int16_t>();
+    auto *rY = rYArray.data<int16_t>();
+    auto *rPolarities = rPolaritiesArray.data<bool>();
 
-    long max = std::max(l_timestamps[sizeLeftArray - 1], r_timestamps[sizeRightArray - 1]);
-    long leftInterval = max - l_timestamps[0];
-    long rightInterval = max - r_timestamps[0];
+    long max = std::max(lTimestamps[sizeLeftArray - 1], rTimestamps[sizeRightArray - 1]);
+    long leftInterval = max - lTimestamps[0];
+    long rightInterval = max - rTimestamps[0];
 
-    long l_t, r_t;
+    long lT, rT;
     Event event{};
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         left = 0;
         right = 0;
         while (left < sizeLeftArray || right < sizeRightArray) {
-            l_t = l_timestamps[left] + static_cast<long>(pass) * leftInterval;
-            r_t = r_timestamps[right] + static_cast<long>(pass) * rightInterval;
-            if (left < sizeLeftArray) {
-                if (l_t <= r_t || right >= sizeRightArray) {
-                    event = Event(l_t, l_x[left], l_y[left], l_polarities[left], 0);
-                    ++left;
-                }
+            lT = lTimestamps[left] + static_cast<long>(pass) * leftInterval;
+            rT = rTimestamps[right] + static_cast<long>(pass) * rightInterval;
+            if ((left < sizeLeftArray) && (lT <= rT || right >= sizeRightArray)) {
+                events.emplace_back(lT, lX[left], lY[left], lPolarities[left], 0);
+                ++left;
+            } else if ((right < sizeRightArray) && (lT > rT || left >= sizeLeftArray)) {
+                events.emplace_back(rT, rX[right], rY[right], rPolarities[right], 1);
+                ++right;
             }
-            if (right < sizeRightArray) {
-                if (l_t > r_t || left >= sizeLeftArray) {
-                    event = Event(r_t, r_x[right], r_y[right], r_polarities[right], 1);
-                    ++right;
-                }
-            }
-            events.push_back(event);
         }
     }
 }
 
-void NetworkHandle::loadHDF5(std::vector<Event> &events) {
+bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {
+    if (m_leftEvents.offset > m_leftEvents.dims) {
+        return true;
+    }
+
     events.clear();
-
-    m_leftEvents.packetSize = m_leftEvents.dims;
-
-    auto vecTimestamp = std::vector<uint64_t>(m_leftEvents.packetSize);
-    auto vecX = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto vecY = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto vecPolarity = std::vector<uint8_t>(m_leftEvents.packetSize);
+    auto vT = std::vector<uint64_t>(m_leftEvents.packetSize);
+    auto vX = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto vY = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto vP = std::vector<uint8_t>(m_leftEvents.packetSize);
 
     H5::DataSpace filespace = m_leftEvents.timestamps.getSpace();
     hsize_t dim[1] = {m_leftEvents.packetSize};
     H5::DataSpace memspace(1, dim);
+    filespace.selectHyperslab(H5S_SELECT_SET, &m_leftEvents.packetSize, &m_leftEvents.offset);
 
-//    hsize_t count[1] = {m_leftEvents.packetSize};
-//    hsize_t offset[1] = {m_leftEvents.offset};
-//    filespace.selectHyperslab(H5S_SELECT_SET, count, offset);
-    m_leftEvents.timestamps.read(vecTimestamp.data(), m_leftEvents.timestamps.getDataType(), memspace, filespace);
-    m_leftEvents.x.read(vecX.data(), m_leftEvents.x.getDataType(), memspace, filespace);
-    m_leftEvents.y.read(vecY.data(), m_leftEvents.y.getDataType(), memspace, filespace);
-    m_leftEvents.polarities.read(vecPolarity.data(), m_leftEvents.polarities.getDataType(), memspace, filespace);
+    m_leftEvents.timestamps.read(vT.data(), H5::PredType::NATIVE_UINT64, memspace, filespace);
+    m_leftEvents.x.read(vX.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
+    m_leftEvents.y.read(vY.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
+    m_leftEvents.polarities.read(vP.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
+
+    for (int i = 0; i < m_leftEvents.packetSize; i++) {
+        if (vX[i] < 346 && vY[i] < 260) {
+            events.emplace_back(vT[i], vX[i], vY[i], vP[i], 0);
+        }
+    }
+
+    m_leftEvents.offset += m_leftEvents.packetSize; // TODO: do not cut the last events
+    return false;
+}
+
+bool NetworkHandle::loadHDF5EventsStereo(std::vector<Event> &events) {
+    if (m_leftEvents.offset > m_leftEvents.dims || m_rightEvents.offset > m_rightEvents.dims) { // TODO: account for all events
+        return true;
+    }
+
+    events.clear();
+    auto lT = std::vector<uint64_t>(m_leftEvents.packetSize);
+    auto lX = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto lY = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto lP = std::vector<uint8_t>(m_leftEvents.packetSize);
+
+    auto rT = std::vector<uint64_t>(m_leftEvents.packetSize);
+    auto rX = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto rY = std::vector<uint16_t>(m_leftEvents.packetSize);
+    auto rP = std::vector<uint8_t>(m_leftEvents.packetSize);
+
+    H5::DataSpace lFilespace = m_leftEvents.timestamps.getSpace();
+    hsize_t  lDim[1] = {m_leftEvents.packetSize};
+    H5::DataSpace lMemspace(1, lDim);
+
+
+    H5::DataSpace rFilespace = m_rightEvents.timestamps.getSpace();
+    hsize_t  rDim[1] = {m_rightEvents.packetSize};
+    H5::DataSpace rMemspace(1, lDim);
+
+    lFilespace.selectHyperslab(H5S_SELECT_SET, &m_leftEvents.packetSize, &m_leftEvents.offset);
+    rFilespace.selectHyperslab(H5S_SELECT_SET, &m_rightEvents.packetSize, &m_rightEvents.offset);
+
+    m_leftEvents.timestamps.read(lT.data(), H5::PredType::NATIVE_UINT64, lMemspace, lFilespace);
+    m_leftEvents.x.read(lX.data(), H5::PredType::NATIVE_UINT16, lMemspace, lFilespace);
+    m_leftEvents.y.read(lY.data(), H5::PredType::NATIVE_UINT16, lMemspace, lFilespace);
+    m_leftEvents.polarities.read(lP.data(), H5::PredType::NATIVE_UINT8, lMemspace, lFilespace);
+
+    m_rightEvents.timestamps.read(rT.data(), H5::PredType::NATIVE_UINT64, rMemspace, rFilespace);
+    m_rightEvents.x.read(rX.data(), H5::PredType::NATIVE_UINT16, rMemspace, rFilespace);
+    m_rightEvents.y.read(rY.data(), H5::PredType::NATIVE_UINT16, rMemspace, rFilespace);
+    m_rightEvents.polarities.read(rP.data(), H5::PredType::NATIVE_UINT8, rMemspace, rFilespace);
+
+    size_t left = 0;
+    size_t right = 0;
+    Event event{};
+    while (left < m_leftEvents.packetSize || right < m_rightEvents.packetSize) {
+        if ((left < m_leftEvents.packetSize) && (lT[left] <= rT[right] || right >= m_rightEvents.packetSize)) {
+            events.emplace_back(lT[left], lX[left], lY[left], lP[left], 0);
+            ++left;
+        } else if ((right < m_rightEvents.packetSize) && (lT[left] > rT[right] || left >= m_leftEvents.packetSize)) {
+            events.emplace_back(rT[right], rX[right], rY[right], rP[right], 1);
+            ++right;
+        }
+    }
 
     m_leftEvents.offset += m_leftEvents.packetSize;
-    for (int i = 0; i < m_leftEvents.packetSize; i++) {
-        events.emplace_back(vecTimestamp[i], vecX[i], vecY[i], vecPolarity[i], 0);
-    }
+    m_rightEvents.offset += m_rightEvents.packetSize;
+    return false;
 }
