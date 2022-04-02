@@ -50,7 +50,7 @@ protected:
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
 
-    int m_action;
+    int m_action = 0;
     double m_displayTime = 0, m_trackTime = 0;
     std::string m_msg;
 

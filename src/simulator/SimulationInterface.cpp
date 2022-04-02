@@ -26,9 +26,12 @@ SimulationInterface::SimulationInterface(bool saveFrames, bool saveEvents) : m_s
         sleep_t.sleep();
     }
 
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
+    actionMapping.emplace_back(std::map<uint64_t, float>({{1, 10}})); // clockwise rotation
+    actionMapping.emplace_back(std::map<uint64_t, float>({{1, -10}})); // counter-clockwise rotation
+
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
 
 //    actionMapping.emplace_back(std::mak_pair(0, 0.05)); // increment speed left
 //    actionMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right

@@ -121,7 +121,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             addEventToDisplay(event);
             network.transmitEvent(event);
         }
-//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
 
         emit consoleMessage(m_msg);
 
@@ -162,11 +162,11 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
 
         sim.update();
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-
-//        if (m_action != -1) {
-//            sim.activateMotors(m_action);
-//            m_motorDisplay[m_action] = true;
-//        }
+        std::cout << m_action << std::endl;
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
     }
     sim.stopSimulation();
     network.save("Simulation", 1);
