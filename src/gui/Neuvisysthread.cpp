@@ -162,7 +162,6 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
 
         sim.update();
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-        std::cout << m_action << std::endl;
         if (m_action != -1) {
             sim.activateMotors(m_action);
             m_motorDisplay[m_action] = true;
