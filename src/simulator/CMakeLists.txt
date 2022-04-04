@@ -16,4 +16,4 @@ set(PROJECT_SOURCES
         FrameToEvents.cpp)
 
 add_executable(neuvisys-simulator mainSimulator.cpp ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-simulator ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy caer z)
+target_link_libraries(neuvisys-simulator ${catkin_LIBRARIES} ${OpenCV_LIBS} ${HDF5_LIBRARIES} blosc_filter cnpy caer z)

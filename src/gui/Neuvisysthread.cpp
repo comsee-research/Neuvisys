@@ -115,7 +115,7 @@ void NeuvisysThread::readEvents() {
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
     if (!events.empty()) {
         m_eventRate += static_cast<double>(events.size());
-//        network.transmitReward(sim.getReward());
+
         for (auto const &event : events) {
             ++m_iterations;
             addEventToDisplay(event);
@@ -161,6 +161,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
 
         sim.update();
+        network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
         if (m_action != -1) {
             sim.activateMotors(m_action);

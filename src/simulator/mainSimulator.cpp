@@ -58,20 +58,20 @@ int launchSimulation(double simTime) {
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
-//    launchSimulation(3.5);
+    launchSimulation(3.5);
 
-    std::string type = "none";//argv[1];
-    std::string networkPath;
-
-    if (type == "multi") {
-        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-            std::cout << networkPath << std::endl;
-            launchLearningSimulation(networkPath, 10);
-        }
-    } else {
-        networkPath = "/home/thomas/Desktop/network_experiment/configs/network_config.json";
-        std::cout << networkPath << std::endl;
-        launchLearningSimulation(networkPath, 10);
-    }
+//    std::string type = "none";//argv[1];
+//    std::string networkPath;
+//
+//    if (type == "multi") {
+//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+//            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+//            std::cout << networkPath << std::endl;
+//            launchLearningSimulation(networkPath, 10);
+//        }
+//    } else {
+//        networkPath = "/home/thomas/Desktop/network_experiment/configs/network_config.json";
+//        std::cout << networkPath << std::endl;
+//        launchLearningSimulation(networkPath, 10);
+//    }
 }

@@ -54,6 +54,7 @@ class NetworkHandle {
     size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
+    size_t m_scoreIteration{};
     size_t m_countEvents{};
     size_t m_saveCount{};
 
