@@ -17,7 +17,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Bureau/network");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -146,6 +146,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
+void NeuvisysGUI::on_text_network_directory_textChanged() {
+    openConfigFiles();
+}
+
 void NeuvisysGUI::on_text_network_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
     QString text = ui->text_network_config->toPlainText();
@@ -230,8 +234,9 @@ QString NeuvisysGUI::readConfFile(QString &directory) {
         QString networkText = QTextStream(&file).readAll();
         file.close();
         return networkText;
+    } else {
+        return {"File Not Found !"};
     }
-    return {};
 }
 
 void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
