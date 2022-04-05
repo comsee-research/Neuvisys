@@ -102,8 +102,8 @@ protected:
     size_t rangeSpiketrain{};
 
 private:
-    void openConfigFiles(bool warning = true);
-    QString readConfFile(QString &directory, bool warning = true);
+    void openConfigFiles();
+    QString readConfFile(QString &directory);
     void modifyConfFile(QString &directory, QString &text);
 };
 #endif // NEUVISYSGUI_H
