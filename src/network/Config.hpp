@@ -7,7 +7,7 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_INTERVAL 10000000 // µs
+#define SCORE_INTERVAL 2000000 // µs
 #define UPDATE_INTERVAL 10000 // µs
 #define DT 10 // ms
 #define E3 1000 // µs

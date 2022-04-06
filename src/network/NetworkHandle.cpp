@@ -10,12 +10,9 @@ NetworkHandle::NetworkHandle() : m_saveTime(0) {
 
 }
 
-NetworkHandle::NetworkHandle(std::string leftEventsPath,
-                             std::string rightEventsPath) : m_saveTime(0),
-                                                            m_leftEventsPath(std::move(leftEventsPath)),
-                                                            m_rightEventsPath(std::move(rightEventsPath)) {
+NetworkHandle::NetworkHandle(std::string eventsPath) : m_saveTime(0), m_eventsPath(std::move(eventsPath)) {
     std::string hdf5 = ".h5";
-    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         loadH5File();
     }
 }
@@ -47,13 +44,12 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
     load();
 }
 
-NetworkHandle::NetworkHandle(const std::string &networkPath, double time, const std::string &leftEventsPath,
-                             const std::string &rightEventsPath) : NetworkHandle(networkPath, time) {
-    m_leftEventsPath = leftEventsPath;
-    m_rightEventsPath = rightEventsPath;
+NetworkHandle::NetworkHandle(const std::string &networkPath,
+                             double time, const std::string &eventsPath) : NetworkHandle(networkPath, time) {
+    m_eventsPath = eventsPath;
 
     std::string hdf5 = ".h5";
-    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         loadH5File();
     }
 }
@@ -62,50 +58,38 @@ void NetworkHandle::loadH5File() {
     char *version, *date;
     register_blosc(&version, &date);
 
-    if (!m_leftEventsPath.empty()) {
-        m_leftEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
-        m_leftEvents.group = m_leftEvents.file.openGroup("events");
-        m_leftEvents.timestamps = m_leftEvents.group.openDataSet("./t");
-        m_leftEvents.x = m_leftEvents.group.openDataSet("./x");
-        m_leftEvents.y = m_leftEvents.group.openDataSet("./y");
-        m_leftEvents.polarities = m_leftEvents.group.openDataSet("./p");
-        m_leftEvents.timestamps.getSpace().getSimpleExtentDims(&m_leftEvents.dims);
-        m_nbEvents += m_leftEvents.dims;
-    }
-    if (!m_rightEventsPath.empty()) {
-        m_rightEvents.file = H5::H5File(m_leftEventsPath, H5F_ACC_RDONLY);
-        m_rightEvents.group = m_rightEvents.file.openGroup("events");
-        m_rightEvents.timestamps = m_rightEvents.group.openDataSet("./t");
-        m_rightEvents.x = m_rightEvents.group.openDataSet("./x");
-        m_rightEvents.y = m_rightEvents.group.openDataSet("./y");
-        m_rightEvents.polarities = m_rightEvents.group.openDataSet("./p");
-        m_rightEvents.timestamps.getSpace().getSimpleExtentDims(&m_rightEvents.dims);
-        m_nbEvents += m_rightEvents.dims;
+    if (!m_eventsPath.empty()) {
+        m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
+        m_eventFile.group = m_eventFile.file.openGroup("events");
+        m_eventFile.timestamps = m_eventFile.group.openDataSet("./t");
+        m_eventFile.x = m_eventFile.group.openDataSet("./x");
+        m_eventFile.y = m_eventFile.group.openDataSet("./y");
+        m_eventFile.polarities = m_eventFile.group.openDataSet("./p");
+        m_eventFile.cameras = m_eventFile.group.openDataSet("./c");
+        m_eventFile.timestamps.getSpace().getSimpleExtentDims(&m_eventFile.dims);
+        m_nbEvents += m_eventFile.dims;
     }
 }
 
 bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
     std::string hdf5 = ".h5";
-    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_leftEventsPath.rbegin())) {
+    std::string npz = ".npz";
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         if (loadHDF5Events(events)) {
             return false;
         }
         return true;
-    } else {
+    } else if (std::equal(npz.rbegin(), npz.rend(), m_eventsPath.rbegin())) {
         if (m_iteration > 0) {
             return false;
         }
-        if (m_networkConf.getNbCameras() == 1) {
-            mono(events, nbPass);
-        } else if (m_networkConf.getNbCameras() == 2) {
-            stereo(events, nbPass);
-        }
+        loadNpzEvents(events, nbPass);
         return true;
     }
 }
 
 /* Launches the spiking network on the specified event file 'nbPass' times.
- * The config file of the network must precise if the event file is stereo or mono.
+ * The config file of the network must precise if the event file is stereo or loadNpzEvents.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     for (const auto &event: events) {
@@ -204,14 +188,14 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
 
     saveValueMetrics(lastTimestamp, nbEvents);
 
-//    if (time - m_saveTime.console > SCORE_INTERVAL) {
-//        m_saveTime.console = time;
-//        learningDecay(m_scoreIteration);
-//        ++m_scoreIteration;
-//        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL * E3 / DT)) +
-//              "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
-//              "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
-//    }
+    if (time - m_saveTime.console > SCORE_INTERVAL) {
+        m_saveTime.console = time;
+        learningDecay(m_scoreIteration);
+        ++m_scoreIteration;
+        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL * E3 / DT)) +
+              "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
+              "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
+    }
 
     if (time - m_saveTime.action > static_cast<double>(getNetworkConfig().getActionRate())) {
         m_saveTime.action = time;
@@ -228,7 +212,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     return -1;
 }
 
-std::pair<int, bool> NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
+std::pair<int, bool>
+NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
     bool exploration = false;
     int selectedAction = 0;
     std::random_device rd;
@@ -326,8 +311,8 @@ void NetworkHandle::transmitEvent(const Event &event) {
 void NetworkHandle::learningDecay(size_t iteration) {
     double decay = 1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration);
 
-    m_spinet.getNeuron(0, 2).get().learningDecay(decay); // changing m_conf instance reference
-    m_spinet.getNeuron(0, 3).get().learningDecay(decay);
+//    m_spinet.getNeuron(0, 2).get().learningDecay(decay); // changing m_conf instance reference
+//    m_spinet.getNeuron(0, 3).get().learningDecay(decay);
 
     m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() / decay);
     if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
@@ -383,172 +368,68 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
 /* Opens an event file (in the npz format) and load all the events in memory into a vector.
  * If nbPass is greater than 1, the events are concatenated multiple times and the timestamps are updated in accordance.
  * Returns the vector of events.
- * Only for mono camera event files.
+ * Only for loadNpzEvents camera event files.
  */
-void NetworkHandle::mono(std::vector<Event> &events, size_t nbPass) {
+void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     events.clear();
     size_t pass, count;
 
-    cnpy::NpyArray timestamps_array = cnpy::npz_load(m_leftEventsPath, "arr_0");
-    cnpy::NpyArray x_array = cnpy::npz_load(m_leftEventsPath, "arr_1");
-    cnpy::NpyArray y_array = cnpy::npz_load(m_leftEventsPath, "arr_2");
-    cnpy::NpyArray polarities_array = cnpy::npz_load(m_leftEventsPath, "arr_3");
+    cnpy::NpyArray timestamps_array = cnpy::npz_load(m_eventsPath, "arr_0");
+    cnpy::NpyArray x_array = cnpy::npz_load(m_eventsPath, "arr_1");
+    cnpy::NpyArray y_array = cnpy::npz_load(m_eventsPath, "arr_2");
+    cnpy::NpyArray polarities_array = cnpy::npz_load(m_eventsPath, "arr_3");
+    cnpy::NpyArray cameras_array = cnpy::npz_load(m_eventsPath, "arr_4");
     size_t sizeLeftArray = timestamps_array.shape[0];
 
-    auto *l_timestamps = timestamps_array.data<long>();
-    auto *l_x = x_array.data<int16_t>();
-    auto *l_y = y_array.data<int16_t>();
-    auto *l_polarities = polarities_array.data<bool>();
+    auto *timestamps = timestamps_array.data<long>();
+    auto *x = x_array.data<int16_t>();
+    auto *y = y_array.data<int16_t>();
+    auto *polarities = polarities_array.data<bool>();
+    auto *cameras = cameras_array.data<bool>();
 
-    long firstTimestamp = l_timestamps[0];
-    long lastTimestamp = static_cast<long>(l_timestamps[sizeLeftArray - 1]);
+    long firstTimestamp = timestamps[0];
+    long lastTimestamp = static_cast<long>(timestamps[sizeLeftArray - 1]);
     Event event{};
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeLeftArray; ++count) {
-            event = Event(l_timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp), l_x[count],
-                          l_y[count],
-                          l_polarities[count], 0);
+            event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
+                          x[count],
+                          y[count],
+                          polarities[count],
+                          cameras[count]);
             events.push_back(event);
         }
     }
 }
 
-/* Same as mono function but for stereo camera event files.
- */
-void NetworkHandle::stereo(std::vector<Event> &events, size_t nbPass) {
-    events.clear();
-    size_t pass, left, right;
-
-    cnpy::NpyArray lTimestampsArray = cnpy::npz_load(m_leftEventsPath, "arr_0");
-    cnpy::NpyArray lXArray = cnpy::npz_load(m_leftEventsPath, "arr_1");
-    cnpy::NpyArray lYArray = cnpy::npz_load(m_leftEventsPath, "arr_2");
-    cnpy::NpyArray lPolaritiesArray = cnpy::npz_load(m_leftEventsPath, "arr_3");
-    size_t sizeLeftArray = lTimestampsArray.shape[0];
-
-    auto *lTimestamps = lTimestampsArray.data<long>();
-    auto *lX = lXArray.data<int16_t>();
-    auto *lY = lYArray.data<int16_t>();
-    auto *lPolarities = lPolaritiesArray.data<bool>();
-
-    cnpy::NpyArray rTimestampsArray = cnpy::npz_load(m_leftEventsPath, "arr_4");
-    cnpy::NpyArray rXArray = cnpy::npz_load(m_leftEventsPath, "arr_5");
-    cnpy::NpyArray rYArray = cnpy::npz_load(m_leftEventsPath, "arr_6");
-    cnpy::NpyArray rPolaritiesArray = cnpy::npz_load(m_leftEventsPath, "arr_7");
-    size_t sizeRightArray = rTimestampsArray.shape[0];
-
-    auto *rTimestamps = rTimestampsArray.data<long>();
-    auto *rX = rXArray.data<int16_t>();
-    auto *rY = rYArray.data<int16_t>();
-    auto *rPolarities = rPolaritiesArray.data<bool>();
-
-    long max = std::max(lTimestamps[sizeLeftArray - 1], rTimestamps[sizeRightArray - 1]);
-    long leftInterval = max - lTimestamps[0];
-    long rightInterval = max - rTimestamps[0];
-
-    long lT, rT;
-    Event event{};
-
-    for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
-        left = 0;
-        right = 0;
-        while (left < sizeLeftArray || right < sizeRightArray) {
-            lT = lTimestamps[left] + static_cast<long>(pass) * leftInterval;
-            rT = rTimestamps[right] + static_cast<long>(pass) * rightInterval;
-            if ((left < sizeLeftArray) && (lT <= rT || right >= sizeRightArray)) {
-                events.emplace_back(lT, lX[left], lY[left], lPolarities[left], 0);
-                ++left;
-            } else if ((right < sizeRightArray) && (lT > rT || left >= sizeLeftArray)) {
-                events.emplace_back(rT, rX[right], rY[right], rPolarities[right], 1);
-                ++right;
-            }
-        }
-    }
-}
-
 bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {
-    if (m_leftEvents.offset > m_leftEvents.dims) {
+    if (m_eventFile.offset + m_eventFile.packetSize > m_eventFile.dims) {
         return true;
     }
 
     events.clear();
-    auto vT = std::vector<uint64_t>(m_leftEvents.packetSize);
-    auto vX = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto vY = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto vP = std::vector<uint8_t>(m_leftEvents.packetSize);
+    auto vT = std::vector<uint64_t>(m_eventFile.packetSize);
+    auto vX = std::vector<uint16_t>(m_eventFile.packetSize);
+    auto vY = std::vector<uint16_t>(m_eventFile.packetSize);
+    auto vP = std::vector<uint8_t>(m_eventFile.packetSize);
+    auto vC = std::vector<uint8_t>(m_eventFile.packetSize);
 
-    H5::DataSpace filespace = m_leftEvents.timestamps.getSpace();
-    hsize_t dim[1] = {m_leftEvents.packetSize};
+    H5::DataSpace filespace = m_eventFile.timestamps.getSpace();
+    hsize_t dim[1] = {m_eventFile.packetSize};
     H5::DataSpace memspace(1, dim);
-    filespace.selectHyperslab(H5S_SELECT_SET, &m_leftEvents.packetSize, &m_leftEvents.offset);
+    filespace.selectHyperslab(H5S_SELECT_SET, &m_eventFile.packetSize, &m_eventFile.offset);
 
-    m_leftEvents.timestamps.read(vT.data(), H5::PredType::NATIVE_UINT64, memspace, filespace);
-    m_leftEvents.x.read(vX.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
-    m_leftEvents.y.read(vY.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
-    m_leftEvents.polarities.read(vP.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
+    m_eventFile.timestamps.read(vT.data(), H5::PredType::NATIVE_UINT64, memspace, filespace);
+    m_eventFile.x.read(vX.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
+    m_eventFile.y.read(vY.data(), H5::PredType::NATIVE_UINT16, memspace, filespace);
+    m_eventFile.polarities.read(vP.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
+    m_eventFile.cameras.read(vC.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
 
-    for (int i = 0; i < m_leftEvents.packetSize; i++) {
-        if (vX[i] < 346 && vY[i] < 260) {
-            events.emplace_back(vT[i], vX[i], vY[i], vP[i], 0);
-        }
+    for (int i = 0; i < m_eventFile.packetSize; i++) {
+        events.emplace_back(vT[i], vX[i], vY[i], vP[i], vC[i]);
     }
 
-    m_leftEvents.offset += m_leftEvents.packetSize; // TODO: do not cut the last events
-    return false;
-}
-
-bool NetworkHandle::loadHDF5EventsStereo(std::vector<Event> &events) {
-    if (m_leftEvents.offset > m_leftEvents.dims || m_rightEvents.offset > m_rightEvents.dims) { // TODO: account for all events
-        return true;
-    }
-
-    events.clear();
-    auto lT = std::vector<uint64_t>(m_leftEvents.packetSize);
-    auto lX = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto lY = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto lP = std::vector<uint8_t>(m_leftEvents.packetSize);
-
-    auto rT = std::vector<uint64_t>(m_leftEvents.packetSize);
-    auto rX = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto rY = std::vector<uint16_t>(m_leftEvents.packetSize);
-    auto rP = std::vector<uint8_t>(m_leftEvents.packetSize);
-
-    H5::DataSpace lFilespace = m_leftEvents.timestamps.getSpace();
-    hsize_t lDim[1] = {m_leftEvents.packetSize};
-    H5::DataSpace lMemspace(1, lDim);
-
-
-    H5::DataSpace rFilespace = m_rightEvents.timestamps.getSpace();
-    hsize_t rDim[1] = {m_rightEvents.packetSize};
-    H5::DataSpace rMemspace(1, lDim);
-
-    lFilespace.selectHyperslab(H5S_SELECT_SET, &m_leftEvents.packetSize, &m_leftEvents.offset);
-    rFilespace.selectHyperslab(H5S_SELECT_SET, &m_rightEvents.packetSize, &m_rightEvents.offset);
-
-    m_leftEvents.timestamps.read(lT.data(), H5::PredType::NATIVE_UINT64, lMemspace, lFilespace);
-    m_leftEvents.x.read(lX.data(), H5::PredType::NATIVE_UINT16, lMemspace, lFilespace);
-    m_leftEvents.y.read(lY.data(), H5::PredType::NATIVE_UINT16, lMemspace, lFilespace);
-    m_leftEvents.polarities.read(lP.data(), H5::PredType::NATIVE_UINT8, lMemspace, lFilespace);
-
-    m_rightEvents.timestamps.read(rT.data(), H5::PredType::NATIVE_UINT64, rMemspace, rFilespace);
-    m_rightEvents.x.read(rX.data(), H5::PredType::NATIVE_UINT16, rMemspace, rFilespace);
-    m_rightEvents.y.read(rY.data(), H5::PredType::NATIVE_UINT16, rMemspace, rFilespace);
-    m_rightEvents.polarities.read(rP.data(), H5::PredType::NATIVE_UINT8, rMemspace, rFilespace);
-
-    size_t left = 0;
-    size_t right = 0;
-    Event event{};
-    while (left < m_leftEvents.packetSize || right < m_rightEvents.packetSize) {
-        if ((left < m_leftEvents.packetSize) && (lT[left] <= rT[right] || right >= m_rightEvents.packetSize)) {
-            events.emplace_back(lT[left], lX[left], lY[left], lP[left], 0);
-            ++left;
-        } else if ((right < m_rightEvents.packetSize) && (lT[left] > rT[right] || left >= m_leftEvents.packetSize)) {
-            events.emplace_back(rT[right], rX[right], rY[right], rP[right], 1);
-            ++right;
-        }
-    }
-
-    m_leftEvents.offset += m_leftEvents.packetSize;
-    m_rightEvents.offset += m_rightEvents.packetSize;
+    m_eventFile.offset += m_eventFile.packetSize; // TODO: do not cut the last events
     return false;
 }
