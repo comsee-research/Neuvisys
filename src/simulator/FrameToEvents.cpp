@@ -42,8 +42,8 @@ void FrameToEvents::frameConversion(const std::string &topic, const ros::Message
                     m_events.insert(m_events.end(), events.begin(), events.end());
                 }
 
-                eim = eventImage(input.size(), events);
-                cv::imshow(topic, eim);
+//                eim = eventImage(input.size(), events);
+//                cv::imshow(topic, eim);
             }
         }
         prevTime = time;

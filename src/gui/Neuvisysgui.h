@@ -62,6 +62,7 @@ private slots:
     void on_text_complex_cell_config_textChanged();
     void on_text_critic_cell_config_textChanged();
     void on_text_actor_cell_config_textChanged();
+    void on_text_network_directory_textChanged();
     void on_button_selection_clicked(int index);
     void on_tab_visualization_currentChanged(int index);
     void on_spin_zcell_selection_valueChanged(int arg1);
@@ -102,8 +103,8 @@ protected:
     size_t rangeSpiketrain{};
 
 private:
-    void openConfigFiles(bool warning = true);
-    QString readConfFile(QString &directory, bool warning = true);
-    void modifyConfFile(QString &directory, QString &text);
+    void openConfigFiles();
+    QString readConfFile(QString &directory);
+    static void modifyConfFile(QString &directory, QString &text);
 };
 #endif // NEUVISYSGUI_H

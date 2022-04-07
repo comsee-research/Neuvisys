@@ -17,6 +17,7 @@ struct H5EventFile {
     H5::DataSet x;
     H5::DataSet y;
     H5::DataSet polarities;
+    H5::DataSet cameras;
     hsize_t dims;
     hsize_t packetSize = 10000;
     hsize_t offset = 0;
@@ -45,12 +46,12 @@ class NetworkHandle {
     NeuronConfig m_complexNeuronConf;
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
-    H5EventFile m_leftEvents, m_rightEvents;
+    H5EventFile m_eventFile;
     SaveTime m_saveTime;
 
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
-    std::string m_leftEventsPath, m_rightEventsPath;
+    std::string m_eventsPath;
     size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
@@ -62,12 +63,11 @@ class NetworkHandle {
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string leftEventsPath, std::string rightEventsPath = std::string());
+    explicit NetworkHandle(std::string eventsPath);
 
     NetworkHandle(const std::string &networkPath, double time);
 
-    NetworkHandle(const std::string &networkPath, double time, const std::string &leftEventsPath,
-                  const std::string &rightEventsPath = std::string());
+    NetworkHandle(const std::string &networkPath, double time, const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
@@ -91,7 +91,7 @@ public:
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
-    void mono(std::vector<Event> &events, size_t nbPass = 1);
+    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
 
     void stereo(std::vector<Event> &events, size_t nbPass = 1);
 

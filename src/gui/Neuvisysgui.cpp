@@ -17,8 +17,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("");
-    openConfigFiles(false);
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network");
+    openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->modeChoice->setId(ui->recording, 0);
@@ -146,6 +146,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
+void NeuvisysGUI::on_text_network_directory_textChanged() {
+    openConfigFiles();
+}
+
 void NeuvisysGUI::on_text_network_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
     QString text = ui->text_network_config->toPlainText();
@@ -206,39 +210,47 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::openConfigFiles(bool warning) {
+void NeuvisysGUI::openConfigFiles() {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
-    ui->text_network_config->setText(readConfFile(confDir, warning));
+    ui->text_network_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/simple_cell_config.json";
-    ui->text_simple_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_simple_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/complex_cell_config.json";
-    ui->text_complex_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_complex_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/critic_cell_config.json";
-    ui->text_critic_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_critic_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/actor_cell_config.json";
-    ui->text_actor_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_actor_cell_config->setText(readConfFile(confDir));
 }
 
-QString NeuvisysGUI::readConfFile(QString &directory, bool warning) {
-    QFile file(directory);
-    if (warning && !file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+QString NeuvisysGUI::readConfFile(QString &directory) {
+    QFileInfo checkFile(directory);
+    if (checkFile.exists() && checkFile.isFile()) {
+        QFile file(directory);
+        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+            QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        }
+        QString networkText = QTextStream(&file).readAll();
+        file.close();
+        return networkText;
+    } else {
+        return {"File Not Found !"};
     }
-    QString networkText = QTextStream(&file).readAll();
-    file.close();
-    return networkText;
 }
 
 void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
-    QFile file(directory);
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
-    } else {
-        QTextStream out(&file);
-        out << text;
+    QFileInfo checkFile(directory);
+    if (checkFile.exists() && checkFile.isFile()) {
+        QFile file(directory);
+        if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+            std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
+        } else {
+            QTextStream out(&file);
+            out << text;
+        }
+        file.close();
     }
-    file.close();
 }
 
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
