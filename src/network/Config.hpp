@@ -9,7 +9,7 @@
 
 #define SCORE_INTERVAL 2000000 // µs
 #define UPDATE_INTERVAL 10000 // µs
-#define DT 10 // ms
+#define DT 10000 // µs
 #define E3 1000 // µs
 #define E6 1000000 // µs
 

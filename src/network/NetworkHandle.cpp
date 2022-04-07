@@ -192,7 +192,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.console = time;
         learningDecay(m_scoreIteration);
         ++m_scoreIteration;
-        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL * E3 / DT)) +
+        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / DT)) +
               "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
     }
@@ -264,13 +264,13 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["tdError"].push_back(tdError);
 }
 
-double NetworkHandle::getScore(long time) {
+double NetworkHandle::getScore(long nbPreviousReward) {
     double mean = 0;
     for (auto it = m_saveData["reward"].end();
-         it != m_saveData["reward"].end() - time && it != m_saveData["reward"].begin(); --it) {
+         it != m_saveData["reward"].end() - nbPreviousReward && it != m_saveData["reward"].begin(); --it) {
         mean += *it;
     }
-    mean /= static_cast<double>(time);
+    mean /= static_cast<double>(nbPreviousReward);
     m_saveData["score"].push_back(mean);
     return mean;
 }
@@ -290,7 +290,7 @@ double NetworkHandle::valueFunction(long time) {
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate() / E3) / DT;
+    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / DT;
     if (value.size() > nbPreviousTD) {
         return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {

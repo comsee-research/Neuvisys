@@ -124,6 +124,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
         m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
 
         emit consoleMessage(m_msg);
+        m_msg.clear();
 
         /*** GUI Display ***/
         if (time - m_displayTime > m_displayRate) {
@@ -163,10 +164,10 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         sim.update();
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-//        if (m_action != -1) {
-//            sim.activateMotors(m_action);
-//            m_motorDisplay[m_action] = true;
-//        }
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
     }
     sim.stopSimulation();
     network.save("Simulation", 1);
@@ -272,7 +273,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-//            emit displayAction(m_motorDisplay);
+            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;

@@ -17,7 +17,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_action");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -269,15 +269,15 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
-//    std::vector<QString> labels;
-//    for (size_t i = 0; i < networkStructure.back(); ++i) { // TODO: add explicit reference to number of actions.
-//        labels.push_back(QString::number(i));
-//        auto *label = new QLabel(this);
-//        label->setText(QString(labels[i]));
-//
-//        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-//        label->show();
-//    }
+    std::vector<QString> labels;
+    for (size_t i = 0; i < networkStructure.back(); ++i) {
+        labels.push_back(QString::number(i));
+        auto *label = new QLabel(this);
+        label->setText(QString(labels[i]));
+
+        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
+        label->show();
+    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -399,9 +399,9 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
             if (m_layer == 0) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
             } else if (m_layer == 1) {
-                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(500, 500, Qt::KeepAspectRatio));
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             } else if (m_layer > 1) {
-                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(1200, 1200, Qt::KeepAspectRatio));
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             }
         }
         ++count;

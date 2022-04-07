@@ -103,7 +103,7 @@ public:
 
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
-    double getScore(long time);
+    double getScore(long nbPreviousReward);
 
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 
