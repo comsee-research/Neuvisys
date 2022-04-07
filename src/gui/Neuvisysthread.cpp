@@ -163,10 +163,10 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         sim.update();
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-        if (m_action != -1) {
-            sim.activateMotors(m_action);
-            m_motorDisplay[m_action] = true;
-        }
+//        if (m_action != -1) {
+//            sim.activateMotors(m_action);
+//            m_motorDisplay[m_action] = true;
+//        }
     }
     sim.stopSimulation();
     network.save("Simulation", 1);
