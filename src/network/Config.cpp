@@ -39,7 +39,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             NetworkPath = fileName;
             NetworkPath.erase(fileName.find(toErase), toErase.length());
         } catch (const std::exception &e) {
-            std::cerr << "In network config file" << std::endl;
+            std::cerr << "In network config file:" << e.what() << std::endl;
             throw;
         }
     } else {
@@ -86,6 +86,7 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             VRESET = conf["VRESET"];
             SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            DECAY_RATE = conf["DECAY_RATE"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
@@ -117,6 +118,7 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            DECAY_RATE = conf["DECAY_RATE"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
             DELTA_RP = conf["ETA_RP"];
@@ -154,6 +156,7 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            DECAY_RATE = conf["DECAY_RATE"];
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;
@@ -184,6 +187,7 @@ void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            DECAY_RATE = conf["DECAY_RATE"];
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;
@@ -202,11 +206,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory + "/figures/1");
     std::filesystem::create_directory(directory + "/figures/2");
     std::filesystem::create_directory(directory + "/figures/3");
-    std::filesystem::create_directory(directory + "/figures/complex_directions");
-    std::filesystem::create_directory(directory + "/figures/complex_orientations");
-    std::filesystem::create_directory(directory + "/figures/complex_weights_orientations");
     std::filesystem::create_directory(directory + "/gabors");
-    std::filesystem::create_directory(directory + "/gabors/data");
+    std::filesystem::create_directory(directory + "/gabors/0");
+    std::filesystem::create_directory(directory + "/gabors/1");
+    std::filesystem::create_directory(directory + "/gabors/2");
+    std::filesystem::create_directory(directory + "/gabors/3");
     std::filesystem::create_directory(directory + "/gabors/figures");
     std::filesystem::create_directory(directory + "/gabors/hists");
     std::filesystem::create_directory(directory + "/images");
@@ -252,8 +256,9 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_LTD",       14},
                     {"TARGET_SPIKE_RATE", 0.75},
                     {"SYNAPSE_DELAY", 0},
-                    {"STDP_LEARNING", "all"},
+                    {"STDP_LEARNING", "excitatory"},
                     {"NORM_FACTOR", 4},
+                    {"DECAY_RATE", 0},
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
                     {"ETA_LTD",           -0.0021},
@@ -272,8 +277,9 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TAU_LTP",        20},
                     {"TAU_LTD",          20},
                     {"TAU_RP",                30},
-                    {"STDP_LEARNING", "all"},
+                    {"STDP_LEARNING", "excitatory"},
                     {"NORM_FACTOR",       10},
+                    {"DECAY_RATE", 0},
                     {"ETA_LTP",       0.2},
                     {"ETA_LTD",       0.2},
                     {"ETA_INH",     15},
@@ -290,6 +296,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
+                    {"DECAY_RATE", 0},
                     {"STDP_LEARNING", "all"},
                     {"NU_K",        200},
                     {"MIN_NU_K",   100},
@@ -309,6 +316,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
+                    {"DECAY_RATE", 0},
                     {"STDP_LEARNING", "all"},
                     {"TAU_E",       250},
                     {"ETA",        0.2}

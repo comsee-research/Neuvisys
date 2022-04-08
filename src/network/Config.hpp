@@ -7,9 +7,9 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_INTERVAL 10 // s
-#define UPDATE_INTERVAL 100000 // µs
-#define DT 10 // ms
+#define SCORE_INTERVAL 2000000 // µs
+#define UPDATE_INTERVAL 10000 // µs
+#define DT 1000 // µs
 #define E3 1000 // µs
 #define E6 1000000 // µs
 
@@ -110,6 +110,7 @@ public:
     size_t SYNAPSE_DELAY{}; // μs
 
     double NORM_FACTOR{};
+    double DECAY_RATE{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
     double MIN_THRESH{}; // mV

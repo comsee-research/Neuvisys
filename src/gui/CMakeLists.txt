@@ -5,15 +5,17 @@ set(CMAKE_AUTORCC ON)
 find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
+find_package(libcaer)
 
 include_directories(${catkin_INCLUDE_DIRS})
 
-set(DV_SOURCES
-        ../dv-modules/Ynoise.cpp)
+set(CAMERA_SOURCES
+        ../camera/EventCamera.cpp
+        ../camera/Ynoise.cpp)
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Utils.cpp
+        ../network/Util.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp
@@ -22,15 +24,15 @@ set(PROJECT_SOURCES
         ../network/NetworkHandle.cpp)
 
 set(ROS_SOURCES
-        ../robot-control/SimulationInterface.cpp
-        ../robot-control/FrameToEvents.cpp
-        ../robot-control/Motor.cpp
-        ../robot-control/motor-control/BrushlessMotor.cpp
-        ../robot-control/motor-control/libserie/Faulhaber.cpp
-        ../robot-control/motor-control/libserie/comserie.cpp)
+        ../simulator/SimulationInterface.cpp
+        ../simulator/FrameToEvents.cpp
+        ../simulator/Motor.cpp
+        ../motor-control/BrushlessMotor.cpp
+        ../motor-control/libserie/Faulhaber.cpp
+        ../motor-control/libserie/comserie.cpp)
 
 set(GUI_SOURCES
-        guiMain.cpp
+        Gui.cpp
         Neuvisysgui.cpp
         Neuvisysthread.cpp
         GLWidget.cpp
@@ -38,7 +40,7 @@ set(GUI_SOURCES
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-qt
-            ${DV_SOURCES}
+            ${CAMERA_SOURCES}
             ${GUI_SOURCES}
             ${PROJECT_SOURCES}
             ${ROS_SOURCES}
@@ -46,14 +48,14 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
 else()
     if(ANDROID)
         add_library(neuvisys-qt SHARED
-                ${DV_SOURCES}
+                ${CAMERA_SOURCES}
                 ${GUI_SOURCES}
                 ${PROJECT_SOURCES}
                 ${ROS_SOURCES}
                 )
     else()
         add_executable(neuvisys-qt
-                ${DV_SOURCES}
+                ${CAMERA_SOURCES}
                 ${GUI_SOURCES}
                 ${PROJECT_SOURCES}
                 ${ROS_SOURCES}
@@ -62,8 +64,4 @@ else()
 endif()
 
 target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} cnpy caer)
-
-add_executable(neuvisys ${DV_SOURCES} ${GUI_SOURCES} ${PROJECT_SOURCES} ${ROS_SOURCES})
-target_link_libraries(neuvisys PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} cnpy)
+        ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} blosc_filter cnpy caer z)

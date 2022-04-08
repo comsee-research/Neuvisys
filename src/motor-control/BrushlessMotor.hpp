@@ -6,7 +6,7 @@
 #define NEUVISYS_BRUSHLESSMOTOR_HPP
 
 #include "libserie/Faulhaber.hpp"
-#include "../../network/Utils.hpp"
+#include "../network/Util.hpp"
 
 class BrushlessMotor {
 protected:

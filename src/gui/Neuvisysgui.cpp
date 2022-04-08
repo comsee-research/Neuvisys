@@ -17,8 +17,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/neuvisys-dv/configuration/network");
-    openConfigFiles(false);
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_action");
+    openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
     ui->modeChoice->setId(ui->recording, 0);
@@ -109,10 +109,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
     qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
     qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
-    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<long>>>>("std::vector<std::reference_wrapper<const std::vector<long>>>");
-    qRegisterMetaType<std::vector<std::vector<long>>>("std::vector<std::vector<long>>");
+    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<size_t>>>>("std::vector<std::reference_wrapper<const std::vector<size_t>>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
-    qRegisterMetaType<std::vector<std::pair<double, long>>>("std::vector<std::pair<double, long>>");
+    qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
+    qRegisterMetaType<std::vector<std::pair<double, size_t>>>("std::vector<std::pair<double, size_t>>");
 
     connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
     connect(&neuvisysThread, &NeuvisysThread::displayStatistics, this, &NeuvisysGUI::onDisplayStatistics);
@@ -145,6 +145,10 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
                           ui->text_event_file->text(),
                           static_cast<size_t>(ui->number_runs->value()), ui->modeChoice->checkedId());
     ui->console->insertPlainText(QString("Starting network...\n"));
+}
+
+void NeuvisysGUI::on_text_network_directory_textChanged() {
+    openConfigFiles();
 }
 
 void NeuvisysGUI::on_text_network_config_textChanged() {
@@ -207,39 +211,47 @@ void NeuvisysGUI::on_button_stop_network_clicked() {
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::openConfigFiles(bool warning) {
+void NeuvisysGUI::openConfigFiles() {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
-    ui->text_network_config->setText(readConfFile(confDir, warning));
+    ui->text_network_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/simple_cell_config.json";
-    ui->text_simple_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_simple_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/complex_cell_config.json";
-    ui->text_complex_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_complex_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/critic_cell_config.json";
-    ui->text_critic_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_critic_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/actor_cell_config.json";
-    ui->text_actor_cell_config->setText(readConfFile(confDir, warning));
+    ui->text_actor_cell_config->setText(readConfFile(confDir));
 }
 
-QString NeuvisysGUI::readConfFile(QString &directory, bool warning) {
-    QFile file(directory);
-    if (warning && !file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+QString NeuvisysGUI::readConfFile(QString &directory) {
+    QFileInfo checkFile(directory);
+    if (checkFile.exists() && checkFile.isFile()) {
+        QFile file(directory);
+        if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
+            QMessageBox::warning(this, "Warning", "Cannot open file: " + file.errorString());
+        }
+        QString networkText = QTextStream(&file).readAll();
+        file.close();
+        return networkText;
+    } else {
+        return {"File Not Found !"};
     }
-    QString networkText = QTextStream(&file).readAll();
-    file.close();
-    return networkText;
 }
 
 void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
-    QFile file(directory);
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
-    } else {
-        QTextStream out(&file);
-        out << text;
+    QFileInfo checkFile(directory);
+    if (checkFile.exists() && checkFile.isFile()) {
+        QFile file(directory);
+        if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
+            std::cout << "Warning:" << directory.toStdString() << "file does not exist !" << std::endl;
+        } else {
+            QTextStream out(&file);
+            out << text;
+        }
+        file.close();
     }
-    file.close();
 }
 
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
@@ -258,15 +270,15 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
 
-//    std::vector<QString> labels;
-//    for (size_t i = 0; i < networkStructure.back(); ++i) { // TODO: add explicit reference to number of actions.
-//        labels.push_back(QString::number(i));
-//        auto *label = new QLabel(this);
-//        label->setText(QString(labels[i]));
-//
-//        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-//        label->show();
-//    }
+    std::vector<QString> labels;
+    for (size_t i = 0; i < networkStructure.back(); ++i) {
+        labels.push_back(QString::number(i));
+        auto *label = new QLabel(this);
+        label->setText(QString(labels[i]));
+
+        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
+        label->show();
+    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -388,9 +400,9 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
             if (m_layer == 0) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
             } else if (m_layer == 1) {
-                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(500, 500, Qt::KeepAspectRatio));
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             } else if (m_layer > 1) {
-                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(1200, 1200, Qt::KeepAspectRatio));
+                label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             }
         }
         ++count;
@@ -398,16 +410,16 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
 }
 
 void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
-                                     const std::vector<std::pair<double, long>> &potentialTrain) {
+                                     const std::vector<std::pair<double, size_t>> &potentialTrain) {
     potentialChart->removeSeries(potentialSeries);
     potentialSeries = new QLineSeries();
-    long last = 0;
+    size_t last = 0;
     if (!potentialTrain.empty()) {
         last = potentialTrain.back().second;
     }
     for (auto it = potentialTrain.rbegin(); it != potentialTrain.rend(); ++it) {
         potentialSeries->append(static_cast<qreal>(it->second), it->first);
-        if (last - it->second > static_cast<long>(rangePotential)) {
+        if (last - it->second > static_cast<size_t>(rangePotential)) {
             break;
         }
     }
@@ -417,7 +429,7 @@ void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
     ui->potentialView->repaint();
 }
 
-void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<long>>> &spikeTrains, double time) {
+void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time) {
     spikeChart->removeSeries(spikeSeries);
     spikeSeries = new QScatterSeries();
     spikeSeries->setMarkerShape(QScatterSeries::MarkerShapeRectangle);

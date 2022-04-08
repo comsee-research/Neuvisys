@@ -1,4 +1,4 @@
-#include "Utils.hpp"
+#include "Util.hpp"
 
 std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
 std::normal_distribution<double> normalDistr(0.0, 1.0);
@@ -34,7 +34,7 @@ namespace Util {
         return mat;
     }
 
-    void loadNumpyFileToComplexTensor(std::string &filePath, Eigen::Tensor<double, COMPLEXDIM> &tensor) {
+    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
@@ -66,7 +66,7 @@ namespace Util {
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "w");
     }
 
-    void loadNumpyFileToSimpleTensor(std::string &filePath, Eigen::Tensor<double, SIMPLEDIM> &tensor) {
+    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
         cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
         auto *weights = array.data<double>();
 
@@ -103,6 +103,46 @@ namespace Util {
             }
         }
         cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
+    }
+
+    void loadNumpyToWeights(std::unordered_map<size_t, double> &map, std::string &filePath) {
+        cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
+        auto *weights = array.data<double>();
+
+        size_t count = 0;
+        for (auto &element : map) {
+            element.second = weights[count];
+            ++count;
+        }
+    }
+
+    void saveWeightsToNumpy(std::unordered_map<size_t, double> &map, std::string &saveFile) {
+        std::vector<double> data(static_cast<size_t>(map.size()));
+        size_t count = 0;
+        for (auto const &element : map) {
+            data[count] = element.second;
+            ++count;
+        }
+        cnpy::npy_save(saveFile + ".npy", &data[0], {map.size()}, "w");
+    }
+
+    void saveEventFile(std::vector<Event> &events, std::string &saveFile) {
+        std::vector<double> timestamp(events.size());
+        std::vector<double> x(events.size());
+        std::vector<double> y(events.size());
+        std::vector<double> polarity(events.size());
+        size_t count = 0;
+        for (auto const &event : events) {
+            timestamp[count] = static_cast<double>(event.timestamp());
+            x[count] = event.x();
+            y[count] = event.y();
+            polarity[count] = event.polarity();
+            ++count;
+        }
+        cnpy::npz_save(saveFile + ".npz", "arr_0", &timestamp[0], {events.size()}, "w");
+        cnpy::npz_save(saveFile + ".npz", "arr_1", &x[0], {events.size()}, "a");
+        cnpy::npz_save(saveFile + ".npz", "arr_2", &y[0], {events.size()}, "a");
+        cnpy::npz_save(saveFile + ".npz", "arr_3", &polarity[0], {events.size()}, "a");
     }
 
     int winnerTakeAll(std::vector<size_t> vec) {

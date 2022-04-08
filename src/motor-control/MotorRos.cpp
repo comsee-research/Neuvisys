@@ -2,21 +2,21 @@
 // Created by thomas on 28/10/2021.
 //
 
-#include "StepMotorRos.hpp"
+#include "MotorRos.hpp"
 #include <string>
 
-StepMotorRos::StepMotorRos(const std::string &topic, const size_t motorAdress, const std::string &port) : BrushlessMotor(topic, motorAdress, port) {
+MotorRos::MotorRos(const std::string &topic, const size_t motorAdress, const std::string &port) : BrushlessMotor(motorAdress, port) {
     m_positionSub = m_nh.subscribe<std_msgs::Float32>(topic + "Speed", 1000, [this](auto && PH1) {
         setSpeedCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_speedSub = m_nh.subscribe<std_msgs::Float32>(topic + "Position", 1000, [this](auto && PH1) {
         setPositionCallBack(std::forward<decltype(PH1)>(PH1)); });
 }
 
-void StepMotorRos::setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &speed) {
+void MotorRos::setSpeedCallBack(const ros::MessageEvent<std_msgs::Float32> &speed) {
     m_motor.SetSpeed(static_cast<int>(speed.getMessage()->data));
 }
 
-void StepMotorRos::setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position) {
+void MotorRos::setPositionCallBack(const ros::MessageEvent<std_msgs::Float32> &position) {
     m_motor.SetAbsolutePosition(static_cast<int>(position.getMessage()->data));
 }
 
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
     std::chrono::high_resolution_clock::time_point time;
     std::chrono::high_resolution_clock::time_point timePosition = std::chrono::high_resolution_clock::now();
 
-    auto stepMotor = StepMotorRos("leftmotor1", 0, "/dev/ttyUSB0");
+    auto stepMotor = MotorRos("leftmotor1", 0, "/dev/ttyUSB0");
     stepMotor.setSpeed(100);
 
     double position = stepMotor.getPosition();

@@ -4,7 +4,9 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface() {
+SimulationInterface::SimulationInterface(bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
+    frameConverter = FrameToEvents(5, 1, 0, 0.4, 0, 1, saveFrames, m_saveEvents);
+
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });
@@ -24,9 +26,12 @@ SimulationInterface::SimulationInterface() {
         sleep_t.sleep();
     }
 
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
-    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
+    actionMapping.emplace_back(std::map<uint64_t, float>({{1, 5}})); // clockwise rotation
+    actionMapping.emplace_back(std::map<uint64_t, float>({{1, -5}})); // counter-clockwise rotation
+
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
+//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
 
 //    actionMapping.emplace_back(std::mak_pair(0, 0.05)); // increment speed left
 //    actionMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
@@ -73,7 +78,7 @@ void SimulationInterface::update() {
     auto dt = (m_imageTime - m_lastImageTime).toSec();
     m_lastImageTime = m_imageTime;
 
-    motorsJitter(dt);
+//    motorsJitter(dt);
 }
 
 bool SimulationInterface::poissonProcess() {
@@ -124,12 +129,18 @@ void SimulationInterface::startSimulation() {
     std_msgs::Bool msg{};
     msg.data = true;
     m_startSimulation.publish(msg);
+    std::cout << "Starting simulation" << std::endl;
 }
 
 void SimulationInterface::stopSimulation() {
     std_msgs::Bool msg{};
     msg.data = true;
     m_stopSimulation.publish(msg);
+    std::cout << "Stopping simulation" << std::endl;
+
+    if (m_saveEvents) {
+        frameConverter.saveEventsAsFile("/home/thomas/Desktop/events");
+    }
 }
 
 void SimulationInterface::enableSyncMode(bool enable) {

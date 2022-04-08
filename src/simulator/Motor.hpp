@@ -9,7 +9,7 @@
 #include <std_msgs/Bool.h>
 #include "ros/ros.h"
 #include <cstdlib>
-#include "../network/Utils.hpp"
+#include "../network/Util.hpp"
 
 class Motor {
     ros::Publisher m_motorSpeedPub{};

@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0);
+        auto network = NetworkHandle(m_networkPath.toStdString(), 0, m_events.toStdString());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -55,64 +55,98 @@ void NeuvisysThread::run() {
 }
 
 void NeuvisysThread::readEvents() {
-    auto eventPacket = std::vector<Event>();
-    eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
-//    eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
+//    auto camera = EventCamera();
+//    auto eventFilter = Ynoise(346, 260);
+//
+//    bool received = false, stop = false;
+//    size_t time;
+//    auto displayTime = 0;
+//    auto rtime = std::chrono::high_resolution_clock::now();
+//    auto rdisplayTime = rtime;
+//
+//    while (!stop) {
+//        auto polarity = camera.receiveEvents(received, stop);
+//
+//        auto events = eventFilter.run(*polarity);
+//
+//        for (const auto &event : events) {
+//            addEventToDisplay(event);
+//
+//            time = event.timestamp();
+//            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
+//                displayTime = time;
+//
+//                m_leftEventDisplay = 0;
+//                m_rightEventDisplay = 0;
+//            }
+//
+//            rtime = std::chrono::high_resolution_clock::now();
+//            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+//                rdisplayTime = rtime;
+//                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+//            }
+//        }
+//    }
 
-    long time;
-    auto displayTime = eventPacket.front().timestamp();
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
-    for (const auto &event: eventPacket) {
-        addEventToDisplay(event);
+    auto network = NetworkHandle(m_events.toStdString());
+    auto events = std::vector<Event>();
+    while(network.loadEvents(events, 1)) {
+        for (const auto &event: events) {
+            addEventToDisplay(event);
 
-        time = event.timestamp();
-        if (time - displayTime > static_cast<long>(m_displayRate)) {
-            displayTime = time;
+            if (static_cast<double>(event.timestamp()) - m_displayTime > m_displayRate) {
+                m_displayTime = static_cast<double>(event.timestamp());
 
-            m_leftEventDisplay = 0;
-            m_rightEventDisplay = 0;
+                m_leftEventDisplay = 0;
+                m_rightEventDisplay = 0;
+            }
+
+            rtime = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+                rdisplayTime = rtime;
+                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+            }
+        }
+    }
+}
+
+void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+    if (!events.empty()) {
+        m_eventRate += static_cast<double>(events.size());
+
+        for (auto const &event : events) {
+            ++m_iterations;
+            addEventToDisplay(event);
+            network.transmitEvent(event);
+        }
+        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+
+        emit consoleMessage(m_msg);
+        m_msg.clear();
+
+        /*** GUI Display ***/
+        if (time - m_displayTime > m_displayRate) {
+            m_displayTime = time;
+            display(network, events.size(), m_displayTime);
         }
 
-        rtime = std::chrono::high_resolution_clock::now();
-        if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
-            rdisplayTime = rtime;
-            emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+        if (time - m_trackTime > m_trackRate) {
+            m_trackTime = time;
+            network.trackNeuron(time, m_id, m_layer);
         }
     }
 }
 
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {
-    auto eventPacket = std::vector<Event>();
-    if (network.getNetworkConfig().getNbCameras() == 1) {
-        eventPacket = NetworkHandle::mono(m_events.toStdString(), m_nbPass);
-    } else if (network.getNetworkConfig().getNbCameras() == 2) {
-        eventPacket = NetworkHandle::stereo(m_events.toStdString(), m_nbPass);
+    std::vector<Event> events;
+
+    while (network.loadEvents(events, m_nbPass)) {
+        eventLoop(network, events, events.back().timestamp());
     }
 
-    long time;
-    auto displayTime = eventPacket.front().timestamp();
-    auto trackTime = eventPacket.front().timestamp();
-    for (const auto &event: eventPacket) {
-        ++m_eventRate;
-        ++m_iterations;
-        addEventToDisplay(event);
-        network.transmitEvent(event);
-
-        /*** GUI Display ***/
-        time = event.timestamp();
-        if (time - displayTime > static_cast<long>(m_displayRate)) {
-            displayTime = time;
-            display(network, eventPacket.size(), static_cast<double>(displayTime) / E6);
-        }
-
-        if (time - trackTime > static_cast<long>(m_trackRate)) {
-            trackTime = time;
-            network.trackNeuron(time, m_id, m_layer);
-        }
-    }
-
-    network.save(m_nbPass, m_events.toStdString());
+    network.save(m_events.toStdString(), m_nbPass);
     emit networkDestruction();
 }
 
@@ -121,9 +155,6 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
-    int action;
-    double displayTime = 0, trackTime = 0;
-    std::string msg;
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -131,35 +162,80 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
 
         sim.update();
-        if (!sim.getLeftEvents().empty()) {
-            m_eventRate += static_cast<double>(sim.getLeftEvents().size());
-            network.transmitReward(sim.getReward());
-            network.transmitEvents(sim.getLeftEvents());
-            action = network.learningLoop(sim.getLeftEvents().back().timestamp(), sim.getSimulationTime(), msg);
+        network.transmitReward(sim.getReward());
+        eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
 
-            if (action != -1) {
-                sim.activateMotors(action);
-                m_motorDisplay[action] = true;
-            }
-            emit consoleMessage(msg);
-
-            /*** GUI Display ***/
-            if (sim.getSimulationTime() - displayTime > m_displayRate / E6) {
-                displayTime = sim.getSimulationTime();
-                display(network, 0, displayTime);
-            }
-
-            if (sim.getSimulationTime() - trackTime > m_trackRate / E6) {
-                trackTime = sim.getSimulationTime();
-                if (!sim.getLeftEvents().empty()) {
-                    network.trackNeuron(sim.getLeftEvents().back().timestamp(), m_id, m_layer);
-                }
-            }
+        if (sim.getSimulationTime() > 300) {
+            m_stop = true;
         }
     }
     sim.stopSimulation();
-    network.save(1, "Simulation");
+    network.save("Simulation", 1);
     emit networkDestruction();
+}
+
+int NeuvisysThread::launchReal(NetworkHandle &network) {
+    auto time = std::chrono::high_resolution_clock::now();
+    auto motorTime = time;
+    auto positionTime = time;
+
+    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
+    lXMotor.setBounds(-55000, 55000);
+
+    std::vector<double> motorMapping;
+    motorMapping.emplace_back(350); // left horizontal -> left movement
+    motorMapping.emplace_back(0); // no movement
+    motorMapping.emplace_back(-350); // left horizontal  -> right movement
+
+    auto camera = EventCamera();
+    auto eventFilter = Ynoise(346, 260);
+
+    double position = 0;
+    double reward = 0;
+    bool received = false;
+
+    while (!m_stop) {
+        auto polarity = camera.receiveEvents(received, m_stop);
+
+        auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
+        auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
+        lXMotor.jitterSpeed(static_cast<double>(dt));
+
+        if (lXMotor.isActionValid(position, 0)) {
+            reward = 80 * (55000 - abs(position)) / 55000;
+        } else {
+            reward = -100;
+        }
+
+        time = std::chrono::high_resolution_clock::now();
+        eventLoop(network, eventFilter.run(*polarity), std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count());
+
+        if (m_action != -1) {
+            position += motorMapping[m_action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
+            if (lXMotor.isActionValid(position, 0)) {
+                motorTime = time;
+                lXMotor.setSpeed(motorMapping[m_action]);
+            } else {
+                lXMotor.setSpeed(0);
+            }
+        }
+
+        if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
+            positionTime = time;
+            std::cout << "Before: " << position << std::endl;
+            position = lXMotor.getPosition();
+            std::cout << "After: " << position << std::endl;
+        }
+    }
+
+    // Close automatically done by destructor.
+    printf("Shutdown successful.\n");
+    network.save("Simulation", 1);
+    return 0;
 }
 
 inline void NeuvisysThread::addEventToDisplay(const Event &event) {
@@ -201,8 +277,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            cv::imshow("events", m_leftEventDisplay);
-//            emit displayAction(m_motorDisplay);
+            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
@@ -346,182 +421,4 @@ void NeuvisysThread::onLayerChanged(size_t layer) {
 
 void NeuvisysThread::onStopNetwork() {
     m_stop = true;
-}
-
-static atomic_bool globalShutdown(false);
-
-static void globalShutdownSignalHandler(int signal) {
-    // Simply set the running flag to false on SIGTERM and SIGINT (CTRL+C) for global shutdown.
-    if (signal == SIGTERM || signal == SIGINT) {
-        globalShutdown.store(true);
-    }
-}
-
-static void usbShutdownHandler(void *ptr) {
-    (void) (ptr); // UNUSED.
-
-    globalShutdown.store(true);
-}
-
-int prepareContext() {
-    // Install signal handler for global shutdown.
-    struct sigaction shutdownAction{};
-
-    shutdownAction.sa_handler = &globalShutdownSignalHandler;
-    shutdownAction.sa_flags = 0;
-    sigemptyset(&shutdownAction.sa_mask);
-    sigaddset(&shutdownAction.sa_mask, SIGTERM);
-    sigaddset(&shutdownAction.sa_mask, SIGINT);
-
-    if (sigaction(SIGTERM, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGTERM. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-
-    if (sigaction(SIGINT, &shutdownAction, nullptr) == -1) {
-        libcaer::log::log(libcaer::log::logLevel::CRITICAL, "ShutdownAction",
-                          "Failed to set signal handler for SIGINT. Error: %d.", errno);
-        return (EXIT_FAILURE);
-    }
-    return 0;
-}
-
-void changeBiases(libcaer::devices::davis &davis) {
-    // Tweak some biases, to increase bandwidth in this case.
-    struct caer_bias_coarsefine coarseFineBias{};
-
-    coarseFineBias.coarseValue = 2;
-    coarseFineBias.fineValue = 116;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    coarseFineBias.coarseValue = 1;
-    coarseFineBias.fineValue = 33;
-    coarseFineBias.enabled = true;
-    coarseFineBias.sexN = false;
-    coarseFineBias.typeNormal = true;
-    coarseFineBias.currentLevelNormal = true;
-
-    davis.configSet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP, caerBiasCoarseFineGenerate(coarseFineBias));
-
-    // Let's verify they really changed!
-    uint32_t prBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRBP);
-    uint32_t prsfBias = davis.configGet(DAVIS_CONFIG_BIAS, DAVIS240_CONFIG_BIAS_PRSFBP);
-
-    printf("New bias values --- PR-coarse: %d, PR-fine: %d, PRSF-coarse: %d, PRSF-fine: %d.\n",
-           caerBiasCoarseFineParse(prBias).coarseValue, caerBiasCoarseFineParse(prBias).fineValue,
-           caerBiasCoarseFineParse(prsfBias).coarseValue, caerBiasCoarseFineParse(prsfBias).fineValue);
-}
-
-int NeuvisysThread::launchReal(NetworkHandle &network) {
-    auto time = std::chrono::high_resolution_clock::now();
-    auto displayTime = time;
-    auto trackTime = time;
-    auto motorTime = time;
-    auto positionTime = time;
-
-//    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
-//    lXMotor.setBounds(-55000, 55000);
-
-    std::vector<double> motorMapping;
-    motorMapping.emplace_back(350); // left horizontal -> left movement
-    motorMapping.emplace_back(0); // no movement
-    motorMapping.emplace_back(-350); // left horizontal  -> right movement
-
-    prepareContext();
-    auto davis = libcaer::devices::davis(1);
-    struct caer_davis_info davis_info = davis.infoGet();
-    printf("%s --- ID: %d, Master: %d, DVS X: %d, DVS Y: %d, Logic: %d.\n", davis_info.deviceString,
-           davis_info.deviceID, davis_info.deviceIsMaster, davis_info.dvsSizeX, davis_info.dvsSizeY,
-           davis_info.logicVersion);
-    davis.sendDefaultConfig();
-    davis.dataStart(nullptr, nullptr, nullptr, &usbShutdownHandler, nullptr);
-    davis.configSet(CAER_HOST_CONFIG_DATAEXCHANGE, CAER_HOST_CONFIG_DATAEXCHANGE_BLOCKING, true);
-
-    auto eventFilter = Ynoise(346, 260);
-
-    double position = 0;
-    int action;
-    double reward;
-    std::string msg;
-    while (!globalShutdown.load(memory_order_relaxed)) {
-        std::unique_ptr<libcaer::events::EventPacketContainer> packetContainer = davis.dataGet();
-        if (packetContainer == nullptr) {
-            continue; // Skip if nothing there.
-        }
-
-        for (auto &packet: *packetContainer) {
-            if (packet == nullptr) {
-                continue; // Skip if nothing there.
-            }
-
-            if (packet->getEventType() == POLARITY_EVENT) {
-                auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
-//                lXMotor.jitterSpeed(static_cast<double>(dt));
-
-                time = std::chrono::high_resolution_clock::now();
-                std::shared_ptr<const libcaer::events::PolarityEventPacket> polarity =
-                        std::static_pointer_cast<libcaer::events::PolarityEventPacket>(packet);
-                auto events = eventFilter.run(*polarity);
-
-//                if (lXMotor.isActionValid(position, 0)) {
-//                    reward = 80 * (55000 - abs(position)) / 55000;
-//                } else {
-//                    reward = -100;
-//                }
-
-                m_eventRate += static_cast<double>(polarity->size());
-                network.transmitReward(reward);
-                network.saveValueMetrics(static_cast<double>(polarity->back().getTimestamp()), polarity->size());
-                for (const auto &event: events) {
-                    addEventToDisplay(event);
-                    network.transmitEvent(event);
-                }
-
-                auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
-                action = network.learningLoop(polarity->back().getTimestamp(), timeSec, msg);
-
-//                if (action != -1) {
-//                    position += motorMapping[action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
-//                    if (lXMotor.isActionValid(position, 0)) {
-//                        motorTime = time;
-//                        lXMotor.setSpeed(motorMapping[action]);
-//                    } else {
-//                        lXMotor.setSpeed(0);
-//                    }
-//                }
-//
-//                if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
-//                    positionTime = time;
-//                    std::cout << "Before: " << position << std::endl;
-//                    position = lXMotor.getPosition();
-//                    std::cout << "After: " << position << std::endl;
-//                }
-
-                /*** GUI Display ***/
-                if (std::chrono::duration<double>(time - displayTime).count() > m_displayRate / E6) {
-                    displayTime = time;
-                    display(network, 0, 0);
-                }
-
-                if (std::chrono::duration<double>(time - trackTime).count() > m_displayRate / E6) {
-                    trackTime = time;
-                    if (!polarity->empty()) {
-                        network.trackNeuron(polarity->back().getTimestamp(), m_id, m_layer);
-                    }
-                }
-            }
-        }
-    }
-    davis.dataStop();
-
-    // Close automatically done by destructor.
-    printf("Shutdown successful.\n");
-    network.save(1, "Simulation");
-    return 0;
 }

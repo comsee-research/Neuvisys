@@ -4,21 +4,16 @@ include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Utils.cpp
+        ../network/Util.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
         ../network/NetworkHandle.cpp
-        motor-control/BrushlessMotor.cpp
-        motor-control/libserie/Faulhaber.cpp
-        motor-control/libserie/comserie.cpp
         SimulationInterface.cpp
         Motor.cpp
         FrameToEvents.cpp)
 
-add_executable(neuvisys-ros rosMain.cpp ${PROJECT_SOURCES})
-target_link_libraries(neuvisys-ros ${catkin_LIBRARIES} ${OpenCV_LIBS} cnpy caer)
-
-add_subdirectory(motor-control)
+add_executable(neuvisys-simulator mainSimulator.cpp ${PROJECT_SOURCES})
+target_link_libraries(neuvisys-simulator ${catkin_LIBRARIES} ${OpenCV_LIBS} ${HDF5_LIBRARIES} blosc_filter cnpy caer z)
