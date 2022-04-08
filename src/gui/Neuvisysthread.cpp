@@ -168,6 +168,10 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
             sim.activateMotors(m_action);
             m_motorDisplay[m_action] = true;
         }
+
+        if (sim.getSimulationTime() > 300) {
+            m_stop = true;
+        }
     }
     sim.stopSimulation();
     network.save("Simulation", 1);
