@@ -56,7 +56,7 @@ set(PROJECT_SOURCES
 
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 
-target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} blosc_filter cnpy z)
+target_link_libraries(neuvisys-exe ${OpenCV_LIBS} ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} cnpy z)
 
 if (BUILD_CAMERA)
     add_subdirectory(src/camera)

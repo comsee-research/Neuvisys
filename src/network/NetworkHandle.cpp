@@ -55,9 +55,6 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
 }
 
 void NetworkHandle::loadH5File() {
-    char *version, *date;
-    register_blosc(&version, &date);
-
     if (!m_eventsPath.empty()) {
         m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
         m_eventFile.group = m_eventFile.file.openGroup("events");
@@ -192,7 +189,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.console = time;
         learningDecay(m_scoreIteration);
         ++m_scoreIteration;
-        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / DT)) +
+        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / m_timeStep)) +
               "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
     }
@@ -290,7 +287,7 @@ double NetworkHandle::valueFunction(long time) {
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / DT;
+    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / m_timeStep;
     if (value.size() > nbPreviousTD) {
         return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {

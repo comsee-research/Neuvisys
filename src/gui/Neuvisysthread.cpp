@@ -155,6 +155,9 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
+    while (sim.getSimulationTimeStep() == 0) {};
+    network.setTimeStep(sim.getSimulationTimeStep() * E6);
+
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
