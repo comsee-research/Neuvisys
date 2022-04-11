@@ -4,14 +4,32 @@ The Neuvisys project stands for Neuromorphic Vision System. It is a library offe
 The library is written in c++.
 It can be launched with command lines or via a Qt gui. There is also a possible connection with the Coppeliasim simulator, also known as V-REP, via a ROS interface.
 
+---
+
 ## Requirements
 
 ### Neuvisys
 
-- OpenCV
 - Python
+- OpenCV
+- HDF5
 
-Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
+Neuvisys uses libraries such as Eigen, a json parser, cnpy and caer all linked locally from src/dependencies
+
+### OpenCV
+
+To install Opencv:
+``sudo apt install libopencv-dev python3-opencv``
+
+### HDF5
+
+To install HDF5:
+``sudo apt-get install libhdf5-dev``
+
+The HDF5 format is used to store event files, that can then be used by the network.
+The format should be as follows:
+- a group named "events"
+- 5 dataset in that group: "t" for timestamps, "x" for pixel width axis, "y" for pixel height axis, "p" for polarities and "c" for camera (0 for left camera, 1 for right camera).
 
 ### Event Based Cameras
 
@@ -33,6 +51,8 @@ Install ROS Noetic (Other ROS distribution might work, but this is uncertain): h
 
 It is advised to use the **Desktop-Full Install**, though other lighter version may also work.
 
+---
+
 ## Neuvisys libraries
 
 By default, only the neuvisys library core is compiled.
@@ -42,6 +62,8 @@ There is four more libraries that adds functionnality:
 - Simulator: allows the connection to Coppeliasim. With it activated, you can create complex environments and simulate event based cameras outputs, and feed it to the SNN in real time.
 - Motor control: allows the connection with Faulhaber Brushless motors. With it activated, you can pilot the motors in real time.
 - GUI: allows the use of a graphical user interface.
+
+---
 
 ## Launch
 
@@ -86,4 +108,8 @@ You can generate an empty spiking network ready to use from:
 
 - Run ``cd  build``, ``./neuvisys-exe [networkDirectory]``
 
-The parameters will be set to their default values, but you can change them afterwards using the gui or directly via the json config files. 
+The parameters will be set to their default values, but you can change them afterwards using the gui or directly via the json config files.
+
+---
+
+## Quick startup guide
