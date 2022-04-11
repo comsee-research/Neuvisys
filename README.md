@@ -119,10 +119,40 @@ Here is a quick guide to use the snn in your c++ code:
 ```
 #include "src/network/NetworkHandle.hpp"
 
-std::string networkPath = "/path/to/network_config.json";
-std::string eventsPath = "/path/to/events.h5";
+std::string networkPath = "/path/to/network_folder/";
+NetworkConfig::createNetwork(networkPath);
+```
 
-NetworkHandle network(networkPath, eventsPath);
+Creates an empty network folder at the given path with a default configuration. You can modify the configurations stored in the configs folder.
+
+```
+std::string eventsPath = "/path/to/events.h5";
+NetworkHandle network(networkPath + "configs/network_config.json", eventsPath);
+```
+
+Defines the path to the event file and creates the network. This might take a while depending on the number of layers, neurons and connections.
+
+```
+std::vector<Event> events;
+while (network.loadEvents(events, 1)) {
+    network.feedEvents(events);
+}
+```
+
+Load the events chunk by chunk from the event file and feed them to the network.
+
+`network.save(eventsPath, 1);`
+
+Save the network weights and other information to the network folder.
+
+```
+#include "src/network/NetworkHandle.hpp"
+
+std::string networkPath = "/path/to/network_folder/";
+NetworkConfig::createNetwork(networkPath);
+
+std::string eventsPath = "/path/to/events.h5";
+NetworkHandle network(networkPath + "configs/network_config.json", eventsPath);
 
 std::vector<Event> events;
 while (network.loadEvents(events, 1)) {
