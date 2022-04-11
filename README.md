@@ -181,11 +181,11 @@ The network parameters are saved in json configuration files:
 | sharingType" | string | ["none", "patch"] | type of weight sharing. "none" = no weight shring, "patch" = weight shared between patches/regions of neurons |
 |"layerCellTypes" | list string | (["SimpleCell", "ComplexCell", "CriticCell", "ActorCell"], ...) | type of neuron used for each layer |
 |"layerInhibitions" | list string | (["none", "static", "topdown", "lateral"], ...) | type of inhibition |
-|"interLayerConnections" | list integer ([0 - inf], ...) | indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1) |
-|"layerPatches" | list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z coordinates of the patches |
-|"layerSizes" | list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of each neuronal layer |
-|"neuronSizes" | list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of the neurons receptive fields |
-|"neuronOverlap" | list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z overlap between neuronal receptive fields |
+|"interLayerConnections" | list integer | ([0 - inf], ...) | indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1) |
+|"layerPatches" | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z coordinates of the patches |
+|"layerSizes" | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of each neuronal layer |
+|"neuronSizes" | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of the neurons receptive fields |
+|"neuronOverlap" | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z overlap between neuronal receptive fields |
 |"nu" | real | [0 - inf] | learning rate for computing the td-error |
 |"V0" | real | [-inf - +inf] | Base value for the td error |
 |"tauR" | real | [-inf - +inf] | discount factor (ms) |
