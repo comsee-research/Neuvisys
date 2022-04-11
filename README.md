@@ -8,10 +8,26 @@ It can be launched with command lines or via a Qt gui. There is also a possible 
 
 ### Neuvisys
 
-- OpenCV
 - Python
+- OpenCV
+- HDF5
 
-Neuvisys uses libraries such as Eigen, a json parser and cnpy, all linked locally from src/dependencies
+Neuvisys uses libraries such as Eigen, a json parser, cnpy and caer all linked locally from src/dependencies
+
+### OpenCV
+
+To install Opencv:
+``sudo apt install libopencv-dev python3-opencv``
+
+### HDF5
+
+To install HDF5:
+``sudo apt-get install libhdf5-dev``
+
+The HDF5 format is used to store event files, that can then be used by the network.
+The format should be as follows:
+    - a group named "events"
+    - 5 dataset in that group for the timestamps, x, y polarities and camera (0 for left camera, 1 for right camera).
 
 ### Event Based Cameras
 
