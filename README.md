@@ -112,4 +112,22 @@ The parameters will be set to their default values, but you can change them afte
 
 ---
 
-## Quick startup guide
+## Quick dev guide
+
+Here is a quick guide to use the snn in your c++ code:
+
+```
+#include "src/network/NetworkHandle.hpp"
+
+std::string networkPath = "/path/to/network_config.json";
+std::string eventsPath = "/path/to/events.h5";
+
+NetworkHandle network(networkPath, eventsPath);
+
+std::vector<Event> events;
+while (network.loadEvents(events, 1)) {
+    network.feedEvents(events);
+}
+
+network.save(eventsPath, 1);
+```
