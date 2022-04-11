@@ -20,7 +20,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             ifs >> conf;
             nbCameras = conf["nbCameras"];
             layerCellTypes = static_cast<std::vector<std::string>>(conf["layerCellTypes"]);
-            layerInhibitions = static_cast<std::vector<bool>>(conf["layerInhibitions"]);
+            layerInhibitions = static_cast<std::vector<std::vector<std::string>>>(conf["layerInhibitions"]);
             interLayerConnections = static_cast<std::vector<size_t>>(conf["interLayerConnections"]);
             layerPatches = static_cast<std::vector<std::vector<std::vector<size_t>>>>(conf["layerPatches"]);
             layerSizes = static_cast<std::vector<std::vector<size_t>>>(conf["layerSizes"]);
@@ -231,7 +231,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"sharingType", "patch"},
                     {"saveData", true},
                     {"layerCellTypes", {"SimpleCell", "ComplexCell", "CriticCell", "ActorCell"}},
-                    {"layerInhibitions", {true, true, false, false}},
+                    {"layerInhibitions", {{"static"}, {"static"}, {}, {}}},
                     {"interLayerConnections", {0, 0, 1, 1}},
                     {"layerPatches",  {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
                     {"layerSizes",        {{28, 4, 64}, {13, 1, 16}, {100, 1, 1}, {2, 1, 1}}},

@@ -9,7 +9,6 @@
 
 #define SCORE_INTERVAL 2000000 // µs
 #define UPDATE_INTERVAL 10000 // µs
-#define DT 1000 // µs
 #define E3 1000 // µs
 #define E6 1000000 // µs
 
@@ -34,7 +33,7 @@ class NetworkConfig {
     std::string sharingType{};
 
     std::vector<std::string> layerCellTypes;
-    std::vector<bool> layerInhibitions;
+    std::vector<std::vector<std::string>> layerInhibitions;
     std::vector<size_t> interLayerConnections;
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
@@ -67,7 +66,7 @@ public:
     [[nodiscard]] long getMinActionRate() const { return minActionRate; }
     [[nodiscard]] double getDecayRate() const { return decayRate; }
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
-    std::vector<bool> &getLayerInhibitions() { return layerInhibitions; }
+    std::vector<std::vector<std::string>> &getLayerInhibitions() { return layerInhibitions; }
     std::vector<size_t> &getInterLayerConnections() { return interLayerConnections; }
     std::vector<std::vector<std::vector<size_t>>> getLayerPatches() { return layerPatches; }
     std::vector<std::vector<size_t>> getLayerSizes() { return layerSizes; }

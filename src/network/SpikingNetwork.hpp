@@ -42,7 +42,8 @@ public:
 
     explicit SpikingNetwork(const std::string &networkPath);
 
-    void addLayer(const std::string &neuronType, const std::string &sharingType, bool inhibition,
+    void addLayer(const std::string &neuronType, const std::string &sharingType,
+                  const std::vector<std::string> &inhibition,
                   const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes,
                   const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
@@ -80,8 +81,9 @@ private:
 
     void addNeuronEvent(const Neuron &neuron);
 
-    void connectLayer(bool inhibition, size_t layerToConnect, const std::vector<std::vector<size_t>> &layerPatches,
-                      const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
+    void connectLayer(size_t layerToConnect, const std::vector<std::string> &inhibition,
+                      const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes,
+                      const std::vector<size_t> &neuronSizes);
 
     static void topDownDynamicInhibition(Neuron &neuron);
 
@@ -91,7 +93,7 @@ private:
 
     void neuromodulation(Neuron &neuron);
 
-    void topDownConnection(Neuron &neuron, size_t currLayer,
+    void topDownConnection(Neuron &neuron, size_t currLayer, const std::vector<std::string> &inhibition,
                            size_t layerToConnect, const std::vector<size_t> &neuronSizes);
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);

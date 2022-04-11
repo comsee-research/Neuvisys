@@ -100,23 +100,21 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 }
 
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
-    if (neuron.getLayer() == 1) {
-        for (auto &backwardNeuron: neuron.getInConnections()) {
-            auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-            backwardNeuron.get().newTopDownInhibitoryEvent(event);
-        }
+    for (auto &backwardNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
+        auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+        backwardNeuron.get().newTopDownInhibitoryEvent(event);
     }
 }
 
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
-    for (auto &lateralNeuron: neuron.getlateralDynamicInhibitionConnections()) {
+    for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         lateralNeuron.get().newLateralInhibitoryEvent(event);
     }
 }
 
 void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
-    for (auto &lateralNeuron: neuron.getlateralStaticInhibitionConnections()) {
+    for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
         lateralNeuron.get().inhibition();
     }
 }
@@ -144,7 +142,7 @@ void SpikingNetwork::updateNeurons(const long time) {
     for (auto &simpleNeuron: m_simpleNeurons) {
         while (simpleNeuron.checkRemainingEvents(time)) {
             if (simpleNeuron.update()) {
-                for (auto &simpleNeuronToInhibit: simpleNeuron.getlateralStaticInhibitionConnections()) {
+                for (auto &simpleNeuronToInhibit: simpleNeuron.getLateralStaticInhibitionConnections()) {
                     simpleNeuronToInhibit.get().inhibition();
                 }
                 addNeuronEvent(simpleNeuron);
@@ -196,7 +194,8 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
     }
 }
 
-void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &sharingType, const bool inhibition,
+void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &sharingType,
+                              const std::vector<std::string> &inhibition,
                               const std::vector<std::vector<size_t>> &layerPatches,
                               const std::vector<size_t> &layerSizes,
                               const std::vector<size_t> &neuronSizes,
@@ -276,23 +275,27 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
         std::cout << "No matching cell type" << std::endl;
     }
     m_structure.push_back(m_neurons[layer].size());
-    connectLayer(inhibition, layerToConnect, layerPatches, layerSizes, neuronSizes);
+    connectLayer(layerToConnect, inhibition, layerPatches, layerSizes, neuronSizes);
 }
 
-void SpikingNetwork::connectLayer(const bool inhibition, const size_t layerToConnect,
+void SpikingNetwork::connectLayer(const size_t layerToConnect, const std::vector<std::string> &inhibition,
                                   const std::vector<std::vector<size_t>> &layerPatches,
                                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     auto currLayer = m_neurons.size() - 1;
     for (auto &neuron: m_neurons[currLayer]) {
-        topDownConnection(neuron.get(), currLayer, layerToConnect, neuronSizes);
-        if (inhibition) {
+        topDownConnection(neuron.get(), currLayer, inhibition, layerToConnect, neuronSizes);
+        if (std::find(inhibition.begin(), inhibition.end(), "static") != inhibition.end()) {
             lateralStaticInhibitionConnection(neuron.get(), currLayer, layerSizes);
+        }
+        if (std::find(inhibition.begin(), inhibition.end(), "lateral") != inhibition.end()) {
             lateralDynamicInhibitionConnection(neuron.get(), currLayer, layerPatches, layerSizes);
         }
     }
 }
 
-void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer, const size_t layerToConnect,
+void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer,
+                                       const std::vector<std::string> &inhibition,
+                                       const size_t layerToConnect,
                                        const std::vector<size_t> &neuronSizes) {
     for (size_t i = neuron.getOffset().x(); i < neuron.getOffset().x() + neuronSizes[0]; ++i) {
         for (size_t j = neuron.getOffset().y(); j < neuron.getOffset().y() + neuronSizes[1]; ++j) {
@@ -302,6 +305,9 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer, c
                 } else {
                     neuron.addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
                     m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron);
+                    if ((std::find(inhibition.begin(), inhibition.end(), "topdown") != inhibition.end())) {
+                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addTopDownDynamicInhibitionConnection(neuron);
+                    }
                 }
             }
         }
