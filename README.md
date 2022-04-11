@@ -4,7 +4,7 @@ The Neuvisys project stands for Neuromorphic Vision System. It is a library offe
 The library is written in c++.
 It can be launched with command lines or via a Qt gui. There is also a possible connection with the Coppeliasim simulator, also known as V-REP, via a ROS interface.
 
-##################################################
+---
 
 ## Requirements
 
@@ -51,7 +51,7 @@ Install ROS Noetic (Other ROS distribution might work, but this is uncertain): h
 
 It is advised to use the **Desktop-Full Install**, though other lighter version may also work.
 
-##################################################
+---
 
 ## Neuvisys libraries
 
@@ -63,7 +63,7 @@ There is four more libraries that adds functionnality:
 - Motor control: allows the connection with Faulhaber Brushless motors. With it activated, you can pilot the motors in real time.
 - GUI: allows the use of a graphical user interface.
 
-##################################################
+---
 
 ## Launch
 
@@ -110,6 +110,6 @@ You can generate an empty spiking network ready to use from:
 
 The parameters will be set to their default values, but you can change them afterwards using the gui or directly via the json config files.
 
-##################################################
+---
 
 ## Quick startup guide
