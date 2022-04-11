@@ -5,7 +5,7 @@
 #include "SimulationInterface.hpp"
 
 int launchLearningSimulation(std::string &networkPath, double simTime) {
-    NetworkHandle network(networkPath, 0, "");
+    NetworkHandle network(networkPath);
 
     SimulationInterface sim;
     sim.enableSyncMode(true);

@@ -24,8 +24,7 @@ namespace Conf {
 
 class NetworkConfig {
     /***** Display parameters *****/
-    std::string NETWORK_CONFIG;
-    std::string NetworkPath;
+    std::string networkPath;
 
     /***** Spiking Neural Network layout parameters *****/
     size_t nbCameras{};
@@ -34,7 +33,7 @@ class NetworkConfig {
 
     std::vector<std::string> layerCellTypes;
     std::vector<std::vector<std::string>> layerInhibitions;
-    std::vector<size_t> interLayerConnections;
+    std::vector<int> interLayerConnections;
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
@@ -50,37 +49,60 @@ class NetworkConfig {
 
 public:
     NetworkConfig();
-    explicit NetworkConfig(std::string networkPath);
-    void loadNetworkLayout(const std::string& fileName);
 
-    [[nodiscard]] std::string getNetworkPath() const { return NetworkPath; }
-    [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
-    [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
-    std::string &getNetworkPath() { return NetworkPath; }
+    explicit NetworkConfig(const std::string& networkPath);
+
+    void loadNetworkLayout(const std::string &fileName);
+
+    std::string &getNetworkPath() { return networkPath; }
+
     std::string &getSharingType() { return sharingType; }
+
+    [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
+
+    [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
+
     [[nodiscard]] double getNu() const { return nu; }
+
     [[nodiscard]] double getV0() const { return V0; }
+
     [[nodiscard]] double getTauR() const { return tauR; }
+
     [[nodiscard]] double getExplorationFactor() const { return explorationFactor; }
+
     [[nodiscard]] long getActionRate() const { return actionRate; }
+
     [[nodiscard]] long getMinActionRate() const { return minActionRate; }
+
     [[nodiscard]] double getDecayRate() const { return decayRate; }
+
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
+
     std::vector<std::vector<std::string>> &getLayerInhibitions() { return layerInhibitions; }
-    std::vector<size_t> &getInterLayerConnections() { return interLayerConnections; }
+
+    std::vector<int> &getInterLayerConnections() { return interLayerConnections; }
+
     std::vector<std::vector<std::vector<size_t>>> getLayerPatches() { return layerPatches; }
+
     std::vector<std::vector<size_t>> getLayerSizes() { return layerSizes; }
+
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
+
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
+
     void setExplorationFactor(double factor) { explorationFactor = factor; }
+
     void setActionRate(long rate) { actionRate = rate; }
-    static void createNetwork(const std::string& directory);
+
+    static void createNetwork(const std::string &directory);
 };
 
 class NeuronConfig {
 public:
     NeuronConfig();
-    NeuronConfig(const std::string& configFile, size_t type);
+
+    NeuronConfig(const std::string &configFile, size_t type);
+
 /***** Neurons internal parameters *****/
     double TAU_M{}; // μs
     double TAU_LTP{}; // μs
@@ -116,11 +138,15 @@ public:
 
     std::string STDP_LEARNING{};
     std::string TRACKING{};
+
 private:
-    void loadSimpleNeuronsParameters(const std::string& fileName);
-    void loadComplexNeuronsParameters(const std::string& fileName);
-    void loadCriticNeuronsParameters(const std::string& fileName);
-    void loadActorNeuronsParameters(const std::string& fileName);
+    void loadSimpleNeuronsParameters(const std::string &fileName);
+
+    void loadComplexNeuronsParameters(const std::string &fileName);
+
+    void loadCriticNeuronsParameters(const std::string &fileName);
+
+    void loadActorNeuronsParameters(const std::string &fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP

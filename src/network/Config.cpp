@@ -6,9 +6,8 @@ using json = nlohmann::json;
 
 NetworkConfig::NetworkConfig() = default;
 
-NetworkConfig::NetworkConfig(std::string networkPath) {
-    NETWORK_CONFIG = std::move(networkPath);
-    loadNetworkLayout(NETWORK_CONFIG);
+NetworkConfig::NetworkConfig(const std::string &networkPath) {
+    loadNetworkLayout(networkPath);
 }
 
 void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
@@ -21,7 +20,7 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             nbCameras = conf["nbCameras"];
             layerCellTypes = static_cast<std::vector<std::string>>(conf["layerCellTypes"]);
             layerInhibitions = static_cast<std::vector<std::vector<std::string>>>(conf["layerInhibitions"]);
-            interLayerConnections = static_cast<std::vector<size_t>>(conf["interLayerConnections"]);
+            interLayerConnections = static_cast<std::vector<int>>(conf["interLayerConnections"]);
             layerPatches = static_cast<std::vector<std::vector<std::vector<size_t>>>>(conf["layerPatches"]);
             layerSizes = static_cast<std::vector<std::vector<size_t>>>(conf["layerSizes"]);
             neuronSizes = static_cast<std::vector<std::vector<size_t>>>(conf["neuronSizes"]);
@@ -36,8 +35,8 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             actionRate = static_cast<long>(E3) * static_cast<long>(conf["actionRate"]);
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
             std::string toErase = "configs/network_config.json";
-            NetworkPath = fileName;
-            NetworkPath.erase(fileName.find(toErase), toErase.length());
+            networkPath = fileName;
+            networkPath.erase(fileName.find(toErase), toErase.length());
         } catch (const std::exception &e) {
             std::cerr << "In network config file:" << e.what() << std::endl;
             throw;
@@ -229,17 +228,16 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"nbCameras", 1},
                     {"neuron1Synapses", 1},
                     {"sharingType", "patch"},
-                    {"saveData", true},
-                    {"layerCellTypes", {"SimpleCell", "ComplexCell", "CriticCell", "ActorCell"}},
-                    {"layerInhibitions", {{"static"}, {"static"}, {}, {}}},
-                    {"interLayerConnections", {0, 0, 1, 1}},
-                    {"layerPatches",  {{{33}, {110}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}, {{0}, {0}, {0}}}},
-                    {"layerSizes",        {{28, 4, 64}, {13, 1, 16}, {100, 1, 1}, {2, 1, 1}}},
-                    {"neuronSizes",   {{10, 10, 1}, {4, 4, 64}, {13, 1, 16}, {13, 1, 16}}},
-                    {"neuronOverlap", {{0, 0, 0}, {2, 2, 0}, {0, 0, 0}, {0, 0, 0}}},
-                    {"nu",          0.5},
-                    {"V0",         0},
-                    {"tauR",    1},
+                    {"layerCellTypes", {"SimpleCell", "ComplexCell"}},
+                    {"layerInhibitions", {{"static"}, {"static"}}},
+                    {"interLayerConnections", {-1, 0}},
+                    {"layerPatches", {{{0}, {0}, {0}}, {{0}, {0}, {0}}}},
+                    {"layerSizes",    {{28, 4, 64}, {13, 1, 16}}},
+                    {"neuronSizes",       {{10, 10, 1}, {4, 4, 64}}},
+                    {"neuronOverlap", {{0, 0, 0}, {0, 0, 0}}},
+                    {"nu",            0.5},
+                    {"V0",            0},
+                    {"tauR",       1},
                     {"explorationFactor", 70},
                     {"actionRate", 500},
                     {"minActionRate", 100},
@@ -249,22 +247,22 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_SRA",  100},
-                    {"TAU_RP",         30},
-                    {"TAU_M",            18},
-                    {"TAU_LTP",               7},
+                    {"TAU_SRA",        100},
+                    {"TAU_RP",           30},
+                    {"TAU_M",                 18},
+                    {"TAU_LTP",      7},
                     {"TAU_LTD",       14},
                     {"TARGET_SPIKE_RATE", 0.75},
                     {"SYNAPSE_DELAY", 0},
                     {"STDP_LEARNING", "excitatory"},
-                    {"NORM_FACTOR", 4},
+                    {"NORM_FACTOR",   4},
                     {"DECAY_RATE", 0},
-                    {"MIN_THRESH", 4},
-                    {"ETA_LTP", 0.0077},
-                    {"ETA_LTD",           -0.0021},
-                    {"ETA_ILTP",   7.7},
-                    {"ETA_ILTD",      -2.1},
-                    {"ETA_SRA",   0.6},
+                    {"MIN_THRESH",        4},
+                    {"ETA_LTP",    0.0077},
+                    {"ETA_LTD",       -0.0021},
+                    {"ETA_ILTP",  7.7},
+                    {"ETA_ILTD", -2.1},
+                    {"ETA_SRA", 0.6},
                     {"ETA_TA", 0},
                     {"ETA_RP", 1},
                     {"ETA_INH", 20},
@@ -273,53 +271,53 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   3},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20},
-                    {"TAU_LTP",        20},
-                    {"TAU_LTD",          20},
-                    {"TAU_RP",                30},
+                    {"TAU_M",          20},
+                    {"TAU_LTP",          20},
+                    {"TAU_LTD",               20},
+                    {"TAU_RP",       30},
                     {"STDP_LEARNING", "excitatory"},
                     {"NORM_FACTOR",       10},
-                    {"DECAY_RATE", 0},
+                    {"DECAY_RATE",    0},
                     {"ETA_LTP",       0.2},
                     {"ETA_LTD",       0.2},
-                    {"ETA_INH",     15},
-                    {"ETA_RP",     1},
+                    {"ETA_INH",    15},
+                    {"ETA_RP",            1},
             },
             {
                     {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20},
-                    {"ETA_INH",        0},
-                    {"TAU_LTP",          7},
-                    {"TAU_LTD",               14},
+                    {"TAU_M",          20},
+                    {"ETA_INH",          0},
+                    {"TAU_LTP",               7},
+                    {"TAU_LTD",      14},
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
-                    {"DECAY_RATE", 0},
+                    {"DECAY_RATE",    0},
                     {"STDP_LEARNING", "all"},
-                    {"NU_K",        200},
-                    {"MIN_NU_K",   100},
-                    {"TAU_K",   50},
-                    {"MIN_TAU_K",         25},
-                    {"TAU_E",      500},
-                    {"ETA",           0.2}
+                    {"NU_K",       200},
+                    {"MIN_NU_K",          100},
+                    {"TAU_K",      50},
+                    {"MIN_TAU_K",     25},
+                    {"TAU_E",     500},
+                    {"ETA",      0.2}
             },
             {
                     {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",    20},
-                    {"ETA_INH",        0},
-                    {"TAU_LTP",          7},
-                    {"TAU_LTD",               14},
+                    {"TAU_M",          20},
+                    {"ETA_INH",          0},
+                    {"TAU_LTP",               7},
+                    {"TAU_LTD",      14},
                     {"ETA_LTP",       0.077},
                     {"ETA_LTD",           -0.021},
                     {"NORM_FACTOR",   10},
-                    {"DECAY_RATE", 0},
+                    {"DECAY_RATE",    0},
                     {"STDP_LEARNING", "all"},
-                    {"TAU_E",       250},
-                    {"ETA",        0.2}
+                    {"TAU_E",      250},
+                    {"ETA",               0.2}
             }
     };
     size_t count = 0;

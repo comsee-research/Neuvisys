@@ -3,14 +3,13 @@
 //
 
 #include "NetworkHandle.hpp"
-
 #include <utility>
 
 NetworkHandle::NetworkHandle() : m_saveTime(0) {
 
 }
 
-NetworkHandle::NetworkHandle(std::string eventsPath) : m_saveTime(0), m_eventsPath(std::move(eventsPath)) {
+NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(time), m_eventsPath(std::move(eventsPath)) {
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         loadH5File();
@@ -21,9 +20,8 @@ NetworkHandle::NetworkHandle(std::string eventsPath) : m_saveTime(0), m_eventsPa
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
  */
-NetworkHandle::NetworkHandle(const std::string &networkPath,
-                             double time) : m_spinet(networkPath),
-                                            m_networkConf(NetworkConfig(networkPath)),
+NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
+                                            m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
                                             m_simpleNeuronConf(
                                                     m_networkConf.getNetworkPath() +
                                                     "configs/simple_cell_config.json",
@@ -40,12 +38,12 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
                                                     m_networkConf.getNetworkPath() +
                                                     "configs/actor_cell_config.json",
                                                     3),
-                                            m_saveTime(time) {
+                                            m_saveTime(0) {
     load();
 }
 
 NetworkHandle::NetworkHandle(const std::string &networkPath,
-                             double time, const std::string &eventsPath) : NetworkHandle(networkPath, time) {
+                             const std::string &eventsPath) : NetworkHandle(networkPath) {
     m_eventsPath = eventsPath;
 
     std::string hdf5 = ".h5";

@@ -62,11 +62,11 @@ class NetworkHandle {
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string eventsPath);
+    explicit NetworkHandle(std::string eventsPath, double time);
 
-    NetworkHandle(const std::string &networkPath, double time);
+    explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, double time, const std::string &eventsPath);
+    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 

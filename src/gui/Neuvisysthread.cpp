@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0, m_events.toStdString());
+        auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -90,7 +90,7 @@ void NeuvisysThread::readEvents() {
 
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
-    auto network = NetworkHandle(m_events.toStdString());
+    auto network = NetworkHandle(m_events.toStdString(), 0);
     auto events = std::vector<Event>();
     while(network.loadEvents(events, 1)) {
         for (const auto &event: events) {
