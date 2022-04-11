@@ -26,8 +26,8 @@ To install HDF5:
 
 The HDF5 format is used to store event files, that can then be used by the network.
 The format should be as follows:
-    - a group named "events"
-    - 5 dataset in that group for the timestamps, x, y polarities and camera (0 for left camera, 1 for right camera).
+- a group named "events"
+- 5 dataset in that group for the timestamps, x, y polarities and camera (0 for left camera, 1 for right camera).
 
 ### Event Based Cameras
 
