@@ -141,7 +141,9 @@ while (network.loadEvents(events, 1)) {
 
 Load the events chunk by chunk from the event file and feed them to the network.
 
-`network.save(eventsPath, 1);`
+```
+network.save(eventsPath, 1);
+```
 
 Save the network weights and other information to the network folder.
 
