@@ -127,7 +127,7 @@ Creates an empty network folder at the given path with a default configuration. 
 
 ```
 std::string eventsPath = "/path/to/events.h5";
-NetworkHandle network(networkPath + "configs/network_config.json", eventsPath);
+NetworkHandle network(networkPath, eventsPath);
 ```
 
 Defines the path to the event file and creates the network. This might take a while depending on the number of layers, neurons and connections.
