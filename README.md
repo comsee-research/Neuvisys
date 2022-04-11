@@ -110,8 +110,6 @@ You can generate an empty spiking network ready to use from:
 
 The parameters will be set to their default values, but you can change them afterwards using the gui or directly via the json config files.
 
----
-
 ## Quick dev guide
 
 Here is a quick guide to use the snn in your c++ code:
@@ -123,7 +121,7 @@ std::string networkPath = "/path/to/network_folder/";
 NetworkConfig::createNetwork(networkPath);
 ```
 
-Creates an empty network folder at the given path with a default configuration. You can modify the configurations stored in the configs folder.
+Creates an empty network folder at the given path with a default configuration. You can modify the configurations stored in the configs folder (refer to the Configuration part).
 
 ```
 std::string eventsPath = "/path/to/events.h5";
@@ -163,3 +161,114 @@ while (network.loadEvents(events, 1)) {
 
 network.save(eventsPath, 1);
 ```
+
+## Configuration guide
+
+The network parameters are saved in json configuration files:
+
+- network_config.json : describes the network architecture, number of layers, neurons, types of inhibition...
+- simple_cell_config.json : simple neuron parameters
+- complex_cell_config.json : complex neuron parameters
+- critic_cell_config.json : critic neuron parameters
+- actor_cell_config.json : actor neuron parameters
+
+### List of configuration parameters with explanation
+
+[] : defines the range/type of the parameter
+() : indicates that this a list, with one parameter for each layer.
+
+#### Network config
+	"nbCameras" -> integer [1, 2] : for mono or stereo applications.
+	"neuron1Synapses" -> integer [1 - inf] : number of synapses between the pixel array and the first layer
+	"sharingType" -> string ["none", "patch"] : type of weight sharing. "none" = no weight shring, "patch" = weight shared between patches/regions of neurons.
+	"layerCellTypes" -> list string (["SimpleCell", "ComplexCell", "CriticCell", "ActorCell"], ...) : type of neuron used for each layer.
+	"layerInhibitions" -> list string (["none", "static", "topdown", "lateral"], ...) : type of inhibition
+	"interLayerConnections" -> list integer ([0 - inf], ...) : indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1). 
+	"layerPatches" -> list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) : x, y and z coordinates of the patches
+	"layerSizes" -> list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) : width, height and depth of each neuronal layer.
+	"neuronSizes" -> list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) : width, height and depth of the neurons receptive fields.
+	"neuronOverlap" -> list of integer (([0 - inf], [0 - inf], [0 - inf]), ...) : x, y and z overlap between neuronal receptive fields.
+	**Reinforcement learning parameters**
+	"nu" -> real [0 - inf] : learning rate for computing the td-error
+	"V0" -> real [-inf - +inf] : 
+	"tauR" -> real [-inf - +inf] : 
+	"explorationFactor" -> real [-inf - +inf] : percent of random action we take at the beginning of the rl task.
+	"actionRate" -> integer [0 - inf] : time between 2 actions (ms).
+	"minActionRate" -> integer [0 - inf] : minimum time between 2 actions (ms).
+	"decayRate" -> real [0 - inf] : rate of decay of the actionRate and explorationFactor (bigger means faster decay).
+
+#### Simple cell config
+	"VTHRESH",   30},
+	"VRESET",          -20},
+	"TRACKING",    "partial"},
+	"TAU_SRA",  100},
+	"TAU_RP",         30},
+	"TAU_M",            18},
+	"TAU_LTP",               7},
+	"TAU_LTD",       14},
+	"TARGET_SPIKE_RATE", 0.75},
+	"SYNAPSE_DELAY", 0},
+	"STDP_LEARNING", "excitatory"},
+	"NORM_FACTOR", 4},
+	"DECAY_RATE", 0},
+	"MIN_THRESH", 4},
+	"ETA_LTP", 0.0077},
+	"ETA_LTD",           -0.0021},
+	"ETA_ILTP",   7.7},
+	"ETA_ILTD",      -2.1},
+	"ETA_SRA",   0.6},
+	"ETA_TA", 0},
+	"ETA_RP", 1},
+	"ETA_INH", 20},
+
+#### Complex cell config
+	"VTHRESH",   3},
+	"VRESET",          -20},
+	"TRACKING",    "partial"},
+	"TAU_M",    20},
+	"TAU_LTP",        20},
+	"TAU_LTD",          20},
+	"TAU_RP",                30},
+	"STDP_LEARNING", "excitatory"},
+	"NORM_FACTOR",       10},
+	"DECAY_RATE", 0},
+	"ETA_LTP",       0.2},
+	"ETA_LTD",       0.2},
+	"ETA_INH",     15},
+	"ETA_RP",     1},
+
+#### Critic cell config
+	"VTHRESH",   2},
+	"VRESET",          -20},
+	"TRACKING",    "partial"},
+	"TAU_M",    20},
+	"ETA_INH",        0},
+	"TAU_LTP",          7},
+	"TAU_LTD",               14},
+	"ETA_LTP",       0.077},
+	"ETA_LTD",           -0.021},
+	"NORM_FACTOR",   10},
+	"DECAY_RATE", 0},
+	"STDP_LEARNING", "all"},
+	"NU_K",        200},
+	"MIN_NU_K",   100},
+	"TAU_K",   50},
+	"MIN_TAU_K",         25},
+	"TAU_E",      500},
+	"ETA",           0.2}
+	
+#### Actor cell config
+	"VTHRESH",   2},
+	"VRESET",          -20},
+	"TRACKING",    "partial"},
+	"TAU_M",    20},
+	"ETA_INH",        0},
+	"TAU_LTP",          7},
+	"TAU_LTD",               14},
+	"ETA_LTP",       0.077},
+	"ETA_LTD",           -0.021},
+	"NORM_FACTOR",   10},
+	"DECAY_RATE", 0},
+	"STDP_LEARNING", "all"},
+	"TAU_E",       250},
+	"ETA",        0.2}
