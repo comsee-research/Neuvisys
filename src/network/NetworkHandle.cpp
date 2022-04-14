@@ -22,22 +22,10 @@ NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(t
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
                                             m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
-                                            m_simpleNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/simple_cell_config.json",
-                                                    0),
-                                            m_complexNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/complex_cell_config.json",
-                                                    1),
-                                            m_criticNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/critic_cell_config.json",
-                                                    2),
-                                            m_actorNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/actor_cell_config.json",
-                                                    3),
+                                            m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json",0),
+                                            m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json",1),
+                                            m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json",2),
+                                            m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
                                             m_saveTime(0) {
     load();
 }
@@ -178,7 +166,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
 //        m_reward = 50 * m_spinet.getAverageActivity();
-//        m_spinet.transmitNeuromodulator(m_reward);
+//        m_spinet.transmitReward(m_reward);
     }
 
     saveValueMetrics(lastTimestamp, nbEvents);
@@ -229,9 +217,9 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 
 void NetworkHandle::updateActor(long time, size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
-    neuron.get().spike(time);
+//    neuron.get().spike(time);
 
-    neuron.get().setNeuromodulator(m_saveData["tdError"].back());
+    neuron.get().setNeuromodulator(m_saveData["tdError"].back()); // TODO: td error at instant t -> should we rather use an average from previous action up to now ?
     neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
     m_spinet.normalizeActions();
 }
@@ -241,8 +229,7 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 
     size_t layer = m_spinet.getNetworkStructure().size() - 1;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i,
-                                                                                             layer).get().getActivityCount();
+        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getActivityCount();
     }
     return motorActivations;
 }
@@ -286,7 +273,7 @@ double NetworkHandle::valueFunction(long time) {
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / m_timeStep;
-    if (value.size() > nbPreviousTD) {
+    if (value.size() > nbPreviousTD + 1) {
         return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
@@ -295,7 +282,7 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
 
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
-    m_spinet.transmitNeuromodulator(reward);
+    m_spinet.transmitReward(reward);
 }
 
 void NetworkHandle::transmitEvent(const Event &event) {

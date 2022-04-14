@@ -34,7 +34,7 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
-    double m_neuromodulator{};
+    double m_reward{};
     double m_averageActivity{};
 
 public:
@@ -58,7 +58,7 @@ public:
 
     double computeNeuromodulator(long time);
 
-    void transmitNeuromodulator(double neuromodulator);
+    void transmitReward(double reward);
 
     void normalizeActions();
 

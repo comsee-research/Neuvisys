@@ -15,7 +15,7 @@ int main(int argc, char *argv[]) {
 
         NetworkHandle network(networkPath, eventsPath);
         std::vector<Event> events;
-        std::cout << "Feeding network: " << events.size() << " events..." << std::endl;
+        std::cout << "Feeding network... " << std::endl;
 
         while (network.loadEvents(events, 1)) {
             network.feedEvents(events);

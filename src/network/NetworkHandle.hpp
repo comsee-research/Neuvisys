@@ -102,7 +102,7 @@ public:
 
     double getScore(long nbPreviousReward);
 
-    void setTimeStep(double timeStep) { m_timeStep = timeStep; std::cout << m_timeStep << std::endl; }
+    void setTimeStep(double timeStep) { m_timeStep = timeStep; }
 
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 
