@@ -3,21 +3,23 @@
 SpikingNetwork::SpikingNetwork() = default;
 
 /* Creates a spiking neural network.
- * It loads the configuration files from the specified networkPath.
+ * It loads the configuration files from the specified m_networkPath.
  * Constructs the neuron connections and initializes them with random weights.
  */
-SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(NetworkConfig(networkPath)),
-                                                                 m_simpleNeuronConf(m_networkConf.getNetworkPath() +
+SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(
+        NetworkConfig(networkPath + "configs/network_config.json")),
+                                                                 m_simpleNeuronConf(networkPath +
                                                                                     "configs/simple_cell_config.json",
                                                                                     0),
-                                                                 m_complexNeuronConf(m_networkConf.getNetworkPath() +
+                                                                 m_complexNeuronConf(networkPath +
                                                                                      "configs/complex_cell_config.json",
                                                                                      1),
-                                                                 m_criticNeuronConf(m_networkConf.getNetworkPath() +
+                                                                 m_criticNeuronConf(networkPath +
                                                                                     "configs/critic_cell_config.json",
                                                                                     2),
-                                                                 m_actorNeuronConf(m_networkConf.getNetworkPath() +
-                                                                                   "configs/actor_cell_config.json", 3),
+                                                                 m_actorNeuronConf(
+                                                                         networkPath + "configs/actor_cell_config.json",
+                                                                         3),
                                                                  m_pixelMapping(std::vector<std::vector<uint64_t>>(
                                                                          Conf::WIDTH * Conf::HEIGHT,
                                                                          std::vector<uint64_t>(0))) {
@@ -86,7 +88,8 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
         auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
                                   neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
                                   neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+        if (forwardNeuron.get().newEvent(
+                NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
             if (forwardNeuron.get().getLayer() != 3) { // weight change
                 forwardNeuron.get().weightUpdate();
             }
@@ -306,7 +309,9 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer,
                     neuron.addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
                     m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron);
                     if ((std::find(inhibition.begin(), inhibition.end(), "topdown") != inhibition.end())) {
-                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addTopDownDynamicInhibitionConnection(neuron);
+                        m_neurons[layerToConnect][m_layout[layerToConnect][{i, j,
+                                                                            k}]].get().addTopDownDynamicInhibitionConnection(
+                                neuron);
                     }
                 }
             }

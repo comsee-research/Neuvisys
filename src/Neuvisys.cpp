@@ -10,7 +10,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
-        std::string networkPath = "/home/thomas/Desktop/Experiment/network_0/";
+        std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/";
         std::string eventsPath = "/home/thomas/Videos/DSEC/interlaken_00_c.h5";
 
         NetworkHandle network(networkPath, eventsPath);

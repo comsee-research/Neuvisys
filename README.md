@@ -88,9 +88,9 @@ Compiled target are found in the "build/src" folder.
 
 An example of use with the ``neuvisys-exe`` target:
 
-- ``./neuvisys-exe [networkPath] [eventPath] [nbPass]``
+- ``./neuvisys-exe [m_networkPath] [eventPath] [nbPass]``
 
-``networkPath`` correspond to the path of the network structure. This must link to the network config file, such as: ``./network/configs/network_config.json``.
+``m_networkPath`` correspond to the path of the network structure. This must link to the network config file, such as: ``./network/configs/network_config.json``.
 
 ``eventPath`` is the relative path to an event file in the .npz format.
 
@@ -111,15 +111,15 @@ Here is a quick guide to use the snn in your c++ code:
 ```
 #include "src/network/NetworkHandle.hpp"
 
-std::string networkPath = "/path/to/network_folder/";
-NetworkConfig::createNetwork(networkPath);
+std::string m_networkPath = "/path/to/network_folder/";
+NetworkConfig::createNetwork(m_networkPath);
 ```
 
 Creates an empty network folder at the given path with a default configuration. You can modify the configurations stored in the configs folder (refer to the Configuration part).
 
 ```
 std::string eventsPath = "/path/to/events.h5";
-NetworkHandle network(networkPath, eventsPath);
+NetworkHandle network(m_networkPath, eventsPath);
 ```
 
 Defines the path to the event file and creates the network. This might take a while depending on the number of layers, neurons and connections.
@@ -142,11 +142,11 @@ Save the network weights and other information to the network folder.
 ```
 #include "src/network/NetworkHandle.hpp"
 
-std::string networkPath = "/path/to/network_folder/";
-NetworkConfig::createNetwork(networkPath);
+std::string m_networkPath = "/path/to/network_folder/";
+NetworkConfig::createNetwork(m_networkPath);
 
 std::string eventsPath = "/path/to/events.h5";
-NetworkHandle network(networkPath + "configs/network_config.json", eventsPath);
+NetworkHandle network(m_networkPath + "configs/network_config.json", eventsPath);
 
 std::vector<Event> events;
 while (network.loadEvents(events, 1)) {

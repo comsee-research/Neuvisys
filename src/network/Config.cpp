@@ -6,14 +6,17 @@ using json = nlohmann::json;
 
 NetworkConfig::NetworkConfig() = default;
 
-NetworkConfig::NetworkConfig(const std::string &networkPath) {
-    loadNetworkLayout(networkPath);
+NetworkConfig::NetworkConfig(const std::string &networkConfigPath) {
+    m_networkConfigPath = networkConfigPath;
+    std::string toRemove = "configs/network_config.json";
+    m_networkPath = m_networkConfigPath.substr(0, m_networkConfigPath.size() - toRemove.size());
+    loadNetworkLayout();
 }
 
-void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
+void NetworkConfig::loadNetworkLayout() {
     json conf;
 
-    std::ifstream ifs(fileName);
+    std::ifstream ifs(m_networkConfigPath);
     if (ifs.is_open()) {
         try {
             ifs >> conf;
@@ -34,9 +37,6 @@ void NetworkConfig::loadNetworkLayout(const std::string &fileName) {
             decayRate = conf["decayRate"];
             actionRate = static_cast<long>(E3) * static_cast<long>(conf["actionRate"]);
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
-            std::string toErase = "configs/network_config.json";
-            networkPath = fileName;
-            networkPath.erase(fileName.find(toErase), toErase.length());
         } catch (const std::exception &e) {
             std::cerr << "In network config file:" << e.what() << std::endl;
             throw;

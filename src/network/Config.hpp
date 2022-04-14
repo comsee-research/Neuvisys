@@ -24,7 +24,8 @@ namespace Conf {
 
 class NetworkConfig {
     /***** Display parameters *****/
-    std::string networkPath;
+    std::string m_networkPath;
+    std::string m_networkConfigPath;
 
     /***** Spiking Neural Network layout parameters *****/
     size_t nbCameras{};
@@ -50,11 +51,13 @@ class NetworkConfig {
 public:
     NetworkConfig();
 
-    explicit NetworkConfig(const std::string& networkPath);
+    explicit NetworkConfig(const std::string& networkConfigPath);
 
-    void loadNetworkLayout(const std::string &fileName);
+    void loadNetworkLayout();
 
-    std::string &getNetworkPath() { return networkPath; }
+    std::string &getNetworkPath() { return m_networkPath; }
+
+    std::string &getNetworkConfigPath() { return m_networkConfigPath; }
 
     std::string &getSharingType() { return sharingType; }
 
