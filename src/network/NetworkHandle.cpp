@@ -373,21 +373,32 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     cnpy::NpyArray x_array = cnpy::npz_load(m_eventsPath, "arr_1");
     cnpy::NpyArray y_array = cnpy::npz_load(m_eventsPath, "arr_2");
     cnpy::NpyArray polarities_array = cnpy::npz_load(m_eventsPath, "arr_3");
-    cnpy::NpyArray cameras_array = cnpy::npz_load(m_eventsPath, "arr_4");
-    size_t sizeLeftArray = timestamps_array.shape[0];
+    size_t sizeArray = timestamps_array.shape[0];
 
-    auto *timestamps = timestamps_array.data<long>();
-    auto *x = x_array.data<int16_t>();
-    auto *y = y_array.data<int16_t>();
-    auto *polarities = polarities_array.data<bool>();
-    auto *cameras = cameras_array.data<bool>();
+    auto *ptr_timestamps = timestamps_array.data<long>();
+    std::vector<long> timestamps(ptr_timestamps, ptr_timestamps + sizeArray);
+    auto *ptr_x = x_array.data<int16_t>();
+    std::vector<int16_t> x(ptr_x, ptr_x + sizeArray);
+    auto *ptr_y = y_array.data<int16_t>();
+    std::vector<int16_t> y(ptr_y, ptr_y + sizeArray);
+    auto *ptr_polarities = polarities_array.data<bool>();
+    std::vector<bool> polarities(ptr_polarities, ptr_polarities + sizeArray);
+
+    auto cameras = std::vector<bool>(sizeArray, false);
+    try {
+        cnpy::NpyArray cameras_array = cnpy::npz_load(m_eventsPath, "arr_4");
+        auto *ptr_cameras = cameras_array.data<bool>();
+        cameras = std::vector<bool>(ptr_cameras, ptr_cameras + sizeArray);
+    } catch (const std::exception &e) {
+        std::cout << "NPZ file: " << e.what() << " defaulting to 1 camera.\n";
+    }
 
     long firstTimestamp = timestamps[0];
-    long lastTimestamp = static_cast<long>(timestamps[sizeLeftArray - 1]);
+    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
     Event event{};
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
-        for (count = 0; count < sizeLeftArray; ++count) {
+        for (count = 0; count < sizeArray; ++count) {
             event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
                           x[count],
                           y[count],
@@ -396,6 +407,8 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
             events.push_back(event);
         }
     }
+
+    m_nbEvents = nbPass * sizeArray;
 }
 
 bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {
