@@ -42,6 +42,9 @@ protected:
     std::vector<size_t> m_trackingSpikeTrain;
     std::vector<std::pair<double, size_t>> m_trackingPotentialTrain;
 
+private:
+    virtual void spike(size_t time) {};
+
 public:
     Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset);
 
@@ -155,8 +158,6 @@ public:
     virtual void trackPotential(size_t time);
 
     virtual void updateState(size_t timeInterval, double alpha);
-
-    virtual void spike(size_t time) {};
 
     virtual double updateKernelSpikingRate(long time) {};
 
