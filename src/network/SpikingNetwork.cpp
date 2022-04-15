@@ -78,10 +78,10 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                   neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
                                   neuron.getPos().z() - forwardNeuron.get().getOffset().z());
         if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
-            forwardNeuron.get().weightUpdate();
             if (forwardNeuron.get().getLayer() == 2) { // critic neuromodulation
                 neuromodulation(forwardNeuron.get());
             }
+            forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
             topDownDynamicInhibition(forwardNeuron.get());
 

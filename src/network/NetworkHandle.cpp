@@ -183,7 +183,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getNetworkConfig().getActionRate())) {
         m_saveTime.action = time;
         if (m_action != -1) {
-            updateActor(lastTimestamp, m_action);
+            updateActor(m_action);
         }
         auto choice = actionSelection(resolveMotor(), getNetworkConfig().getExplorationFactor());
         m_action = choice.first;
@@ -215,7 +215,7 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
     return std::make_pair(selectedAction, exploration);
 }
 
-void NetworkHandle::updateActor(long time, size_t actor) {
+void NetworkHandle::updateActor(size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
 
     neuron.get().setNeuromodulator(m_saveData["tdError"].back()); // TODO: td error at instant t -> should we rather use an average from previous action up to now ?

@@ -72,7 +72,7 @@ public:
 
     void feedEvents(const std::vector<Event> &events);
 
-    void updateActor(long time, size_t actor);
+    void updateActor(size_t actor);
 
     void saveValueMetrics(long time, size_t nbEvents);
 
