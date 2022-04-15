@@ -274,7 +274,7 @@ double NetworkHandle::valueFunction(long time) {
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / m_timeStep;
     if (value.size() > nbPreviousTD + 1) {
-        return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
+        return 200 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
     }
