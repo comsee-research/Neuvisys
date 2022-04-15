@@ -10,12 +10,12 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
-        std::string networkPath = "/home/thomas/Desktop/Experiment/network_0/configs/network_config.json";
-        std::string eventsPath = "/home/thomas/Videos/DSEC/interlaken_00_c.h5";
+        std::string networkPath = "/home/thomas/neuvisys-dv/configuration/network/";
+        std::string eventsPath = "/home/thomas/Videos/shapes.npz";
 
-        NetworkHandle network(networkPath, 0, eventsPath);
+        NetworkHandle network(networkPath, eventsPath);
         std::vector<Event> events;
-        std::cout << "Feeding network: " << events.size() << " events..." << std::endl;
+        std::cout << "Feeding network... " << std::endl;
 
         while (network.loadEvents(events, 1)) {
             network.feedEvents(events);

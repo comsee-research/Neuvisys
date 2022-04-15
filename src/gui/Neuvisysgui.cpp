@@ -1,8 +1,7 @@
 #include "Neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
-NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI),
-                                                                   neuvisysThread(argc, argv) {
+NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI), neuvisysThread(argc, argv) {
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
@@ -17,7 +16,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_action");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_learn_critic/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -108,7 +107,8 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<bool>>("std::vector<bool>");
     qRegisterMetaType<std::vector<size_t>>("std::vector<size_t>");
     qRegisterMetaType<std::map<size_t, cv::Mat>>("std::map<size_t, cv::Mat>");
-    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<size_t>>>>("std::vector<std::reference_wrapper<const std::vector<size_t>>>");
+    qRegisterMetaType<std::vector<std::reference_wrapper<const std::vector<size_t>>>>(
+            "std::vector<std::reference_wrapper<const std::vector<size_t>>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
     qRegisterMetaType<std::vector<std::pair<double, size_t>>>("std::vector<std::pair<double, size_t>>");
@@ -140,7 +140,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
     connect(this, &NeuvisysGUI::stopNetwork, &neuvisysThread, &NeuvisysThread::onStopNetwork);
 
-    neuvisysThread.render(ui->text_network_directory->text() + "/configs/network_config.json",
+    neuvisysThread.render(ui->text_network_directory->text(),
                           ui->text_event_file->text(),
                           static_cast<size_t>(ui->number_runs->value()), ui->modeChoice->checkedId());
     ui->console->insertPlainText(QString("Starting network...\n"));

@@ -3,14 +3,13 @@
 //
 
 #include "NetworkHandle.hpp"
-
 #include <utility>
 
 NetworkHandle::NetworkHandle() : m_saveTime(0) {
 
 }
 
-NetworkHandle::NetworkHandle(std::string eventsPath) : m_saveTime(0), m_eventsPath(std::move(eventsPath)) {
+NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(time), m_eventsPath(std::move(eventsPath)) {
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         loadH5File();
@@ -21,31 +20,18 @@ NetworkHandle::NetworkHandle(std::string eventsPath) : m_saveTime(0), m_eventsPa
  * Loads the configuration files locally.
  * Loads possible network weights if the network has already been created and saved before.
  */
-NetworkHandle::NetworkHandle(const std::string &networkPath,
-                             double time) : m_spinet(networkPath),
-                                            m_networkConf(NetworkConfig(networkPath)),
-                                            m_simpleNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/simple_cell_config.json",
-                                                    0),
-                                            m_complexNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/complex_cell_config.json",
-                                                    1),
-                                            m_criticNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/critic_cell_config.json",
-                                                    2),
-                                            m_actorNeuronConf(
-                                                    m_networkConf.getNetworkPath() +
-                                                    "configs/actor_cell_config.json",
-                                                    3),
-                                            m_saveTime(time) {
+NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
+                                            m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
+                                            m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json",0),
+                                            m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json",1),
+                                            m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json",2),
+                                            m_actorNeuronConf(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json",3),
+                                            m_saveTime(0) {
     load();
 }
 
 NetworkHandle::NetworkHandle(const std::string &networkPath,
-                             double time, const std::string &eventsPath) : NetworkHandle(networkPath, time) {
+                             const std::string &eventsPath) : NetworkHandle(networkPath) {
     m_eventsPath = eventsPath;
 
     std::string hdf5 = ".h5";
@@ -55,9 +41,6 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
 }
 
 void NetworkHandle::loadH5File() {
-    char *version, *date;
-    register_blosc(&version, &date);
-
     if (!m_eventsPath.empty()) {
         m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
         m_eventFile.group = m_eventFile.file.openGroup("events");
@@ -183,7 +166,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
 //        m_reward = 50 * m_spinet.getAverageActivity();
-//        m_spinet.transmitNeuromodulator(m_reward);
+//        m_spinet.transmitReward(m_reward);
     }
 
     saveValueMetrics(lastTimestamp, nbEvents);
@@ -192,7 +175,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.console = time;
         learningDecay(m_scoreIteration);
         ++m_scoreIteration;
-        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / DT)) +
+        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / m_timeStep)) +
               "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
     }
@@ -235,7 +218,7 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 void NetworkHandle::updateActor(long time, size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
 
-    neuron.get().setNeuromodulator(m_saveData["tdError"].back());
+    neuron.get().setNeuromodulator(m_saveData["tdError"].back()); // TODO: td error at instant t -> should we rather use an average from previous action up to now ?
     m_spinet.normalizeActions();
 }
 
@@ -244,8 +227,7 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 
     size_t layer = m_spinet.getNetworkStructure().size() - 1;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i,
-                                                                                             layer).get().getActivityCount();
+        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getActivityCount();
     }
     return motorActivations;
 }
@@ -288,8 +270,8 @@ double NetworkHandle::valueFunction(long time) {
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / DT;
-    if (value.size() > nbPreviousTD) {
+    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / m_timeStep;
+    if (value.size() > nbPreviousTD + 1) {
         return 50 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
@@ -298,7 +280,7 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
 
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
-    m_spinet.transmitNeuromodulator(reward);
+    m_spinet.transmitReward(reward);
 }
 
 void NetworkHandle::transmitEvent(const Event &event) {
@@ -376,21 +358,32 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     cnpy::NpyArray x_array = cnpy::npz_load(m_eventsPath, "arr_1");
     cnpy::NpyArray y_array = cnpy::npz_load(m_eventsPath, "arr_2");
     cnpy::NpyArray polarities_array = cnpy::npz_load(m_eventsPath, "arr_3");
-    cnpy::NpyArray cameras_array = cnpy::npz_load(m_eventsPath, "arr_4");
-    size_t sizeLeftArray = timestamps_array.shape[0];
+    size_t sizeArray = timestamps_array.shape[0];
 
-    auto *timestamps = timestamps_array.data<long>();
-    auto *x = x_array.data<int16_t>();
-    auto *y = y_array.data<int16_t>();
-    auto *polarities = polarities_array.data<bool>();
-    auto *cameras = cameras_array.data<bool>();
+    auto *ptr_timestamps = timestamps_array.data<long>();
+    std::vector<long> timestamps(ptr_timestamps, ptr_timestamps + sizeArray);
+    auto *ptr_x = x_array.data<int16_t>();
+    std::vector<int16_t> x(ptr_x, ptr_x + sizeArray);
+    auto *ptr_y = y_array.data<int16_t>();
+    std::vector<int16_t> y(ptr_y, ptr_y + sizeArray);
+    auto *ptr_polarities = polarities_array.data<bool>();
+    std::vector<bool> polarities(ptr_polarities, ptr_polarities + sizeArray);
+
+    auto cameras = std::vector<bool>(sizeArray, false);
+    try {
+        cnpy::NpyArray cameras_array = cnpy::npz_load(m_eventsPath, "arr_4");
+        auto *ptr_cameras = cameras_array.data<bool>();
+        cameras = std::vector<bool>(ptr_cameras, ptr_cameras + sizeArray);
+    } catch (const std::exception &e) {
+        std::cout << "NPZ file: " << e.what() << " defaulting to 1 camera.\n";
+    }
 
     long firstTimestamp = timestamps[0];
-    long lastTimestamp = static_cast<long>(timestamps[sizeLeftArray - 1]);
+    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
     Event event{};
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
-        for (count = 0; count < sizeLeftArray; ++count) {
+        for (count = 0; count < sizeArray; ++count) {
             event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
                           x[count],
                           y[count],
@@ -399,6 +392,8 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
             events.push_back(event);
         }
     }
+
+    m_nbEvents = nbPass * sizeArray;
 }
 
 bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {

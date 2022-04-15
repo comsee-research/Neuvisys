@@ -8,7 +8,6 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
-#include "blosc_filter.h"
 
 struct H5EventFile {
     H5::H5File file;
@@ -58,16 +57,16 @@ class NetworkHandle {
     size_t m_scoreIteration{};
     size_t m_countEvents{};
     size_t m_saveCount{};
-
+    double m_timeStep{};
 
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string eventsPath);
+    explicit NetworkHandle(std::string eventsPath, double time);
 
-    NetworkHandle(const std::string &networkPath, double time);
+    explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, double time, const std::string &eventsPath);
+    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
@@ -93,8 +92,6 @@ public:
 
     void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
 
-    void stereo(std::vector<Event> &events, size_t nbPass = 1);
-
     double valueFunction(long time);
 
     double valueDerivative(const std::vector<double> &value);
@@ -104,6 +101,8 @@ public:
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
     double getScore(long nbPreviousReward);
+
+    void setTimeStep(double timeStep) { m_timeStep = timeStep; }
 
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 

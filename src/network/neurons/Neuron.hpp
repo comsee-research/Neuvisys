@@ -21,6 +21,7 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralStaticInhibitionConnections;
+    std::vector<std::reference_wrapper<Neuron>> m_topDownDynamicInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
     std::unordered_map<size_t, double> m_topDownInhibitionWeights;
     std::unordered_map<size_t, double> m_lateralInhibitionWeights;
@@ -90,10 +91,13 @@ public:
     getInConnections() const { return m_inConnections; }
 
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
-    getlateralStaticInhibitionConnections() const { return m_lateralStaticInhibitionConnections; }
+    getLateralStaticInhibitionConnections() const { return m_lateralStaticInhibitionConnections; }
 
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
-    getlateralDynamicInhibitionConnections() const { return m_lateralDynamicInhibitionConnections; }
+    getTopDownDynamicInhibitionConnections() const { return m_topDownDynamicInhibitionConnections; }
+
+    [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
+    getLateralDynamicInhibitionConnections() const { return m_lateralDynamicInhibitionConnections; }
 
     virtual const std::vector<size_t> &getTrackingSpikeTrain() { return m_trackingSpikeTrain; }
 
@@ -132,6 +136,8 @@ public:
     virtual void addOutConnection(Neuron &neuron);
 
     virtual void addInConnection(Neuron &neuron);
+
+    virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 

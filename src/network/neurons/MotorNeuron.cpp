@@ -53,9 +53,8 @@ inline void MotorNeuron::spike(size_t time) {
 inline void MotorNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event: m_events) {
-            m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(
-                    -(static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) /
-                    m_conf.TAU_E);
+            m_eligibilityTrace(event.x(), event.y(), event.z()) *=
+                    exp(-(static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / m_conf.TAU_E);
             m_eligibilityTrace(event.x(), event.y(), event.z()) +=
                     m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_eligibilityTrace(event.x(), event.y(), event.z()) +=
@@ -65,8 +64,6 @@ inline void MotorNeuron::weightUpdate() {
             }
             m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
 
-//            m_weights(event.x(), event.y(), event.z()) +=
-//                    m_conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
@@ -151,6 +148,8 @@ std::vector<long> MotorNeuron::getWeightsDimension() {
 
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
     m_neuromodulator = neuromodulator;
+
+//    m_weights(event.x(), event.y(), event.z()) += m_conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
 }
 
 void MotorNeuron::learningDecay(double decay) {

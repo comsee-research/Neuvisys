@@ -117,6 +117,7 @@ void Neuron::writeJson(nlohmann::json &state) {
     std::vector<size_t> inIndex;
     std::vector<size_t> outIndex;
     std::vector<size_t> staticInhibitionIndex;
+    std::vector<size_t> tdInhibitionIndex;
     std::vector<size_t> liInhibitionIndex;
     for (auto neuron : m_inConnections) {
         inIndex.push_back(neuron.get().getIndex());
@@ -127,6 +128,9 @@ void Neuron::writeJson(nlohmann::json &state) {
     for (auto neuron : m_lateralStaticInhibitionConnections) {
         staticInhibitionIndex.push_back(neuron.get().getIndex());
     }
+    for (auto neuron : m_topDownDynamicInhibitionConnections) {
+        tdInhibitionIndex.push_back(neuron.get().getIndex());
+    }
     for (auto neuron : m_lateralDynamicInhibitionConnections) {
         liInhibitionIndex.push_back(neuron.get().getIndex());
     }
@@ -135,6 +139,7 @@ void Neuron::writeJson(nlohmann::json &state) {
     state["in_connections"] = inIndex;
     state["out_connections"] = outIndex;
     state["static_inhibition"] = staticInhibitionIndex;
+    state["topdown_dynamic_inhibition"] = tdInhibitionIndex;
     state["lateral_dynamic_inhibition"] = liInhibitionIndex;
     state["potential"] = m_potential;
     state["count_spike"] = m_totalSpike;
@@ -168,11 +173,15 @@ size_t Neuron::getActivityCount() {
 
 void Neuron::addOutConnection(Neuron &neuron) {
     m_outConnections.emplace_back(neuron);
-    m_topDownInhibitionWeights[neuron.getIndex()] = 0;
 }
 
 void Neuron::addInConnection(Neuron &neuron) {
     m_inConnections.emplace_back(neuron);
+}
+
+void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
+    m_topDownDynamicInhibitionConnections.emplace_back(neuron);
+    m_topDownInhibitionWeights[neuron.getIndex()] = 0;
 }
 
 void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {

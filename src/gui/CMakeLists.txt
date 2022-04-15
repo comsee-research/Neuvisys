@@ -64,4 +64,4 @@ else()
 endif()
 
 target_link_libraries(neuvisys-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} blosc_filter cnpy caer z)
+        ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} cnpy caer z)

@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0, m_events.toStdString());
+        auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -90,7 +90,7 @@ void NeuvisysThread::readEvents() {
 
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
-    auto network = NetworkHandle(m_events.toStdString());
+    auto network = NetworkHandle(m_events.toStdString(), 0);
     auto events = std::vector<Event>();
     while(network.loadEvents(events, 1)) {
         for (const auto &event: events) {
@@ -155,6 +155,10 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
+//    while (sim.getSimulationTimeStep() == 0) {}
+//    network.setTimeStep(sim.getSimulationTimeStep() * E6);
+    network.setTimeStep(0.001 * E6);
+
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -164,10 +168,10 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         sim.update();
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-        if (m_action != -1) {
-            sim.activateMotors(m_action);
-            m_motorDisplay[m_action] = true;
-        }
+//        if (m_action != -1) {
+//            sim.activateMotors(m_action);
+//            m_motorDisplay[m_action] = true;
+//        }
 
         if (sim.getSimulationTime() > 300) {
             m_stop = true;
