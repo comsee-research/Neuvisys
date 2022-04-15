@@ -234,10 +234,8 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 
 void NetworkHandle::updateActor(long time, size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
-    neuron.get().spike(time);
 
     neuron.get().setNeuromodulator(m_saveData["tdError"].back());
-    neuron.get().weightUpdate(); // TODO: what about the eligibility traces (previous action) ?
     m_spinet.normalizeActions();
 }
 

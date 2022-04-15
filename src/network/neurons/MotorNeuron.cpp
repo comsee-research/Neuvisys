@@ -58,17 +58,15 @@ inline void MotorNeuron::weightUpdate() {
                     m_conf.TAU_E);
             m_eligibilityTrace(event.x(), event.y(), event.z()) +=
                     m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
-            if (m_layer < 3) {
-                m_eligibilityTrace(event.x(), event.y(), event.z()) +=
+            m_eligibilityTrace(event.x(), event.y(), event.z()) +=
                         m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-            }
             if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
                 m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
             }
             m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
 
-            m_weights(event.x(), event.y(), event.z()) +=
-                    m_conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
+//            m_weights(event.x(), event.y(), event.z()) +=
+//                    m_conf.ETA * m_neuromodulator * m_eligibilityTrace(event.x(), event.y(), event.z());
             if (m_weights(event.x(), event.y(), event.z()) < 0) {
                 m_weights(event.x(), event.y(), event.z()) = 0;
             }
