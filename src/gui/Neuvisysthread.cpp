@@ -173,7 +173,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
 //            m_motorDisplay[m_action] = true;
 //        }
 
-        if (sim.getSimulationTime() > 300) {
+        if (sim.getSimulationTime() > 1.3) {
             m_stop = true;
         }
     }

@@ -149,6 +149,7 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
         for (long y = 0; y < d[1]; ++y) {
             for (long z = 0; z < d[2]; ++z) {
                 m_weights(x, y, z) += m_conf.ETA * neuromodulator * m_eligibilityTrace(x, y, z);
+                m_eligibilityTrace(x, y, z) = 0;
 
                 if (m_weights(x, y, z) < 0) {
                     m_weights(x, y, z) = 0;

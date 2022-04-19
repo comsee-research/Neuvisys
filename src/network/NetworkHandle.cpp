@@ -295,9 +295,9 @@ void NetworkHandle::learningDecay(size_t iteration) {
 //    m_spinet.getNeuron(0, 3).get().learningDecay(decay);
 
     m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() / decay);
-    if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
-        m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() / decay));
-    }
+//    if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
+//        m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() / decay));
+//    }
 }
 
 void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t layer) {
