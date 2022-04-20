@@ -160,12 +160,12 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
 }
 
 void MotorNeuron::learningDecay(double decay) {
-    m_conf.ETA /= decay;
+    m_conf.ETA *= decay;
 
     if (m_conf.TAU_K > m_conf.MIN_TAU_K) {
-        m_conf.TAU_K /= decay;
+        m_conf.TAU_K *= decay;
     }
     if (m_conf.NU_K > m_conf.MIN_NU_K) {
-        m_conf.NU_K /= decay;
+        m_conf.NU_K *= decay;
     }
 }

@@ -162,6 +162,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
 }
 
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
+    ++m_packetCount;
     if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
@@ -171,15 +172,18 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
 
     saveValueMetrics(lastTimestamp, nbEvents);
 
+    ++m_scoreCount;
     if (time - m_saveTime.console > SCORE_INTERVAL) {
         m_saveTime.console = time;
-        learningDecay(m_scoreIteration);
-        ++m_scoreIteration;
-        msg = "\n\nAverage reward: " + std::to_string(getScore(SCORE_INTERVAL / m_timeStep)) +
+        learningDecay(SCORE_INTERVAL / E6);
+
+        msg = "\n\nAverage reward: " + std::to_string(getScore(static_cast<long>(m_scoreCount))) +
               "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
+        m_scoreCount = 0;
     }
 
+    ++m_actionCount;
     if (time - m_saveTime.action > static_cast<double>(getNetworkConfig().getActionRate())) {
         m_saveTime.action = time;
         if (m_action != -1) {
@@ -187,6 +191,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         }
         auto choice = actionSelection(resolveMotor(), getNetworkConfig().getExplorationFactor());
         m_action = choice.first;
+        m_actionCount = 0;
         if (m_action != -1) {
             saveActionMetrics(m_action, choice.second);
             return m_action;
@@ -218,8 +223,20 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 void NetworkHandle::updateActor(size_t actor) {
     auto neuron = m_spinet.getNeuron(actor, m_spinet.getNetworkStructure().size() - 1);
 
-    neuron.get().setNeuromodulator(m_saveData["tdError"].back()); // TODO: td error at instant t -> should we rather use an average from previous action up to now ?
-    m_spinet.normalizeActions();
+    double meanTDError = 0;
+    auto count = 0;
+    if (m_saveData["tdError"].size() > m_actionCount) {
+        for (auto itTDError = m_saveData["tdError"].rbegin(); itTDError != m_saveData["tdError"].rend(); ++itTDError) {
+            if (count > m_actionCount) {
+                break;
+            } else {
+                meanTDError += *itTDError;
+                ++count;
+            }
+        }
+        neuron.get().setNeuromodulator(meanTDError / static_cast<double>(m_actionCount));
+        m_spinet.normalizeActions();
+    }
 }
 
 std::vector<uint64_t> NetworkHandle::resolveMotor() {
@@ -270,9 +287,9 @@ double NetworkHandle::valueFunction(long time) {
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = static_cast<int>(m_networkConf.getActionRate()) / m_timeStep;
+    int nbPreviousTD = 100; // TODO : set a parameter
     if (value.size() > nbPreviousTD + 1) {
-        return 200 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
+        return 100 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
     }
@@ -288,15 +305,15 @@ void NetworkHandle::transmitEvent(const Event &event) {
     m_spinet.addEvent(event);
 }
 
-void NetworkHandle::learningDecay(size_t iteration) {
-    double decay = 1 + getNetworkConfig().getDecayRate() * static_cast<double>(iteration);
+void NetworkHandle::learningDecay(double time) {
+    double decay = time * getNetworkConfig().getDecayRate() / 100;
 
-//    m_spinet.getNeuron(0, 2).get().learningDecay(decay); // changing m_conf instance reference
-//    m_spinet.getNeuron(0, 3).get().learningDecay(decay);
+//    m_spinet.getNeuron(0, 2).get().learningDecay(1 - decay); // changing m_conf instance reference
+//    m_spinet.getNeuron(0, 3).get().learningDecay(1 - decay);
 
-    m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() / decay);
+    m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() * (1 - decay));
 //    if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
-//        m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() / decay));
+//        m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() * (1 - decay)));
 //    }
 }
 

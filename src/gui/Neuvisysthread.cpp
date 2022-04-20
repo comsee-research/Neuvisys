@@ -113,29 +113,29 @@ void NeuvisysThread::readEvents() {
 }
 
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+    m_eventRate += static_cast<double>(events.size());
     if (!events.empty()) {
-        m_eventRate += static_cast<double>(events.size());
-
         for (auto const &event : events) {
             ++m_iterations;
             addEventToDisplay(event);
             network.transmitEvent(event);
         }
+
         m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+    }
 
-        emit consoleMessage(m_msg);
-        m_msg.clear();
+    emit consoleMessage(m_msg);
+    m_msg.clear();
 
-        /*** GUI Display ***/
-        if (time - m_displayTime > m_displayRate) {
-            m_displayTime = time;
-            display(network, events.size(), m_displayTime);
-        }
+    /*** GUI Display ***/
+    if (time - m_displayTime > m_displayRate) {
+        m_displayTime = time;
+        display(network, events.size(), m_displayTime);
+    }
 
-        if (time - m_trackTime > m_trackRate) {
-            m_trackTime = time;
-            network.trackNeuron(time, m_id, m_layer);
-        }
+    if (time - m_trackTime > m_trackRate) {
+        m_trackTime = time;
+        network.trackNeuron(time, m_id, m_layer);
     }
 }
 
@@ -155,10 +155,6 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
     sim.enableSyncMode(true);
     sim.startSimulation();
 
-//    while (sim.getSimulationTimeStep() == 0) {}
-//    network.setTimeStep(sim.getSimulationTimeStep() * E6);
-    network.setTimeStep(0.001 * E6);
-
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
@@ -168,12 +164,12 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         sim.update();
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-//        if (m_action != -1) {
-//            sim.activateMotors(m_action);
-//            m_motorDisplay[m_action] = true;
-//        }
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
 
-        if (sim.getSimulationTime() > 1.3) {
+        if (sim.getSimulationTime() > 300) {
             m_stop = true;
         }
     }

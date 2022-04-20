@@ -54,10 +54,11 @@ class NetworkHandle {
     size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
-    size_t m_scoreIteration{};
+    size_t m_packetCount{};
+    size_t m_actionCount{};
+    size_t m_scoreCount{};
     size_t m_countEvents{};
     size_t m_saveCount{};
-    double m_timeStep{};
 
 public:
     NetworkHandle();
@@ -84,7 +85,7 @@ public:
 
     std::vector<uint64_t> resolveMotor();
 
-    void learningDecay(size_t iteration);
+    void learningDecay(double time);
 
     void save(const std::string &eventFileName, size_t nbRun);
 
@@ -101,8 +102,6 @@ public:
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
     double getScore(long nbPreviousReward);
-
-    void setTimeStep(double timeStep) { m_timeStep = timeStep; }
 
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 
