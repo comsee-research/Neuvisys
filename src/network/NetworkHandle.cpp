@@ -263,12 +263,20 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
 
 double NetworkHandle::getScore(long nbPreviousReward) {
     double mean = 0;
-    for (auto it = m_saveData["reward"].end();
-         it != m_saveData["reward"].end() - nbPreviousReward && it != m_saveData["reward"].begin(); --it) {
-        mean += *it;
+    size_t count = 0;
+    if (m_saveData["reward"].size() > nbPreviousReward) {
+        for (auto it = m_saveData["reward"].rbegin(); it != m_saveData["reward"].rend(); ++it) {
+            if (count > nbPreviousReward) {
+                break;
+            } else {
+                mean += *it;
+                ++count;
+            }
+        }
+        mean /= static_cast<double>(nbPreviousReward);
+        m_saveData["score"].push_back(mean);
     }
-    mean /= static_cast<double>(nbPreviousReward);
-    m_saveData["score"].push_back(mean);
+
     return mean;
 }
 

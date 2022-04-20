@@ -16,7 +16,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_learn_action2/");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/learn_critic/2/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
