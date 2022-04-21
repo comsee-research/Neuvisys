@@ -5,6 +5,21 @@ std::normal_distribution<double> normalDistr(0.0, 1.0);
 std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
 namespace Util {
+
+    bool fileExist(std::string &filePath) {
+        if (FILE *file = fopen(filePath.c_str(), "r")) {
+            fclose(file);
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    bool endsWith(std::string const & value, std::string const & ending) {
+        if (ending.size() > value.size()) return false;
+        return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
+    }
+
     Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(const long x, const long y, const long z) {
         Eigen::Tensor<double, COMPLEXDIM> mat(x, y, z);
         for (long i = 0; i < x; ++i) {
@@ -34,43 +49,16 @@ namespace Util {
         return mat;
     }
 
-    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath) {
-        cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
+    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName) {
+        cnpy::NpyArray array;
+        if (endsWith(filePath, ".npz")) {
+            array = cnpy::npz_load(filePath, arrayName);
+        } else if (endsWith(filePath, ".npy")) {
+            array = cnpy::npy_load(filePath);
+        }
         auto *weights = array.data<double>();
 
-        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = tensor.dimensions();
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    tensor(i, j, k) = weights[count];
-                    ++count;
-                }
-            }
-        }
-    }
-
-    void saveComplexTensorToNumpyFile(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &saveFile) {
-        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& d = tensor.dimensions();
-        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    data[count] = tensor(i, j, k);
-                    ++count;
-                }
-            }
-        }
-
-        cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "w");
-    }
-
-    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
-        cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
-        auto *weights = array.data<double>();
-
-        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = tensor.dimensions();
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
             for (long j = 0; j < d[1]; ++j) {
@@ -86,8 +74,56 @@ namespace Util {
         }
     }
 
-    void saveSimpleTensorToNumpyFile(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &saveFile) {
-        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = tensor.dimensions();
+    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName) {
+        cnpy::NpyArray array;
+        if (endsWith(filePath, ".npz")) {
+            array = cnpy::npz_load(filePath, arrayName);
+        } else if (endsWith(filePath, ".npy")) {
+            array = cnpy::npy_load(filePath);
+        }
+        auto *weights = array.data<double>();
+
+        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
+        size_t count = 0;
+        for (long i = 0; i < d[0]; ++i) {
+            for (long j = 0; j < d[1]; ++j) {
+                for (long k = 0; k < d[2]; ++k) {
+                    tensor(i, j, k) = weights[count];
+                    ++count;
+                }
+            }
+        }
+    }
+
+    void loadNPYWeights(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
+        cnpy::NpyArray array;
+        if (endsWith(filePath, ".npz")) {
+            array = cnpy::npz_load(filePath, arrayName);
+        } else if (endsWith(filePath, ".npy")) {
+            array = cnpy::npy_load(filePath);
+        }
+        auto *weights = array.data<double>();
+
+        size_t count = 0;
+        for (auto &element: map) {
+            element.second = weights[count];
+            ++count;
+        }
+    }
+
+    void loadNumpyWeightsNPZ(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
+        cnpy::NpyArray array = cnpy::npz_load(filePath, arrayName);
+        auto *weights = array.data<double>();
+
+        size_t count = 0;
+        for (auto &element: map) {
+            element.second = weights[count];
+            ++count;
+        }
+    }
+
+    void saveSimpleTensorToNPZ(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &filePath, std::string &arrayName) {
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
         std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3] * d[4]));
         size_t count = 0;
         for (long i = 0; i < d[0]; ++i) {
@@ -102,47 +138,54 @@ namespace Util {
                 }
             }
         }
-        cnpy::npy_save(saveFile + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
+        cnpy::npz_save(filePath, arrayName, &data[0],{static_cast<size_t>(d[0]), static_cast<size_t>(d[1]),
+                                           static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "a");
     }
 
-    void loadNumpyToWeights(std::unordered_map<size_t, double> &map, std::string &filePath) {
-        cnpy::NpyArray array = cnpy::npy_load(filePath + ".npy");
-        auto *weights = array.data<double>();
-
+    void saveComplexTensorToNPZ(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &filePath, std::string &arrayName) {
+        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
+        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
         size_t count = 0;
-        for (auto &element : map) {
-            element.second = weights[count];
-            ++count;
+        for (long i = 0; i < d[0]; ++i) {
+            for (long j = 0; j < d[1]; ++j) {
+                for (long k = 0; k < d[2]; ++k) {
+                    data[count] = tensor(i, j, k);
+                    ++count;
+                }
+            }
         }
+
+        cnpy::npz_save(filePath, arrayName, &data[0],
+                       {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "a");
     }
 
-    void saveWeightsToNumpy(std::unordered_map<size_t, double> &map, std::string &saveFile) {
+    void saveWeightsToNPZ(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
         std::vector<double> data(static_cast<size_t>(map.size()));
         size_t count = 0;
-        for (auto const &element : map) {
+        for (auto const &element: map) {
             data[count] = element.second;
             ++count;
         }
-        cnpy::npy_save(saveFile + ".npy", &data[0], {map.size()}, "w");
+        cnpy::npz_save(filePath, arrayName, &data[0], {map.size()}, "a");
     }
 
-    void saveEventFile(std::vector<Event> &events, std::string &saveFile) {
+    void saveEventFile(std::vector<Event> &events, std::string &filePath) {
         std::vector<double> timestamp(events.size());
         std::vector<double> x(events.size());
         std::vector<double> y(events.size());
         std::vector<double> polarity(events.size());
         size_t count = 0;
-        for (auto const &event : events) {
+        for (auto const &event: events) {
             timestamp[count] = static_cast<double>(event.timestamp());
             x[count] = event.x();
             y[count] = event.y();
             polarity[count] = event.polarity();
             ++count;
         }
-        cnpy::npz_save(saveFile + ".npz", "arr_0", &timestamp[0], {events.size()}, "w");
-        cnpy::npz_save(saveFile + ".npz", "arr_1", &x[0], {events.size()}, "a");
-        cnpy::npz_save(saveFile + ".npz", "arr_2", &y[0], {events.size()}, "a");
-        cnpy::npz_save(saveFile + ".npz", "arr_3", &polarity[0], {events.size()}, "a");
+        cnpy::npz_save(filePath + ".npz", "arr_0", &timestamp[0], {events.size()}, "w");
+        cnpy::npz_save(filePath + ".npz", "arr_1", &x[0], {events.size()}, "a");
+        cnpy::npz_save(filePath + ".npz", "arr_2", &y[0], {events.size()}, "a");
+        cnpy::npz_save(filePath + ".npz", "arr_3", &polarity[0], {events.size()}, "a");
     }
 
     int winnerTakeAll(std::vector<size_t> vec) {
@@ -173,22 +216,13 @@ namespace Util {
         if (!vec.empty()) {
             double sumDVec = 0;
             int count = 0;
-            for (size_t i = vec.size()-2; i > vec.size() - n && i > 0; --i) {
-                sumDVec += (vec[i+1] - vec[i-1]) / 2.0;
+            for (size_t i = vec.size() - 2; i > vec.size() - n && i > 0; --i) {
+                sumDVec += (vec[i + 1] - vec[i - 1]) / 2.0;
                 ++count;
             }
             return sumDVec / count;
         } else {
             return 0;
-        }
-    }
-
-    bool fileExist(std::string &path) {
-        if (FILE *file = fopen(path.c_str(), "r")) {
-            fclose(file);
-            return true;
-        } else {
-            return false;
         }
     }
 
@@ -204,7 +238,7 @@ std::vector<double> Luts::expLUT(double tau) {
     if (tau > 0) {
         std::vector<double> exponential(1000000);
         for (size_t i = 0; i < 1000000; ++i) {
-            exponential[i] = exp(- static_cast<double>(i) / tau);
+            exponential[i] = exp(-static_cast<double>(i) / tau);
         }
         return exponential;
     } else {

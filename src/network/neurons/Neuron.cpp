@@ -80,12 +80,12 @@ inline void Neuron::inhibition() {
     m_potential -= m_conf.ETA_INH;
 }
 
-void Neuron::saveState(std::string &fileName) {
+void Neuron::saveState(std::string &filePath) {
     nlohmann::json state;
 
     writeJson(state);
 
-    std::ofstream ofs(fileName + std::to_string(m_index) + ".json");
+    std::ofstream ofs(filePath + std::to_string(m_index) + ".json");
     if (ofs.is_open()) {
         ofs << std::setw(4) << state << std::endl;
     } else {
@@ -94,14 +94,14 @@ void Neuron::saveState(std::string &fileName) {
     ofs.close();
 }
 
-void Neuron::loadState(std::string &fileName) {
+void Neuron::loadState(std::string &filePath) {
     nlohmann::json state;
-    std::ifstream ifs(fileName + std::to_string(m_index) + ".json");
+    std::ifstream ifs(filePath + std::to_string(m_index) + ".json");
     if (ifs.is_open()) {
         try {
             ifs >> state;
         } catch (const std::exception& e) {
-            std::cerr << "In Neuron state file: " << fileName + ".json" << std::endl;
+            std::cerr << "In Neuron state file: " << filePath + ".json" << std::endl;
             throw;
         }
         readJson(state);

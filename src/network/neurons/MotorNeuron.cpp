@@ -123,13 +123,17 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
 }
 
 void MotorNeuron::saveWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
+    auto arrayName = std::to_string(m_index);
+    Util::saveComplexTensorToNPZ(m_weights, filePath, arrayName);
 }
 
 void MotorNeuron::loadWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
+    if (Util::endsWith(filePath, ".npz")) {
+        auto arrayName = std::to_string(m_index);
+        Util::loadNumpyFileToComplexTensor(m_weights, filePath, arrayName);
+    } else if (Util::endsWith(filePath, ".npy")) {
+        Util::loadNumpyFileToComplexTensor(m_weights, filePath, filePath);
+    }
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {
