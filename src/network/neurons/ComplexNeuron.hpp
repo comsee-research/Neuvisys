@@ -13,7 +13,7 @@ public:
     double getWeights(long x, long y, long z) override { return m_weights(x, y, z); }
     std::vector<long> getWeightsDimension() override;
     void saveWeights(std::string &filePath) override;
-    void loadWeights(std::string &filePath) override;
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
     void weightUpdate() override;
     cv::Mat summedWeightMatrix() override;
 private:

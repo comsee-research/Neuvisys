@@ -127,13 +127,15 @@ void MotorNeuron::saveWeights(std::string &filePath) {
     Util::saveComplexTensorToNPZ(m_weights, filePath, arrayName);
 }
 
-void MotorNeuron::loadWeights(std::string &filePath) {
-    if (Util::endsWith(filePath, ".npz")) {
-        auto arrayName = std::to_string(m_index);
-        Util::loadNumpyFileToComplexTensor(m_weights, filePath, arrayName);
-    } else if (Util::endsWith(filePath, ".npy")) {
-        Util::loadNumpyFileToComplexTensor(m_weights, filePath, filePath);
-    }
+void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
+//    if (Util::endsWith(arrayNPZ, ".npz")) {
+//        auto arrayName = std::to_string(m_index);
+//        Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
+//    } else if (Util::endsWith(arrayNPZ, ".npy")) {
+//        Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayNPZ);
+//    }
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {

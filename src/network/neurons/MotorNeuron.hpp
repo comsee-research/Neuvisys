@@ -27,7 +27,7 @@ public:
 
     void saveWeights(std::string &filePath) override;
 
-    void loadWeights(std::string &filePath) override;
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
 
     void normalizeWeights() override;
 
