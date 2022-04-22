@@ -166,8 +166,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
-//        m_reward = 50 * m_spinet.getAverageActivity();
-//        m_spinet.transmitReward(m_reward);
+        m_reward = 50 * m_spinet.getAverageActivity();
+        m_spinet.transmitReward(m_reward);
     }
 
     saveValueMetrics(lastTimestamp, nbEvents);

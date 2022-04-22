@@ -162,7 +162,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
 
         sim.update();
-        network.transmitReward(sim.getReward());
+//        network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
 //        if (m_action != -1) {
 //            sim.activateMotors(m_action);
