@@ -115,17 +115,21 @@ public:
 
     virtual void inhibition();
 
-    virtual void saveState(std::string &fileName);
+    virtual void saveState(std::string &filePath);
 
-    virtual void loadState(std::string &fileName);
+    virtual void loadState(std::string &filePath);
 
-    virtual void saveWeights(std::string &fileName) {};
+    virtual void saveWeights(std::string &filePath) {};
 
-    virtual void saveInhibWeights(std::string &fileName) {};
+    virtual void saveLateralInhibitionWeights(std::string &filePath) {};
 
-    virtual void loadWeights(std::string &fileName) {};
+    virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void loadInhibWeights(std::string &fileName) {};
+    virtual void loadWeights(cnpy::npz_t &arrayNPZ) {};
+
+    virtual void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
+
+    virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
     virtual void normalizeWeights() {};
 

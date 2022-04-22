@@ -34,13 +34,17 @@ public:
 
     std::vector<long> getWeightsDimension() override;
 
-    void saveWeights(std::string &fileName) override;
+    void saveWeights(std::string &filePath) override;
 
-    void saveInhibWeights(std::string &fileName) override;
+    void saveLateralInhibitionWeights(std::string &filePath) override;
 
-    void loadWeights(std::string &fileName) override;
+    void saveTopDownInhibitionWeights(std::string &filePath) override;
 
-    void loadInhibWeights(std::string &fileName) override;
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
 
     bool checkRemainingEvents(size_t time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 

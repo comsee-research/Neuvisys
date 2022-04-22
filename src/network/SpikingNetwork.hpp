@@ -98,9 +98,11 @@ private:
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
 
-    void lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer,
+    void lateralDynamicInhibitionConnection(Neuron &neuron, size_t currLayer,
                                             const std::vector<std::vector<size_t>> &layerPatches,
                                             const std::vector<size_t> &layerSizes);
+
+    void saveNetworkLayout();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP
