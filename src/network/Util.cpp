@@ -4,8 +4,45 @@ std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().ti
 std::normal_distribution<double> normalDistr(0.0, 1.0);
 std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
-namespace Util {
+void weightsToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, const double *weights) {
+    const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
+    size_t count = 0;
+    for (long i = 0; i < d[0]; ++i) {
+        for (long j = 0; j < d[1]; ++j) {
+            for (long k = 0; k < d[2]; ++k) {
+                for (long l = 0; l < d[3]; ++l) {
+                    for (int m = 0; m < d[4]; ++m) {
+                        tensor(i, j, k, l, m) = weights[count];
+                        ++count;
+                    }
+                }
+            }
+        }
+    }
+}
 
+void weightsToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, const double *weights) {
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
+    size_t count = 0;
+    for (long i = 0; i < d[0]; ++i) {
+        for (long j = 0; j < d[1]; ++j) {
+            for (long k = 0; k < d[2]; ++k) {
+                tensor(i, j, k) = weights[count];
+                ++count;
+            }
+        }
+    }
+}
+
+void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights) {
+    size_t count = 0;
+    for (auto &element: map) {
+        element.second = weights[count];
+        ++count;
+    }
+}
+
+namespace Util {
     bool fileExist(std::string &filePath) {
         if (FILE *file = fopen(filePath.c_str(), "r")) {
             fclose(file);
@@ -49,110 +86,34 @@ namespace Util {
         return mat;
     }
 
-//    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName) {
-//        cnpy::NpyArray array;
-//        if (endsWith(filePath, ".npz")) {
-//            array = cnpy::npz_load(filePath, arrayName);
-//        } else if (endsWith(filePath, ".npy")) {
-//            array = cnpy::npy_load(filePath);
-//        }
-//        auto *weights = array.data<double>();
-//
-//        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
-//        size_t count = 0;
-//        for (long i = 0; i < d[0]; ++i) {
-//            for (long j = 0; j < d[1]; ++j) {
-//                for (long k = 0; k < d[2]; ++k) {
-//                    for (long l = 0; l < d[3]; ++l) {
-//                        for (int m = 0; m < d[4]; ++m) {
-//                            tensor(i, j, k, l, m) = weights[count];
-//                            ++count;
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
+    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
+        auto *weights = cnpy::npy_load(filePath).data<double>();
+        weightsToSimpleTensor(tensor, weights);
+    }
 
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName) {
         auto *weights = arrayNPZ[arrayName].data<double>();
-
-        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    for (long l = 0; l < d[3]; ++l) {
-                        for (int m = 0; m < d[4]; ++m) {
-                            tensor(i, j, k, l, m) = weights[count];
-                            ++count;
-                        }
-                    }
-                }
-            }
-        }
+        weightsToSimpleTensor(tensor, weights);
     }
 
-//    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName) {
-//        cnpy::NpyArray array;
-//        if (endsWith(filePath, ".npz")) {
-//            array = cnpy::npz_load(filePath, arrayName);
-//        } else if (endsWith(filePath, ".npy")) {
-//            array = cnpy::npy_load(filePath);
-//        }
-//        auto *weights = array.data<double>();
-//
-//        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
-//        size_t count = 0;
-//        for (long i = 0; i < d[0]; ++i) {
-//            for (long j = 0; j < d[1]; ++j) {
-//                for (long k = 0; k < d[2]; ++k) {
-//                    tensor(i, j, k) = weights[count];
-//                    ++count;
-//                }
-//            }
-//        }
-//    }
+    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath) {
+        auto *weights = cnpy::npy_load(filePath).data<double>();
+        weightsToComplexTensor(tensor, weights);
+    }
 
     void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName) {
         auto *weights = arrayNPZ[arrayName].data<double>();
-
-        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    tensor(i, j, k) = weights[count];
-                    ++count;
-                }
-            }
-        }
+        weightsToComplexTensor(tensor, weights);
     }
 
-//    void loadNPYWeights(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
-//        cnpy::NpyArray array;
-//        if (endsWith(filePath, ".npz")) {
-//            array = cnpy::npz_load(filePath, arrayName);
-//        } else if (endsWith(filePath, ".npy")) {
-//            array = cnpy::npy_load(filePath);
-//        }
-//        auto *weights = array.data<double>();
-//
-//        size_t count = 0;
-//        for (auto &element: map) {
-//            element.second = weights[count];
-//            ++count;
-//        }
-//    }
+    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, std::string &filePath) {
+        auto *weights = cnpy::npy_load(filePath).data<double>();
+        weightsToMap(map, weights);
+    }
 
-    void loadNPYWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName) {
+    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName) {
         auto *weights = arrayNPZ[arrayName].data<double>();
-
-        size_t count = 0;
-        for (auto &element: map) {
-            element.second = weights[count];
-            ++count;
-        }
+        weightsToMap(map, weights);
     }
 
     void saveSimpleTensorToNPZ(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &filePath, std::string &arrayName) {

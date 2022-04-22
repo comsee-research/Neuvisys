@@ -91,15 +91,14 @@ void ComplexNeuron::saveWeights(std::string &filePath) {
     Util::saveComplexTensorToNPZ(m_weights, filePath, arrayName);
 }
 
+void ComplexNeuron::loadWeights(std::string &filePath) {
+    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
+    Util::loadNumpyFileToComplexTensor(m_weights, numpyFile);
+}
+
 void ComplexNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     auto arrayName = std::to_string(m_index);
     Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
-//    if (Util::endsWith(arrayNPZ, ".npz")) {
-//        auto arrayName = std::to_string(m_index);
-//        Util::loadNumpyFileToComplexTensor(m_weights, filePath, arrayName);
-//    } else if (Util::endsWith(arrayNPZ, ".npy")) {
-//        Util::loadNumpyFileToComplexTensor(m_weights, filePath, filePath);
-//    }
 }
 
 std::vector<long> ComplexNeuron::getWeightsDimension() {

@@ -42,9 +42,15 @@ public:
 
     void loadWeights(cnpy::npz_t &arrayNPZ) override;
 
+    void loadWeights(std::string &filePath) override;
+
     void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
 
+    void loadLateralInhibitionWeights(std::string &filePath) override;
+
     void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadTopDownInhibitionWeights(std::string &filePath) override;
 
     bool checkRemainingEvents(size_t time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 

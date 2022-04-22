@@ -125,6 +125,12 @@ public:
 
     virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
+    virtual void loadWeights(std::string &filePath) {};
+
+    virtual void loadLateralInhibitionWeights(std::string &filePath) {};
+
+    virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
+
     virtual void loadWeights(cnpy::npz_t &arrayNPZ) {};
 
     virtual void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
