@@ -16,7 +16,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/validation/1/");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/learn_critic/5/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -167,6 +167,12 @@ void NeuvisysGUI::on_text_network_config_textChanged() {
     modifyConfFile(confDir, text);
 }
 
+void NeuvisysGUI::on_text_rl_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/rl_config.json";
+    QString text = ui->text_rl_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
 void NeuvisysGUI::on_text_simple_cell_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/simple_cell_config.json";
     QString text = ui->text_simple_cell_config->toPlainText();
@@ -225,6 +231,8 @@ void NeuvisysGUI::openConfigFiles() {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
     ui->text_network_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/rl_config.json";
+    ui->text_rl_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/simple_cell_config.json";
     ui->text_simple_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/complex_cell_config.json";
@@ -469,6 +477,7 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     valueDotSeries->setName("Value Derivative");
     tdSeries = new QLineSeries();
     tdSeries->setName("TD Error");
+
     auto end = rewardTrain.size();
     for (auto i = 1; i < 1000; ++i) {
         if (i >= end) { break; }
@@ -502,8 +511,8 @@ void NeuvisysGUI::onDisplayAction(const std::vector<double> &action1Train, const
         actionSeries2->append(static_cast<qreal>(end - i), action2Train[end - i]);
     }
 
-    actionChart->addSeries(rewardSeries);
-    actionChart->addSeries(valueSeries);
+    actionChart->addSeries(actionSeries1);
+    actionChart->addSeries(actionSeries2);
     actionChart->createDefaultAxes();
     actionChart->legend()->setVisible(true);
     actionChart->legend()->setAlignment(Qt::AlignBottom);

@@ -426,7 +426,7 @@
         <item>
          <widget class="QTabWidget" name="tab_configs">
           <property name="currentIndex">
-           <number>4</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="network_config">
            <attribute name="title">
@@ -435,6 +435,16 @@
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
              <widget class="QTextEdit" name="text_network_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="rl_config">
+           <attribute name="title">
+            <string>RL config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_14">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_rl_config"/>
             </item>
            </layout>
           </widget>

@@ -51,6 +51,7 @@ class NetworkHandle {
 
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
+    double m_neuromodulator{};
     std::string m_eventsPath;
     size_t m_nbEvents{};
     int m_action{};
@@ -74,7 +75,7 @@ public:
 
     void feedEvents(const std::vector<Event> &events);
 
-    void updateActor(size_t actor);
+    void updateActor(size_t action);
 
     void saveValueMetrics(long time, size_t nbEvents);
 
@@ -136,6 +137,8 @@ private:
     bool loadHDF5Events(std::vector<Event> &events);
 
     bool loadHDF5EventsStereo(std::vector<Event> &events);
+
+    void computeNeuromodulator();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

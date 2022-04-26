@@ -162,7 +162,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
 
         sim.update();
-//        network.transmitReward(sim.getReward());
+        network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
         if (m_action != -1) {
             sim.activateMotors(m_action);
@@ -300,8 +300,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],
                                network.getSaveData()["tdError"]);
             break;
-        case 6:
-            emit displayAction(network.getSaveData()["action_1"], network.getSaveData()["action_2"]);
+        case 6: // action
+            emit displayAction(network.getSaveData()["action_0"], network.getSaveData()["action_1"]);
         default:
             break;
     }

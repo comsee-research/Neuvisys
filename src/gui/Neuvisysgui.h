@@ -91,6 +91,8 @@ private slots:
 
     void on_text_network_config_textChanged();
 
+    void on_text_rl_config_textChanged();
+
     void on_text_simple_cell_config_textChanged();
 
     void on_text_complex_cell_config_textChanged();
