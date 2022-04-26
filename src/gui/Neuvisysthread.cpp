@@ -151,7 +151,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
 }
 
 void NeuvisysThread::launchSimulation(NetworkHandle &network) {
-    SimulationInterface sim;
+    SimulationInterface sim(network.getRLConfig().getActionMapping());
     sim.enableSyncMode(true);
     sim.startSimulation();
 
@@ -277,7 +277,6 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
@@ -301,6 +300,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],
                                network.getSaveData()["tdError"]);
             break;
+        case 6:
+            emit displayAction(network.getSaveData()["action_1"], network.getSaveData()["action_2"]);
         default:
             break;
     }

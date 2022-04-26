@@ -123,8 +123,9 @@ inline double SpikingNetwork::computeNeuromodulator(long time) {
     for (const auto &critic: m_neurons[2]) {
         value += critic.get().updateKernelSpikingRate(time);
     }
-    auto V = m_networkConf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0();
-    return -V / m_networkConf.getTauR() + m_reward;
+    return -value / static_cast<double>(m_neurons[2].size()) + m_reward;
+//    auto V = m_networkConf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
+//    return -V / m_networkConf.getTauR() + m_reward;
 }
 
 void SpikingNetwork::updateNeurons(const long time) {
@@ -414,55 +415,81 @@ void SpikingNetwork::intermediateSave(size_t saveCount) {
 
 void SpikingNetwork::saveNeuronsStates() {
     size_t layer = 0;
-    std::string statePath, filePath, tdiFilePath, liFilePath;
-    bool tdi = false, li = false;
+    std::string fileName;
 
     for (auto &neurons: m_neurons) {
-        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weights.npz";
-        liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsLI.npz";
-        tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsTDI.npz";
-        statePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
-
-        std::vector<double> emptyArray(0);
-        cnpy::npz_save(filePath, "", &emptyArray[0], {0}, "w");
-
-        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(),
-                      m_networkConf.getLayerInhibitions()[layer].end(), "lateral") != m_networkConf.getLayerInhibitions()[layer].end()) {
-            cnpy::npz_save(liFilePath, "", &emptyArray[0], {0}, "w");
-            li = true;
-        }
-        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(),
-                      m_networkConf.getLayerInhibitions()[layer].end(), "topdown") != m_networkConf.getLayerInhibitions()[layer].end()) {
-            cnpy::npz_save(tdiFilePath, "", &emptyArray[0], {0}, "w");
-            tdi = true;
-        }
-
         if (layer == 0 && m_networkConf.getSharingType() == "patch") {
             size_t step = m_networkConf.getLayerSizes()[0][0] * m_networkConf.getLayerSizes()[0][1] * m_networkConf.getLayerSizes()[0][2];
             size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
             for (size_t patch = 0; patch < patch_size; ++patch) {
                 for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
-                    neurons[patch * step + i].get().saveWeights(filePath);
+                    fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+                    neurons[patch * step + i].get().saveWeights(fileName);
                 }
             }
         }
-
         for (auto &neuron: neurons) {
-            neuron.get().saveState(statePath);
-
-            if (li) {
-                neuron.get().saveLateralInhibitionWeights(liFilePath);
-            }
-            if (tdi) {
-                neuron.get().saveTopDownInhibitionWeights(tdiFilePath);
-            }
+            fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+            neuron.get().saveState(fileName);
+            neuron.get().saveLateralInhibitionWeights(fileName);
+            neuron.get().saveTopDownInhibitionWeights(fileName);
             if (layer != 0 || m_networkConf.getSharingType() != "patch") {
-                neuron.get().saveWeights(filePath);
+                neuron.get().saveWeights(fileName);
             }
         }
-
         ++layer;
     }
+
+//    size_t layer = 0;
+//    std::string statePath, filePath, tdiFilePath, liFilePath;
+//    bool tdi = false, li = false;
+//
+//    for (auto &neurons: m_neurons) {
+//        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weights.npz";
+//        liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsLI.npz";
+//        tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsTDI.npz";
+//        statePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+//
+//        std::vector<double> emptyArray(0);
+//        cnpy::npz_save(filePath, "", &emptyArray[0], {0}, "w");
+//
+//        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(),
+//                      m_networkConf.getLayerInhibitions()[layer].end(), "lateral") != m_networkConf.getLayerInhibitions()[layer].end()) {
+//            cnpy::npz_save(liFilePath, "", &emptyArray[0], {0}, "w");
+//            li = true;
+//        }
+//        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(),
+//                      m_networkConf.getLayerInhibitions()[layer].end(), "topdown") != m_networkConf.getLayerInhibitions()[layer].end()) {
+//            cnpy::npz_save(tdiFilePath, "", &emptyArray[0], {0}, "w");
+//            tdi = true;
+//        }
+//
+//        if (layer == 0 && m_networkConf.getSharingType() == "patch") {
+//            size_t step = m_networkConf.getLayerSizes()[0][0] * m_networkConf.getLayerSizes()[0][1] * m_networkConf.getLayerSizes()[0][2];
+//            size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
+//            for (size_t patch = 0; patch < patch_size; ++patch) {
+//                for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
+//                    neurons[patch * step + i].get().saveWeights(filePath);
+//                }
+//            }
+//        }
+//
+//        for (auto &neuron: neurons) {
+//            neuron.get().saveState(statePath);
+//
+//            if (li) {
+//                neuron.get().saveLateralInhibitionWeights(liFilePath);
+//            }
+//            if (tdi) {
+//                neuron.get().saveTopDownInhibitionWeights(tdiFilePath);
+//            }
+//            if (layer != 0 || m_networkConf.getSharingType() != "patch") {
+//                neuron.get().saveWeights(filePath);
+//            }
+//        }
+//
+//        ++layer;
+//    }
 }
 
 void SpikingNetwork::loadWeights() {
@@ -471,78 +498,26 @@ void SpikingNetwork::loadWeights() {
     bool tdi, li;
     cnpy::npz_t liArrayNPZ, tdiArrayNPZ;
 
-    for (auto &neurons: m_neurons) {
-        std::string path(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0.npy");
-        if (Util::fileExist(path)) {
-            if (layer == 0 && m_networkConf.getSharingType() == "patch") {
-                size_t step = m_networkConf.getLayerSizes()[0][0] * m_networkConf.getLayerSizes()[0][1] * m_networkConf.getLayerSizes()[0][2];
-                size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
-                for (size_t patch = 0; patch < patch_size; ++patch) {
-                    for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
-                        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
-                        neurons[patch * step + i].get().loadWeights(filePath);
-                    }
-                }
-            }
-            for (auto &neuron: neurons) {
-                filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
-                neuron.get().loadState(filePath);
-                neuron.get().loadLateralInhibitionWeights(filePath);
-                neuron.get().loadTopDownInhibitionWeights(filePath);
-                if (layer != 0 || m_networkConf.getSharingType() != "patch") {
-                    neuron.get().loadWeights(filePath);
-                }
-            }
-            std::cout << "Layer " << layer << ": weights loaded from file" << std::endl;
-        } else {
-            std::cout << "Layer " << layer << ": new weights generated" << std::endl;
-        }
-        ++layer;
-    }
-
 //    for (auto &neurons: m_neurons) {
-//        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weights.npz";
-//        liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsLI.npz";
-//        tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsTDI.npz";
-//        statePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
-//
-//        if (Util::fileExist(liFilePath)) {
-//            liArrayNPZ = cnpy::npz_load(liFilePath);
-//            li = true;
-//        } else {
-//            li = false;
-//        }
-//        if (Util::fileExist(tdiFilePath)) {
-//            tdiArrayNPZ = cnpy::npz_load(liFilePath);
-//            tdi = true;
-//        } else {
-//            tdi = false;
-//        }
-//
-//        if (Util::fileExist(filePath)) {
-//            auto arrayNPZ = cnpy::npz_load(filePath);
-//
+//        std::string path(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0.npy");
+//        if (Util::fileExist(path)) {
 //            if (layer == 0 && m_networkConf.getSharingType() == "patch") {
 //                size_t step = m_networkConf.getLayerSizes()[0][0] * m_networkConf.getLayerSizes()[0][1] * m_networkConf.getLayerSizes()[0][2];
 //                size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
 //                for (size_t patch = 0; patch < patch_size; ++patch) {
 //                    for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
-//                        neurons[patch * step + i].get().loadWeights(arrayNPZ);
+//                        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+//                        neurons[patch * step + i].get().loadWeights(filePath);
 //                    }
 //                }
 //            }
-//
 //            for (auto &neuron: neurons) {
-//                neuron.get().loadState(statePath); // TODO: optim -> very slow
-//
-//                if (li) {
-//                    neuron.get().loadLateralInhibitionWeights(liArrayNPZ);
-//                }
-//                if (tdi) {
-//                    neuron.get().loadTopDownInhibitionWeights(tdiArrayNPZ);
-//                }
+//                filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+//                neuron.get().loadState(filePath);
+//                neuron.get().loadLateralInhibitionWeights(filePath);
+//                neuron.get().loadTopDownInhibitionWeights(filePath);
 //                if (layer != 0 || m_networkConf.getSharingType() != "patch") {
-//                    neuron.get().loadWeights(arrayNPZ);
+//                    neuron.get().loadWeights(filePath);
 //                }
 //            }
 //            std::cout << "Layer " << layer << ": weights loaded from file" << std::endl;
@@ -551,6 +526,58 @@ void SpikingNetwork::loadWeights() {
 //        }
 //        ++layer;
 //    }
+
+    for (auto &neurons: m_neurons) {
+        filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weights.npz";
+        liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsLI.npz";
+        tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/weightsTDI.npz";
+        statePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+
+        if (Util::fileExist(liFilePath)) {
+            liArrayNPZ = cnpy::npz_load(liFilePath);
+            li = true;
+        } else {
+            li = false;
+        }
+        if (Util::fileExist(tdiFilePath)) {
+            tdiArrayNPZ = cnpy::npz_load(liFilePath);
+            tdi = true;
+        } else {
+            tdi = false;
+        }
+
+        if (Util::fileExist(filePath)) {
+            auto arrayNPZ = cnpy::npz_load(filePath);
+
+            if (layer == 0 && m_networkConf.getSharingType() == "patch") {
+                size_t step = m_networkConf.getLayerSizes()[0][0] * m_networkConf.getLayerSizes()[0][1] * m_networkConf.getLayerSizes()[0][2];
+                size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
+                for (size_t patch = 0; patch < patch_size; ++patch) {
+                    for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
+                        neurons[patch * step + i].get().loadWeights(arrayNPZ);
+                    }
+                }
+            }
+
+            for (auto &neuron: neurons) {
+                neuron.get().loadState(statePath);
+
+                if (li) {
+                    neuron.get().loadLateralInhibitionWeights(liArrayNPZ);
+                }
+                if (tdi) {
+                    neuron.get().loadTopDownInhibitionWeights(tdiArrayNPZ);
+                }
+                if (layer != 0 || m_networkConf.getSharingType() != "patch") {
+                    neuron.get().loadWeights(arrayNPZ);
+                }
+            }
+            std::cout << "Layer " << layer << ": weights loaded from file" << std::endl;
+        } else {
+            std::cout << "Layer " << layer << ": new weights generated" << std::endl;
+        }
+        ++layer;
+    }
 }
 
 std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, const size_t layer) {

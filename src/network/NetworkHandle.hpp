@@ -40,6 +40,7 @@ struct SaveTime {
  */
 class NetworkHandle {
     SpikingNetwork m_spinet;
+    ReinforcementLearningConfig m_rlConf;
     NetworkConfig m_networkConf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
@@ -116,6 +117,8 @@ public:
     cv::Mat getSummedWeightNeuron(size_t idNeuron, size_t layer);
 
     NetworkConfig getNetworkConfig() { return m_networkConf; }
+
+    ReinforcementLearningConfig getRLConfig() { return m_rlConf; }
 
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
 

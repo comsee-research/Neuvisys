@@ -42,6 +42,44 @@ void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights
     }
 }
 
+void simpleTensorToWeights(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::vector<double> &data,
+                           const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d) {
+    size_t count = 0;
+    for (long i = 0; i < d[0]; ++i) {
+        for (long j = 0; j < d[1]; ++j) {
+            for (long k = 0; k < d[2]; ++k) {
+                for (long l = 0; l < d[3]; ++l) {
+                    for (int m = 0; m < d[4]; ++m) {
+                        data[count] = tensor(i, j, k, l, m);
+                        ++count;
+                    }
+                }
+            }
+        }
+    }
+}
+
+void complexTensorToWeights(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::vector<double> &data,
+                            const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d) {
+    size_t count = 0;
+    for (long i = 0; i < d[0]; ++i) {
+        for (long j = 0; j < d[1]; ++j) {
+            for (long k = 0; k < d[2]; ++k) {
+                data[count] = tensor(i, j, k);
+                ++count;
+            }
+        }
+    }
+}
+
+void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data) {
+    size_t count = 0;
+    for (auto const &element: map) {
+        data[count] = element.second;
+        ++count;
+    }
+}
+
 namespace Util {
     bool fileExist(std::string &filePath) {
         if (FILE *file = fopen(filePath.c_str(), "r")) {
@@ -52,7 +90,7 @@ namespace Util {
         }
     }
 
-    bool endsWith(std::string const & value, std::string const & ending) {
+    bool endsWith(std::string const &value, std::string const &ending) {
         if (ending.size() > value.size()) return false;
         return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
     }
@@ -116,50 +154,46 @@ namespace Util {
         weightsToMap(map, weights);
     }
 
-    void saveSimpleTensorToNPZ(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &filePath, std::string &arrayName) {
+    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
         const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
         std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3] * d[4]));
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    for (long l = 0; l < d[3]; ++l) {
-                        for (int m = 0; m < d[4]; ++m) {
-                            data[count] = tensor(i, j, k, l, m);
-                            ++count;
-                        }
-                    }
-                }
-            }
-        }
-        cnpy::npz_save(filePath, arrayName, &data[0],{static_cast<size_t>(d[0]), static_cast<size_t>(d[1]),
-                                           static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "a");
+        simpleTensorToWeights(tensor, data, d);
+        cnpy::npy_save(filePath + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]),
+                                                     static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "w");
     }
 
-    void saveComplexTensorToNPZ(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &filePath, std::string &arrayName) {
+    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName) {
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
+        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3] * d[4]));
+        simpleTensorToWeights(tensor, data, d);
+        cnpy::npz_save(filePath, arrayName, &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]),
+                                                       static_cast<size_t>(d[2]), static_cast<size_t>(d[3]), static_cast<size_t>(d[4])}, "a");
+    }
+
+    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath) {
         const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
         std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
-        size_t count = 0;
-        for (long i = 0; i < d[0]; ++i) {
-            for (long j = 0; j < d[1]; ++j) {
-                for (long k = 0; k < d[2]; ++k) {
-                    data[count] = tensor(i, j, k);
-                    ++count;
-                }
-            }
-        }
+        complexTensorToWeights(tensor, data, d);
+        cnpy::npy_save(filePath + ".npy", &data[0], {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "w");
+    }
 
+    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName) {
+        const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = tensor.dimensions();
+        std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
+        complexTensorToWeights(tensor, data, d);
         cnpy::npz_save(filePath, arrayName, &data[0],
                        {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "a");
     }
 
-    void saveWeightsToNPZ(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
+    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath) {
         std::vector<double> data(static_cast<size_t>(map.size()));
-        size_t count = 0;
-        for (auto const &element: map) {
-            data[count] = element.second;
-            ++count;
-        }
+        mapToWeights(map, data);
+        cnpy::npy_save(filePath + ".npy", &data[0], {map.size()}, "w");
+    }
+
+    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
+        std::vector<double> data(static_cast<size_t>(map.size()));
+        mapToWeights(map, data);
         cnpy::npz_save(filePath, arrayName, &data[0], {map.size()}, "a");
     }
 

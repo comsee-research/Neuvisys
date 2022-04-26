@@ -4,7 +4,7 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface(bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
+SimulationInterface::SimulationInterface(std::vector<std::pair<uint64_t, float>> actions, bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
     frameConverter = FrameToEvents(5, 1, 0, 0.4, 0, 1, saveFrames, m_saveEvents);
 
     m_rewardSub = nh.subscribe<std_msgs::Float32>("reward", 1000, [this](auto && PH1) { rewardSignalCallBack(std::forward<decltype(PH1)>(PH1)); });
@@ -26,15 +26,13 @@ SimulationInterface::SimulationInterface(bool saveFrames, bool saveEvents) : m_s
         sleep_t.sleep();
     }
 
-    actionMapping.emplace_back(std::map<uint64_t, float>({{1, 5}})); // clockwise rotation
-    actionMapping.emplace_back(std::map<uint64_t, float>({{1, -5}})); // counter-clockwise rotation
+    for (auto pair : actions) {
+        m_actionMapping.emplace_back(pair);
+    }
 
-//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
-//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
-//    actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
-
-//    actionMapping.emplace_back(std::mak_pair(0, 0.05)); // increment speed left
-//    actionMapping.emplace_back(std::make_pair(0, -0.05)); // increment speed right
+//    m_actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0.15}, {2, -0.15}})); // left horizontal -> left movement
+//    m_actionMapping.emplace_back(std::map<uint64_t, float>({{0, 0}, {2, 0}})); // no movement
+//    m_actionMapping.emplace_back(std::map<uint64_t, float>({{0, -0.15}, {2, 0.15}})); // left horizontal  -> right movement
 }
 
 void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Image const> &frame, const std::string &topic) {
@@ -105,23 +103,22 @@ void SimulationInterface::motorsJitter(double dt) {
 }
 
 void SimulationInterface::activateMotors(uint64_t action) {
-    for (const auto &[motor, speed] : actionMapping[action]) {
-        switch (motor) {
-            case 0:
-                m_leftMotor1Pub.changeSpeed(speed);
-                break;
-            case 1:
-                m_leftMotor2Pub.changeSpeed(speed);
-                break;
-            case 2:
-                m_rightMotor1Pub.changeSpeed(speed);
-                break;
-            case 3:
-                m_rightMotor2Pub.changeSpeed(speed);
-                break;
-            default:
-                break;
-        }
+    auto pair = m_actionMapping[action];
+    switch (pair.first) {
+        case 0:
+            m_leftMotor1Pub.changeSpeed(pair.second);
+            break;
+        case 1:
+            m_leftMotor2Pub.changeSpeed(pair.second);
+            break;
+        case 2:
+            m_rightMotor1Pub.changeSpeed(pair.second);
+            break;
+        case 3:
+            m_rightMotor2Pub.changeSpeed(pair.second);
+            break;
+        default:
+            break;
     }
 }
 

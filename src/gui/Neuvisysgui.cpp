@@ -81,6 +81,17 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rewardChart->setTitle("Reward plot");
     ui->rewardView->setChart(rewardChart);
     ui->rewardView->setRenderHint(QPainter::Antialiasing);
+
+    actionSeries1 = new QLineSeries();
+    actionSeries2 = new QLineSeries();
+    actionChart = new QChart();
+    actionChart->legend()->hide();
+    actionChart->addSeries(actionSeries1);
+    actionChart->addSeries(actionSeries2);
+    actionChart->createDefaultAxes();
+    actionChart->setTitle("Action plot");
+    ui->actionView->setChart(actionChart);
+    ui->actionView->setRenderHint(QPainter::Antialiasing);
 }
 
 NeuvisysGUI::~NeuvisysGUI() {
@@ -268,16 +279,6 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     }
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
-
-    std::vector<QString> labels;
-    for (size_t i = 0; i < networkStructure.back(); ++i) {
-        labels.push_back(QString::number(i));
-        auto *label = new QLabel(this);
-        label->setText(QString(labels[i]));
-
-        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-        label->show();
-    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -486,18 +487,27 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     ui->rewardView->update();
 }
 
-void NeuvisysGUI::onDisplayAction(const std::vector<bool> &motorActivation) {
-    int count = 0;
-    for (auto action: motorActivation) {
-        if (action) {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
-        } else {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
-        }
-        ++count;
+void NeuvisysGUI::onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train) {
+    actionChart->removeSeries(actionSeries1);
+    actionChart->removeSeries(actionSeries2);
+    actionSeries1 = new QLineSeries();
+    actionSeries1->setName("Action1");
+    actionSeries2 = new QLineSeries();
+    actionSeries2->setName("Action2");
+
+    auto end = action1Train.size();
+    for (auto i = 1; i < 1000; ++i) {
+        if (i >= end) { break; }
+        actionSeries1->append(static_cast<qreal>(end - i), action1Train[end - i]);
+        actionSeries2->append(static_cast<qreal>(end - i), action2Train[end - i]);
     }
+
+    actionChart->addSeries(rewardSeries);
+    actionChart->addSeries(valueSeries);
+    actionChart->createDefaultAxes();
+    actionChart->legend()->setVisible(true);
+    actionChart->legend()->setAlignment(Qt::AlignBottom);
+    ui->actionView->update();
 }
 
 void NeuvisysGUI::on_slider_precision_event_sliderMoved(int position) {

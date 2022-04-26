@@ -28,11 +28,17 @@ namespace Util {
 
     void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName);
 
-    void saveSimpleTensorToNPZ(Eigen::Tensor<double, SIMPLEDIM> tensor, std::string &filePath, std::string &arrayName);
+    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 
-    void saveComplexTensorToNPZ(Eigen::Tensor<double, COMPLEXDIM> tensor, std::string &filePath, std::string &arrayName);
+    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName);
 
-    void saveWeightsToNPZ(std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName);
+    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
+
+    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName);
+
+    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath);
+
+    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName);
 
     int winnerTakeAll(std::vector<size_t> vec);
 

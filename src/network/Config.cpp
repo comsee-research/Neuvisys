@@ -6,8 +6,8 @@ using json = nlohmann::json;
 
 NetworkConfig::NetworkConfig() = default;
 
-NetworkConfig::NetworkConfig(const std::string &networkConfigPath) {
-    m_networkConfigPath = networkConfigPath;
+NetworkConfig::NetworkConfig(const std::string &configFile) {
+    m_networkConfigPath = configFile;
     std::string toRemove = "configs/network_config.json";
     m_networkPath = m_networkConfigPath.substr(0, m_networkConfigPath.size() - toRemove.size());
     loadNetworkLayout();
@@ -30,6 +30,30 @@ void NetworkConfig::loadNetworkLayout() {
             neuronOverlap = static_cast<std::vector<std::vector<size_t>>>(conf["neuronOverlap"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
+        } catch (const std::exception &e) {
+            std::cerr << "In network config file:" << e.what() << std::endl;
+            throw;
+        }
+    } else {
+        std::cout << "cannot open network configuration file" << std::endl;
+    }
+    ifs.close();
+}
+
+ReinforcementLearningConfig::ReinforcementLearningConfig() = default;
+
+ReinforcementLearningConfig::ReinforcementLearningConfig(const std::string &configFile) {
+    loadRLConfig(configFile);
+}
+
+void ReinforcementLearningConfig::loadRLConfig(const std::string &fileName) {
+    json conf;
+
+    std::ifstream ifs(fileName);
+    if (ifs.is_open()) {
+        try {
+            ifs >> conf;
+            actionMapping = static_cast<std::vector<std::pair<uint64_t, float>>>(conf["actionMapping"]);
             nu = conf["nu"];
             V0 = conf["V0"];
             tauR = conf["tauR"];
@@ -38,11 +62,11 @@ void NetworkConfig::loadNetworkLayout() {
             actionRate = static_cast<long>(E3) * static_cast<long>(conf["actionRate"]);
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
         } catch (const std::exception &e) {
-            std::cerr << "In network config file:" << e.what() << std::endl;
+            std::cerr << "In reinforcement learning config file:" << e.what() << std::endl;
             throw;
         }
     } else {
-        std::cout << "cannot open network configuration file" << std::endl;
+        std::cout << "cannot open reinforcement learning configuration file" << std::endl;
     }
     ifs.close();
 }

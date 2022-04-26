@@ -22,6 +22,7 @@ NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(t
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
                                             m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
+                                            m_rlConf(networkPath + "configs/reinforcement_learning_config.json"),
                                             m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json",0),
                                             m_complexNeuronConf(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json",1),
                                             m_criticNeuronConf(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json",2),
@@ -95,7 +96,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 
 void NetworkHandle::load() {
     std::string fileName;
-    fileName = m_networkConf.getNetworkPath() + "networkState.json";
+    fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
 
     json state;
     std::ifstream ifs(fileName);
@@ -118,7 +119,7 @@ void NetworkHandle::load() {
 void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbRun = 0) {
     std::cout << "Saving Network..." << std::endl;
     std::string fileName;
-    fileName = m_networkConf.getNetworkPath() + "networkState.json";
+    fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
 
     json state;
     std::ifstream ifs(fileName);
@@ -143,8 +144,8 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     }
 
     state["learning_data"] = m_saveData;
-    state["action_rate"] = m_networkConf.getActionRate();
-    state["exploration_factor"] = m_networkConf.getExplorationFactor();
+    state["action_rate"] = getRLConfig().getActionRate();
+    state["exploration_factor"] = getRLConfig().getExplorationFactor();
     state["save_count"] = m_saveCount;
     state["nb_events"] = m_countEvents;
 
@@ -178,18 +179,18 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         learningDecay(SCORE_INTERVAL / E6);
 
         msg = "\n\nAverage reward: " + std::to_string(getScore(static_cast<long>(m_scoreCount))) +
-              "\nExploration factor: " + std::to_string(getNetworkConfig().getExplorationFactor()) +
-              "\nAction rate: " + std::to_string(getNetworkConfig().getActionRate());
+              "\nExploration factor: " + std::to_string(getRLConfig().getExplorationFactor()) +
+              "\nAction rate: " + std::to_string(getRLConfig().getActionRate());
         m_scoreCount = 0;
     }
 
     ++m_actionCount;
-    if (time - m_saveTime.action > static_cast<double>(getNetworkConfig().getActionRate())) {
+    if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
         if (m_action != -1) {
             updateActor(m_action);
         }
-        auto choice = actionSelection(resolveMotor(), getNetworkConfig().getExplorationFactor());
+        auto choice = actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
         m_action = choice.first;
         m_actionCount = 0;
         if (m_action != -1) {
@@ -242,9 +243,18 @@ void NetworkHandle::updateActor(size_t actor) {
 std::vector<uint64_t> NetworkHandle::resolveMotor() {
     std::vector<uint64_t> motorActivations(m_spinet.getNetworkStructure().back(), 0);
 
+    auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     size_t layer = m_spinet.getNetworkStructure().size() - 1;
+    size_t action = 0, count = 0, spikeCount = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        motorActivations[m_spinet.getNeuron(i, layer).get().getIndex()] = m_spinet.getNeuron(i, layer).get().getActivityCount();
+        if (count >= neuronPerAction) {
+            motorActivations[action] = spikeCount;
+            m_saveData["action_" + std::to_string(action)].push_back(static_cast<double>(spikeCount));
+            spikeCount = 0;
+            ++action;
+        }
+        spikeCount += m_spinet.getNeuron(i, layer).get().getActivityCount();
+        ++count;
     }
     return motorActivations;
 }
@@ -257,7 +267,7 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["value"].push_back(V);
     double VDot = valueDerivative(m_saveData["value"]);
     m_saveData["valueDot"].push_back(VDot);
-    auto tdError = VDot - V / m_networkConf.getTauR() + m_reward;
+    auto tdError = VDot - V / getRLConfig().getTauR() + m_reward;
     m_saveData["tdError"].push_back(tdError);
 }
 
@@ -276,7 +286,6 @@ double NetworkHandle::getScore(long nbPreviousReward) {
         mean /= static_cast<double>(nbPreviousReward);
         m_saveData["score"].push_back(mean);
     }
-
     return mean;
 }
 
@@ -290,8 +299,7 @@ double NetworkHandle::valueFunction(long time) {
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
         value += m_spinet.getNeuron(i, 2).get().updateKernelSpikingRate(time);
     }
-    return m_networkConf.getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) +
-           m_networkConf.getV0();
+    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + getRLConfig().getV0();
 }
 
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
@@ -314,14 +322,14 @@ void NetworkHandle::transmitEvent(const Event &event) {
 }
 
 void NetworkHandle::learningDecay(double time) {
-    double decay = time * getNetworkConfig().getDecayRate() / 100;
+    double decay = time * getRLConfig().getDecayRate() / 100;
 
 //    m_spinet.getNeuron(0, 2).get().learningDecay(1 - decay); // changing m_conf instance reference
 //    m_spinet.getNeuron(0, 3).get().learningDecay(1 - decay);
 
-    m_networkConf.setExplorationFactor(m_networkConf.getExplorationFactor() * (1 - decay));
-//    if (m_networkConf.getActionRate() > m_networkConf.getMinActionRate()) {
-//        m_networkConf.setActionRate(static_cast<long>(m_networkConf.getActionRate() * (1 - decay)));
+    m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
+//    if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {
+//        getRLConfig().setActionRate(static_cast<long>(getRLConfig().getActionRate() * (1 - decay)));
 //    }
 }
 

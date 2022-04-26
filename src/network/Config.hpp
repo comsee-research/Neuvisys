@@ -40,18 +40,10 @@ class NetworkConfig {
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
 
-    double nu{};
-    double V0{};
-    double tauR{};
-    double explorationFactor{};
-    long actionRate{};
-    long minActionRate{};
-    double decayRate{};
-
 public:
     NetworkConfig();
 
-    explicit NetworkConfig(const std::string& networkConfigPath);
+    explicit NetworkConfig(const std::string& configFile);
 
     void loadNetworkLayout();
 
@@ -64,20 +56,6 @@ public:
     [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
 
     [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
-
-    [[nodiscard]] double getNu() const { return nu; }
-
-    [[nodiscard]] double getV0() const { return V0; }
-
-    [[nodiscard]] double getTauR() const { return tauR; }
-
-    [[nodiscard]] double getExplorationFactor() const { return explorationFactor; }
-
-    [[nodiscard]] long getActionRate() const { return actionRate; }
-
-    [[nodiscard]] long getMinActionRate() const { return minActionRate; }
-
-    [[nodiscard]] double getDecayRate() const { return decayRate; }
 
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
 
@@ -92,10 +70,6 @@ public:
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
 
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
-
-    void setExplorationFactor(double factor) { explorationFactor = factor; }
-
-    void setActionRate(long rate) { actionRate = rate; }
 
     static void createNetwork(const std::string &directory);
 };
@@ -150,6 +124,45 @@ private:
     void loadCriticNeuronsParameters(const std::string &fileName);
 
     void loadActorNeuronsParameters(const std::string &fileName);
+};
+
+class ReinforcementLearningConfig {
+public:
+    double nu{};
+    double V0{};
+    double tauR{};
+    double explorationFactor{};
+    long actionRate{};
+    long minActionRate{};
+    double decayRate{};
+    std::vector<std::pair<uint64_t, float>> actionMapping{};
+
+    ReinforcementLearningConfig();
+
+    explicit ReinforcementLearningConfig(const std::string& configFile);
+
+    [[nodiscard]] std::vector<std::pair<uint64_t, float>> getActionMapping() const { return actionMapping; }
+
+    [[nodiscard]] double getNu() const { return nu; }
+
+    [[nodiscard]] double getV0() const { return V0; }
+
+    [[nodiscard]] double getTauR() const { return tauR; }
+
+    [[nodiscard]] double getExplorationFactor() const { return explorationFactor; }
+
+    [[nodiscard]] long getActionRate() const { return actionRate; }
+
+    [[nodiscard]] long getMinActionRate() const { return minActionRate; }
+
+    [[nodiscard]] double getDecayRate() const { return decayRate; }
+
+    void setExplorationFactor(double factor) { explorationFactor = factor; }
+
+    void setActionRate(long rate) { actionRate = rate; }
+
+private:
+    void loadRLConfig(const std::string &fileName);
 };
 
 #endif //NEUVISYS_DV_CONFIG_HPP
