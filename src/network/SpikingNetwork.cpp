@@ -162,6 +162,12 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
                                                       static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y));
                 }
             }
+        } else if (m_networkConf.getSharingType() == "full") {
+            for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
+                m_sharedWeightsSimple.push_back(
+                        Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
+                                                  static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y));
+            }
         } else {
             std::cout << "Wrong type of sharing" << std::endl;
         }
@@ -210,6 +216,8 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                                 weightIndex = neuronIndex;
                             } else if (sharingType == "patch") {
                                 weightIndex = countWeightSharing * layerSizes[2] + k;
+                            } else if (sharingType == "full") {
+                                weightIndex = k;
                             }
 
                             // Position of the neuron in the neuronal layer space (x, y, z)
@@ -428,13 +436,18 @@ void SpikingNetwork::saveNeuronsStates() {
                     neurons[patch * step + i].get().saveWeights(fileName);
                 }
             }
+        } else if (layer == 0 && m_networkConf.getSharingType() == "full") {
+            for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
+                fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+                neurons[i].get().saveWeights(fileName);
+            }
         }
         for (auto &neuron: neurons) {
             fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
             neuron.get().saveState(fileName);
             neuron.get().saveLateralInhibitionWeights(fileName);
             neuron.get().saveTopDownInhibitionWeights(fileName);
-            if (layer != 0 || m_networkConf.getSharingType() != "patch") {
+            if (layer != 0 || m_networkConf.getSharingType() == "none") {
                 neuron.get().saveWeights(fileName);
             }
         }
@@ -511,13 +524,18 @@ void SpikingNetwork::loadWeights() {
                         neurons[patch * step + i].get().loadWeights(filePath);
                     }
                 }
+            } else if (layer == 0 && m_networkConf.getSharingType() == "full") {
+                for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
+                    filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
+                    neurons[i].get().loadWeights(filePath);
+                }
             }
             for (auto &neuron: neurons) {
                 filePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
                 neuron.get().loadState(filePath);
                 neuron.get().loadLateralInhibitionWeights(filePath);
                 neuron.get().loadTopDownInhibitionWeights(filePath);
-                if (layer != 0 || m_networkConf.getSharingType() != "patch") {
+                if (layer != 0 || m_networkConf.getSharingType() == "none") {
                     neuron.get().loadWeights(filePath);
                 }
             }
