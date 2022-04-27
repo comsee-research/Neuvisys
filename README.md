@@ -178,7 +178,7 @@ The network parameters are saved in json configuration files:
 | ------ | ------ | ------ | ------ |
 | nbCameras | integer | [1, 2] | for mono or stereo applications. |
 | neuron1Synapses | integer | [1 - inf] | number of synapses between the pixel array and the first layer |
-| sharingType | string | ["none", "patch"] | type of weight sharing. "none" = no weight shring, "patch" = weight shared between patches/regions of neurons |
+| sharingType | string | ["none", "patch", "full"] | type of weight sharing. "none" = no weight sharing, "patch" = weights shared between patches/regions of neurons, "full" = weights shared among all network (even if there is multiple pacthes) |
 | layerCellTypes | list string | (["SimpleCell", "ComplexCell", "CriticCell", "ActorCell"], ...) | type of neuron used for each layer |
 | layerInhibitions | list string | (["none", "static", "topdown", "lateral"], ...) | type of inhibition |
 | interLayerConnections | list integer | ([0 - inf], ...) | indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1) |
