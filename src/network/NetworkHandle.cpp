@@ -240,12 +240,12 @@ void NetworkHandle::computeNeuromodulator() {
 
 void NetworkHandle::updateActor(size_t action) {
     for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
-        m_spinet.getNeuron(action, 2).get().setNeuromodulator(m_neuromodulator);
+        m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
     }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = action * neuronPerAction;
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
-        m_spinet.getNeuron(action, 3).get().setNeuromodulator(m_neuromodulator);
+        m_spinet.getNeuron(i, 3).get().setNeuromodulator(m_neuromodulator);
     }
 //        m_spinet.normalizeActions();
 }

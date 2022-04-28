@@ -172,14 +172,14 @@ void SimpleNeuron::saveWeights(std::string &filePath) {
 
 void SimpleNeuron::saveLateralInhibitionWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index) + "li";
-    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, weightsFile);
+    Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, weightsFile);
 //    auto arrayName = std::to_string(m_index);
 //    Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, filePath, arrayName);
 }
 
 void SimpleNeuron::saveTopDownInhibitionWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index) + "tdi";
-    Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, weightsFile);
+    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, weightsFile);
 //    auto arrayName = std::to_string(m_index);
 //    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, filePath, arrayName);
 }

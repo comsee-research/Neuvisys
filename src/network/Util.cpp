@@ -202,18 +202,21 @@ namespace Util {
         std::vector<double> x(events.size());
         std::vector<double> y(events.size());
         std::vector<double> polarity(events.size());
+        std::vector<double> camera(events.size());
         size_t count = 0;
         for (auto const &event: events) {
             timestamp[count] = static_cast<double>(event.timestamp());
             x[count] = event.x();
             y[count] = event.y();
             polarity[count] = event.polarity();
+            camera[count] = event.camera();
             ++count;
         }
         cnpy::npz_save(filePath + ".npz", "arr_0", &timestamp[0], {events.size()}, "w");
         cnpy::npz_save(filePath + ".npz", "arr_1", &x[0], {events.size()}, "a");
         cnpy::npz_save(filePath + ".npz", "arr_2", &y[0], {events.size()}, "a");
         cnpy::npz_save(filePath + ".npz", "arr_3", &polarity[0], {events.size()}, "a");
+        cnpy::npz_save(filePath + ".npz", "arr_4", &camera[0], {events.size()}, "a");
     }
 
     int winnerTakeAll(std::vector<size_t> vec) {
