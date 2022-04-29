@@ -21,6 +21,7 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralStaticInhibitionConnections;
+    std::vector<std::reference_wrapper<Neuron>> m_topDownDynamicInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
     std::unordered_map<size_t, double> m_topDownInhibitionWeights;
     std::unordered_map<size_t, double> m_lateralInhibitionWeights;
@@ -40,6 +41,9 @@ protected:
     double m_spikingRateAverage{};
     std::vector<size_t> m_trackingSpikeTrain;
     std::vector<std::pair<double, size_t>> m_trackingPotentialTrain;
+
+private:
+    virtual void spike(size_t time) {};
 
 public:
     Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset);
@@ -87,10 +91,13 @@ public:
     getInConnections() const { return m_inConnections; }
 
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
-    getlateralStaticInhibitionConnections() const { return m_lateralStaticInhibitionConnections; }
+    getLateralStaticInhibitionConnections() const { return m_lateralStaticInhibitionConnections; }
 
     [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
-    getlateralDynamicInhibitionConnections() const { return m_lateralDynamicInhibitionConnections; }
+    getTopDownDynamicInhibitionConnections() const { return m_topDownDynamicInhibitionConnections; }
+
+    [[nodiscard]] virtual std::vector<std::reference_wrapper<Neuron>>
+    getLateralDynamicInhibitionConnections() const { return m_lateralDynamicInhibitionConnections; }
 
     virtual const std::vector<size_t> &getTrackingSpikeTrain() { return m_trackingSpikeTrain; }
 
@@ -108,17 +115,27 @@ public:
 
     virtual void inhibition();
 
-    virtual void saveState(std::string &fileName);
+    virtual void saveState(std::string &filePath);
 
-    virtual void loadState(std::string &fileName);
+    virtual void loadState(std::string &filePath);
 
-    virtual void saveWeights(std::string &fileName) {};
+    virtual void saveWeights(std::string &filePath) {};
 
-    virtual void saveInhibWeights(std::string &fileName) {};
+    virtual void saveLateralInhibitionWeights(std::string &filePath) {};
 
-    virtual void loadWeights(std::string &fileName) {};
+    virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void loadInhibWeights(std::string &fileName) {};
+    virtual void loadWeights(std::string &filePath) {};
+
+    virtual void loadLateralInhibitionWeights(std::string &filePath) {};
+
+    virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
+
+    virtual void loadWeights(cnpy::npz_t &arrayNPZ) {};
+
+    virtual void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
+
+    virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
     virtual void normalizeWeights() {};
 
@@ -129,6 +146,8 @@ public:
     virtual void addOutConnection(Neuron &neuron);
 
     virtual void addInConnection(Neuron &neuron);
+
+    virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
@@ -149,8 +168,6 @@ public:
     virtual void trackPotential(size_t time);
 
     virtual void updateState(size_t timeInterval, double alpha);
-
-    virtual void spike(size_t time) {};
 
     virtual double updateKernelSpikingRate(long time) {};
 

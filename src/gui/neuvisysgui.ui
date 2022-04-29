@@ -240,8 +240,8 @@
                <rect>
                 <x>0</x>
                 <y>0</y>
-                <width>56</width>
-                <height>20</height>
+                <width>452</width>
+                <height>164</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_24">
@@ -426,7 +426,7 @@
         <item>
          <widget class="QTabWidget" name="tab_configs">
           <property name="currentIndex">
-           <number>4</number>
+           <number>1</number>
           </property>
           <widget class="QWidget" name="network_config">
            <attribute name="title">
@@ -435,6 +435,16 @@
            <layout class="QGridLayout" name="gridLayout_11">
             <item row="0" column="0">
              <widget class="QTextEdit" name="text_network_config"/>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="rl_config">
+           <attribute name="title">
+            <string>RL config</string>
+           </attribute>
+           <layout class="QGridLayout" name="gridLayout_14">
+            <item row="0" column="0">
+             <widget class="QTextEdit" name="text_rl_config"/>
             </item>
            </layout>
           </widget>
@@ -504,8 +514,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>852</width>
-             <height>580</height>
+             <width>854</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -520,22 +530,6 @@
             </item>
            </layout>
           </widget>
-         </widget>
-        </item>
-        <item row="1" column="0">
-         <widget class="QGroupBox" name="actionGroup">
-          <property name="title">
-           <string>Action viz</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_21">
-           <item row="0" column="0">
-            <layout class="QGridLayout" name="actionGrid">
-             <property name="sizeConstraint">
-              <enum>QLayout::SetMinAndMaxSize</enum>
-             </property>
-            </layout>
-           </item>
-          </layout>
          </widget>
         </item>
        </layout>
@@ -730,8 +724,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>78</width>
-             <height>20</height>
+             <width>854</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
@@ -775,6 +769,16 @@
        <layout class="QGridLayout" name="gridLayout_20">
         <item row="0" column="0">
          <widget class="QChartView" name="rewardView"/>
+        </item>
+       </layout>
+      </widget>
+      <widget class="QWidget" name="action">
+       <attribute name="title">
+        <string>Action</string>
+       </attribute>
+       <layout class="QGridLayout" name="gridLayout">
+        <item row="0" column="0">
+         <widget class="QChartView" name="actionView"/>
         </item>
        </layout>
       </widget>
@@ -828,7 +832,7 @@
      <x>0</x>
      <y>0</y>
      <width>1402</width>
-     <height>24</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuNeuvisys_gui">

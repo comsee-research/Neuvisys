@@ -29,6 +29,8 @@ public:
 
     void loadWeights(std::string &filePath) override;
 
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
+
     void normalizeWeights() override;
 
     void setNeuromodulator(double neuromodulator) override;

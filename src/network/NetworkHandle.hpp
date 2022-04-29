@@ -8,7 +8,6 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
-#include "blosc_filter.h"
 
 struct H5EventFile {
     H5::H5File file;
@@ -41,6 +40,7 @@ struct SaveTime {
  */
 class NetworkHandle {
     SpikingNetwork m_spinet;
+    ReinforcementLearningConfig m_rlConf;
     NetworkConfig m_networkConf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
@@ -51,29 +51,31 @@ class NetworkHandle {
 
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
+    double m_neuromodulator{};
     std::string m_eventsPath;
     size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
-    size_t m_scoreIteration{};
+    size_t m_packetCount{};
+    size_t m_actionCount{};
+    size_t m_scoreCount{};
     size_t m_countEvents{};
     size_t m_saveCount{};
-
 
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string eventsPath);
+    explicit NetworkHandle(std::string eventsPath, double time);
 
-    NetworkHandle(const std::string &networkPath, double time);
+    explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, double time, const std::string &eventsPath);
+    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
     void feedEvents(const std::vector<Event> &events);
 
-    void updateActor(long time, size_t actor);
+    void updateActor(size_t action);
 
     void saveValueMetrics(long time, size_t nbEvents);
 
@@ -85,15 +87,13 @@ public:
 
     std::vector<uint64_t> resolveMotor();
 
-    void learningDecay(size_t iteration);
+    void learningDecay(double time);
 
     void save(const std::string &eventFileName, size_t nbRun);
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
-
-    void stereo(std::vector<Event> &events, size_t nbPass = 1);
 
     double valueFunction(long time);
 
@@ -119,6 +119,8 @@ public:
 
     NetworkConfig getNetworkConfig() { return m_networkConf; }
 
+    ReinforcementLearningConfig getRLConfig() { return m_rlConf; }
+
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
 
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
@@ -135,6 +137,8 @@ private:
     bool loadHDF5Events(std::vector<Event> &events);
 
     bool loadHDF5EventsStereo(std::vector<Event> &events);
+
+    void computeNeuromodulator();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

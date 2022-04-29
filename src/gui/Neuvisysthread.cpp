@@ -33,7 +33,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEvents();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), 0, m_events.toStdString());
+        auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -90,7 +90,7 @@ void NeuvisysThread::readEvents() {
 
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
-    auto network = NetworkHandle(m_events.toStdString());
+    auto network = NetworkHandle(m_events.toStdString(), 0);
     auto events = std::vector<Event>();
     while(network.loadEvents(events, 1)) {
         for (const auto &event: events) {
@@ -113,29 +113,29 @@ void NeuvisysThread::readEvents() {
 }
 
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+    m_eventRate += static_cast<double>(events.size());
     if (!events.empty()) {
-        m_eventRate += static_cast<double>(events.size());
-
         for (auto const &event : events) {
             ++m_iterations;
             addEventToDisplay(event);
             network.transmitEvent(event);
         }
+
         m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+    }
 
-        emit consoleMessage(m_msg);
-        m_msg.clear();
+    emit consoleMessage(m_msg);
+    m_msg.clear();
 
-        /*** GUI Display ***/
-        if (time - m_displayTime > m_displayRate) {
-            m_displayTime = time;
-            display(network, events.size(), m_displayTime);
-        }
+    /*** GUI Display ***/
+    if (time - m_displayTime > m_displayRate) {
+        m_displayTime = time;
+        display(network, events.size(), m_displayTime);
+    }
 
-        if (time - m_trackTime > m_trackRate) {
-            m_trackTime = time;
-            network.trackNeuron(time, m_id, m_layer);
-        }
+    if (time - m_trackTime > m_trackRate) {
+        m_trackTime = time;
+        network.trackNeuron(time, m_id, m_layer);
     }
 }
 
@@ -151,7 +151,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
 }
 
 void NeuvisysThread::launchSimulation(NetworkHandle &network) {
-    SimulationInterface sim;
+    SimulationInterface sim(network.getRLConfig().getActionMapping());
     sim.enableSyncMode(true);
     sim.startSimulation();
 
@@ -277,7 +277,6 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
@@ -301,6 +300,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],
                                network.getSaveData()["tdError"]);
             break;
+        case 6: // action
+            emit displayAction(network.getSaveData()["action_0"], network.getSaveData()["action_1"]);
         default:
             break;
     }

@@ -163,28 +163,55 @@ inline void SimpleNeuron::normalizeWeights() {
     }
 }
 
-void SimpleNeuron::saveWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index);
+void SimpleNeuron::saveWeights(std::string &filePath) {
+    auto weightsFile = filePath + std::to_string(m_index);
     Util::saveSimpleTensorToNumpyFile(m_weights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveSimpleTensorToNumpyFile(m_weights, filePath, arrayName);
 }
 
-void SimpleNeuron::saveInhibWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index) + "tdi";
-    Util::saveWeightsToNumpy(m_topDownInhibitionWeights, weightsFile);
-    weightsFile = fileName + std::to_string(m_index) + "li";
-    Util::saveWeightsToNumpy(m_lateralInhibitionWeights, weightsFile);
+void SimpleNeuron::saveLateralInhibitionWeights(std::string &filePath) {
+    auto weightsFile = filePath + std::to_string(m_index) + "li";
+    Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, filePath, arrayName);
 }
 
-void SimpleNeuron::loadWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index);
-    Util::loadNumpyFileToSimpleTensor(m_weights, weightsFile);
+void SimpleNeuron::saveTopDownInhibitionWeights(std::string &filePath) {
+    auto weightsFile = filePath + std::to_string(m_index) + "tdi";
+    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, filePath, arrayName);
 }
 
-void SimpleNeuron::loadInhibWeights(std::string &fileName) {
-    auto weightsFile = fileName + std::to_string(m_index) + "tdi";
-    Util::loadNumpyToWeights(m_topDownInhibitionWeights, weightsFile);
-    weightsFile = fileName + std::to_string(m_index) + "li";
-    Util::loadNumpyToWeights(m_lateralInhibitionWeights, weightsFile);
+void SimpleNeuron::loadWeights(std::string &filePath) {
+    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
+    Util::loadNumpyFileToSimpleTensor(m_weights, numpyFile);
+}
+
+void SimpleNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToSimpleTensor(m_weights, arrayNPZ, arrayName);
+}
+
+void SimpleNeuron::loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToWeights(m_lateralInhibitionWeights, arrayNPZ, arrayName);
+}
+
+void SimpleNeuron::loadLateralInhibitionWeights(std::string &filePath) {
+    auto numpyFile = filePath + std::to_string(m_index) + "li.npy";
+    Util::loadNumpyFileToWeights(m_lateralInhibitionWeights, numpyFile);
+}
+
+void SimpleNeuron::loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToWeights(m_topDownInhibitionWeights, arrayNPZ, arrayName);
+}
+
+void SimpleNeuron::loadTopDownInhibitionWeights(std::string &filePath) {
+    auto numpyFile = filePath + std::to_string(m_index) + "tdi.npy";
+    Util::loadNumpyFileToWeights(m_topDownInhibitionWeights, numpyFile);
 }
 
 std::vector<long> SimpleNeuron::getWeightsDimension() {

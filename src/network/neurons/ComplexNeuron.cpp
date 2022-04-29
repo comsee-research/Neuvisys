@@ -87,13 +87,20 @@ inline cv::Mat ComplexNeuron::summedWeightMatrix() {
 }
 
 void ComplexNeuron::saveWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
+    auto weightsFile = filePath + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_weights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveComplexTensorToNumpyFile(m_weights, filePath, arrayName);
 }
 
 void ComplexNeuron::loadWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
+    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
+    Util::loadNumpyFileToComplexTensor(m_weights, numpyFile);
+}
+
+void ComplexNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
 }
 
 std::vector<long> ComplexNeuron::getWeightsDimension() {

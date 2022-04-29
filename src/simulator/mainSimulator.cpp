@@ -5,7 +5,7 @@
 #include "SimulationInterface.hpp"
 
 int launchLearningSimulation(std::string &networkPath, double simTime) {
-    NetworkHandle network(networkPath, 0, "");
+    NetworkHandle network(networkPath);
 
     SimulationInterface sim;
     sim.enableSyncMode(true);
@@ -61,17 +61,17 @@ int main(int argc, char **argv) {
     launchSimulation(3.5);
 
 //    std::string type = "none";//argv[1];
-//    std::string networkPath;
+//    std::string m_networkPath;
 //
 //    if (type == "multi") {
 //        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-//            networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-//            std::cout << networkPath << std::endl;
-//            launchLearningSimulation(networkPath, 10);
+//            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+//            std::cout << m_networkPath << std::endl;
+//            launchLearningSimulation(m_networkPath, 10);
 //        }
 //    } else {
-//        networkPath = "/home/thomas/Desktop/network_experiment/configs/network_config.json";
-//        std::cout << networkPath << std::endl;
-//        launchLearningSimulation(networkPath, 10);
+//        m_networkPath = "/home/thomas/Desktop/network_experiment/configs/network_config.json";
+//        std::cout << m_networkPath << std::endl;
+//        launchLearningSimulation(m_networkPath, 10);
 //    }
 }
