@@ -30,6 +30,10 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
 void SpikingNetwork::addEvent(const Event &event) {
     for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
                                     static_cast<uint32_t>(event.y())]) {
+    /*    if(event.x()>=20 && event.y()<30)
+        {
+            std::cout << "ind = " << ind << " ; event.y = " << event.y() << std::endl;
+        }*/
         auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
         if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()))) {
@@ -93,20 +97,20 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &backwardNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-        backwardNeuron.get().newTopDownInhibitoryEvent(event);
+        backwardNeuron.get().newTopDownInhibitoryEvent(event, neuron);
     }
 }
 
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-        lateralNeuron.get().newLateralInhibitoryEvent(event);
+        lateralNeuron.get().newLateralInhibitoryEvent(event, neuron);
     }
 }
 
 void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
-        lateralNeuron.get().inhibition();
+        lateralNeuron.get().inhibition(neuron.getSpikingTime(), neuron);
     }
 }
 
@@ -132,7 +136,7 @@ void SpikingNetwork::updateNeurons(const long time) {
         while (simpleNeuron.checkRemainingEvents(time)) {
             if (simpleNeuron.update()) {
                 for (auto &simpleNeuronToInhibit: simpleNeuron.getLateralStaticInhibitionConnections()) {
-                    simpleNeuronToInhibit.get().inhibition();
+                    simpleNeuronToInhibit.get().inhibition(time, simpleNeuron);
                 }
                 addNeuronEvent(simpleNeuron);
             }

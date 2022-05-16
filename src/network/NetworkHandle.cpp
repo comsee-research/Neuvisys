@@ -40,6 +40,15 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
     }
 }
 
+void NetworkHandle::setEventPath(const std::string &eventsPath)
+{
+    m_eventsPath = eventsPath;
+    
+    std::string hdf5 = ".h5";
+    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
+        loadH5File();
+    }
+}
 void NetworkHandle::loadH5File() {
     if (!m_eventsPath.empty()) {
         m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
@@ -75,7 +84,14 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
  * The config file of the network must precise if the event file is stereo or loadNpzEvents.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
+    m_nbEvents = events.size();
     for (const auto &event: events) {
+    //    std::cout << "m_iteration = " << m_iteration << std::endl;
+    //    std::cout << "event.x = " << event.x() << " ; event.y = " << event.y() << " ; event.ts = " << event.timestamp() << " ; event.cam = " << event.camera() << std::endl;
+    /*    if(event.x()>=20 && event.x()<30)
+        {
+            std::cout << "event.y = " << event.y() << std::endl;
+        }*/
         ++m_iteration;
         transmitEvent(event);
 
@@ -90,6 +106,15 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 //            m_spinet.intermediateSave(m_saveCount);
 //            ++m_saveCount;
         }
+    }
+    if(m_simpleNeuronConf.POTENTIAL_TRACK[0]>=0 && m_simpleNeuronConf.POTENTIAL_TRACK[1]>=0)
+    {
+        int neur = m_simpleNeuronConf.POTENTIAL_TRACK[0]*m_networkConf.getLayerSizes()[0][1]*m_networkConf.getLayerSizes()[0][2] + m_simpleNeuronConf.POTENTIAL_TRACK[1]*m_networkConf.getLayerSizes()[0][2];
+        for(int temp=0; temp<m_networkConf.getLayerSizes()[0][2]; temp++)
+        {
+            m_spinet.getNeuron(neur+temp,0).get().barLength();
+            m_iteration = 0;
+        }        
     }
 }
 
@@ -119,7 +144,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     std::cout << "Saving Network..." << std::endl;
     std::string fileName;
     fileName = m_networkConf.getNetworkPath() + "networkState.json";
-
+    m_iteration=0;
     json state;
     std::ifstream ifs(fileName);
     if (ifs.is_open()) {
@@ -353,6 +378,7 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
 void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     events.clear();
     size_t pass, count;
+    static bool entered=false;
 
     cnpy::NpyArray timestamps_array = cnpy::npz_load(m_eventsPath, "arr_0");
     cnpy::NpyArray x_array = cnpy::npz_load(m_eventsPath, "arr_1");
@@ -379,20 +405,44 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     }
 
     long firstTimestamp = timestamps[0];
-    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
+//    long firstTimestamp = timestamps[0];
+    static long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
+    long actualLast = static_cast<long>(timestamps[sizeArray - 1]);
+//    std::cout << "last timestamp = " << lastTimestamp << std::endl;
+//    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
     Event event{};
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeArray; ++count) {
-            event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
-                          x[count],
-                          y[count],
-                          polarities[count],
-                          cameras[count]);
-            events.push_back(event);
+            if(!entered)
+            {
+                event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
+                            x[count],
+                            y[count],
+                            polarities[count],
+                            cameras[count]);
+                events.push_back(event);
+            }
+            else
+            {
+                event = Event(timestamps[count] + lastTimestamp + static_cast<long>(pass) * (actualLast- firstTimestamp),
+                            x[count],
+                            y[count],
+                            polarities[count],
+                            cameras[count]);
+                events.push_back(event);
+            }
         }
     }
-
+    if(!entered)
+    {
+        entered=true;
+        lastTimestamp=timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp);
+    }
+    else
+    {
+        lastTimestamp = timestamps[count] + lastTimestamp + static_cast<long>(pass) * (actualLast- firstTimestamp);
+    }
     m_nbEvents = nbPass * sizeArray;
 }
 

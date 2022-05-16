@@ -141,6 +141,7 @@ public:
 
     std::string STDP_LEARNING{};
     std::string TRACKING{};
+    std::vector<double> POTENTIAL_TRACK;
 
 private:
     void loadSimpleNeuronsParameters(const std::string &fileName);

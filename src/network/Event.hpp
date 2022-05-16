@@ -41,6 +41,14 @@ public:
     bool operator <(const Event &event) const {
         return m_timestamp < event.m_timestamp;
     }
+
+    void operator=(Event event) {
+        m_x = event.x();
+        m_y = event.y();
+        m_polarity = event.polarity();
+        m_timestamp = event.timestamp();
+        m_camera = event.camera();
+    }
 };
 
 class NeuronEvent {

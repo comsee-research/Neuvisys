@@ -66,7 +66,9 @@ public:
 
     explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+    explicit NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+
+    void setEventPath(const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
@@ -126,8 +128,10 @@ public:
 
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
 
-private:
     void load();
+
+private:
+    
 
     void loadH5File();
 

@@ -15,8 +15,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/network_learn_critic/");
+    ui->text_event_file->setText("/home/comsee/Internship_Antony/neuvisys/Events/npz/events.npz");
+    ui->text_network_directory->setText("/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/configuration/network_dir");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);

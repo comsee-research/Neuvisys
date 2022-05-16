@@ -39,8 +39,14 @@ protected:
     size_t m_lifeSpan{};
 
     double m_spikingRateAverage{};
+    size_t m_counter;
     std::vector<size_t> m_trackingSpikeTrain;
-    std::vector<std::pair<double, size_t>> m_trackingPotentialTrain;
+    std::vector<size_t> m_length_of_sequence;
+    std::vector<std::pair<double, uint64_t>> m_trackingPotentialTrain;
+    std::vector<double> m_potentialThreshold;
+    std::vector<std::vector<uint64_t>> m_inhibitionIndex;
+    std::vector<std::vector<double>> m_sumOfInhibWeightsLateral;
+    std::vector<std::vector<std::pair<double, uint64_t>>> m_inhibWeightsStatLateralTopDown;
 
 private:
     virtual void spike(size_t time) {};
@@ -113,7 +119,7 @@ public:
 
     virtual double adaptationPotentialDecay(size_t time);
 
-    virtual void inhibition();
+    virtual void inhibition(uint64_t time, Neuron &neuron);
 
     virtual void saveState(std::string &fileName);
 
@@ -128,6 +134,8 @@ public:
     virtual void loadInhibWeights(std::string &fileName) {};
 
     virtual void normalizeWeights() {};
+
+    virtual void normalizeInhibWeights() {};
 
     virtual void thresholdAdaptation();
 
@@ -147,9 +155,9 @@ public:
 
     virtual bool newEvent(NeuronEvent event) {};
 
-    virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
+    virtual void newTopDownInhibitoryEvent(NeuronEvent event, Neuron &neuron) {};
 
-    virtual void newLateralInhibitoryEvent(NeuronEvent event) {};
+    virtual void newLateralInhibitoryEvent(NeuronEvent event, Neuron &neuron) {};
 
     virtual bool update() {};
 
@@ -166,6 +174,10 @@ public:
     virtual void rescaleWeights(double scale) {};
 
     virtual void learningDecay(double count);
+
+    virtual void barLength();
+
+    virtual void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi);
 
 protected:
     void writeJson(json &state);

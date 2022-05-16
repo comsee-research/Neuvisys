@@ -24,9 +24,9 @@ public:
 
     bool newEvent(Event event) override;
 
-    void newTopDownInhibitoryEvent(NeuronEvent event) override;
+    void newTopDownInhibitoryEvent(NeuronEvent event, Neuron &neuron) override;
 
-    void newLateralInhibitoryEvent(NeuronEvent event) override;
+    void newLateralInhibitoryEvent(NeuronEvent event, Neuron &neuron) override;
 
     bool update() override;
 
@@ -52,6 +52,8 @@ private:
     void spike(size_t time) override;
 
     void normalizeWeights() override;
+
+    void normalizeInhibWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

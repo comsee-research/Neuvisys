@@ -30,14 +30,26 @@ inline bool SimpleNeuron::newEvent(Event event) {
     }
 }
 
-void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
+void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event, Neuron &neuron) {
     m_topDownInhibitionEvents.push_back(event);
+    m_adaptationPotential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_SRA);
+    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
+    m_timestampLastEvent = event.timestamp();
     m_potential -= m_topDownInhibitionWeights.at(event.id());
+    m_timestampLastEvent = event.timestamp();
+    savePotentials(event.timestamp(), 2, neuron, m_topDownInhibitionWeights.at(event.id()));
 }
 
-void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
+void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event, Neuron &neuron) {
     m_lateralInhibitionEvents.push_back(event);
+    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
     m_potential -= m_lateralInhibitionWeights.at(event.id());
+    if(m_lateralInhibitionWeights.at(event.id())>4)
+    {
+        std::cout << m_lateralInhibitionWeights.at(event.id()) << std::endl;
+    }
+    m_timestampLastEvent = event.timestamp();
+    savePotentials(event.timestamp(), 1, neuron, m_lateralInhibitionWeights.at(event.id()));
 }
 
 bool SimpleNeuron::update() {
@@ -52,15 +64,41 @@ bool SimpleNeuron::update() {
  * If the membrane potential exceeds the threshold, the neuron spikes.
  */
 inline bool SimpleNeuron::membraneUpdate(Event event) {
+    /*if(m_index==13312)
+    {
+        std::cout << "m_adaptation potential before decay = " << m_adaptationPotential << std::endl;
+        std::cout << "m_potential before decay = " << m_potential << std::endl;
+    }*/
     m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
+    /*if(m_index==13312)
+    {
+        std::cout << "m_potential after decay = " << m_potential << std::endl;
+    }*/
+
     m_adaptationPotential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_SRA);
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
-                   - refractoryPotential(event.timestamp() - m_spikingTime)
+                   - refractoryPotential( event.timestamp() - m_lastSpikingTime )
                    - m_adaptationPotential;
+/*    if(m_index==13312)
+    {
+        std::cout << "m_adaptation potential after decay = " << m_adaptationPotential << std::endl;
+        std::cout << "timestamp = " << static_cast<double>(event.timestamp()) << " ; last spiking time = " << static_cast<double>(m_lastSpikingTime) << std::endl;
+        std::cout << "refractory potential = " << refractoryPotential( event.timestamp() - m_lastSpikingTime ) << std::endl;
+        std::cout << "calculation of refractory potential here = " << m_conf.DELTA_RP * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_RP) << std::endl;
+        std::cout << "m_conf delta rp = " << m_conf.DELTA_RP << std::endl;
+        std::cout << "calculation of refractory potential with spiking time =0 is  = " << m_conf.DELTA_RP * exp(- static_cast<double>(event.timestamp()) / m_conf.TAU_RP) << std::endl;
+        std::cout << "m_potential after everything = " << m_potential << std::endl << std::endl;
+    }*/
+    
     m_timestampLastEvent = event.timestamp();
+
+//    m_trackingPotentialTrain.emplace_back(m_potential, event.timestamp());
+    savePotentials(event.timestamp(),-1, *this, 0);
+    //    std::cout << "yo and x value = " << event.x() << " ; y value = " << event.y() << std::endl;
 
     if (m_potential > m_threshold) {
         spike(event.timestamp());
+    //    savePotentials(event.timestamp()+100,-1, *this, 0); //I already know the resting value and I keep track of the membrane potential threshold so it isn't needed.
         return true;
     }
     return false;
@@ -95,7 +133,6 @@ inline void SimpleNeuron::weightUpdate() {
                     m_decay * m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
                     m_decay * m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-
             if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }
@@ -115,11 +152,11 @@ inline void SimpleNeuron::weightUpdate() {
         for (NeuronEvent &event : m_lateralInhibitionEvents) {
             m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-
             if (m_lateralInhibitionWeights.at(event.id()) < 0) {
                 m_lateralInhibitionWeights.at(event.id()) = 0;
             }
         }
+        normalizeInhibWeights();
     }
     m_events.clear();
     m_topDownInhibitionEvents.clear();
@@ -160,6 +197,41 @@ inline void SimpleNeuron::normalizeWeights() {
 
     if (norm(0) != 0) {
         m_weights = m_conf.NORM_FACTOR * m_weights / norm(0);
+    }
+
+    
+
+}
+
+void SimpleNeuron::normalizeInhibWeights(){
+    double norm_lateral = 0;
+    for (auto neuron : m_lateralDynamicInhibitionConnections) 
+    {
+        norm_lateral+=m_lateralInhibitionWeights.at(neuron.get().getIndex())*m_lateralInhibitionWeights.at(neuron.get().getIndex());
+    }
+    norm_lateral = sqrt(norm_lateral);
+
+    if(norm_lateral!=0)
+    {
+        for (auto neuron : m_lateralDynamicInhibitionConnections) 
+        {
+            m_lateralInhibitionWeights.at(neuron.get().getIndex())= m_conf.NORM_FACTOR * (m_lateralInhibitionWeights.at(neuron.get().getIndex()) / norm_lateral);
+        }
+    }
+
+    double norm_topdown = 0;
+    for (auto neuron : m_topDownDynamicInhibitionConnections) 
+    {
+        norm_topdown+=m_topDownInhibitionWeights.at(neuron.get().getIndex())*m_topDownInhibitionWeights.at(neuron.get().getIndex());
+    }
+    norm_topdown = sqrt(norm_topdown);
+
+    if(norm_topdown!=0)
+    {
+        for (auto neuron : m_lateralDynamicInhibitionConnections) 
+        {
+            m_topDownInhibitionWeights.at(neuron.get().getIndex())= m_conf.NORM_FACTOR * (m_topDownInhibitionWeights.at(neuron.get().getIndex()) / norm_topdown);
+        }
     }
 }
 
