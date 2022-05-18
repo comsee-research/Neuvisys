@@ -68,6 +68,8 @@ public:
 
     [[nodiscard]] virtual size_t getActivityCount();
 
+    virtual void resetActivityCount();
+
     virtual double getWeights(long x, long y, long z) {};
 
     virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights[neuronId]; }
@@ -181,7 +183,6 @@ protected:
     void writeJson(json &state);
 
     void readJson(const json &state);
-
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

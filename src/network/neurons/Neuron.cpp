@@ -166,9 +166,11 @@ void Neuron::trackPotential(const size_t time) {
 }
 
 size_t Neuron::getActivityCount() {
-    auto temp = m_activityCounter;
+    return m_activityCounter;
+}
+
+void Neuron::resetActivityCount() {
     m_activityCounter = 0;
-    return temp;
 }
 
 void Neuron::addOutConnection(Neuron &neuron) {

@@ -189,7 +189,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
 
         computeNeuromodulator();
         if (m_action != -1) {
-            updateActor(m_action);
+            updateActor();
         }
         auto choice = actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
         m_action = choice.first;
@@ -225,28 +225,29 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 void NetworkHandle::computeNeuromodulator() {
     double meanTDError = 0;
     auto count = 0;
-    if (m_saveData["tdError"].size() > m_actionCount) {
+    if (m_saveData["tdError"].size() > 10) {
         for (auto itTDError = m_saveData["tdError"].rbegin(); itTDError != m_saveData["tdError"].rend(); ++itTDError) {
-            if (count > m_actionCount) {
+            if (count > 10) {
                 break;
             } else {
                 meanTDError += *itTDError;
                 ++count;
             }
         }
-        m_neuromodulator = meanTDError / static_cast<double>(m_actionCount);
+        m_neuromodulator = meanTDError / static_cast<double>(10);
     }
 }
 
-void NetworkHandle::updateActor(size_t action) {
+void NetworkHandle::updateActor() {
     for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
         m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
     }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
-    auto start = action * neuronPerAction;
+    auto start = m_action * neuronPerAction;
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
         m_spinet.getNeuron(i, 3).get().setNeuromodulator(m_neuromodulator);
     }
+    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
 //        m_spinet.normalizeActions();
 }
 
@@ -258,9 +259,9 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
     size_t action = 0, spikeCount = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
         spikeCount += m_spinet.getNeuron(i, layer).get().getActivityCount();
+        m_spinet.getNeuron(i, layer).get().resetActivityCount();
         if ((i+1) % neuronPerAction == 0) {
             motorActivations[action] = spikeCount;
-            m_saveData["action_" + std::to_string(action)].push_back(static_cast<double>(spikeCount));
             spikeCount = 0;
             ++action;
         }
@@ -278,6 +279,18 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["valueDot"].push_back(VDot);
     auto tdError = VDot - V / getRLConfig().getTauR() + m_reward;
     m_saveData["tdError"].push_back(tdError);
+
+    auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
+    size_t layer = m_spinet.getNetworkStructure().size() - 1;
+    size_t action = 0, spikeCount = 0;
+    for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
+        spikeCount += m_spinet.getNeuron(i, layer).get().getActivityCount();
+        if ((i+1) % neuronPerAction == 0) {
+            m_saveData["action_" + std::to_string(action)].push_back(static_cast<double>(spikeCount));
+            spikeCount = 0;
+            ++action;
+        }
+    }
 }
 
 double NetworkHandle::getScore(long nbPreviousReward) {
