@@ -121,7 +121,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             network.transmitEvent(event);
         }
 
-        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
     }
 
     emit consoleMessage(m_msg);
@@ -354,7 +354,7 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                 ++count;
             }
         }
-        if (network.getNetworkConfig().getSharingType() == "patch") {
+        if (network.getNetworkConfig().getSharingType() == "patch" || network.getNetworkConfig().getSharingType() == "full") {
             count = 0;
             for (size_t wp = 0; wp < network.getNetworkConfig().getLayerPatches()[m_layer][0].size(); ++wp) {
                 for (size_t hp = 0; hp < network.getNetworkConfig().getLayerPatches()[m_layer][1].size(); ++hp) {

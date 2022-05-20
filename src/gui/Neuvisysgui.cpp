@@ -331,7 +331,7 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
         }
     }
     connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
-    if (sharingType == "patch") {
+    if (sharingType == "patch" || sharingType == "full") {
         for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
             for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
                 for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
