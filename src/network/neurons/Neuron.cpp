@@ -18,20 +18,22 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
     m_decay = 1.0;
     m_spike = false;
     m_counter = 0;
+    m_counter_events=0;
+    m_counter_lateral=0;
+    m_offset_inhib = E3 * 0;
+    m_adaptationPotential = 0;
     std::vector<uint64_t> temp;
     std::vector<double> temp_weights;
     m_sumOfInhibWeightsLateral.emplace_back(temp_weights);
     std::vector<std::pair<double,uint64_t>> temp_pair;
     for(int k=0; k<3; k++)
     {
-        m_inhibitionIndex.emplace_back(temp);
-        m_inhibWeightsStatLateralTopDown.emplace_back(temp_pair);
+        if(k<3)
+        {
+            m_inhibitionIndex.emplace_back(temp);
+            m_inhibWeightsStatLateralTopDown.emplace_back(temp_pair);
+        }        
         m_sumOfInhibWeightsLateral[0].emplace_back(0); // 3 times here
-    }
-
-    for(int k=0; k<5; k++)
-    {
-        m_sumOfInhibWeightsLateral[0].emplace_back(0); // 5 times here = 8 in total (potential lateral connections)
     }
 }
 
@@ -81,7 +83,7 @@ inline void Neuron::thresholdAdaptation() {
 }
 
 inline void Neuron::spikeRateAdaptation() {
-    m_adaptationPotential += m_conf.DELTA_SRA;
+    m_adaptationPotential += m_conf.DELTA_SRA; 
 }
 
 inline bool Neuron::hasSpiked() {
@@ -175,6 +177,8 @@ void Neuron::writeJson(nlohmann::json &state) {
     state["sum_weights_lateral"] = m_sumOfInhibWeightsLateral;
     state["weights_used_for_potentials"] = m_inhibWeightsStatLateralTopDown;
     state["neurons_thresholds"] = m_potentialThreshold;
+    state["amount_of_excitation"]=m_amount_of_excit;
+    state["amount_of_inhibition"]=m_amount_of_inhib;
 }
 
 void Neuron::readJson(const nlohmann::json &state) {
@@ -221,90 +225,32 @@ void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
 
 void Neuron::barLength(){
     m_length_of_sequence.push_back(m_counter);
+    m_amount_of_excit.push_back(m_counter_events);
+    m_amount_of_inhib.push_back(m_counter_lateral);
     m_counter = 0;
+    m_counter_events = 0;
+    m_counter_lateral =0;
     std::vector<double> temp_weights;
     m_sumOfInhibWeightsLateral.emplace_back(temp_weights);
     for(int k=0; k<8; k++)
     {
         m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1].emplace_back(0); 
     }
+    resetNeuron();
 }
 
-void Neuron::savePotentials(uint64_t time, int type_, Neuron &neuron, double wi){
-    /*type_ = 0 for static inhibition ; 
-    type_ = 1 for lateral inhibition ; 
-    type_ = 2 for topdown inhibition ;*/
-    if (m_conf.POTENTIAL_TRACK[0] == m_pos.x() && m_conf.POTENTIAL_TRACK[1] == m_pos.y()) {
-            m_trackingPotentialTrain.emplace_back(m_potential, time);
-            if(type_==0)
-            {
-                m_inhibitionIndex[type_].emplace_back(m_counter);
-                if(m_length_of_sequence.size()!=0)
-                {
-                    for(int j=0; j<m_length_of_sequence.size(); j++)
-                    {
-                        m_inhibitionIndex[type_][m_inhibitionIndex[type_].size()-1]+=m_length_of_sequence[j];
-                    }                    
-                }
-                m_inhibWeightsStatLateralTopDown[type_].emplace_back(wi,time);
-            }
-            else if(type_==1)
-            {
-                m_inhibitionIndex[type_].emplace_back(m_counter);
-                if(m_length_of_sequence.size()!=0)
-                {
-                    for(int j=0; j<m_length_of_sequence.size(); j++)
-                    {
-                        m_inhibitionIndex[type_][m_inhibitionIndex[type_].size()-1]+=m_length_of_sequence[j];
-                    }                    
-                }
-                m_inhibWeightsStatLateralTopDown[type_].emplace_back(wi,time);
-                if(neuron.getPos().x()==m_pos.x()-1 && neuron.getPos().y()==m_pos.y()-1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][0]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x()-1 && neuron.getPos().y()==m_pos.y())
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][1]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x()-1 && neuron.getPos().y()==m_pos.y()+1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][2]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x() && neuron.getPos().y()==m_pos.y()-1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][3]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x() && neuron.getPos().y()==m_pos.y()+1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][4]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x()+1 && neuron.getPos().y()==m_pos.y()-1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][5]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x()+1 && neuron.getPos().y()==m_pos.y())
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][6]+=wi;
-                }
-                else if(neuron.getPos().x()==m_pos.x()+1 && neuron.getPos().y()==m_pos.y()+1)
-                {
-                    m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1][7]+=wi;
-                }
-            }
-            else if(type_==2)
-            {
-                m_inhibitionIndex[type_].emplace_back(m_counter);
-                if(m_length_of_sequence.size()!=0)
-                {
-                    for(int j=0; j<m_length_of_sequence.size(); j++)
-                    {
-                        m_inhibitionIndex[type_][m_inhibitionIndex[type_].size()-1]+=m_length_of_sequence[j];
-                    }                    
-                }
-                m_inhibWeightsStatLateralTopDown[type_].emplace_back(wi,time);
-            }
-            m_potentialThreshold.emplace_back(m_threshold);
-            m_counter+=1;
-        }
+void Neuron::resetNeuron(){
+m_potential=0;
+m_timestampLastEvent=0;
+m_lastSpikingTime=0;
+m_spikingTime=0;
+m_totalSpike=0;
+m_spikeRateCounter=0;
+m_activityCounter=0;
+m_decay=1.0;
+m_adaptationPotential=0;
+m_threshold=m_conf.VTHRESH;
+m_spike = false;
+m_lifeSpan=0;
+m_spikingRateAverage=0;
 }

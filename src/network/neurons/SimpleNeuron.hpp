@@ -46,6 +46,8 @@ public:
 
     void weightUpdate() override;
 
+    void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi) override;
+
 private:
     bool membraneUpdate(Event event);
 

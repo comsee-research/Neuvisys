@@ -86,12 +86,6 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     m_nbEvents = events.size();
     for (const auto &event: events) {
-    //    std::cout << "m_iteration = " << m_iteration << std::endl;
-    //    std::cout << "event.x = " << event.x() << " ; event.y = " << event.y() << " ; event.ts = " << event.timestamp() << " ; event.cam = " << event.camera() << std::endl;
-    /*    if(event.x()>=20 && event.x()<30)
-        {
-            std::cout << "event.y = " << event.y() << std::endl;
-        }*/
         ++m_iteration;
         transmitEvent(event);
 
@@ -114,7 +108,21 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
         {
             m_spinet.getNeuron(neur+temp,0).get().barLength();
             m_iteration = 0;
-        }        
+        }
+
+        neur = m_complexNeuronConf.POTENTIAL_TRACK[0]*m_networkConf.getLayerSizes()[1][1]*m_networkConf.getLayerSizes()[1][2] + m_complexNeuronConf.POTENTIAL_TRACK[1]*m_networkConf.getLayerSizes()[1][2];
+        for(int temp=0; temp<m_networkConf.getLayerSizes()[1][2]; temp++)
+        {
+            m_spinet.getNeuron(neur+temp,1).get().barLength();
+        }
+    //    m_spinet.loadWeights();        
+    }
+
+    for(int layer=0; layer<m_networkConf.getLayerCellTypes().size(); layer++){
+        int numberOfNeuronsInLayer = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] * m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+        for(int j=0; j<numberOfNeuronsInLayer; j++){
+            m_spinet.getNeuron(j,layer).get().resetNeuron();
+        }
     }
 }
 
@@ -406,7 +414,8 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
 
     long firstTimestamp = timestamps[0];
 //    long firstTimestamp = timestamps[0];
-    static long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
+//    static long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
+    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
     long actualLast = static_cast<long>(timestamps[sizeArray - 1]);
 //    std::cout << "last timestamp = " << lastTimestamp << std::endl;
 //    long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
@@ -414,16 +423,16 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeArray; ++count) {
-            if(!entered)
-            {
+        //    if(!entered)
+        //    {
                 event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
                             x[count],
                             y[count],
                             polarities[count],
                             cameras[count]);
                 events.push_back(event);
-            }
-            else
+        //    }
+        /*    else
             {
                 event = Event(timestamps[count] + lastTimestamp + static_cast<long>(pass) * (actualLast- firstTimestamp),
                             x[count],
@@ -431,10 +440,10 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
                             polarities[count],
                             cameras[count]);
                 events.push_back(event);
-            }
+            }*/
         }
     }
-    if(!entered)
+/*    if(!entered)
     {
         entered=true;
         lastTimestamp=timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp);
@@ -442,7 +451,7 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     else
     {
         lastTimestamp = timestamps[count] + lastTimestamp + static_cast<long>(pass) * (actualLast- firstTimestamp);
-    }
+    }*/
     m_nbEvents = nbPass * sizeArray;
 }
 

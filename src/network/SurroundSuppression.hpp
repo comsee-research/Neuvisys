@@ -46,7 +46,7 @@ public:
     void Training(const std::string &typeOfTraining, int numberOfTimes, int epochs);
     void getReceptiveField(int layer, int neuron_id, receptiveFieldDimensions &to_return);
     void generateVerticalBars(std::vector<std::vector<Event>> &ev, int id_neur, int numberOfTypesOfBars, std::vector<int> lengthsOfBars, std::vector<int> yPositionStart, int speed, int nbPass);
-    void launchTrainingNeurons(int oneOrAll);
+    void launchTrainingNeurons();
 
 private:
     int m_time_gap;
@@ -64,7 +64,6 @@ private:
     {
         file_1.erase(0,4);
         file_2.erase(0,4);
-    //    std::cout << "number1 = " << file_1 << std::endl;
         return(stoi(file_1) < stoi(file_2));
     }
     else{

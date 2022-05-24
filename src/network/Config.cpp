@@ -85,6 +85,8 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             VRESET = conf["VRESET"];
             SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            LATERAL_NORM_FACTOR = conf["LATERAL_NORM_FACTOR"];
+            TOPDOWN_NORM_FACTOR = conf["TOPDOWN_NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
@@ -114,6 +116,7 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             TAU_LTD = E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_M = E3 * static_cast<double>(conf["TAU_M"]);
             TAU_RP = E3 * static_cast<double>(conf["TAU_RP"]);
+        //    TAU_SRA = E3 * static_cast<double>(conf["TAU_SRA"]);
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
@@ -123,6 +126,7 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
             DELTA_RP = conf["ETA_RP"];
+        //    DELTA_SRA = conf["ETA_SRA"];
         } catch (const std::exception &e) {
             std::cerr << "In complex cell config file" << std::endl;
             throw;
@@ -261,6 +265,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"SYNAPSE_DELAY", 0},
                     {"STDP_LEARNING", "excitatory"},
                     {"NORM_FACTOR",   4},
+                    {"LATERAL_NORM_FACTOR", 100},
+                    {"TOPDOWN_NORM_FACTOR", 30},
                     {"DECAY_RATE", 0},
                     {"MIN_THRESH",        4},
                     {"ETA_LTP",    0.0077},

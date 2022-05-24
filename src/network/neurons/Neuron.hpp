@@ -38,13 +38,18 @@ protected:
     bool m_spike;
     size_t m_lifeSpan{};
 
+    double m_offset_inhib;
     double m_spikingRateAverage{};
     size_t m_counter;
+    size_t m_counter_events;
+    size_t m_counter_lateral;
     std::vector<size_t> m_trackingSpikeTrain;
     std::vector<size_t> m_length_of_sequence;
     std::vector<std::pair<double, uint64_t>> m_trackingPotentialTrain;
     std::vector<double> m_potentialThreshold;
     std::vector<std::vector<uint64_t>> m_inhibitionIndex;
+    std::vector<size_t> m_amount_of_excit;
+    std::vector<size_t> m_amount_of_inhib;
     std::vector<std::vector<double>> m_sumOfInhibWeightsLateral;
     std::vector<std::vector<std::pair<double, uint64_t>>> m_inhibWeightsStatLateralTopDown;
 
@@ -177,7 +182,9 @@ public:
 
     virtual void barLength();
 
-    virtual void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi);
+    virtual void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi){};
+
+    virtual void resetNeuron();
 
 protected:
     void writeJson(json &state);

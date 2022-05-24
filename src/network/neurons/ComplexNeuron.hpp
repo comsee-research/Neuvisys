@@ -16,6 +16,8 @@ public:
     void loadWeights(std::string &filePath) override;
     void weightUpdate() override;
     cv::Mat summedWeightMatrix() override;
+    void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi) override;
+
 private:
     bool membraneUpdate(NeuronEvent event);
     void spike(size_t time) override;
