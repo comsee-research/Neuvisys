@@ -183,6 +183,9 @@ void Neuron::addInConnection(Neuron &neuron) {
 
 void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
     m_topDownDynamicInhibitionConnections.emplace_back(neuron);
+}
+
+void Neuron::initializeTopDownDynamicInhibitionWeights(Neuron &neuron) {
     m_topDownInhibitionWeights[neuron.getIndex()] = 0;
 }
 

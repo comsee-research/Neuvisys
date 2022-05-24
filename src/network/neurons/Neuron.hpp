@@ -151,6 +151,8 @@ public:
 
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
+    virtual void initializeTopDownDynamicInhibitionWeights(Neuron &neuron);
+
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
