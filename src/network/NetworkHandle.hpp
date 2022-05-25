@@ -132,7 +132,7 @@ public:
 private:
     void load();
 
-    void loadH5File();
+    void openH5File();
 
     bool loadHDF5Events(std::vector<Event> &events);
 

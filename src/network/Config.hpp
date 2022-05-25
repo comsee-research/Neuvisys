@@ -2,7 +2,6 @@
 // Created by Thomas on 14/04/2021.
 //
 
-
 #ifndef NEUVISYS_DV_CONFIG_HPP
 #define NEUVISYS_DV_CONFIG_HPP
 

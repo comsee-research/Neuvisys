@@ -6,29 +6,30 @@
 #include <utility>
 
 /**
- *
+ * Constructs an empty network.
  */
 NetworkHandle::NetworkHandle() : m_saveTime(0) {
 
 }
 
 /**
- *
- * @param eventsPath
- * @param time
+ * Constucts the NetworkHandle without creating a SpikingNetwork object.
+ * Used for reading event files.
+ * @param eventsPath - Path to the event file.
+ * @param time - Starting time for the network.
  */
 NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(time), m_eventsPath(std::move(eventsPath)) {
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        loadH5File();
+        openH5File();
     }
 }
 
 /**
- * Creates the spiking neural network from the SpikingNetwork class.
+ * Constucts the NetworkHandle and creates a SpikingNetwork object associated to it.
  * Loads the configuration files locally.
- * Loads possible network weights if the network has already been created and saved before.
- * @param networkPath
+ * Loads network weights if they exist.
+ * @param networkPath - Path to the network folder.
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
                                             m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
@@ -42,9 +43,10 @@ NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkP
 }
 
 /**
- *
- * @param networkPath
- * @param eventsPath
+ * Overload NetworkHandle constructor.
+ * Loads an event file in addition to the usual constructor.
+ * @param networkPath - Path to the network folder.
+ * @param eventsPath - Path to the event file.
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath,
                              const std::string &eventsPath) : NetworkHandle(networkPath) {
@@ -52,14 +54,14 @@ NetworkHandle::NetworkHandle(const std::string &networkPath,
 
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        loadH5File();
+        openH5File();
     }
 }
 
 /**
- *
+ * Open an HDF5 event file.
  */
-void NetworkHandle::loadH5File() {
+void NetworkHandle::openH5File() {
     if (!m_eventsPath.empty()) {
         m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
         m_eventFile.group = m_eventFile.file.openGroup("events");
@@ -74,10 +76,13 @@ void NetworkHandle::loadH5File() {
 }
 
 /**
- *
- * @param events
- * @param nbPass
- * @return
+ * Load packets of events from an event file.
+ * Two format are recognized.
+ * HDF5: loads events packet by packet.
+ * NPZ: load all the events at the same time.
+ * @param events - vector that will be filled with the events from the file.
+ * @param nbPass - number of repetition of the event file.
+ * @return true if all the events have been loaded. false otherwise.
  */
 bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
     std::string hdf5 = ".h5";
@@ -97,9 +102,8 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
 }
 
 /**
- * Launches the spiking network on the specified event file 'nbPass' times.
- * The config file of the network must precise if the event file is stereo or loadNpzEvents.
- * @param events
+ * Feed a packet of events to the network.
+ * @param events - Vector of events.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     for (const auto &event: events) {
@@ -143,9 +147,8 @@ void NetworkHandle::load() {
 
 /**
  * Saves information about the network actual state.
- * Number of times the network has been launched and the name of the event file use can be specified.
- * @param eventFileName
- * @param nbRun
+ * @param eventFileName - Name of the event file.
+ * @param nbRun - Number of time the event file has been shown.
  */
 void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbRun = 0) {
     std::cout << "Saving Network..." << std::endl;
