@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Neuvisysthread.h"
 
 using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
@@ -121,7 +125,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             network.transmitEvent(event);
         }
 
-//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
     }
 
     emit consoleMessage(m_msg);

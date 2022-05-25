@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "ComplexNeuron.hpp"
 
 ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
@@ -12,12 +16,9 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
-//    potentialDecay(event.timestamp() - m_timestampLastEvent);
-
+    potentialDecay(event.timestamp());
     m_potential += m_weights(event.x(), event.y(), event.z())
-                   - refractoryPotential(event.timestamp() - m_spikingTime)
-                   - m_adaptationPotential;
+                   - refractoryPotential(event.timestamp());
     m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {
@@ -56,18 +57,10 @@ inline void ComplexNeuron::weightUpdate() {
             }
         }
 
-        normalizeWeights();
+        Util::normalizeComplexTensor(m_weights, m_conf.NORM_FACTOR);
         //    m_decay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
     }
     m_events.clear();
-}
-
-inline void ComplexNeuron::normalizeWeights() {
-    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
-
-    if (norm(0) != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm(0);
-    }
 }
 
 inline cv::Mat ComplexNeuron::summedWeightMatrix() {

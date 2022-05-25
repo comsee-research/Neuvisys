@@ -1,7 +1,19 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "SimpleNeuron.hpp"
 
-/* Similar to the abstract neuron class.
+/**
+ * Similar to the abstract neuron class.
  * It also takes as input a weight tensor and the number of synapses used when delayed synapses are defined.
+ * @param index
+ * @param layer
+ * @param conf
+ * @param pos
+ * @param offset
+ * @param weights
+ * @param nbSynapses
  */
 SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses) :
         Neuron(index, layer, conf, pos, offset),
@@ -15,8 +27,11 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
     }
 }
 
-/* Updates neuron internal state after the arrival of an event
+/**
+ * Updates neuron internal state after the arrival of an event
  * Checks first if there is some synaptic delays defined in the network.
+ * @param event
+ * @return
  */
 inline bool SimpleNeuron::newEvent(Event event) {
     if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
@@ -30,16 +45,32 @@ inline bool SimpleNeuron::newEvent(Event event) {
     }
 }
 
+/**
+ *
+ * @param event
+ */
 void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
     m_topDownInhibitionEvents.push_back(event);
+    potentialDecay(event.timestamp());
     m_potential -= m_topDownInhibitionWeights.at(event.id());
+    m_timestampLastEvent = event.timestamp();
 }
 
+/**
+ *
+ * @param event
+ */
 void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
     m_lateralInhibitionEvents.push_back(event);
+    potentialDecay(event.timestamp());
     m_potential -= m_lateralInhibitionWeights.at(event.id());
+    m_timestampLastEvent = event.timestamp();
 }
 
+/**
+ *
+ * @return
+ */
 bool SimpleNeuron::update() {
     Event event = m_waitingList.top();
     m_waitingList.pop();
@@ -47,15 +78,18 @@ bool SimpleNeuron::update() {
     return membraneUpdate(event);
 }
 
-/* Updates the membrane potential using the newly arrived event.
+/**
+ * Updates the membrane potential using the newly arrived event.
  * Updates some homeostatic mechanisms such as the refractory period, potential decay and spike rate adaptation.
  * If the membrane potential exceeds the threshold, the neuron spikes.
+ * @param event
+ * @return
  */
 inline bool SimpleNeuron::membraneUpdate(Event event) {
-    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
-    m_adaptationPotential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_SRA);
+    potentialDecay(event.timestamp());
+    adaptationPotentialDecay(event.timestamp());
     m_potential += m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
-                   - refractoryPotential(event.timestamp() - m_spikingTime)
+                   - refractoryPotential(event.timestamp())
                    - m_adaptationPotential;
     m_timestampLastEvent = event.timestamp();
 
@@ -66,8 +100,10 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
     return false;
 }
 
-/* Updates the spike timings and spike counters.
+/**
+ * Updates the spike timings and spike counters.
  * Also increases the secondary membrane potential use in the spike rate adaptation mechanism.
+ * @param time
  */
 inline void SimpleNeuron::spike(const size_t time) {
     m_lastSpikingTime = m_spikingTime;
@@ -84,7 +120,8 @@ inline void SimpleNeuron::spike(const size_t time) {
     }
 }
 
-/* Updates the synaptic weights using the STDP learning rule.
+/**
+ * Updates the synaptic weights using the STDP learning rule.
  * Only the synapses from which events arrived are updated.
  * Normalizes the weights after the update.
  */
@@ -100,7 +137,7 @@ inline void SimpleNeuron::weightUpdate() {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }
         }
-        normalizeWeights();
+        Util::normalizeSimpleTensor(m_weights, m_conf.NORM_FACTOR);
     }
     if (m_conf.STDP_LEARNING == "inhibitory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event : m_topDownInhibitionEvents) {
@@ -126,43 +163,10 @@ inline void SimpleNeuron::weightUpdate() {
     m_lateralInhibitionEvents.clear();
 }
 
-/* Weight normalization using tensor calculations.
+/**
+ *
+ * @param filePath
  */
-inline void SimpleNeuron::normalizeWeights() {
-    const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = m_weights.dimensions();
-
-//    for (long p = 0; p < d[0]; ++p) {
-//        for (int c = 0; c < d[1]; ++c) {
-//            for (long s = 0; s < d[2]; ++s) {
-//                Eigen::array<long, SIMPLEDIM> start = {p, c, s, 0, 0};
-//                Eigen::array<long, SIMPLEDIM> size = {1, 1, 1, d[3], d[4]};
-//                Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
-//
-//                if (norm(0) != 0) {
-//                    m_weights.slice(start, size) = m_conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
-//                }
-//            }
-//        }
-//    }
-
-    // weight normalization on the camera axes
-//    for (long c = 0; c < d[1]; ++c) {
-//        Eigen::array<long, SIMPLEDIM> start = {0, c, 0, 0, 0};
-//        Eigen::array<long, SIMPLEDIM> size = {d[0], 1, d[2], d[3], d[4]};
-//        Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
-//
-//        if (norm(0) != 0) {
-//            m_weights.slice(start, size) = m_conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
-//        }
-//    }
-
-    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
-
-    if (norm(0) != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm(0);
-    }
-}
-
 void SimpleNeuron::saveWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     Util::saveSimpleTensorToNumpyFile(m_weights, weightsFile);
@@ -170,6 +174,10 @@ void SimpleNeuron::saveWeights(std::string &filePath) {
 //    Util::saveSimpleTensorToNumpyFile(m_weights, filePath, arrayName);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void SimpleNeuron::saveLateralInhibitionWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index) + "li";
     Util::saveWeightsToNumpyFile(m_lateralInhibitionWeights, weightsFile);
@@ -184,36 +192,64 @@ void SimpleNeuron::saveTopDownInhibitionWeights(std::string &filePath) {
 //    Util::saveWeightsToNumpyFile(m_topDownInhibitionWeights, filePath, arrayName);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void SimpleNeuron::loadWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + ".npy";
     Util::loadNumpyFileToSimpleTensor(m_weights, numpyFile);
 }
 
+/**
+ *
+ * @param arrayNPZ
+ */
 void SimpleNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     auto arrayName = std::to_string(m_index);
     Util::loadNumpyFileToSimpleTensor(m_weights, arrayNPZ, arrayName);
 }
 
+/**
+ *
+ * @param arrayNPZ
+ */
 void SimpleNeuron::loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {
     auto arrayName = std::to_string(m_index);
     Util::loadNumpyFileToWeights(m_lateralInhibitionWeights, arrayNPZ, arrayName);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void SimpleNeuron::loadLateralInhibitionWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + "li.npy";
     Util::loadNumpyFileToWeights(m_lateralInhibitionWeights, numpyFile);
 }
 
+/**
+ *
+ * @param arrayNPZ
+ */
 void SimpleNeuron::loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {
     auto arrayName = std::to_string(m_index);
     Util::loadNumpyFileToWeights(m_topDownInhibitionWeights, arrayNPZ, arrayName);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void SimpleNeuron::loadTopDownInhibitionWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + "tdi.npy";
     Util::loadNumpyFileToWeights(m_topDownInhibitionWeights, numpyFile);
 }
 
+/**
+ *
+ * @return
+ */
 std::vector<long> SimpleNeuron::getWeightsDimension() {
     const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& dimensions = m_weights.dimensions();
     std::vector<long> dim = { dimensions[3], dimensions[4] };

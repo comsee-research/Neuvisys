@@ -1,5 +1,5 @@
 //
-// Created by thomas on 04/06/2021.
+// Created by Thomas on 04/06/2021.
 //
 
 #include "Motor.hpp"

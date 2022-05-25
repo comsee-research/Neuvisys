@@ -1,5 +1,5 @@
 //
-// Created by alphat on 23/05/2021.
+// Created by Thomas on 23/05/2021.
 //
 
 #include "MotorNeuron.hpp"
@@ -28,7 +28,7 @@ inline bool MotorNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(-static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
+    potentialDecay(event.timestamp());
     m_potential += m_weights(event.x(), event.y(), event.z());
     m_timestampLastEvent = event.timestamp();
 
@@ -89,18 +89,6 @@ inline double MotorNeuron::kernel(double time) {
 //inline double MotorNeuron::kernelDerivative(double time) {
 //    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
 //}
-
-inline void MotorNeuron::normalizeWeights() {
-    auto norm = computeNormWeights();
-    if (norm != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm;
-    }
-}
-
-inline double MotorNeuron::computeNormWeights() {
-    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
-    return normT(0);
-}
 
 inline void MotorNeuron::rescaleWeights(double scale) {
     m_weights = m_weights * scale;

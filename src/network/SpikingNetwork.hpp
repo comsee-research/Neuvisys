@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SPIKING_NETWORK_HPP
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 

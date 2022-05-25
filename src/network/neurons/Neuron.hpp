@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_NEURON_HPP
 #define NEUVISYS_DV_NEURON_HPP
 
@@ -109,13 +113,11 @@ public:
 
     virtual double getPotential(size_t time);
 
-    virtual double potentialDecay(size_t time);
+    virtual void potentialDecay(size_t time);
 
     virtual double refractoryPotential(size_t time);
 
-    virtual double adaptationPotentialDecay(size_t time);
-
-    virtual void inhibition();
+    virtual void adaptationPotentialDecay(size_t time);
 
     virtual void saveState(std::string &filePath);
 
@@ -139,8 +141,6 @@ public:
 
     virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void normalizeWeights() {};
-
     virtual void thresholdAdaptation();
 
     virtual void spikeRateAdaptation();
@@ -161,6 +161,8 @@ public:
 
     virtual bool newEvent(NeuronEvent event) {};
 
+    virtual void newStaticInhibitoryEvent(NeuronEvent event);
+
     virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
 
     virtual void newLateralInhibitoryEvent(NeuronEvent event) {};
@@ -174,8 +176,6 @@ public:
     virtual void updateState(size_t timeInterval, double alpha);
 
     virtual double updateKernelSpikingRate(long time) {};
-
-    virtual double computeNormWeights() {};
 
     virtual void rescaleWeights(double scale) {};
 

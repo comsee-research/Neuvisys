@@ -1,5 +1,5 @@
 //
-// Created by thomas on 23/03/2022.
+// Created by Thomas on 23/03/2022.
 //
 
 #ifndef NEUVISYS_EVENTCAMERA_HPP

@@ -1,5 +1,5 @@
 //
-// Created by thomas on 02/12/2021.
+// Created by Thomas on 02/12/2021.
 //
 
 #include "GLWidget.h"

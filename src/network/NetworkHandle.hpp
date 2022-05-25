@@ -1,5 +1,5 @@
 //
-// Created by alphat on 06/05/2021.
+// Created by Thomas on 06/05/2021.
 //
 
 #ifndef NEUVISYS_DV_NETWORK_HANDLE_HPP

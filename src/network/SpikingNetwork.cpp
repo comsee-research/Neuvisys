@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "SpikingNetwork.hpp"
 
 SpikingNetwork::SpikingNetwork() = default;
@@ -28,7 +32,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
  * @brief Iterate the network on the event, updating every 1st layer neuron connected to the subsequent pixel.
  * Determines which neuron to update depending on a mapping between pixels and neurons.
  * If a neuron exceeds a threshold, it spikes and transmit another event towards deeper neurons.
- * A neuron spikes activates inhibition connections to adjacent neurons.
+ * A neuron spikes activates newStaticInhibitoryEvent connections to adjacent neurons.
  * @param event - The event coming from the pixel array.
  */
 void SpikingNetwork::addEvent(const Event &event) {
@@ -51,7 +55,7 @@ void SpikingNetwork::addEvent(const Event &event) {
  * @brief Recursive function that updates neurons deeper than the 1st layer. Similarly to the addEvent function, if a neuron spikes,
  * it transmits a new event forward.
  * the neuron to which the event is transmitted are determined from vector of reference called outConnections.
- * A neuron spikes activates inhibition connections to adjacent neurons.
+ * A neuron spikes activates newStaticInhibitoryEvent connections to adjacent neurons.
  * @param neuron - The neuron that just spiked.
  */
 inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
@@ -97,8 +101,8 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 }
 
 /**
- * @brief Propagation of an inhibition event to neurons in the previous layer.
- * @param neuron
+ * @brief Propagation of an inhibitory event to neurons in the previous layer.
+ * @param neuron - Neuron that triggered the event.
  */
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &previousNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
@@ -108,8 +112,8 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
 }
 
 /**
- * @brief Propagation of an inhibition event to lateral neurons in the same layer.
- * @param neuron
+ * @brief Propagation of an inhibitory event to lateral neurons in the same layer.
+ * @param neuron - Neuron that triggered the event.
  */
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
@@ -119,13 +123,14 @@ void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
 }
 
 /**
- * @brief Propagation of an inhibition event to neurons with similar visual fields and in the same layer.
+ * @brief Propagation of an inhibitory event to neurons with similar visual fields and in the same layer.
  * This event is not stored because there is no plasticity.
- * @param neuron
+ * @param neuron - Neuron that triggered the event.
  */
 void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
-        lateralNeuron.get().inhibition();
+        auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+        lateralNeuron.get().newStaticInhibitoryEvent(event);
     }
 }
 
@@ -162,7 +167,7 @@ void SpikingNetwork::transmitReward(double reward) {
 //        while (simpleNeuron.checkRemainingEvents(time)) {
 //            if (simpleNeuron.update()) {
 //                for (auto &simpleNeuronToInhibit: simpleNeuron.getLateralStaticInhibitionConnections()) {
-//                    simpleNeuronToInhibit.get().inhibition();
+//                    simpleNeuronToInhibit.get().newStaticInhibitoryEvent();
 //                }
 //                addNeuronEvent(simpleNeuron);
 //            }
@@ -189,7 +194,7 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
         if (m_networkConf.getSharingType() == "none") {
             for (size_t i = 0; i < nbNeurons; ++i) {
                 m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                                          static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y));
+                                                                          static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y, m_simpleNeuronConf.NORM_FACTOR));
             }
         } else if (m_networkConf.getSharingType() == "patch") {
             size_t patch_size = m_networkConf.getLayerPatches()[0][0].size() * m_networkConf.getLayerPatches()[0][1].size();
@@ -197,14 +202,14 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
                 for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
                     m_sharedWeightsSimple.push_back(
                             Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                      static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y));
+                                                      static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y, m_simpleNeuronConf.NORM_FACTOR));
                 }
             }
         } else if (m_networkConf.getSharingType() == "full") {
             for (size_t i = 0; i < m_networkConf.getLayerSizes()[0][2]; ++i) {
                 m_sharedWeightsSimple.push_back(
                         Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                  static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y));
+                                                  static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y, m_simpleNeuronConf.NORM_FACTOR));
             }
         } else {
             std::cout << "Wrong type of sharing" << std::endl;
@@ -212,17 +217,17 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
     }
     if (neuronType == "ComplexCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
-            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(x, y, z));
+            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(x, y, z, m_complexNeuronConf.NORM_FACTOR));
         }
     }
     if (neuronType == "CriticCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
-            m_sharedWeightsCritic.push_back(Util::uniformMatrixComplex(x, y, z));
+            m_sharedWeightsCritic.push_back(Util::uniformMatrixComplex(x, y, z, m_criticNeuronConf.NORM_FACTOR));
         }
     }
     if (neuronType == "ActorCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
-            m_sharedWeightsActor.push_back(Util::uniformMatrixComplex(x, y, z));
+            m_sharedWeightsActor.push_back(Util::uniformMatrixComplex(x, y, z, m_actorNeuronConf.NORM_FACTOR));
         }
     }
 }
@@ -436,28 +441,28 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
 /**
  *
  */
-void SpikingNetwork::normalizeActions() {
-    auto layer = m_neurons.size() - 1;
-    auto norms = std::vector<double>(getNetworkStructure().back(), 0);
-
-    double normMax = 0;
-    size_t count = 0;
-    for (auto &neuron: m_neurons[layer]) {
-        norms[count] = neuron.get().computeNormWeights();
-        if (norms[count] > normMax) {
-            normMax = norms[count];
-        }
-        ++count;
-    }
-
-    count = 0;
-    for (auto &neuron: m_neurons[layer]) {
-        if (normMax != norms[count]) {
-            neuron.get().rescaleWeights(normMax / norms[count]);
-        }
-        ++count;
-    }
-}
+//void SpikingNetwork::normalizeActions() {
+//    auto layer = m_neurons.size() - 1;
+//    auto norms = std::vector<double>(getNetworkStructure().back(), 0);
+//
+//    double normMax = 0;
+//    size_t count = 0;
+//    for (auto &neuron: m_neurons[layer]) {
+//        norms[count] = neuron.get().computeNormWeights();
+//        if (norms[count] > normMax) {
+//            normMax = norms[count];
+//        }
+//        ++count;
+//    }
+//
+//    count = 0;
+//    for (auto &neuron: m_neurons[layer]) {
+//        if (normMax != norms[count]) {
+//            neuron.get().rescaleWeights(normMax / norms[count]);
+//        }
+//        ++count;
+//    }
+//}
 
 /**
  *

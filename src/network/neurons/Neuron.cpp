@@ -1,11 +1,16 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Neuron.hpp"
 
-/* Defines an abstract neuron.
- * index: unique id.
- * layer: depth of the neuron in the spiking network.
- * m_conf: configuration file.
- * m_jitterSpeed: indicates the position of the neuron relative to the other neurons of the layer.
- * offset: removed to the position in order to access the correct weights of the neuron.
+/**
+ * Defines an abstract neuron.
+ * @param index - unique id.
+ * @param layer - depth of the neuron in the spiking network.
+ * @param conf - configuration file.
+ * @param pos - indicates the position of the neuron relative to the other neurons of the layer.
+ * @param offset - removed to the position in order to access the correct weights of the neuron.
  */
 Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset) :
         m_index(index),
@@ -19,25 +24,44 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
     m_spike = false;
 }
 
-/* Returns the neuron's potential after the decay depending on the time passed from the last event.
+/**
+ * Returns the neuron's potential after the decay depending on the time passed from the last event.
+ * @param time
+ * @return
  */
 inline double Neuron::getPotential(size_t time) {
-    return m_potential * exp(- static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_M);
+    return m_potential * exp(-static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_M);
 }
 
-inline double Neuron::potentialDecay(size_t time) {
-    m_potential *= exp(- static_cast<double>(time) / m_conf.TAU_M);
-}
-
+/**
+ *
+ * @param time
+ * @return
+ */
 inline double Neuron::refractoryPotential(size_t time) {
-    return m_conf.DELTA_RP * exp(- static_cast<double>(time) / m_conf.TAU_RP);
+    return m_conf.DELTA_RP * exp(-static_cast<double>(time - m_spikingTime) / m_conf.TAU_RP);
 }
 
-inline double Neuron::adaptationPotentialDecay(size_t time) {
-    m_adaptationPotential *= exp(- static_cast<double>(time) / m_conf.TAU_SRA);
+/**
+ *
+ * @param time
+ */
+inline void Neuron::potentialDecay(size_t time) {
+    m_potential *= exp(-static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_M);
 }
 
-/* Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
+/**
+ *
+ * @param time
+ */
+inline void Neuron::adaptationPotentialDecay(size_t time) {
+    m_adaptationPotential *= exp(-static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_SRA);
+}
+
+/**
+ * Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
+ * @param timeInterval
+ * @param alpha
  */
 void Neuron::updateState(size_t timeInterval, double alpha) {
     m_lifeSpan += timeInterval;
@@ -46,11 +70,16 @@ void Neuron::updateState(size_t timeInterval, double alpha) {
     m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
 }
 
+/**
+ *
+ * @param count
+ */
 void Neuron::learningDecay(double count) {
     m_decay = 1 / (1 + m_conf.DECAY_RATE * count);
 }
 
-/* Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
+/**
+ * Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
  */
 inline void Neuron::thresholdAdaptation() {
     if (m_spikingRateAverage > m_conf.TARGET_SPIKE_RATE) {
@@ -64,22 +93,39 @@ inline void Neuron::thresholdAdaptation() {
     }
 }
 
+/**
+ *
+ */
 inline void Neuron::spikeRateAdaptation() {
     m_adaptationPotential += m_conf.DELTA_SRA;
 }
 
+/**
+ *
+ * @return
+ */
 inline bool Neuron::hasSpiked() {
-    if (m_spike){
+    if (m_spike) {
         m_spike = false;
         return true;
     }
     return false;
 }
 
-inline void Neuron::inhibition() {
+/**
+ *
+ * @param event
+ */
+inline void Neuron::newStaticInhibitoryEvent(NeuronEvent event) {
+    potentialDecay(event.timestamp() - m_timestampLastEvent);
     m_potential -= m_conf.ETA_INH;
+    m_timestampLastEvent = event.timestamp();
 }
 
+/**
+ *
+ * @param filePath
+ */
 void Neuron::saveState(std::string &filePath) {
     nlohmann::json state;
 
@@ -94,13 +140,17 @@ void Neuron::saveState(std::string &filePath) {
     ofs.close();
 }
 
+/**
+ *
+ * @param filePath
+ */
 void Neuron::loadState(std::string &filePath) {
     nlohmann::json state;
     std::ifstream ifs(filePath + std::to_string(m_index) + ".json");
     if (ifs.is_open()) {
         try {
             ifs >> state;
-        } catch (const std::exception& e) {
+        } catch (const std::exception &e) {
             std::cerr << "In Neuron state file: " << filePath + ".json" << std::endl;
             throw;
         }
@@ -111,6 +161,10 @@ void Neuron::loadState(std::string &filePath) {
     ifs.close();
 }
 
+/**
+ *
+ * @param state
+ */
 void Neuron::writeJson(nlohmann::json &state) {
     std::vector<size_t> position = {m_pos.x(), m_pos.y(), m_pos.z()};
     std::vector<size_t> offset = {m_offset.x(), m_offset.y(), m_offset.z()};
@@ -119,19 +173,19 @@ void Neuron::writeJson(nlohmann::json &state) {
     std::vector<size_t> staticInhibitionIndex;
     std::vector<size_t> tdInhibitionIndex;
     std::vector<size_t> liInhibitionIndex;
-    for (auto neuron : m_inConnections) {
+    for (auto neuron: m_inConnections) {
         inIndex.push_back(neuron.get().getIndex());
     }
-    for (auto neuron : m_outConnections) {
+    for (auto neuron: m_outConnections) {
         outIndex.push_back(neuron.get().getIndex());
     }
-    for (auto neuron : m_lateralStaticInhibitionConnections) {
+    for (auto neuron: m_lateralStaticInhibitionConnections) {
         staticInhibitionIndex.push_back(neuron.get().getIndex());
     }
-    for (auto neuron : m_topDownDynamicInhibitionConnections) {
+    for (auto neuron: m_topDownDynamicInhibitionConnections) {
         tdInhibitionIndex.push_back(neuron.get().getIndex());
     }
-    for (auto neuron : m_lateralDynamicInhibitionConnections) {
+    for (auto neuron: m_lateralDynamicInhibitionConnections) {
         liInhibitionIndex.push_back(neuron.get().getIndex());
     }
     state["position"] = position;
@@ -151,6 +205,10 @@ void Neuron::writeJson(nlohmann::json &state) {
     //    state["potential_train"] = m_trackingPotentialTrain;
 }
 
+/**
+ *
+ * @param state
+ */
 void Neuron::readJson(const nlohmann::json &state) {
     m_totalSpike = state["count_spike"];
     m_threshold = state["threshold"];
@@ -160,39 +218,74 @@ void Neuron::readJson(const nlohmann::json &state) {
 //    m_potential = state["potential"];
 }
 
+/**
+ *
+ * @param time
+ */
 void Neuron::trackPotential(const size_t time) {
     double potential = getPotential(time);
     m_trackingPotentialTrain.emplace_back(potential, time);
 }
 
+/**
+ *
+ * @return
+ */
 size_t Neuron::getActivityCount() {
     return m_activityCounter;
 }
 
+/**
+ *
+ */
 void Neuron::resetActivityCount() {
     m_activityCounter = 0;
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::addOutConnection(Neuron &neuron) {
     m_outConnections.emplace_back(neuron);
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::addInConnection(Neuron &neuron) {
     m_inConnections.emplace_back(neuron);
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
     m_topDownDynamicInhibitionConnections.emplace_back(neuron);
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::initializeTopDownDynamicInhibitionWeights(Neuron &neuron) {
     m_topDownInhibitionWeights[neuron.getIndex()] = 0;
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
     m_lateralStaticInhibitionConnections.emplace_back(neuron);
 }
 
+/**
+ *
+ * @param neuron
+ */
 void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralDynamicInhibitionConnections.emplace_back(neuron);
     m_lateralInhibitionWeights[neuron.getIndex()] = 0;
