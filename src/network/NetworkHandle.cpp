@@ -52,6 +52,7 @@ void NetworkHandle::loadH5File() {
         m_eventFile.cameras = m_eventFile.group.openDataSet("./c");
         m_eventFile.timestamps.getSpace().getSimpleExtentDims(&m_eventFile.dims);
         m_nbEvents += m_eventFile.dims;
+        readFirstAndLastTimestamp();
     }
 }
 
@@ -59,7 +60,7 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
     std::string hdf5 = ".h5";
     std::string npz = ".npz";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        if (loadHDF5Events(events)) {
+        if (loadHDF5Events(events, nbPass)) {
             return false;
         }
         return true;
@@ -451,9 +452,16 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     m_nbEvents = nbPass * sizeArray;
 }
 
-bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {
-    if (m_eventFile.offset + m_eventFile.packetSize > m_eventFile.dims) {
-        return true;
+bool NetworkHandle::loadHDF5Events(std::vector<Event> &events, size_t nbPass) {
+    if (m_eventFile.offset >= m_eventFile.dims) {
+        m_eventFile.packetSize = 10000;
+        ++m_eventFile.countPass;
+        m_eventFile.offset = 0;
+        if (m_eventFile.countPass >= nbPass) {
+            return true;
+        }
+    } else if (m_eventFile.offset + m_eventFile.packetSize > m_eventFile.dims) {
+        m_eventFile.packetSize = m_eventFile.dims - m_eventFile.offset;
     }
 
     events.clear();
@@ -474,10 +482,31 @@ bool NetworkHandle::loadHDF5Events(std::vector<Event> &events) {
     m_eventFile.polarities.read(vP.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
     m_eventFile.cameras.read(vC.data(), H5::PredType::NATIVE_UINT8, memspace, filespace);
 
+    auto vTOffset = m_eventFile.countPass * (m_eventFile.lastTimestamp - m_eventFile.firstTimestamp);
     for (int i = 0; i < m_eventFile.packetSize; i++) {
-        events.emplace_back(vT[i], vX[i], vY[i], vP[i], vC[i]);
+        events.emplace_back(vT[i] - m_eventFile.firstTimestamp + vTOffset, vX[i], vY[i], vP[i], vC[i]);
     }
 
-    m_eventFile.offset += m_eventFile.packetSize; // TODO: do not cut the last events
+    m_eventFile.offset += m_eventFile.packetSize;
     return false;
+}
+
+void NetworkHandle::readFirstAndLastTimestamp() {
+    H5::DataSpace filespace = m_eventFile.timestamps.getSpace();
+    hsize_t dim[1] = {1};
+    H5::DataSpace memspace(1, dim);
+    hsize_t count = 1;
+
+    hsize_t offset = 0;
+    auto first = std::vector<uint64_t>(1);
+    filespace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
+    m_eventFile.timestamps.read(first.data(), H5::PredType::NATIVE_UINT64, memspace, filespace);
+
+    offset = m_eventFile.dims-1;
+    auto last = std::vector<uint64_t>(1);
+    filespace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
+    m_eventFile.timestamps.read(last.data(), H5::PredType::NATIVE_UINT64, memspace, filespace);
+
+    m_eventFile.firstTimestamp = first[0];
+    m_eventFile.lastTimestamp = last[0];
 }

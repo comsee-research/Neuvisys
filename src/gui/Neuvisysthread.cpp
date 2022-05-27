@@ -34,6 +34,7 @@ void NeuvisysThread::run() {
         readEvents();
     } else {
         auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
+        m_endTime = static_cast<double>(m_nbPass) * (network.getLastTimestamp() - network.getFirstTimestamp());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -109,33 +110,6 @@ void NeuvisysThread::readEvents() {
                 emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             }
         }
-    }
-}
-
-void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
-    m_eventRate += static_cast<double>(events.size());
-    if (!events.empty()) {
-        for (auto const &event : events) {
-            ++m_iterations;
-            addEventToDisplay(event);
-            network.transmitEvent(event);
-        }
-
-//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
-    }
-
-    emit consoleMessage(m_msg);
-    m_msg.clear();
-
-    /*** GUI Display ***/
-    if (time - m_displayTime > m_displayRate) {
-        m_displayTime = time;
-        display(network, events.size(), m_displayTime);
-    }
-
-    if (time - m_trackTime > m_trackRate) {
-        m_trackTime = time;
-        network.trackNeuron(time, m_id, m_layer);
     }
 }
 
@@ -238,6 +212,33 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     return 0;
 }
 
+void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+    m_eventRate += static_cast<double>(events.size());
+    if (!events.empty()) {
+        for (auto const &event : events) {
+            ++m_iterations;
+            addEventToDisplay(event);
+            network.transmitEvent(event);
+        }
+
+        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+    }
+
+    emit consoleMessage(m_msg);
+    m_msg.clear();
+
+    /*** GUI Display ***/
+    if (time - m_displayTime > m_displayRate) {
+        m_displayTime = time;
+        display(network, m_displayTime);
+    }
+
+    if (time - m_trackTime > m_trackRate) {
+        m_trackTime = time;
+        network.trackNeuron(time, m_id, m_layer);
+    }
+}
+
 inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     if (event.polarity() == 0) {
         ++m_off_count;
@@ -257,7 +258,7 @@ inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     }
 }
 
-inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, double time) {
+inline void NeuvisysThread::display(NetworkHandle &network, double time) {
     if (m_change) {
         m_change = false;
         auto sharing = "none";
@@ -270,8 +271,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
     }
 
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
-    if (sizeArray != 0) {
-        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), time);
+    if (m_endTime != 0) {
+        emit displayProgress(static_cast<int>(100 * (time) / m_endTime), time);
     }
     switch (m_currentTab) {
         case 0: // event viz
