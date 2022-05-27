@@ -8,6 +8,7 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
+#include <utility>
 
 struct H5EventFile {
     H5::H5File file;

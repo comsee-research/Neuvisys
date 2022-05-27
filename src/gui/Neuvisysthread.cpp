@@ -35,7 +35,7 @@ void NeuvisysThread::run() {
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     if (m_mode == 3) {
-        readEvents();
+        readEventsFile();
     } else {
         auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
         m_endTime = static_cast<double>(m_nbPass) * (network.getLastTimestamp() - network.getFirstTimestamp());
@@ -59,40 +59,7 @@ void NeuvisysThread::run() {
     quit();
 }
 
-void NeuvisysThread::readEvents() {
-//    auto camera = EventCamera();
-//    auto eventFilter = Ynoise(346, 260);
-//
-//    bool received = false, stop = false;
-//    size_t time;
-//    auto displayTime = 0;
-//    auto rtime = std::chrono::high_resolution_clock::now();
-//    auto rdisplayTime = rtime;
-//
-//    while (!stop) {
-//        auto polarity = camera.receiveEvents(received, stop);
-//
-//        auto events = eventFilter.run(*polarity);
-//
-//        for (const auto &event : events) {
-//            addEventToDisplay(event);
-//
-//            time = event.timestamp();
-//            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-//                displayTime = time;
-//
-//                m_leftEventDisplay = 0;
-//                m_rightEventDisplay = 0;
-//            }
-//
-//            rtime = std::chrono::high_resolution_clock::now();
-//            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
-//                rdisplayTime = rtime;
-//                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-//            }
-//        }
-//    }
-
+void NeuvisysThread::readEventsFile() {
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
     auto network = NetworkHandle(m_events.toStdString(), 0);
@@ -103,6 +70,41 @@ void NeuvisysThread::readEvents() {
 
             if (static_cast<double>(event.timestamp()) - m_displayTime > m_displayRate) {
                 m_displayTime = static_cast<double>(event.timestamp());
+
+                m_leftEventDisplay = 0;
+                m_rightEventDisplay = 0;
+            }
+
+            rtime = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+                rdisplayTime = rtime;
+                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+            }
+        }
+    }
+}
+
+void NeuvisysThread::readEventsRealTime() {
+    auto camera = EventCamera();
+    auto eventFilter = Ynoise(346, 260);
+
+    bool received = false, stop = false;
+    size_t time;
+    auto displayTime = 0;
+    auto rtime = std::chrono::high_resolution_clock::now();
+    auto rdisplayTime = rtime;
+
+    while (!stop) {
+        auto polarity = camera.receiveEvents(received, stop);
+
+        auto events = eventFilter.run(*polarity);
+
+        for (const auto &event : events) {
+            addEventToDisplay(event);
+
+            time = event.timestamp();
+            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
+                displayTime = time;
 
                 m_leftEventDisplay = 0;
                 m_rightEventDisplay = 0;
@@ -225,7 +227,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             network.transmitEvent(event);
         }
 
-        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
     }
 
     emit consoleMessage(m_msg);
@@ -359,7 +361,7 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                 ++count;
             }
         }
-        if (network.getNetworkConfig().getSharingType() == "patch" || network.getNetworkConfig().getSharingType() == "full") {
+        if (network.getNetworkConfig().getSharingType() == "patch") {
             count = 0;
             for (size_t wp = 0; wp < network.getNetworkConfig().getLayerPatches()[m_layer][0].size(); ++wp) {
                 for (size_t hp = 0; hp < network.getNetworkConfig().getLayerPatches()[m_layer][1].size(); ++hp) {
@@ -373,6 +375,16 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                     }
                 }
             }
+        } else if (network.getNetworkConfig().getSharingType() == "full") {
+            count = 0;
+                for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
+                    m_weightDisplay[count] = network.getWeightNeuron(
+                            network.getLayout(0, Position(network.getNetworkConfig().getLayerSizes()[m_layer][0],
+                                                          network.getNetworkConfig().getLayerSizes()[m_layer][1],
+                                                          i)), m_layer, m_camera,
+                            m_synapse, m_zcell);
+                    ++count;
+                }
         }
     } else {
         for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {

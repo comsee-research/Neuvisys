@@ -3,7 +3,6 @@
 //
 
 #include "NetworkHandle.hpp"
-#include <utility>
 
 /**
  * Constructs an empty network.
