@@ -1,24 +1,35 @@
 //
-// Created by alphat on 14/04/2021.
+// Created by Thomas on 06/05/2021.
 //
 
 #include "NetworkHandle.hpp"
 #include <utility>
 
+/**
+ * Constructs an empty network.
+ */
 NetworkHandle::NetworkHandle() : m_saveTime(0) {
 
 }
 
+/**
+ * Constucts the NetworkHandle without creating a SpikingNetwork object.
+ * Used for reading event files.
+ * @param eventsPath - Path to the event file.
+ * @param time - Starting time for the network.
+ */
 NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(time), m_eventsPath(std::move(eventsPath)) {
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        loadH5File();
+        openH5File();
     }
 }
 
-/* Creates the spiking neural network from the SpikingNetwork class.
+/**
+ * Constucts the NetworkHandle and creates a SpikingNetwork object associated to it.
  * Loads the configuration files locally.
- * Loads possible network weights if the network has already been created and saved before.
+ * Loads network weights if they exist.
+ * @param networkPath - Path to the network folder.
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
                                             m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
@@ -31,17 +42,26 @@ NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkP
     load();
 }
 
+/**
+ * Overload NetworkHandle constructor.
+ * Loads an event file in addition to the usual constructor.
+ * @param networkPath - Path to the network folder.
+ * @param eventsPath - Path to the event file.
+ */
 NetworkHandle::NetworkHandle(const std::string &networkPath,
                              const std::string &eventsPath) : NetworkHandle(networkPath) {
     m_eventsPath = eventsPath;
 
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        loadH5File();
+        openH5File();
     }
 }
 
-void NetworkHandle::loadH5File() {
+/**
+ * Open an HDF5 event file.
+ */
+void NetworkHandle::openH5File() {
     if (!m_eventsPath.empty()) {
         m_eventFile.file = H5::H5File(m_eventsPath, H5F_ACC_RDONLY);
         m_eventFile.group = m_eventFile.file.openGroup("events");
@@ -56,6 +76,15 @@ void NetworkHandle::loadH5File() {
     }
 }
 
+/**
+ * Load packets of events from an event file.
+ * Two format are recognized.
+ * HDF5: loads events packet by packet.
+ * NPZ: load all the events at the same time.
+ * @param events - vector that will be filled with the events from the file.
+ * @param nbPass - number of repetition of the event file.
+ * @return true if all the events have been loaded. false otherwise.
+ */
 bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
     std::string hdf5 = ".h5";
     std::string npz = ".npz";
@@ -73,8 +102,9 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
     }
 }
 
-/* Launches the spiking network on the specified event file 'nbPass' times.
- * The config file of the network must precise if the event file is stereo or loadNpzEvents.
+/**
+ * Feed a packet of events to the network.
+ * @param events - Vector of events.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     for (const auto &event: events) {
@@ -95,6 +125,9 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     }
 }
 
+/**
+ *
+ */
 void NetworkHandle::load() {
     std::string fileName;
     fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
@@ -113,8 +146,10 @@ void NetworkHandle::load() {
     m_spinet.loadWeights();
 }
 
-/* Saves information about the network actual state.
- * Number of times the network has been launched and the name of the event file use can be specified.
+/**
+ * Saves information about the network actual state.
+ * @param eventFileName - Name of the event file.
+ * @param nbRun - Number of time the event file has been shown.
  */
 void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbRun = 0) {
     std::cout << "Saving Network..." << std::endl;
@@ -162,6 +197,14 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     std::cout << "Finished." << std::endl;
 }
 
+/**
+ *
+ * @param lastTimestamp
+ * @param time
+ * @param nbEvents
+ * @param msg
+ * @return
+ */
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     ++m_packetCount;
     if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
@@ -203,6 +246,12 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     return -1;
 }
 
+/**
+ *
+ * @param actionsActivations
+ * @param explorationFactor
+ * @return
+ */
 std::pair<int, bool>
 NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
     bool exploration = false;
@@ -223,6 +272,9 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
     return std::make_pair(selectedAction, exploration);
 }
 
+/**
+ *
+ */
 void NetworkHandle::computeNeuromodulator() {
     double meanTDError = 0;
     auto count = 0;
@@ -239,6 +291,9 @@ void NetworkHandle::computeNeuromodulator() {
     }
 }
 
+/**
+ *
+ */
 void NetworkHandle::updateActor() {
     for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
         m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
@@ -248,10 +303,14 @@ void NetworkHandle::updateActor() {
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
         m_spinet.getNeuron(i, 3).get().setNeuromodulator(m_neuromodulator);
     }
-    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
+//    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
 //        m_spinet.normalizeActions();
 }
 
+/**
+ *
+ * @return
+ */
 std::vector<uint64_t> NetworkHandle::resolveMotor() {
     std::vector<uint64_t> motorActivations(getRLConfig().getActionMapping().size(), 0);
 
@@ -270,6 +329,11 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
     return motorActivations;
 }
 
+/**
+ *
+ * @param time
+ * @param nbEvents
+ */
 void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
     m_saveData["reward"].push_back(m_reward);
@@ -294,6 +358,11 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     }
 }
 
+/**
+ *
+ * @param nbPreviousReward
+ * @return
+ */
 double NetworkHandle::getScore(long nbPreviousReward) {
     double mean = 0;
     size_t count = 0;
@@ -312,11 +381,21 @@ double NetworkHandle::getScore(long nbPreviousReward) {
     return mean;
 }
 
+/**
+ *
+ * @param action
+ * @param exploration
+ */
 void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
     m_saveData["action"].push_back(static_cast<double>(action));
     m_saveData["exploration"].push_back(exploration);
 }
 
+/**
+ *
+ * @param time
+ * @return
+ */
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
@@ -325,6 +404,11 @@ double NetworkHandle::valueFunction(long time) {
     return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + getRLConfig().getV0();
 }
 
+/**
+ *
+ * @param value
+ * @return
+ */
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     int nbPreviousTD = 100; // TODO : set a parameter
     if (value.size() > nbPreviousTD + 1) {
@@ -334,16 +418,28 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
     }
 }
 
+/**
+ *
+ * @param reward
+ */
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
     m_spinet.transmitReward(reward);
 }
 
+/**
+ *
+ * @param event
+ */
 void NetworkHandle::transmitEvent(const Event &event) {
     ++m_countEvents;
     m_spinet.addEvent(event);
 }
 
+/**
+ *
+ * @param time
+ */
 void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
 
@@ -356,6 +452,12 @@ void NetworkHandle::learningDecay(double time) {
 //    }
 }
 
+/**
+ *
+ * @param time
+ * @param id
+ * @param layer
+ */
 void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t layer) {
     if (m_simpleNeuronConf.TRACKING == "partial") {
         if (m_spinet.getNetworkStructure()[layer] > 0) {
@@ -364,6 +466,15 @@ void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t l
     }
 }
 
+/**
+ *
+ * @param idNeuron
+ * @param layer
+ * @param camera
+ * @param synapse
+ * @param z
+ * @return
+ */
 cv::Mat NetworkHandle::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
     if (m_spinet.getNetworkStructure()[layer] > 0) {
         auto dim = m_spinet.getNeuron(0, layer).get().getWeightsDimension();
@@ -394,6 +505,12 @@ cv::Mat NetworkHandle::getWeightNeuron(size_t idNeuron, size_t layer, size_t cam
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
+/**
+ *
+ * @param idNeuron
+ * @param layer
+ * @return
+ */
 cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
     if (m_spinet.getNetworkStructure()[layer] > 0) {
         return m_spinet.getNeuron(idNeuron, layer).get().summedWeightMatrix();
@@ -401,10 +518,13 @@ cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
     return cv::Mat::zeros(0, 0, CV_8UC3);
 }
 
-/* Opens an event file (in the npz format) and load all the events in memory into a vector.
+/**
+ * Opens an event file (in the npz format) and load all the events in memory into a vector.
  * If nbPass is greater than 1, the events are concatenated multiple times and the timestamps are updated in accordance.
  * Returns the vector of events.
  * Only for loadNpzEvents camera event files.
+ * @param events
+ * @param nbPass
  */
 void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     events.clear();
@@ -452,6 +572,11 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     m_nbEvents = nbPass * sizeArray;
 }
 
+/**
+ *
+ * @param events
+ * @return
+ */
 bool NetworkHandle::loadHDF5Events(std::vector<Event> &events, size_t nbPass) {
     if (m_eventFile.offset >= m_eventFile.dims) {
         m_eventFile.packetSize = 10000;
@@ -491,6 +616,9 @@ bool NetworkHandle::loadHDF5Events(std::vector<Event> &events, size_t nbPass) {
     return false;
 }
 
+/**
+ *
+ */
 void NetworkHandle::readFirstAndLastTimestamp() {
     H5::DataSpace filespace = m_eventFile.timestamps.getSpace();
     hsize_t dim[1] = {1};

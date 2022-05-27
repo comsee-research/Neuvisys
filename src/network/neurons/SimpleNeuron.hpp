@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
@@ -60,8 +64,6 @@ private:
     bool membraneUpdate(Event event);
 
     void spike(size_t time) override;
-
-    void normalizeWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

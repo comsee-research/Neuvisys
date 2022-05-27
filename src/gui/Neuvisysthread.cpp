@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Neuvisysthread.h"
 
 using namespace std::chrono_literals; // ns, us, ms, s, h, etc.

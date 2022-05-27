@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_UTIL_HPP
 #define NEUVISYS_DV_UTIL_HPP
 
@@ -12,9 +16,13 @@
 #define NBPOLARITY 2
 
 namespace Util {
-    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z);
+    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z, double normalizationFactor = 1);
 
-    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y);
+    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y, double normalizationFactor = 1);
+
+    void normalizeSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &weights, double normalizationFactor);
+
+    void normalizeComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &weights, double normalizationFactor);
 
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 

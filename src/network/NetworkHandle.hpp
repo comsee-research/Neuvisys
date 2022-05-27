@@ -1,5 +1,5 @@
 //
-// Created by alphat on 06/05/2021.
+// Created by Thomas on 06/05/2021.
 //
 
 #ifndef NEUVISYS_DV_NETWORK_HANDLE_HPP
@@ -138,6 +138,8 @@ private:
     void load();
 
     void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
+
+    void openH5File();
 
     void loadH5File();
 
