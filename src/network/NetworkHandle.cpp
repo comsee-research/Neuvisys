@@ -49,8 +49,12 @@ NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkP
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath,
                              const std::string &eventsPath) : NetworkHandle(networkPath) {
-    m_eventsPath = eventsPath;
+    setEventPath(eventsPath);
+}
 
+void NetworkHandle::setEventPath(const std::string &eventsPath) {
+    m_eventsPath = eventsPath;
+    
     std::string hdf5 = ".h5";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
         openH5File();
@@ -106,6 +110,7 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
  * @param events - Vector of events.
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
+    m_nbEvents = events.size();
     for (const auto &event: events) {
         ++m_iteration;
         transmitEvent(event);
@@ -120,6 +125,18 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
             std::cout << static_cast<int>(100 * m_iteration / m_nbEvents) << "%" << std::endl;
 //            m_spinet.intermediateSave(m_saveCount);
 //            ++m_saveCount;
+        }
+    }
+}
+
+/**
+ *
+ */
+void NetworkHandle::resetAllNeurons(){
+    for(int layer=0; layer<m_networkConf.getLayerCellTypes().size(); layer++){
+        int numberOfNeuronsInLayer = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] * m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+        for(int j=0; j<numberOfNeuronsInLayer; j++){
+            m_spinet.getNeuron(j,layer).get().resetNeuron();
         }
     }
 }
@@ -153,10 +170,11 @@ void NetworkHandle::load() {
 void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbRun = 0) {
     std::cout << "Saving Network..." << std::endl;
     std::string fileName;
-    fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
-
+    fileName = m_networkConf.getNetworkPath() + "networkState.json";
+    m_iteration = 0;
     json state;
     std::ifstream ifs(fileName);
+    resetAllNeurons();
     if (ifs.is_open()) {
         try {
             ifs >> state;
@@ -193,6 +211,17 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
 
     m_spinet.saveNetwork();
 
+    std::cout << "Finished." << std::endl;
+}
+
+/**
+ *
+ * @param sequence
+ */
+void NetworkHandle::saveStatistics(size_t sequence){
+    std::cout << "Starting saving the statistics..." << std::endl;
+    m_spinet.saveStatistics(sequence);
+    resetAllNeurons();
     std::cout << "Finished." << std::endl;
 }
 
@@ -559,15 +588,14 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
 
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeArray; ++count) {
-            event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
-                          x[count],
-                          y[count],
-                          polarities[count],
-                          cameras[count]);
-            events.push_back(event);
+                event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
+                            x[count],
+                            y[count],
+                            polarities[count],
+                            cameras[count]);
+                events.push_back(event);
         }
     }
-
     m_nbEvents = nbPass * sizeArray;
 }
 

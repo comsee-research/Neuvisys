@@ -43,6 +43,7 @@ class NetworkConfig {
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
+    std::vector<int> neuronInhibitionRange;
 
 public:
     NetworkConfig();
@@ -74,6 +75,8 @@ public:
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
 
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
+
+    std::vector<int> getNeuronInhibitionRange() { return neuronInhibitionRange; }
 
     static void createNetwork(const std::string &directory);
 };
@@ -112,6 +115,8 @@ public:
     size_t SYNAPSE_DELAY{}; // μs
 
     double NORM_FACTOR{};
+    double LATERAL_NORM_FACTOR{};
+    double TOPDOWN_NORM_FACTOR{};
     double DECAY_RATE{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
@@ -119,6 +124,7 @@ public:
 
     std::string STDP_LEARNING{};
     std::string TRACKING{};
+    std::vector<double> POTENTIAL_TRACK;
 
 private:
     void loadSimpleNeuronsParameters(const std::string &fileName);

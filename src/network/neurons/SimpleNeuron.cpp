@@ -42,6 +42,7 @@ inline bool SimpleNeuron::newEvent(Event event) {
         for (auto delay : m_delays) {
             m_waitingList.emplace(event.timestamp() + delay, event.x(), event.y(), event.polarity(), event.camera(), synapse++);
         }
+        return false;
     }
 }
 
@@ -52,6 +53,7 @@ inline bool SimpleNeuron::newEvent(Event event) {
 void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
     m_topDownInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
+    adaptationPotentialDecay(event.timestamp());
     m_potential -= m_topDownInhibitionWeights.at(event.id());
     m_timestampLastEvent = event.timestamp();
 }
@@ -63,6 +65,7 @@ void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
 void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
     m_lateralInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
+    adaptationPotentialDecay(event.timestamp());
     m_potential -= m_lateralInhibitionWeights.at(event.id());
     m_timestampLastEvent = event.timestamp();
 }
@@ -132,7 +135,6 @@ inline void SimpleNeuron::weightUpdate() {
                     m_decay * m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
                     m_decay * m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-
             if (m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
                 m_weights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }
@@ -143,7 +145,6 @@ inline void SimpleNeuron::weightUpdate() {
         for (NeuronEvent &event : m_topDownInhibitionEvents) {
             m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-
             if (m_topDownInhibitionWeights.at(event.id()) < 0) {
                 m_topDownInhibitionWeights.at(event.id()) = 0;
             }
@@ -152,11 +153,11 @@ inline void SimpleNeuron::weightUpdate() {
         for (NeuronEvent &event : m_lateralInhibitionEvents) {
             m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP * exp(- static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTD * exp(- static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-
             if (m_lateralInhibitionWeights.at(event.id()) < 0) {
                 m_lateralInhibitionWeights.at(event.id()) = 0;
             }
         }
+        normalizeInhibWeights();
     }
     m_events.clear();
     m_topDownInhibitionEvents.clear();
@@ -199,6 +200,38 @@ void SimpleNeuron::saveTopDownInhibitionWeights(std::string &filePath) {
 void SimpleNeuron::loadWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + ".npy";
     Util::loadNumpyFileToSimpleTensor(m_weights, numpyFile);
+}
+
+void SimpleNeuron::normalizeInhibWeights(){
+    double norm_lateral = 0;
+    for (auto neuron : m_lateralDynamicInhibitionConnections) 
+    {
+        norm_lateral += m_lateralInhibitionWeights.at(neuron.get().getIndex()) * m_lateralInhibitionWeights.at(neuron.get().getIndex());
+    }
+    norm_lateral = sqrt(norm_lateral);
+
+    if (norm_lateral!=0)
+    {
+        for (auto neuron : m_lateralDynamicInhibitionConnections) 
+        {
+            m_lateralInhibitionWeights.at(neuron.get().getIndex())= m_conf.LATERAL_NORM_FACTOR * (m_lateralInhibitionWeights.at(neuron.get().getIndex()) / norm_lateral);
+        }
+    }
+
+    double norm_topdown = 0;
+    for (auto neuron : m_topDownDynamicInhibitionConnections) 
+    {
+        norm_topdown += m_topDownInhibitionWeights.at(neuron.get().getIndex()) * m_topDownInhibitionWeights.at(neuron.get().getIndex());
+    }
+    norm_topdown = sqrt(norm_topdown);
+
+    if (norm_topdown!=0)
+    {
+        for (auto neuron : m_topDownDynamicInhibitionConnections) 
+        {
+            m_topDownInhibitionWeights.at(neuron.get().getIndex())= m_conf.TOPDOWN_NORM_FACTOR * (m_topDownInhibitionWeights.at(neuron.get().getIndex()) / norm_topdown);
+        }
+    }
 }
 
 /**

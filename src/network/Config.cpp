@@ -31,6 +31,7 @@ void NetworkConfig::loadNetworkLayout() {
             layerSizes = static_cast<std::vector<std::vector<size_t>>>(conf["layerSizes"]);
             neuronSizes = static_cast<std::vector<std::vector<size_t>>>(conf["neuronSizes"]);
             neuronOverlap = static_cast<std::vector<std::vector<size_t>>>(conf["neuronOverlap"]);
+            neuronInhibitionRange = static_cast<std::vector<int>>(conf["neuronInhibitionRange"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
         } catch (const std::exception &e) {
@@ -112,11 +113,14 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             VRESET = conf["VRESET"];
             SYNAPSE_DELAY = conf["SYNAPSE_DELAY"];
             NORM_FACTOR = conf["NORM_FACTOR"];
+            LATERAL_NORM_FACTOR = conf["LATERAL_NORM_FACTOR"];
+            TOPDOWN_NORM_FACTOR = conf["TOPDOWN_NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
+            POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In simple cell config file" << std::endl;
             throw;
@@ -140,6 +144,7 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             TAU_LTD = E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_M = E3 * static_cast<double>(conf["TAU_M"]);
             TAU_RP = E3 * static_cast<double>(conf["TAU_RP"]);
+        //    TAU_SRA = E3 * static_cast<double>(conf["TAU_SRA"]);
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
@@ -147,7 +152,9 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             DECAY_RATE = conf["DECAY_RATE"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
+            POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
             DELTA_RP = conf["ETA_RP"];
+        //    DELTA_SRA = conf["ETA_SRA"];
         } catch (const std::exception &e) {
             std::cerr << "In complex cell config file" << std::endl;
             throw;
@@ -180,6 +187,7 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
+            POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
@@ -211,6 +219,7 @@ void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             TRACKING = conf["TRACKING"];
+            POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
@@ -249,6 +258,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory + "/weights/1");
     std::filesystem::create_directory(directory + "/weights/2");
     std::filesystem::create_directory(directory + "/weights/3");
+    std::filesystem::create_directory(directory + "/statistics");
+    std::filesystem::create_directory(directory + "/statistics/0");
+    std::filesystem::create_directory(directory + "/statistics/1");
+    std::filesystem::create_directory(directory + "/statistics/2");
+    std::filesystem::create_directory(directory + "/statistics/3");
 
     std::vector<json> conf = {
             {
@@ -262,11 +276,10 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerSizes",    {{16, 16, 64}, {4, 4, 16}}},
                     {"neuronSizes",       {{10, 10, 1}, {4, 4, 64}}},
                     {"neuronOverlap", {{0, 0, 0}, {0, 0, 0}}},
-            },
-            {
-                    {"nu",        0.5},
-                    {"V0",              0},
-                    {"tauR",        1},
+                    {"neuronInhibitionRange", {1, 1}},
+                    {"nu",            0.5},
+                    {"V0",            0},
+                    {"tauR",       1},
                     {"explorationFactor", 70},
                     {"actionRate",       500},
                     {"actionMapping",         {{1, 5}, {1, -5}}},
@@ -277,7 +290,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   30},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_SRA",           100},
+                    {"POTENTIAL_TRACK",   {4, 10}},
+                    {"TAU_SRA",        100},
                     {"TAU_RP",           30},
                     {"TAU_M",                 18},
                     {"TAU_LTP",       7},
@@ -286,6 +300,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"SYNAPSE_DELAY", 0},
                     {"STDP_LEARNING", "excitatory"},
                     {"NORM_FACTOR",   4},
+                    {"LATERAL_NORM_FACTOR", 100},
+                    {"TOPDOWN_NORM_FACTOR", 30},
                     {"DECAY_RATE", 0},
                     {"MIN_THRESH", 4},
                     {"ETA_LTP", 0.0077},
@@ -301,7 +317,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   3},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",             20},
+                    {"POTENTIAL_TRACK",    {4,10}},
+                    {"TAU_M",          20},
                     {"TAU_LTP",          20},
                     {"TAU_LTD",               20},
                     {"TAU_RP",        30},
@@ -317,7 +334,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",             20},
+                    {"POTENTIAL_TRACK",    {4,10}},
+                    {"TAU_M",          20},
                     {"ETA_INH",          0},
                     {"TAU_LTP",               7},
                     {"TAU_LTD",       14},
@@ -337,7 +355,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"VTHRESH",   2},
                     {"VRESET",          -20},
                     {"TRACKING",    "partial"},
-                    {"TAU_M",             20},
+                    {"POTENTIAL_TRACK",    {4, 10}},
+                    {"TAU_M",          20},
                     {"ETA_INH",          0},
                     {"TAU_LTP",               7},
                     {"TAU_LTD",       14},

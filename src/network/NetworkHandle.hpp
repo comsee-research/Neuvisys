@@ -35,7 +35,7 @@ struct SaveTime {
     explicit SaveTime(double initTime) : action(initTime), update(initTime), console(initTime), display(initTime) {};
 };
 
-/*
+/**
  * Used as an abstraction layer on top of the SpikingNetwork class.
  * It offers functions used for communication between the environment (mainly the incoming flow of events) and the spiking neural network.
  * Example:
@@ -73,7 +73,9 @@ public:
 
     explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+    explicit NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+
+    void setEventPath(const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
@@ -94,7 +96,9 @@ public:
     void learningDecay(double time);
 
     void save(const std::string &eventFileName, size_t nbRun);
-
+    
+    void saveStatistics(size_t sequence);
+    
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     double valueFunction(long time);
@@ -131,9 +135,9 @@ public:
 
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
 
-    double getFirstTimestamp() { return m_eventFile.firstTimestamp; }
+    double getFirstTimestamp() const { return m_eventFile.firstTimestamp; }
 
-    double getLastTimestamp() { return m_eventFile.lastTimestamp; }
+    double getLastTimestamp() const { return m_eventFile.lastTimestamp; }
 
 private:
     void load();
@@ -142,13 +146,13 @@ private:
 
     void openH5File();
 
-    void loadH5File();
-
     bool loadHDF5Events(std::vector<Event> &events, size_t nbPass);
 
     void computeNeuromodulator();
 
     void readFirstAndLastTimestamp();
+
+    void resetAllNeurons();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP
