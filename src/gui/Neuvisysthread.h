@@ -39,6 +39,7 @@ protected:
     bool m_change = false;
     size_t m_currentTab = 0;
     size_t m_on_count = 0, m_off_count = 0;
+    double m_endTime = 0;
 
     int m_actor = -1;
     double m_value = 0;
@@ -74,9 +75,11 @@ private:
 
     int launchReal(NetworkHandle &network);
 
-    void readEvents();
+    void readEventsFile();
 
-    void display(NetworkHandle &network, size_t sizeArray, double time);
+    void readEventsRealTime();
+
+    void display(NetworkHandle &network, double time);
 
     void addEventToDisplay(const Event &event);
 

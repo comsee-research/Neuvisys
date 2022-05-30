@@ -8,6 +8,7 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
+#include <utility>
 
 struct H5EventFile {
     H5::H5File file;
@@ -20,6 +21,9 @@ struct H5EventFile {
     hsize_t dims;
     hsize_t packetSize = 10000;
     hsize_t offset = 0;
+    hsize_t countPass = 0;
+    uint64_t firstTimestamp = 0;
+    uint64_t lastTimestamp = 0;
 };
 
 struct SaveTime {
@@ -93,8 +97,6 @@ public:
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
-    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
-
     double valueFunction(long time);
 
     double valueDerivative(const std::vector<double> &value);
@@ -129,16 +131,24 @@ public:
 
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
 
+    double getFirstTimestamp() { return m_eventFile.firstTimestamp; }
+
+    double getLastTimestamp() { return m_eventFile.lastTimestamp; }
+
 private:
     void load();
 
+    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
+
     void openH5File();
 
-    bool loadHDF5Events(std::vector<Event> &events);
+    void loadH5File();
 
-    bool loadHDF5EventsStereo(std::vector<Event> &events);
+    bool loadHDF5Events(std::vector<Event> &events, size_t nbPass);
 
     void computeNeuromodulator();
+
+    void readFirstAndLastTimestamp();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

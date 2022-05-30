@@ -19,8 +19,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/thomas/Desktop/shapes.npz");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/learn_critic/5/");
+    ui->text_event_file->setText("/home/thomas/Videos/shapes.h5");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/RL/orientation_basis/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -335,7 +335,7 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
         }
     }
     connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
-    if (sharingType == "patch" || sharingType == "full") {
+    if (sharingType == "patch") {
         for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
             for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
                 for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
@@ -346,6 +346,14 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
                         label->show();
                     }
                 }
+            }
+        }
+    } else if (sharingType == "full") {
+        for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
+            for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
+                auto *label = new QLabel(this);
+                ui->weightLayout->addWidget(label, static_cast<int>(layerSizes[2] + i),static_cast<int>(layerSizes[2] + j));
+                label->show();
             }
         }
     }
