@@ -180,7 +180,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     m_iteration = 0;
     json state;
     std::ifstream ifs(fileName);
-    resetAllNeurons();
+//    resetAllNeurons();
     if (ifs.is_open()) {
         try {
             ifs >> state;

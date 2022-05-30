@@ -42,8 +42,8 @@ void SpikingNetwork::addEvent(const Event &event) {
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
         if (m_networkConf.getNeuron1Synapses() == 1) {
             bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
-            double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y());
-            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi);
+//            double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y());
+//            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi);
             if (spiked) {
                 m_neurons[0][ind].get().weightUpdate();
                 lateralStaticInhibition(m_neurons[0][ind].get());
@@ -56,7 +56,6 @@ void SpikingNetwork::addEvent(const Event &event) {
             m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
             updateNeurons(event.timestamp());
         }
-
     }
 }
 
@@ -97,8 +96,8 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
                                   neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
                                   neuron.getPos().z() - forwardNeuron.get().getOffset().z());
         bool spiked = forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()));
-        double wi = forwardNeuron.get().getWeights(neuronPos.x(), neuronPos.y(), neuronPos.z());
-        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi);
+//        double wi = forwardNeuron.get().getWeights(neuronPos.x(), neuronPos.y(), neuronPos.z());
+//        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi);
         if (spiked) {
 //            if (forwardNeuron.get().getLayer() == 2) { // critic neuromodulation
 //                neuromodulation(forwardNeuron.get());
@@ -120,7 +119,7 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &previousNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         previousNeuron.get().newTopDownInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
+//        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
     }
 }
 
@@ -132,7 +131,7 @@ void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         lateralNeuron.get().newLateralInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
+//        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
     }
 }
 
@@ -145,7 +144,7 @@ void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         lateralNeuron.get().newStaticInhibitoryEvent(event);
-        neuronsStatistics(neuron.getSpikingTime(), 1, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getConf().ETA_INH);
+//        neuronsStatistics(neuron.getSpikingTime(), 1, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getConf().ETA_INH);
     }
 }
 

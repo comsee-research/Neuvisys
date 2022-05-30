@@ -122,7 +122,7 @@ void NeuvisysThread::readEventsRealTime() {
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     std::vector<Event> events;
 
-    while (network.loadEvents(events, m_nbPass)) {
+    while (network.loadEvents(events, m_nbPass) && !m_stop) {
         eventLoop(network, events, events.back().timestamp());
     }
 
@@ -377,7 +377,6 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
         } else if (network.getNetworkConfig().getSharingType() == "full") {
             count = 0;
                 for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
-                    std::cout << network.getNetworkConfig().getLayerSizes()[m_layer][0] << std::endl;
                     m_weightDisplay[count] = network.getWeightNeuron(
                             network.getLayout(0, Position(0,0,i)), m_layer, m_camera, m_synapse, m_zcell);
                     ++count;

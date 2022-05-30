@@ -19,8 +19,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/comsee/Internship_Antony/neuvisys/Events/npz/events.npz");
-    ui->text_network_directory->setText("/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/configuration/network_dir");
+    ui->text_event_file->setText("/home/thomas/Videos/simulation/horizontal_oscillations.h5");
+    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/inhibition_learning/base_static_lateral_topdown/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);

@@ -207,28 +207,31 @@ void SimpleNeuron::loadWeights(std::string &filePath) {
     Util::loadNumpyFileToSimpleTensor(m_weights, numpyFile);
 }
 
+/**
+ *
+ */
 void SimpleNeuron::normalizeInhibWeights() {
     double norm_lateral = 0;
-    for (auto neuron: m_lateralDynamicInhibitionConnections) {
+    for (const auto &neuron: m_lateralDynamicInhibitionConnections) {
         norm_lateral += m_lateralInhibitionWeights.at(neuron.get().getIndex()) * m_lateralInhibitionWeights.at(neuron.get().getIndex());
     }
     norm_lateral = sqrt(norm_lateral);
 
     if (norm_lateral != 0) {
-        for (auto neuron: m_lateralDynamicInhibitionConnections) {
+        for (const auto neuron: m_lateralDynamicInhibitionConnections) {
             m_lateralInhibitionWeights.at(neuron.get().getIndex()) =
                     m_conf.LATERAL_NORM_FACTOR * (m_lateralInhibitionWeights.at(neuron.get().getIndex()) / norm_lateral);
         }
     }
 
     double norm_topdown = 0;
-    for (auto neuron: m_topDownDynamicInhibitionConnections) {
+    for (const auto &neuron: m_topDownDynamicInhibitionConnections) {
         norm_topdown += m_topDownInhibitionWeights.at(neuron.get().getIndex()) * m_topDownInhibitionWeights.at(neuron.get().getIndex());
     }
     norm_topdown = sqrt(norm_topdown);
 
     if (norm_topdown != 0) {
-        for (auto neuron: m_topDownDynamicInhibitionConnections) {
+        for (const auto &neuron: m_topDownDynamicInhibitionConnections) {
             m_topDownInhibitionWeights.at(neuron.get().getIndex()) =
                     m_conf.TOPDOWN_NORM_FACTOR * (m_topDownInhibitionWeights.at(neuron.get().getIndex()) / norm_topdown);
         }
