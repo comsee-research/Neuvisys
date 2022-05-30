@@ -131,7 +131,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
 }
 
 void NeuvisysThread::launchSimulation(NetworkHandle &network) {
-    SimulationInterface sim(network.getRLConfig().getActionMapping());
+    SimulationInterface sim(network.getRLConfig().getActionMapping(), false, false);
     sim.enableSyncMode(true);
     sim.startSimulation();
 
@@ -140,8 +140,8 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         while (!sim.simStepDone() && !m_stop) {
             ros::spinOnce();
         }
-
         sim.update();
+
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
         if (m_action != -1) {
@@ -149,7 +149,7 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
             m_motorDisplay[m_action] = true;
         }
 
-        if (sim.getSimulationTime() > 300) {
+        if (sim.getSimulationTime() > 5) {
             m_stop = true;
         }
     }
