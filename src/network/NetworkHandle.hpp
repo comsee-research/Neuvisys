@@ -96,9 +96,9 @@ public:
     void learningDecay(double time);
 
     void save(const std::string &eventFileName, size_t nbRun);
-    
+
     void saveStatistics(size_t sequence);
-    
+
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     double valueFunction(long time);

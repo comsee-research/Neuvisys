@@ -134,7 +134,7 @@ public:
 
     virtual void saveLateralInhibitionWeights(std::string &filePath) {};
 
-    virtual void assignToPotentialTrain(std::pair<double,uint64_t> potential);
+    virtual void assignToPotentialTrain(std::pair<double, uint64_t> potential);
 
     virtual void assignToPotentialThreshold();
 

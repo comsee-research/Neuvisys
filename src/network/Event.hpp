@@ -42,11 +42,11 @@ public:
 
     [[nodiscard]] inline uint16_t camera() const { return m_camera; }
 
-    bool operator <(const Event &event) const {
+    bool operator<(const Event &event) const {
         return m_timestamp < event.m_timestamp;
     }
 
-    void operator =(Event event) {
+    void operator=(Event event) {
         m_x = event.x();
         m_y = event.y();
         m_polarity = event.polarity();

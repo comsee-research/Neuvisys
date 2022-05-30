@@ -85,9 +85,9 @@ private:
 
     static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi);
 
-    static void saveStatesStatistics (std::string &fileName, Neuron& neuron);
+    static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
 
-    static void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron& neuron);
+    static void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron);
 
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
 

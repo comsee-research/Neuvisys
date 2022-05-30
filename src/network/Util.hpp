@@ -54,7 +54,7 @@ namespace Util {
 
     bool fileExist(std::string &filePath);
 
-    bool endsWith(std::string const & value, std::string const & ending);
+    bool endsWith(std::string const &value, std::string const &ending);
 
     double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
 

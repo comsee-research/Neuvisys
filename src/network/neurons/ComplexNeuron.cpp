@@ -5,9 +5,9 @@
 #include "ComplexNeuron.hpp"
 
 ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, layer, conf, pos, offset),
-    m_events(boost::circular_buffer<NeuronEvent>(1000)),
-    m_weights(weights) {
+        Neuron(index, layer, conf, pos, offset),
+        m_events(boost::circular_buffer<NeuronEvent>(1000)),
+        m_weights(weights) {
 }
 
 inline bool ComplexNeuron::newEvent(NeuronEvent event) {
@@ -43,7 +43,7 @@ inline void ComplexNeuron::spike(const size_t time) {
 
 inline void ComplexNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
-        for (NeuronEvent &event : m_events) {
+        for (NeuronEvent &event: m_events) {
             if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
                 m_weights(event.x(), event.y(), event.z()) += m_conf.ETA_LTP;
             }
@@ -95,7 +95,7 @@ void ComplexNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
 }
 
 std::vector<long> ComplexNeuron::getWeightsDimension() {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
-    std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
+    std::vector<long> dim = {dimensions[0], dimensions[1], dimensions[2]};
     return dim;
 }
