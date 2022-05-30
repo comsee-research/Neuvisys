@@ -1,5 +1,5 @@
 //
-// Created by alphat on 23/05/2021.
+// Created by Thomas on 23/05/2021.
 //
 
 #include "MotorNeuron.hpp"
@@ -28,7 +28,7 @@ inline bool MotorNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(-static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
+    potentialDecay(event.timestamp());
     m_potential += m_weights(event.x(), event.y(), event.z());
     m_timestampLastEvent = event.timestamp();
 
@@ -90,18 +90,6 @@ inline double MotorNeuron::kernel(double time) {
 //    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
 //}
 
-inline void MotorNeuron::normalizeWeights() {
-    auto norm = computeNormWeights();
-    if (norm != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm;
-    }
-}
-
-inline double MotorNeuron::computeNormWeights() {
-    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
-    return normT(0);
-}
-
 inline void MotorNeuron::rescaleWeights(double scale) {
     m_weights = m_weights * scale;
 }
@@ -123,13 +111,20 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
 }
 
 void MotorNeuron::saveWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
+    auto weightsFile = filePath + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_weights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveComplexTensorToNumpyFile(m_weights, filePath, arrayName);
 }
 
 void MotorNeuron::loadWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
+    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
+    Util::loadNumpyFileToComplexTensor(m_weights, numpyFile);
+}
+
+void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
 }
 
 double MotorNeuron::getWeights(long x, long y, long z) {
@@ -149,6 +144,7 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
         for (long y = 0; y < d[1]; ++y) {
             for (long z = 0; z < d[2]; ++z) {
                 m_weights(x, y, z) += m_conf.ETA * neuromodulator * m_eligibilityTrace(x, y, z);
+                m_eligibilityTrace(x, y, z) = 0;
 
                 if (m_weights(x, y, z) < 0) {
                     m_weights(x, y, z) = 0;
@@ -159,12 +155,12 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
 }
 
 void MotorNeuron::learningDecay(double decay) {
-    m_conf.ETA /= decay;
+    m_conf.ETA *= decay;
 
     if (m_conf.TAU_K > m_conf.MIN_TAU_K) {
-        m_conf.TAU_K /= decay;
+        m_conf.TAU_K *= decay;
     }
     if (m_conf.NU_K > m_conf.MIN_NU_K) {
-        m_conf.NU_K /= decay;
+        m_conf.NU_K *= decay;
     }
 }

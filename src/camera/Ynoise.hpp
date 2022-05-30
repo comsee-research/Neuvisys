@@ -1,5 +1,5 @@
 //
-// Created by thomas on 10/12/2021.
+// Created by Thomas on 10/12/2021.
 //
 
 #ifndef NEUVISYS_YNOISE_HPP

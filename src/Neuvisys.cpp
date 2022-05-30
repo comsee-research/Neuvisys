@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 04/06/2021.
+//
+
 #include "src/network/NetworkHandle.hpp"
 #include "src/network/SurroundSuppression.hpp"
 
@@ -6,7 +10,7 @@ int main(int argc, char *argv[]) {
         std::string networkPath = argv[1];
         std::string eventsPath = argv[2];
         NetworkHandle network(networkPath, eventsPath);
-        int nbCount = atoi(argv[3]);
+        size_t nbCount = std::atoi(argv[3]);
         std::vector<Event> events;
         std::cout << "argv[3] = " << nbCount << std::endl;
         std::cout << "Feeding network... " << std::endl;
@@ -16,14 +20,17 @@ int main(int argc, char *argv[]) {
         }
 
         network.save(eventsPath, nbCount);
-        
     } else if (argc > 1) {
         NetworkConfig::createNetwork(argv[1]);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
+//        std::string eventsPath = "/home/thomas/Videos/simulation/full_rotation.npz";
+//
+//        NetworkHandle network(networkPath, eventsPath);
+//        std::vector<Event> events;
+//        std::cout << "Feeding network... " << std::endl;
 
         std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/100/vertical_diff_speeds_10/";
-
         std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/new_bars/events/";
         std::vector<std::string> vectorOfPaths;
         for (const auto & frame : std::filesystem::directory_iterator{path_Events}) 

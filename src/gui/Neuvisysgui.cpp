@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
@@ -9,7 +13,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     format.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(format);
 
-    precisionEvent = 30000;
+    precisionEvent = 5000;
     precisionPotential = 10000;
     rangePotential = 1000000;
     rangeSpiketrain = 1000000;
@@ -81,6 +85,17 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rewardChart->setTitle("Reward plot");
     ui->rewardView->setChart(rewardChart);
     ui->rewardView->setRenderHint(QPainter::Antialiasing);
+
+    actionSeries1 = new QLineSeries();
+    actionSeries2 = new QLineSeries();
+    actionChart = new QChart();
+    actionChart->legend()->hide();
+    actionChart->addSeries(actionSeries1);
+    actionChart->addSeries(actionSeries2);
+    actionChart->createDefaultAxes();
+    actionChart->setTitle("Action plot");
+    ui->actionView->setChart(actionChart);
+    ui->actionView->setRenderHint(QPainter::Antialiasing);
 }
 
 NeuvisysGUI::~NeuvisysGUI() {
@@ -140,7 +155,7 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
     connect(this, &NeuvisysGUI::stopNetwork, &neuvisysThread, &NeuvisysThread::onStopNetwork);
 
-    neuvisysThread.render(ui->text_network_directory->text(),
+    neuvisysThread.render(ui->text_network_directory->text() + "/",
                           ui->text_event_file->text(),
                           static_cast<size_t>(ui->number_runs->value()), ui->modeChoice->checkedId());
     ui->console->insertPlainText(QString("Starting network...\n"));
@@ -153,6 +168,12 @@ void NeuvisysGUI::on_text_network_directory_textChanged() {
 void NeuvisysGUI::on_text_network_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
     QString text = ui->text_network_config->toPlainText();
+    modifyConfFile(confDir, text);
+}
+
+void NeuvisysGUI::on_text_rl_config_textChanged() {
+    QString confDir = ui->text_network_directory->text() + "/configs/rl_config.json";
+    QString text = ui->text_rl_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
@@ -214,6 +235,8 @@ void NeuvisysGUI::openConfigFiles() {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
     ui->text_network_config->setText(readConfFile(confDir));
+    confDir = dir + "/configs/rl_config.json";
+    ui->text_rl_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/simple_cell_config.json";
     ui->text_simple_cell_config->setText(readConfFile(confDir));
     confDir = dir + "/configs/complex_cell_config.json";
@@ -268,16 +291,6 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     }
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
-
-    std::vector<QString> labels;
-    for (size_t i = 0; i < networkStructure.back(); ++i) {
-        labels.push_back(QString::number(i));
-        auto *label = new QLabel(this);
-        label->setText(QString(labels[i]));
-
-        ui->actionGrid->addWidget(label, 0, static_cast<int>(i));
-        label->show();
-    }
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -333,6 +346,14 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
                         label->show();
                     }
                 }
+            }
+        }
+    } else if (sharingType == "full") {
+        for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
+            for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
+                auto *label = new QLabel(this);
+                ui->weightLayout->addWidget(label, static_cast<int>(layerSizes[2] + i),static_cast<int>(layerSizes[2] + j));
+                label->show();
             }
         }
     }
@@ -468,6 +489,7 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     valueDotSeries->setName("Value Derivative");
     tdSeries = new QLineSeries();
     tdSeries->setName("TD Error");
+
     auto end = rewardTrain.size();
     for (auto i = 1; i < 1000; ++i) {
         if (i >= end) { break; }
@@ -486,18 +508,27 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     ui->rewardView->update();
 }
 
-void NeuvisysGUI::onDisplayAction(const std::vector<bool> &motorActivation) {
-    int count = 0;
-    for (auto action: motorActivation) {
-        if (action) {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : red; color : blue; }");
-        } else {
-            auto label = ui->actionGrid->itemAt(count)->widget();
-            label->setStyleSheet("QLabel { background-color : blue; color : red; }");
-        }
-        ++count;
+void NeuvisysGUI::onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train) {
+    actionChart->removeSeries(actionSeries1);
+    actionChart->removeSeries(actionSeries2);
+    actionSeries1 = new QLineSeries();
+    actionSeries1->setName("Action1");
+    actionSeries2 = new QLineSeries();
+    actionSeries2->setName("Action2");
+
+    auto end = action1Train.size();
+    for (auto i = 1; i < 1000; ++i) {
+        if (i >= end) { break; }
+        actionSeries1->append(static_cast<qreal>(end - i), action1Train[end - i]);
+        actionSeries2->append(static_cast<qreal>(end - i), action2Train[end - i]);
     }
+
+    actionChart->addSeries(actionSeries1);
+    actionChart->addSeries(actionSeries2);
+    actionChart->createDefaultAxes();
+    actionChart->legend()->setVisible(true);
+    actionChart->legend()->setAlignment(Qt::AlignBottom);
+    ui->actionView->update();
 }
 
 void NeuvisysGUI::on_slider_precision_event_sliderMoved(int position) {

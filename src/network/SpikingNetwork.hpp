@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SPIKING_NETWORK_HPP
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 
@@ -81,9 +85,9 @@ private:
 
     static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi);
 
-    void saveStatesStatistics (std::string &fileName, Neuron& neuron);
+    static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
 
-    void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron& neuron);
+    static void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron);
 
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
 
@@ -106,9 +110,11 @@ private:
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
 
-    void lateralDynamicInhibitionConnection(Neuron &neuron, const size_t currLayer,
+    void lateralDynamicInhibitionConnection(Neuron &neuron, size_t currLayer,
                                             const std::vector<std::vector<size_t>> &layerPatches,
                                             const std::vector<size_t> &layerSizes);
+
+    void saveNetworkLayout();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

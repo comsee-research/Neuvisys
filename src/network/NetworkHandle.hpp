@@ -1,5 +1,5 @@
 //
-// Created by alphat on 06/05/2021.
+// Created by Thomas on 06/05/2021.
 //
 
 #ifndef NEUVISYS_DV_NETWORK_HANDLE_HPP
@@ -8,6 +8,7 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
+#include <utility>
 
 struct H5EventFile {
     H5::H5File file;
@@ -20,6 +21,9 @@ struct H5EventFile {
     hsize_t dims;
     hsize_t packetSize = 10000;
     hsize_t offset = 0;
+    hsize_t countPass = 0;
+    uint64_t firstTimestamp = 0;
+    uint64_t lastTimestamp = 0;
 };
 
 struct SaveTime {
@@ -31,7 +35,7 @@ struct SaveTime {
     explicit SaveTime(double initTime) : action(initTime), update(initTime), console(initTime), display(initTime) {};
 };
 
-/*
+/**
  * Used as an abstraction layer on top of the SpikingNetwork class.
  * It offers functions used for communication between the environment (mainly the incoming flow of events) and the spiking neural network.
  * Example:
@@ -40,6 +44,7 @@ struct SaveTime {
  */
 class NetworkHandle {
     SpikingNetwork m_spinet;
+    ReinforcementLearningConfig m_rlConf;
     NetworkConfig m_networkConf;
     NeuronConfig m_simpleNeuronConf;
     NeuronConfig m_complexNeuronConf;
@@ -50,14 +55,16 @@ class NetworkHandle {
 
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
+    double m_neuromodulator{};
     std::string m_eventsPath;
     size_t m_nbEvents{};
     int m_action{};
     size_t m_iteration{};
-    size_t m_scoreIteration{};
+    size_t m_packetCount{};
+    size_t m_actionCount{};
+    size_t m_scoreCount{};
     size_t m_countEvents{};
     size_t m_saveCount{};
-    double m_timeStep{};
 
 public:
     NetworkHandle();
@@ -74,7 +81,7 @@ public:
 
     void feedEvents(const std::vector<Event> &events);
 
-    void updateActor(size_t actor);
+    void updateActor();
 
     void saveValueMetrics(long time, size_t nbEvents);
 
@@ -86,15 +93,13 @@ public:
 
     std::vector<uint64_t> resolveMotor();
 
-    void learningDecay(size_t iteration);
+    void learningDecay(double time);
 
     void save(const std::string &eventFileName, size_t nbRun);
-    
-    void saveStatistics(size_t sequence);
-    
-    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
-    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
+    void saveStatistics(size_t sequence);
+
+    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     double valueFunction(long time);
 
@@ -105,8 +110,6 @@ public:
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
     double getScore(long nbPreviousReward);
-
-    void setTimeStep(double timeStep) { m_timeStep = timeStep; }
 
     std::map<std::string, std::vector<double>> &getSaveData() { return m_saveData; }
 
@@ -122,6 +125,8 @@ public:
 
     NetworkConfig getNetworkConfig() { return m_networkConf; }
 
+    ReinforcementLearningConfig getRLConfig() { return m_rlConf; }
+
     NeuronConfig getSimpleNeuronConfig() { return m_simpleNeuronConf; }
 
     NeuronConfig getComplexNeuronConfig() { return m_complexNeuronConf; }
@@ -130,16 +135,22 @@ public:
 
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
 
-    void load();
+    double getFirstTimestamp() const { return m_eventFile.firstTimestamp; }
+
+    double getLastTimestamp() const { return m_eventFile.lastTimestamp; }
 
 private:
-    
+    void load();
 
-    void loadH5File();
+    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
 
-    bool loadHDF5Events(std::vector<Event> &events);
+    void openH5File();
 
-    bool loadHDF5EventsStereo(std::vector<Event> &events);
+    bool loadHDF5Events(std::vector<Event> &events, size_t nbPass);
+
+    void computeNeuromodulator();
+
+    void readFirstAndLastTimestamp();
 
     void resetAllNeurons();
 };

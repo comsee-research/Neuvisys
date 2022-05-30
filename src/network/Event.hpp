@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_EVENT_HPP
 #define NEUVISYS_DV_EVENT_HPP
 
@@ -38,7 +42,7 @@ public:
 
     [[nodiscard]] inline uint16_t camera() const { return m_camera; }
 
-    bool operator <(const Event &event) const {
+    bool operator<(const Event &event) const {
         return m_timestamp < event.m_timestamp;
     }
 

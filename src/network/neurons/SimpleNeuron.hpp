@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
@@ -34,13 +38,23 @@ public:
 
     std::vector<long> getWeightsDimension() override;
 
-    void saveWeights(std::string &fileName) override;
+    void saveWeights(std::string &filePath) override;
 
-    void saveInhibWeights(std::string &fileName) override;
+    void saveLateralInhibitionWeights(std::string &filePath) override;
 
-    void loadWeights(std::string &fileName) override;
+    void saveTopDownInhibitionWeights(std::string &filePath) override;
 
-    void loadInhibWeights(std::string &fileName) override;
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadWeights(std::string &filePath) override;
+
+    void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadLateralInhibitionWeights(std::string &filePath) override;
+
+    void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) override;
+
+    void loadTopDownInhibitionWeights(std::string &filePath) override;
 
     bool checkRemainingEvents(size_t time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 
@@ -50,8 +64,6 @@ private:
     bool membraneUpdate(Event event);
 
     void spike(size_t time) override;
-
-    void normalizeWeights() override;
 
     void normalizeInhibWeights() override;
 };

@@ -1,5 +1,5 @@
 //
-// Created by alphat on 23/05/2021.
+// Created by Thomas on 23/05/2021.
 //
 
 #ifndef NEUVISYS_DV_MOTORNEURON_HPP
@@ -29,7 +29,7 @@ public:
 
     void loadWeights(std::string &filePath) override;
 
-    void normalizeWeights() override;
+    void loadWeights(cnpy::npz_t &arrayNPZ) override;
 
     void setNeuromodulator(double neuromodulator) override;
 
@@ -38,8 +38,6 @@ public:
     cv::Mat summedWeightMatrix() override;
 
     double updateKernelSpikingRate(long time) override;
-
-    double computeNormWeights() override;
 
     void rescaleWeights(double scale) override;
 

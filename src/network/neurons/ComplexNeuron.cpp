@@ -1,9 +1,13 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "ComplexNeuron.hpp"
 
 ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, Eigen::Tensor<double, 3> &weights) :
-    Neuron(index, layer, conf, pos, offset),
-    m_events(boost::circular_buffer<NeuronEvent>(1000)),
-    m_weights(weights) {
+        Neuron(index, layer, conf, pos, offset),
+        m_events(boost::circular_buffer<NeuronEvent>(1000)),
+        m_weights(weights) {
 }
 
 inline bool ComplexNeuron::newEvent(NeuronEvent event) {
@@ -12,12 +16,9 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(- static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
-//    potentialDecay(event.timestamp() - m_timestampLastEvent);
-
+    potentialDecay(event.timestamp());
     m_potential += m_weights(event.x(), event.y(), event.z())
-                   - refractoryPotential(event.timestamp() - m_spikingTime);
-                   //- m_adaptationPotential;
+                   - refractoryPotential(event.timestamp());
     m_timestampLastEvent = event.timestamp();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
@@ -42,7 +43,7 @@ inline void ComplexNeuron::spike(const size_t time) {
 
 inline void ComplexNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
-        for (NeuronEvent &event : m_events) {
+        for (NeuronEvent &event: m_events) {
             if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
                 m_weights(event.x(), event.y(), event.z()) += m_conf.ETA_LTP;
             }
@@ -54,18 +55,10 @@ inline void ComplexNeuron::weightUpdate() {
             }
         }
 
-        normalizeWeights();
+        Util::normalizeComplexTensor(m_weights, m_conf.NORM_FACTOR);
         //    m_decay = 1 / (1 + exp(m_totalSpike - m_networkConf.DECAY_FACTOR));
     }
     m_events.clear();
-}
-
-inline void ComplexNeuron::normalizeWeights() {
-    Eigen::Tensor<double, 0> norm = m_weights.pow(2).sum().sqrt();
-   // Eigen::Tensor<double, 0> norm = m_weights.sum();
-    if (norm(0) != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm(0);
-    }
 }
 
 inline cv::Mat ComplexNeuron::summedWeightMatrix() {
@@ -85,17 +78,24 @@ inline cv::Mat ComplexNeuron::summedWeightMatrix() {
 }
 
 void ComplexNeuron::saveWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::saveComplexTensorToNumpyFile(m_weights, weightFile);
+    auto weightsFile = filePath + std::to_string(m_index);
+    Util::saveComplexTensorToNumpyFile(m_weights, weightsFile);
+//    auto arrayName = std::to_string(m_index);
+//    Util::saveComplexTensorToNumpyFile(m_weights, filePath, arrayName);
 }
 
 void ComplexNeuron::loadWeights(std::string &filePath) {
-    auto weightFile = filePath + std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(m_weights, weightFile);
+    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
+    Util::loadNumpyFileToComplexTensor(m_weights, numpyFile);
+}
+
+void ComplexNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    auto arrayName = std::to_string(m_index);
+    Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
 }
 
 std::vector<long> ComplexNeuron::getWeightsDimension() {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions& dimensions = m_weights.dimensions();
-    std::vector<long> dim = { dimensions[0], dimensions[1], dimensions[2] };
+    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
+    std::vector<long> dim = {dimensions[0], dimensions[1], dimensions[2]};
     return dim;
 }

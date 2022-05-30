@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYSTHREAD_H
 #define NEUVISYSTHREAD_H
 
@@ -35,6 +39,7 @@ protected:
     bool m_change = false;
     size_t m_currentTab = 0;
     size_t m_on_count = 0, m_off_count = 0;
+    double m_endTime = 0;
 
     int m_actor = -1;
     double m_value = 0;
@@ -45,7 +50,7 @@ protected:
     size_t m_synapse = 0;
     size_t m_layer = 0;
 
-    double m_displayRate = 30000; // µs
+    double m_displayRate = 5000; // µs
     double m_trackRate = 10000; // µs
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs
@@ -70,9 +75,11 @@ private:
 
     int launchReal(NetworkHandle &network);
 
-    void readEvents();
+    void readEventsFile();
 
-    void display(NetworkHandle &network, size_t sizeArray, double time);
+    void readEventsRealTime();
+
+    void display(NetworkHandle &network, double time);
 
     void addEventToDisplay(const Event &event);
 
@@ -118,15 +125,14 @@ signals:
 
     void displayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layer);
 
-    void
-    displayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
 
     void displaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrain, double time);
 
     void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain,
                        const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
 
-    void displayAction(const std::vector<bool> &motorActivation);
+    void displayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train);
 
     void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
                               const std::vector<size_t> &layerSizes, const

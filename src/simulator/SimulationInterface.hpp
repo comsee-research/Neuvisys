@@ -1,5 +1,5 @@
 //
-// Created by thomas on 04/06/2021.
+// Created by Thomas on 04/06/2021.
 //
 
 #ifndef NEUVISYS_SIMULATIONINTERFACE_HPP
@@ -43,10 +43,10 @@ class SimulationInterface {
     cv::Mat rightReference, rightThresholdmap, rightEim;
     bool firstLeftImage = true, firstRightImage = true;
     std::vector<Event> leftEvents, rightEvents;
-    std::vector<std::map<uint64_t, float>> actionMapping;
+    std::vector<std::pair<uint64_t, float>> m_actionMapping;
 
 public:
-    explicit SimulationInterface(bool saveFrames=false, bool saveEvents=false);
+    explicit SimulationInterface(std::vector<std::pair<uint64_t, float>> actions, bool saveFrames=false, bool saveEvents=false);
     void update();
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }

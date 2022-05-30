@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Neuvisysthread.h"
 
 using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
@@ -31,9 +35,10 @@ void NeuvisysThread::run() {
     m_leftEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     m_rightEventDisplay = cv::Mat::zeros(Conf::HEIGHT, Conf::WIDTH, CV_8UC3);
     if (m_mode == 3) {
-        readEvents();
+        readEventsFile();
     } else {
         auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
+        m_endTime = static_cast<double>(m_nbPass) * (network.getLastTimestamp() - network.getFirstTimestamp());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
                                   network.getNetworkConfig().getLayerPatches()[0],
@@ -54,40 +59,7 @@ void NeuvisysThread::run() {
     quit();
 }
 
-void NeuvisysThread::readEvents() {
-//    auto camera = EventCamera();
-//    auto eventFilter = Ynoise(346, 260);
-//
-//    bool received = false, stop = false;
-//    size_t time;
-//    auto displayTime = 0;
-//    auto rtime = std::chrono::high_resolution_clock::now();
-//    auto rdisplayTime = rtime;
-//
-//    while (!stop) {
-//        auto polarity = camera.receiveEvents(received, stop);
-//
-//        auto events = eventFilter.run(*polarity);
-//
-//        for (const auto &event : events) {
-//            addEventToDisplay(event);
-//
-//            time = event.timestamp();
-//            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-//                displayTime = time;
-//
-//                m_leftEventDisplay = 0;
-//                m_rightEventDisplay = 0;
-//            }
-//
-//            rtime = std::chrono::high_resolution_clock::now();
-//            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
-//                rdisplayTime = rtime;
-//                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-//            }
-//        }
-//    }
-
+void NeuvisysThread::readEventsFile() {
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
     auto network = NetworkHandle(m_events.toStdString(), 0);
@@ -112,29 +84,37 @@ void NeuvisysThread::readEvents() {
     }
 }
 
-void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
-    if (!events.empty()) {
-        m_eventRate += static_cast<double>(events.size());
+void NeuvisysThread::readEventsRealTime() {
+    auto camera = EventCamera();
+    auto eventFilter = Ynoise(346, 260);
 
-        for (auto const &event : events) {
-            ++m_iterations;
+    bool received = false, stop = false;
+    size_t time;
+    auto displayTime = 0;
+    auto rtime = std::chrono::high_resolution_clock::now();
+    auto rdisplayTime = rtime;
+
+    while (!stop) {
+        auto polarity = camera.receiveEvents(received, stop);
+
+        auto events = eventFilter.run(*polarity);
+
+        for (const auto &event : events) {
             addEventToDisplay(event);
-            network.transmitEvent(event);
-        }
-        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
 
-        emit consoleMessage(m_msg);
-        m_msg.clear();
+            time = event.timestamp();
+            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
+                displayTime = time;
 
-        /*** GUI Display ***/
-        if (time - m_displayTime > m_displayRate) {
-            m_displayTime = time;
-            display(network, events.size(), m_displayTime);
-        }
+                m_leftEventDisplay = 0;
+                m_rightEventDisplay = 0;
+            }
 
-        if (time - m_trackTime > m_trackRate) {
-            m_trackTime = time;
-            network.trackNeuron(time, m_id, m_layer);
+            rtime = std::chrono::high_resolution_clock::now();
+            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+                rdisplayTime = rtime;
+                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+            }
         }
     }
 }
@@ -151,29 +131,25 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
 }
 
 void NeuvisysThread::launchSimulation(NetworkHandle &network) {
-    SimulationInterface sim;
+    SimulationInterface sim(network.getRLConfig().getActionMapping(), false, false);
     sim.enableSyncMode(true);
     sim.startSimulation();
-
-//    while (sim.getSimulationTimeStep() == 0) {}
-//    network.setTimeStep(sim.getSimulationTimeStep() * E6);
-    network.setTimeStep(0.001 * E6);
 
     while (!m_stop) {
         sim.triggerNextTimeStep();
         while (!sim.simStepDone() && !m_stop) {
             ros::spinOnce();
         }
-
         sim.update();
+
         network.transmitReward(sim.getReward());
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-//        if (m_action != -1) {
-//            sim.activateMotors(m_action);
-//            m_motorDisplay[m_action] = true;
-//        }
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
 
-        if (sim.getSimulationTime() > 300) {
+        if (sim.getSimulationTime() > 5) {
             m_stop = true;
         }
     }
@@ -242,6 +218,33 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     return 0;
 }
 
+void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+    m_eventRate += static_cast<double>(events.size());
+    if (!events.empty()) {
+        for (auto const &event : events) {
+            ++m_iterations;
+            addEventToDisplay(event);
+            network.transmitEvent(event);
+        }
+
+//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+    }
+
+    emit consoleMessage(m_msg);
+    m_msg.clear();
+
+    /*** GUI Display ***/
+    if (time - m_displayTime > m_displayRate) {
+        m_displayTime = time;
+        display(network, m_displayTime);
+    }
+
+    if (time - m_trackTime > m_trackRate) {
+        m_trackTime = time;
+        network.trackNeuron(time, m_id, m_layer);
+    }
+}
+
 inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     if (event.polarity() == 0) {
         ++m_off_count;
@@ -261,7 +264,7 @@ inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     }
 }
 
-inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, double time) {
+inline void NeuvisysThread::display(NetworkHandle &network, double time) {
     if (m_change) {
         m_change = false;
         auto sharing = "none";
@@ -274,14 +277,13 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
     }
 
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
-    if (sizeArray != 0) {
-        emit displayProgress(static_cast<int>(100 * m_iterations / sizeArray), time);
+    if (m_endTime != 0) {
+        emit displayProgress(static_cast<int>(100 * (time) / m_endTime), time);
     }
     switch (m_currentTab) {
         case 0: // event viz
             sensingZone(network);
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            emit displayAction(m_motorDisplay);
             break;
         case 1: // statistics
             m_eventRate = (E6 / m_displayRate) * m_eventRate;
@@ -305,6 +307,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, size_t sizeArray, do
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],
                                network.getSaveData()["tdError"]);
             break;
+        case 6: // action
+            emit displayAction(network.getSaveData()["action_0"], network.getSaveData()["action_1"]);
         default:
             break;
     }
@@ -365,12 +369,19 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                         m_weightDisplay[count] = network.getWeightNeuron(
                                 network.getLayout(0, Position(wp * network.getNetworkConfig().getLayerSizes()[m_layer][0],
                                                               hp * network.getNetworkConfig().getLayerSizes()[m_layer][1],
-                                                              i)), m_layer, m_camera,
-                                m_synapse, m_zcell);
+                                                              i)), m_layer, m_camera, m_synapse, m_zcell);
                         ++count;
                     }
                 }
             }
+        } else if (network.getNetworkConfig().getSharingType() == "full") {
+            count = 0;
+                for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
+                    std::cout << network.getNetworkConfig().getLayerSizes()[m_layer][0] << std::endl;
+                    m_weightDisplay[count] = network.getWeightNeuron(
+                            network.getLayout(0, Position(0,0,i)), m_layer, m_camera, m_synapse, m_zcell);
+                    ++count;
+                }
         }
     } else {
         for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {

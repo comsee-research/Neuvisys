@@ -1,5 +1,5 @@
 //
-// Created by thomas on 28/06/2021.
+// Created by Thomas on 28/06/2021.
 //
 
 #include "SimulationInterface.hpp"

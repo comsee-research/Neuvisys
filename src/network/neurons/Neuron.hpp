@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_NEURON_HPP
 #define NEUVISYS_DV_NEURON_HPP
 
@@ -73,7 +77,9 @@ public:
 
     [[nodiscard]] virtual size_t getActivityCount();
 
-    virtual NeuronConfig getConf() const {return m_conf; };
+    virtual void resetActivityCount();
+
+    virtual NeuronConfig getConf() const { return m_conf; }
 
     virtual double getWeights(long x, long y, long z) {};
 
@@ -114,13 +120,21 @@ public:
 
     virtual double getPotential(size_t time);
 
-    virtual double potentialDecay(size_t time);
+    virtual void potentialDecay(size_t time);
 
     virtual double refractoryPotential(size_t time);
 
-    virtual double adaptationPotentialDecay(size_t time);
+    virtual void adaptationPotentialDecay(size_t time);
 
-    virtual void assignToPotentialTrain(std::pair<double,uint64_t> potential);
+    virtual void saveState(std::string &filePath);
+
+    virtual void loadState(std::string &filePath);
+
+    virtual void saveWeights(std::string &filePath) {};
+
+    virtual void saveLateralInhibitionWeights(std::string &filePath) {};
+
+    virtual void assignToPotentialTrain(std::pair<double, uint64_t> potential);
 
     virtual void assignToPotentialThreshold();
 
@@ -140,21 +154,19 @@ public:
 
     virtual std::vector<std::vector<std::tuple<double, double, uint64_t>>> getTimingOfInhibition();
 
-    virtual void inhibition(uint64_t time);
+    virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void saveState(std::string &fileName);
+    virtual void loadWeights(std::string &filePath) {};
 
-    virtual void loadState(std::string &fileName);
+    virtual void loadLateralInhibitionWeights(std::string &filePath) {};
 
-    virtual void saveWeights(std::string &fileName) {};
+    virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void saveInhibWeights(std::string &fileName) {};
+    virtual void loadWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void loadWeights(std::string &fileName) {};
+    virtual void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void loadInhibWeights(std::string &fileName) {};
-
-    virtual void normalizeWeights() {};
+    virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
     virtual void normalizeInhibWeights() {};
 
@@ -168,6 +180,8 @@ public:
 
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
+    virtual void initializeTopDownDynamicInhibitionWeights(Neuron &neuron);
+
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
@@ -175,6 +189,8 @@ public:
     virtual bool newEvent(Event event) {};
 
     virtual bool newEvent(NeuronEvent event) {};
+
+    virtual void newStaticInhibitoryEvent(NeuronEvent event);
 
     virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
 
@@ -190,13 +206,9 @@ public:
 
     virtual double updateKernelSpikingRate(long time) {};
 
-    virtual double computeNormWeights() {};
-
     virtual void rescaleWeights(double scale) {};
 
     virtual void learningDecay(double count);
-
-//    virtual void barLength();
 
     virtual void resetNeuron();
 
@@ -204,7 +216,6 @@ protected:
     void writeJson(json &state);
 
     void readJson(const json &state);
-
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP
