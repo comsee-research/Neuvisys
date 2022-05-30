@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
 
-        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/20/vertical_diff_speeds_8/";
+        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/100/vertical_diff_speeds_10/";
 
         std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/new_bars/events/";
         std::vector<std::string> vectorOfPaths;

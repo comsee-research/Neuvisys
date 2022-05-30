@@ -24,9 +24,9 @@ public:
 
     bool newEvent(Event event) override;
 
-    void newTopDownInhibitoryEvent(NeuronEvent event, Neuron &neuron) override;
+    void newTopDownInhibitoryEvent(NeuronEvent event) override;
 
-    void newLateralInhibitoryEvent(NeuronEvent event, Neuron &neuron) override;
+    void newLateralInhibitoryEvent(NeuronEvent event) override;
 
     bool update() override;
 
@@ -45,8 +45,6 @@ public:
     bool checkRemainingEvents(size_t time) { return !m_waitingList.empty() && m_waitingList.top().timestamp() <= time; }
 
     void weightUpdate() override;
-
-    void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi) override;
 
 private:
     bool membraneUpdate(Event event);

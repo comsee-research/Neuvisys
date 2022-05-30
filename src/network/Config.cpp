@@ -28,6 +28,7 @@ void NetworkConfig::loadNetworkLayout() {
             layerSizes = static_cast<std::vector<std::vector<size_t>>>(conf["layerSizes"]);
             neuronSizes = static_cast<std::vector<std::vector<size_t>>>(conf["neuronSizes"]);
             neuronOverlap = static_cast<std::vector<std::vector<size_t>>>(conf["neuronOverlap"]);
+            neuronInhibitionRange = static_cast<std::vector<int>>(conf["neuronInhibitionRange"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
             nu = conf["nu"];
@@ -230,6 +231,11 @@ void NetworkConfig::createNetwork(const std::string &directory) {
     std::filesystem::create_directory(directory + "/weights/1");
     std::filesystem::create_directory(directory + "/weights/2");
     std::filesystem::create_directory(directory + "/weights/3");
+    std::filesystem::create_directory(directory + "/statistics");
+    std::filesystem::create_directory(directory + "/statistics/0");
+    std::filesystem::create_directory(directory + "/statistics/1");
+    std::filesystem::create_directory(directory + "/statistics/2");
+    std::filesystem::create_directory(directory + "/statistics/3");
 
     std::vector<json> conf = {
             {
@@ -243,6 +249,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"layerSizes",    {{16, 16, 64}, {4, 4, 16}}},
                     {"neuronSizes",       {{10, 10, 1}, {4, 4, 64}}},
                     {"neuronOverlap", {{0, 0, 0}, {0, 0, 0}}},
+                    {"neuronInhibitionRange", {1, 1}},
                     {"nu",            0.5},
                     {"V0",            0},
                     {"tauR",       1},

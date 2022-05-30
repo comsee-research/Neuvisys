@@ -216,14 +216,14 @@ void SurroundSuppression::launchTrainingNeurons()
     if(n_x != m_simpleNeuronConf.POTENTIAL_TRACK[0] || n_y != m_simpleNeuronConf.POTENTIAL_TRACK[1])
     {
         std::cout << "WARNING! You are not saving the potentials and weights statistics of the neuron you want to evaluate. Do you want to restart the program? (y/n)" << std::endl;
-        char response;
+        std::string response;
         std::cin >> response;
-        while(response!='y' || response!='n')
+        while(response!="y" && response!="n" && response!="yes" && response!="no")
         {
             std::cout << "Type either 'y' for yes or 'n' for no." << std::endl;
             std::cin >> response;
         }
-        if(response=='y')
+        if(response=="y" || response=="yes")
         {
             std::cout << "Program aborted." << std::endl;
             exit(-1);
@@ -313,6 +313,7 @@ void SurroundSuppression::launchTrainingNeurons()
             {
                 std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
                 m_network.feedEvents(ev.at(i)); 
+                m_network.saveStatistics(i);
             }
             m_network.save("g",0);
         }

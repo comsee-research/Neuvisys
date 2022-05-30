@@ -34,7 +34,10 @@ void SpikingNetwork::addEvent(const Event &event) {
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
         if(m_networkConf.getNeuron1Synapses()==1)
         {
-            if (m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()))) {
+            bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
+            double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y() );
+            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi);
+            if (spiked) {
                 m_neurons[0][ind].get().weightUpdate();
                 lateralStaticInhibition(m_neurons[0][ind].get());
                 lateralDynamicInhibition(m_neurons[0][ind].get());
@@ -86,7 +89,10 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
         auto neuronPos = Position(neuron.getPos().x() - forwardNeuron.get().getOffset().x(),
                                   neuron.getPos().y() - forwardNeuron.get().getOffset().y(),
                                   neuron.getPos().z() - forwardNeuron.get().getOffset().z());
-        if (forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()))) {
+        bool spiked = forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuronPos.x(), neuronPos.y(), neuronPos.z()));
+        double wi = forwardNeuron.get().getWeights(neuronPos.x(), neuronPos.y(), neuronPos.z());
+        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi);
+        if (spiked) {
             if (forwardNeuron.get().getLayer() == 2) { // critic neuromodulation
                 neuromodulation(forwardNeuron.get());
             }
@@ -102,20 +108,23 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &backwardNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-        backwardNeuron.get().newTopDownInhibitoryEvent(event, neuron);
+        backwardNeuron.get().newTopDownInhibitoryEvent(event);
+        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), backwardNeuron.get(), backwardNeuron.get().getTopDownInhibitionWeights(event.id()));
     }
 }
 
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-        lateralNeuron.get().newLateralInhibitoryEvent(event, neuron);
+        lateralNeuron.get().newLateralInhibitoryEvent(event);
+        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
     }
 }
 
 void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
-        lateralNeuron.get().inhibition(neuron.getSpikingTime(), neuron);
+        lateralNeuron.get().inhibition(neuron.getSpikingTime());
+        neuronsStatistics(neuron.getSpikingTime(), 1, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getConf().ETA_INH);
     }
 }
 
@@ -142,7 +151,7 @@ void SpikingNetwork::updateNeurons(const long time) {
             if (simpleNeuron.update()) {
                 simpleNeuron.weightUpdate();
                 for (auto &simpleNeuronToInhibit: simpleNeuron.getLateralStaticInhibitionConnections()) {
-                    simpleNeuronToInhibit.get().inhibition(time, simpleNeuron);
+                    simpleNeuronToInhibit.get().inhibition(time);
                 }
                 lateralDynamicInhibition(simpleNeuron);
                 addNeuronEvent(simpleNeuron);
@@ -488,4 +497,74 @@ std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, co
         }
     }
     throw std::runtime_error("Wrong layer or index for neuron selection");
+}
+
+
+void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi){
+    /*type_ = 0 for excitatory event ; 
+    type_ = 1 for static inhibition ;
+    type_ = 2 for lateral inhibition ; 
+    type_ = 3 for topdown inhibition ;*/
+//    std::cout << "hey" << std::endl;
+    if (neuron.getConf().POTENTIAL_TRACK[0] == neuron.getPos().x() && neuron.getConf().POTENTIAL_TRACK[1] == neuron.getPos().y()) {
+            neuron.assignToAmountOfEvents(type_);           
+            neuron.assignToPotentialThreshold();
+            // std::pair<double, uint64_t> pot = std::make_pair(neuron.getPotential(time),time);
+            neuron.assignToPotentialTrain(std::make_pair(neuron.getPotential(time),time));
+            if(type_!=0)
+            {
+                type_-=1;
+                if(type_!=2){
+                    if(pos.x()>neuron.getPos().x()+1 || pos.x() < neuron.getPos().x()-1){
+                        std::cout << "pos x = " << pos.x() << " ; pos y = " << pos.y() << std::endl;
+                        std::cout << "type = " << type_ << std::endl;
+                        std::cout << "neuron to track x = " << neuron.getConf().POTENTIAL_TRACK[0] << " ; y = " << neuron.getConf().POTENTIAL_TRACK[1] << std::endl << std::endl;
+                    }
+                    neuron.assignToSumInhibWeights(type_, pos, wi);
+                }
+                std::tuple<double, double, uint64_t> var= {neuron.getPotential(time)-wi, neuron.getPotential(time), time};
+                std::cout << "value of potential = " << std::get<0>(var) << " ; value of potential afterwards = " << std::get<1>(var) << " ; value of time = " << std::get<2>(var) << std::endl << std::endl;
+                std::cout << "real value of potential now = " << neuron.getPotential(time) << std::endl;
+                neuron.assignToTimingOfInhibition(type_,var);
+            }
+        }
+}
+
+void SpikingNetwork::saveStatistics(int sequence){
+    std::string fileName;
+    size_t layer = 0;
+    std::filesystem::file_status s = std::filesystem::file_status{};
+    for (auto &neurons: m_neurons) {
+        std::string path(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer));        
+        if(std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(path)){
+            std::filesystem::create_directory(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(sequence));
+            for (auto &neuron: neurons) {
+                if (neuron.get().getConf().POTENTIAL_TRACK[0] == neuron.get().getPos().x() && neuron.get().getConf().POTENTIAL_TRACK[1] == neuron.get().getPos().y()) {
+                    fileName = m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(sequence) + "/";
+                    saveStatesStatistics(fileName, neuron.get());
+                }
+            }
+            ++layer;
+        }
+    }
+}
+
+void SpikingNetwork::writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron){
+    state["amount_of_events"] = neuron.getAmountOfEvents();
+    state["potentials_thresholds"] = neuron.getPotentialThreshold();
+    state["potential_train"] = neuron.getPotentialTrain();
+    state["sum_inhib_weights"] = neuron.getSumInhibWeights();
+    state["timing_of_inhibition"] = neuron.getTimingOfInhibition();
+}
+
+void SpikingNetwork::saveStatesStatistics(std::string &fileName, Neuron& neuron){
+    nlohmann::json state;    
+    writeJsonNeuronsStatistics(state, neuron);
+    std::ofstream ofs(fileName + std::to_string(neuron.getIndex()) + ".json");
+    if (ofs.is_open()) {
+        ofs << std::setw(4) << state << std::endl;
+    } else {
+        std::cout << "cannot save neuron state statistics file" << std::endl;
+    }
+    ofs.close();
 }

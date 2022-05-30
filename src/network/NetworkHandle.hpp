@@ -89,7 +89,9 @@ public:
     void learningDecay(size_t iteration);
 
     void save(const std::string &eventFileName, size_t nbRun);
-
+    
+    void saveStatistics(size_t sequence);
+    
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
@@ -138,6 +140,8 @@ private:
     bool loadHDF5Events(std::vector<Event> &events);
 
     bool loadHDF5EventsStereo(std::vector<Event> &events);
+
+    void resetAllNeurons();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

@@ -25,6 +25,8 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
     std::unordered_map<size_t, double> m_topDownInhibitionWeights;
     std::unordered_map<size_t, double> m_lateralInhibitionWeights;
+    int m_range_x;
+    int m_range_y;
     size_t m_spikingTime{};
     size_t m_lastSpikingTime{};
     size_t m_totalSpike{};
@@ -37,21 +39,13 @@ protected:
     size_t m_timestampLastEvent{};
     bool m_spike;
     size_t m_lifeSpan{};
-
-    double m_offset_inhib;
     double m_spikingRateAverage{};
-    size_t m_counter;
-    size_t m_counter_events;
-    size_t m_counter_lateral;
     std::vector<size_t> m_trackingSpikeTrain;
-    std::vector<size_t> m_length_of_sequence;
     std::vector<std::pair<double, uint64_t>> m_trackingPotentialTrain;
     std::vector<double> m_potentialThreshold;
-    std::vector<std::vector<uint64_t>> m_inhibitionIndex;
-    std::vector<size_t> m_amount_of_excit;
-    std::vector<size_t> m_amount_of_inhib;
-    std::vector<std::vector<double>> m_sumOfInhibWeightsLateral;
-    std::vector<std::vector<std::pair<double, uint64_t>>> m_inhibWeightsStatLateralTopDown;
+    std::vector<size_t> m_amount_of_events;
+    std::vector<std::vector<double>> m_sumOfInhibWeights;
+    std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
 
 private:
     virtual void spike(size_t time) {};
@@ -78,6 +72,8 @@ public:
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
 
     [[nodiscard]] virtual size_t getActivityCount();
+
+    virtual NeuronConfig getConf() const {return m_conf; };
 
     virtual double getWeights(long x, long y, long z) {};
 
@@ -124,7 +120,27 @@ public:
 
     virtual double adaptationPotentialDecay(size_t time);
 
-    virtual void inhibition(uint64_t time, Neuron &neuron);
+    virtual void assignToPotentialTrain(std::pair<double,uint64_t> potential);
+
+    virtual void assignToPotentialThreshold();
+
+    virtual void assignToAmountOfEvents(int type);
+
+    virtual void assignToSumInhibWeights(int type, Position pos, double wi);
+
+    virtual void assignToTimingOfInhibition(int type, std::tuple<double, double, uint64_t> variation);
+
+    virtual std::vector<std::pair<double, uint64_t>> getPotentialTrain();
+
+    virtual std::vector<double> getPotentialThreshold();
+
+    virtual std::vector<size_t> getAmountOfEvents();
+
+    virtual std::vector<std::vector<double>> getSumInhibWeights();
+
+    virtual std::vector<std::vector<std::tuple<double, double, uint64_t>>> getTimingOfInhibition();
+
+    virtual void inhibition(uint64_t time);
 
     virtual void saveState(std::string &fileName);
 
@@ -160,9 +176,9 @@ public:
 
     virtual bool newEvent(NeuronEvent event) {};
 
-    virtual void newTopDownInhibitoryEvent(NeuronEvent event, Neuron &neuron) {};
+    virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
 
-    virtual void newLateralInhibitoryEvent(NeuronEvent event, Neuron &neuron) {};
+    virtual void newLateralInhibitoryEvent(NeuronEvent event) {};
 
     virtual bool update() {};
 
@@ -180,9 +196,7 @@ public:
 
     virtual void learningDecay(double count);
 
-    virtual void barLength();
-
-    virtual void savePotentials(uint64_t time, int type_, Neuron &neuron, double wi){};
+//    virtual void barLength();
 
     virtual void resetNeuron();
 

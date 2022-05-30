@@ -39,6 +39,7 @@ class NetworkConfig {
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
+    std::vector<int> neuronInhibitionRange;
 
     double nu{};
     double V0{};
@@ -92,6 +93,8 @@ public:
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
 
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
+
+    std::vector<int> getNeuronInhibitionRange() { return neuronInhibitionRange; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 

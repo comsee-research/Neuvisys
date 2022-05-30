@@ -13,28 +13,15 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
         m_conf(conf),
         m_pos(pos),
         m_offset(offset),
-        m_trackingSpikeTrain(std::vector<size_t>(0)) {
+        m_range_x(1),
+        m_range_y(1),
+        m_trackingSpikeTrain(std::vector<size_t>(0)),
+        m_amount_of_events(std::vector<size_t>(4, 0)){
+    // m_sumOfInhibWeights(std::vector<std::vector<double>(8,0)>(3))
     m_threshold = conf.VTHRESH;
     m_decay = 1.0;
     m_spike = false;
-    m_counter = 0;
-    m_counter_events=0;
-    m_counter_lateral=0;
-    m_offset_inhib = E3 * 0;
     m_adaptationPotential = 0;
-    std::vector<uint64_t> temp;
-    std::vector<double> temp_weights;
-    m_sumOfInhibWeightsLateral.emplace_back(temp_weights);
-    std::vector<std::pair<double,uint64_t>> temp_pair;
-    for(int k=0; k<3; k++)
-    {
-        if(k<3)
-        {
-            m_inhibitionIndex.emplace_back(temp);
-            m_inhibWeightsStatLateralTopDown.emplace_back(temp_pair);
-        }        
-        m_sumOfInhibWeightsLateral[0].emplace_back(0); // 3 times here
-    }
 }
 
 /* Returns the neuron's potential after the decay depending on the time passed from the last event.
@@ -53,6 +40,103 @@ inline double Neuron::refractoryPotential(size_t time) {
 
 inline double Neuron::adaptationPotentialDecay(size_t time) {
     m_adaptationPotential *= exp(- static_cast<double>(time) / m_conf.TAU_SRA);
+}
+
+void Neuron::assignToPotentialTrain(std::pair<double,uint64_t> potential){
+    m_trackingPotentialTrain.push_back(potential);
+}
+
+void Neuron::assignToPotentialThreshold(){
+    m_potentialThreshold.push_back(m_threshold);
+}
+
+void Neuron::assignToAmountOfEvents(int type){
+    if(m_amount_of_events.size()==0){
+        for(int i=0; i<4; i++){
+            m_amount_of_events.push_back(0);
+        }
+    }
+    m_amount_of_events.at(type)+=1;
+}
+
+void Neuron::assignToSumInhibWeights(int type, Position pos, double wi){
+    if(m_sumOfInhibWeights.size()==0){
+        for(int i=0; i<2; i++){
+            std::vector<double> temp;
+            m_sumOfInhibWeights.push_back(temp);
+
+            if(m_range_x==0){
+                for(int j=-m_range_y;j<m_range_y; j++){
+                    m_sumOfInhibWeights.at(i).push_back(0);
+                }
+            }
+
+            else if(m_range_y==0){
+                for(int j=-m_range_x;j<m_range_x; j++){
+                    m_sumOfInhibWeights.at(i).push_back(0);
+                }
+            }
+            
+            else{
+                for(int j=-m_range_x; j<m_range_x+1; j++){
+                    for(int k=-m_range_y; k<m_range_y+1; k++){
+                        if(j==0 && k==0){
+                            continue;
+                        }
+                        else{
+                            m_sumOfInhibWeights.at(i).push_back(0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    int x_border_min = m_pos.x() - m_range_x;
+    int y_border_min = m_pos.y() - m_range_y;
+    int position;
+    if( (pos.x() > m_pos.x()) || (pos.x() ==m_pos.x() && pos.y() > m_pos.y() ) ){
+        position = (2*(m_range_y)+1) * (pos.x()-x_border_min) + (pos.y() - y_border_min) -1;
+    }
+    else{
+        position = (2*(m_range_y)+1) * (pos.x()-x_border_min) + (pos.y() - y_border_min) ;
+    }
+    if(m_sumOfInhibWeights.at(type).size()<=position){
+        std::cout << "size = " << m_sumOfInhibWeights.at(type).size() << " ; position = " << position << std::endl;
+        std::cout << "pos x = " << pos.x() << " ; x border min = " << x_border_min << " ; pos y = " << pos.y() << " ; y_border_min = " << y_border_min << std::endl;
+        std::cout << "m pos x = " << m_pos.x() << " ; m pos y = " << m_pos.y() << std::endl;
+        std::cout << "m_range_x = " << m_range_x << " ; m_range_y = " << m_range_y << std::endl;
+    }
+    m_sumOfInhibWeights.at(type).at(position) += wi;
+}
+
+void Neuron::assignToTimingOfInhibition(int type, std::tuple<double, double, uint64_t> variation){
+    if(m_timingOfInhibition.size()==0){
+        std::vector<std::tuple<double, double, uint64_t>> temp;
+        for(int i=0; i<3; i++){
+            m_timingOfInhibition.push_back(temp);
+        }
+    }
+    m_timingOfInhibition.at(type).push_back(variation);
+}
+
+std::vector<std::pair<double, uint64_t>> Neuron::getPotentialTrain(){
+    return m_trackingPotentialTrain;
+}
+
+std::vector<double> Neuron::getPotentialThreshold(){
+    return m_potentialThreshold;
+}
+
+std::vector<size_t> Neuron::getAmountOfEvents(){
+    return m_amount_of_events;
+}
+
+std::vector<std::vector<double>> Neuron::getSumInhibWeights(){
+    return m_sumOfInhibWeights;
+}
+
+std::vector<std::vector<std::tuple<double, double, uint64_t>>> Neuron::getTimingOfInhibition(){
+    return m_timingOfInhibition;
 }
 
 /* Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
@@ -94,13 +178,12 @@ inline bool Neuron::hasSpiked() {
     return false;
 }
 
-inline void Neuron::inhibition(uint64_t time, Neuron &neuron) {
+inline void Neuron::inhibition(uint64_t time) {
     m_potential *= exp(-static_cast<double>(time - m_timestampLastEvent) / m_conf.TAU_M);
     m_adaptationPotential *= exp(- static_cast<double>(time- m_timestampLastEvent) / m_conf.TAU_SRA);
     m_timestampLastEvent = time;
     m_potential -= m_conf.ETA_INH;
     m_timestampLastEvent = time;
-    savePotentials(time,0,neuron, m_conf.ETA_INH);
 }
 
 void Neuron::saveState(std::string &fileName) {
@@ -171,14 +254,6 @@ void Neuron::writeJson(nlohmann::json &state) {
     state["spiking_rate"] = m_spikingRateAverage;
     state["learning_decay"] = m_decay;
     state["spike_train"] = m_trackingSpikeTrain;
-    state["potential_train"] = m_trackingPotentialTrain;
-    state["bars_sequences_length"] = m_length_of_sequence;
-    state["inhibitions_index"] = m_inhibitionIndex;
-    state["sum_weights_lateral"] = m_sumOfInhibWeightsLateral;
-    state["weights_used_for_potentials"] = m_inhibWeightsStatLateralTopDown;
-    state["neurons_thresholds"] = m_potentialThreshold;
-    state["amount_of_excitation"]=m_amount_of_excit;
-    state["amount_of_inhibition"]=m_amount_of_inhib;
 }
 
 void Neuron::readJson(const nlohmann::json &state) {
@@ -223,34 +298,30 @@ void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralInhibitionWeights[neuron.getIndex()] = 0;
 }
 
-void Neuron::barLength(){
-    m_length_of_sequence.push_back(m_counter);
-    m_amount_of_excit.push_back(m_counter_events);
-    m_amount_of_inhib.push_back(m_counter_lateral);
-    m_counter = 0;
-    m_counter_events = 0;
-    m_counter_lateral =0;
-    std::vector<double> temp_weights;
-    m_sumOfInhibWeightsLateral.emplace_back(temp_weights);
-    for(int k=0; k<8; k++)
-    {
-        m_sumOfInhibWeightsLateral[m_sumOfInhibWeightsLateral.size()-1].emplace_back(0); 
-    }
-    resetNeuron();
-}
-
 void Neuron::resetNeuron(){
-m_potential=0;
-m_timestampLastEvent=0;
-m_lastSpikingTime=0;
-m_spikingTime=0;
-m_totalSpike=0;
-m_spikeRateCounter=0;
-m_activityCounter=0;
-m_decay=1.0;
-m_adaptationPotential=0;
-m_threshold=m_conf.VTHRESH;
-m_spike = false;
-m_lifeSpan=0;
-m_spikingRateAverage=0;
+    m_potential=0;
+    m_timestampLastEvent=0;
+    m_lastSpikingTime=0;
+    m_spikingTime=0;
+    m_totalSpike=0;
+    m_spikeRateCounter=0;
+    m_activityCounter=0;
+    m_decay=1.0;
+    m_adaptationPotential=0;
+    m_threshold=m_conf.VTHRESH;
+    m_spike = false;
+    m_lifeSpan=0;
+    m_spikingRateAverage=0;
+    m_trackingSpikeTrain.clear();
+    m_trackingPotentialTrain.clear();
+    m_potentialThreshold.clear();
+    m_amount_of_events.clear();
+    for(int i=0; i<m_sumOfInhibWeights.size(); i++){
+        m_sumOfInhibWeights[i].clear();
+    }
+    m_sumOfInhibWeights.clear();
+    for(int j=0; j<m_timingOfInhibition.size(); j++){
+        m_timingOfInhibition[j].clear();
+    }
+    m_timingOfInhibition.clear();
 }
