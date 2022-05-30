@@ -369,8 +369,7 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
                         m_weightDisplay[count] = network.getWeightNeuron(
                                 network.getLayout(0, Position(wp * network.getNetworkConfig().getLayerSizes()[m_layer][0],
                                                               hp * network.getNetworkConfig().getLayerSizes()[m_layer][1],
-                                                              i)), m_layer, m_camera,
-                                m_synapse, m_zcell);
+                                                              i)), m_layer, m_camera, m_synapse, m_zcell);
                         ++count;
                     }
                 }
@@ -378,11 +377,9 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
         } else if (network.getNetworkConfig().getSharingType() == "full") {
             count = 0;
                 for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
+                    std::cout << network.getNetworkConfig().getLayerSizes()[m_layer][0] << std::endl;
                     m_weightDisplay[count] = network.getWeightNeuron(
-                            network.getLayout(0, Position(network.getNetworkConfig().getLayerSizes()[m_layer][0],
-                                                          network.getNetworkConfig().getLayerSizes()[m_layer][1],
-                                                          i)), m_layer, m_camera,
-                            m_synapse, m_zcell);
+                            network.getLayout(0, Position(0,0,i)), m_layer, m_camera, m_synapse, m_zcell);
                     ++count;
                 }
         }

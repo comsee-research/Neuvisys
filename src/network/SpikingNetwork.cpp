@@ -791,7 +791,7 @@ std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, co
 
 void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi){
     if (neuron.getConf().POTENTIAL_TRACK[0] == neuron.getPos().x() && neuron.getConf().POTENTIAL_TRACK[1] == neuron.getPos().y()) {
-            neuron.assignToAmountOfEvents(type_);           
+            neuron.assignToAmountOfEvents(type_);
             neuron.assignToPotentialThreshold();
             // std::pair<double, uint64_t> pot = std::make_pair(neuron.getPotential(time),time);
             neuron.assignToPotentialTrain(std::make_pair(neuron.getPotential(time),time));
@@ -807,8 +807,8 @@ void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, N
                     neuron.assignToSumInhibWeights(type_, pos, wi);
                 }
                 std::tuple<double, double, uint64_t> var= {neuron.getPotential(time)-wi, neuron.getPotential(time), time};
-                std::cout << "value of potential = " << std::get<0>(var) << " ; value of potential afterwards = " << std::get<1>(var) << " ; value of time = " << std::get<2>(var) << std::endl << std::endl;
-                std::cout << "real value of potential now = " << neuron.getPotential(time) << std::endl;
+//                std::cout << "value of potential = " << std::get<0>(var) << " ; value of potential afterwards = " << std::get<1>(var) << " ; value of time = " << std::get<2>(var) << std::endl << std::endl;
+//                std::cout << "real value of potential now = " << neuron.getPotential(time) << std::endl;
                 neuron.assignToTimingOfInhibition(type_,var);
             }
         }
