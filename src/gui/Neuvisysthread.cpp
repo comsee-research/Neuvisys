@@ -37,7 +37,7 @@ void NeuvisysThread::run() {
     if (m_mode == 3) {
         readEventsFile();
     } else {
-        auto network = NetworkHandle(m_networkPath.toStdString(), m_events.toStdString());
+        auto network = NetworkHandle(m_networkPath.toStdString());
         m_endTime = static_cast<double>(m_nbPass) * (network.getLastTimestamp() - network.getFirstTimestamp());
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
@@ -49,6 +49,7 @@ void NeuvisysThread::run() {
         m_motorDisplay = std::vector<bool>(2, false);
 
         if (m_mode == 0) {
+            network.setEventPath(m_events.toStdString());
             launchNetwork(network);
         } else if (m_mode == 1) {
             launchReal(network);
@@ -142,7 +143,9 @@ void NeuvisysThread::launchSimulation(NetworkHandle &network) {
         }
         sim.update();
 
-        network.transmitReward(sim.getReward());
+        if (!network.getRLConfig().getIntrisicReward()) {
+            network.transmitReward(sim.getReward());
+        }
         eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
         if (m_action != -1) {
             sim.activateMotors(m_action);
@@ -227,7 +230,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             network.transmitEvent(event);
         }
 
-//        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
+        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
     }
 
     emit consoleMessage(m_msg);

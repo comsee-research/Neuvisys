@@ -145,6 +145,7 @@ public:
     long actionRate{};
     long minActionRate{};
     double decayRate{};
+    bool intrisicReward{};
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
     ReinforcementLearningConfig();
@@ -166,6 +167,8 @@ public:
     [[nodiscard]] long getMinActionRate() const { return minActionRate; }
 
     [[nodiscard]] double getDecayRate() const { return decayRate; }
+
+    [[nodiscard]] bool getIntrisicReward() const { return intrisicReward; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 
