@@ -190,6 +190,7 @@ void SurroundSuppression::generateVerticalBars(std::vector<std::vector<Event>> &
         }
     }
     else{
+        std::cout << "number of type of bars = " << numberOfTypesOfBars << " ; length of bars size = " << lengthsOfBars.size() << std::endl;
         std::cout << "Number of types of bars is wrong." << std::endl;
     }
 
@@ -233,6 +234,8 @@ void SurroundSuppression::launchTrainingNeurons()
             std::cout << "The program will continue then." << std::endl;
         }
     }
+//    for(n_y=2; n_y<17; n_y++){
+//    m_network.changeTrack(n_x,n_y);
     int n = n_x*m_networkConf.getLayerSizes()[0][1]*m_networkConf.getLayerSizes()[0][2] + n_y*m_networkConf.getLayerSizes()[0][2];
     int x_minus=(m_neuronsReceptiveField[0][n]).x_minus;
     int x_plus=(m_neuronsReceptiveField[0][n]).x_plus;
@@ -243,11 +246,12 @@ void SurroundSuppression::launchTrainingNeurons()
     std::cout << "The bars are only vertical, thus we will proceed to evaluate all the neurons sharing the same ordinate as receptive field. (regardless of their X or Z value)" << std::endl;
     if(m_simpleNeuronConf.STDP_LEARNING!="excitatory" && m_simpleNeuronConf.STDP_LEARNING!="inhibitory" && m_simpleNeuronConf.STDP_LEARNING!="all")
     {
-        int value = 1;
+        int value = 5;
         if(m_networkConf.getNeuronSizes()[0][1]>=value)
         {
             int n_;
             int max_n_ = 150;
+
             std::cout << "Type the number of bars that will be generated." << std::endl;
             std::cin >> n_;
             while(n_<=0 || n_>=max_n_)
@@ -257,71 +261,122 @@ void SurroundSuppression::launchTrainingNeurons()
             }
             std::vector<int> listOfLengths;
             int middle = (m_neuronsReceptiveField[0][n].y_plus + m_neuronsReceptiveField[0][n].y_minus)/2;
-            int offset;
-            int new_offset;
             int start;
-            std::vector<int>positionStart;
-            for(int i=0; i<n_; i++)
-            { 
-                offset = value * (i+1);
-                start = middle - int(offset/2);                      
-                if(start>=0 && start+offset<height_)
-                {
-                    listOfLengths.emplace_back(offset);
-                    positionStart.emplace_back(start);
+            int end;
+            std::string choice;
+            std::cout << "Do you want the bar to be centered, or not?" << std::endl;
+            std::cin >> choice;
+            if(choice=="no" || choice=="n") {
+                std::cout << "What is the start of the bar?" << std::endl;
+                std::cin >> start;
+                std::cout << "What is the end of the bar?" << std::endl;
+                std::cin >> end;
+                int offset;
+                bool up=true;
+                std::cout << "so, from the start or not? (y/n)" << std::endl;
+                std::cin >> choice;
+                if(choice=="no" || choice=="n") {
+                    up = false;
                 }
-                else
-                {
-                    while(start<0 || start+offset>=height_)
-                    {
-                        offset = offset-1;
-                        start = middle - int(offset/2); 
-                    }
-                    if(m_neuronsReceptiveField[0][n].y_minus==0)
-                    {
+
+                int new_offset;
+                std::vector<int>positionStart;
+                for(int i=0; i<n_; i++)
+                { 
+                    if(up) {
                         offset = value * (i+1);
-                    }                        
-                    if(listOfLengths.size()==0)
-                    {
-                        listOfLengths.emplace_back(offset);
-                        if(m_neuronsReceptiveField[0][n].y_minus!=0)
+                        if(start>=0 && start+offset<end+1)
                         {
-                            n_ = i+1; // ( = 1)
+                            listOfLengths.emplace_back(offset);
+                            positionStart.emplace_back(start);
                         }
-                        positionStart.emplace_back(start);
                     }
-                    else if(offset!=listOfLengths.at(listOfLengths.size()-1))
-                    {
-                        listOfLengths.emplace_back(offset);
-                        if(m_neuronsReceptiveField[0][n].y_minus!=0)
-                        {
-                            n_ = i+1; // ( = 1)
+                    else {
+                        offset = - value * (i+1);
+                        if(end<height_ && end+offset>=0) {
+                            listOfLengths.emplace_back(offset);
+                            positionStart.emplace_back(end);
                         }
-                        positionStart.emplace_back(start);
                     }
-                    if(m_neuronsReceptiveField[0][n].y_minus!=0)
-                    {
-                        break;
-                    }
-                    
                 }
+                std::vector<std::vector<Event>> ev;
+                int speedValue = 150;
+                generateVerticalBars(ev,n,n_,listOfLengths,positionStart,speedValue, nbPass);
+                for(int i=0; i< ev.size(); i++)
+                {
+                    std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                    m_network.feedEvents(ev.at(i)); 
+                    m_network.saveStatistics(i);
+                }
+                m_network.save("g",0);
             }
-            std::vector<std::vector<Event>> ev;
-            int speedValue = 150;
-            generateVerticalBars(ev,n,n_,listOfLengths,positionStart,speedValue, nbPass);
-            for(int i=0; i< ev.size(); i++)
-            {
-                std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
-                m_network.feedEvents(ev.at(i)); 
-                m_network.saveStatistics(i);
+
+            else {
+                int offset;
+                int new_offset;
+                std::vector<int>positionStart;
+                for(int i=0; i<n_; i++) { 
+                    offset = value * (i+1);
+                    start = middle - int(offset/2);                      
+                    if(start>=0 && start+offset<height_)
+                    {
+                        listOfLengths.emplace_back(offset);
+                        positionStart.emplace_back(start);
+                    }
+                    else
+                    {
+                        while(start<0 || start+offset>=height_)
+                        {
+                            offset = offset-1;
+                            start = middle - int(offset/2); 
+                        }
+                        if(m_neuronsReceptiveField[0][n].y_minus==0)
+                        {
+                            offset = value * (i+1);
+                        }                        
+                        if(listOfLengths.size()==0)
+                        {
+                            listOfLengths.emplace_back(offset);
+                            if(m_neuronsReceptiveField[0][n].y_minus!=0)
+                            {
+                                n_ = i+1; // ( = 1)
+                            }
+                            positionStart.emplace_back(start);
+                        }
+                        else if(offset!=listOfLengths.at(listOfLengths.size()-1))
+                        {
+                            listOfLengths.emplace_back(offset);
+                            if(m_neuronsReceptiveField[0][n].y_minus!=0)
+                            {
+                                n_ = i+1; // ( = 1)
+                            }
+                            positionStart.emplace_back(start);
+                        }
+                        if(m_neuronsReceptiveField[0][n].y_minus!=0)
+                        {
+                            break;
+                        }
+                    }
+                }
+                std::vector<std::vector<Event>> ev;
+                int speedValue = 150;
+                generateVerticalBars(ev,n,n_,listOfLengths,positionStart,speedValue, nbPass);
+                for(int i=0; i< ev.size(); i++)
+                {
+                    std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                    m_network.feedEvents(ev.at(i)); 
+                    m_network.saveStatistics(i);
+                }
+                m_network.save("g",0);
             }
-            m_network.save("g",0);
         }
     }
+    
     else
     {
         std::cout << "Change the parameter \"STDP_LEARNING\" for the program to work." << std::endl;
     }
+//    }
 }
 
 void SurroundSuppression::convertFrame(cv::Mat frame, cv::Mat& new_frame)

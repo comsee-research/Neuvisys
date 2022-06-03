@@ -29,8 +29,7 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
     std::unordered_map<size_t, double> m_topDownInhibitionWeights;
     std::unordered_map<size_t, double> m_lateralInhibitionWeights;
-    int m_range_x;
-    int m_range_y;
+    std::vector<size_t> m_range;
     size_t m_spikingTime{};
     size_t m_lastSpikingTime{};
     size_t m_totalSpike{};
@@ -50,6 +49,9 @@ protected:
     std::vector<size_t> m_amount_of_events;
     std::vector<std::vector<double>> m_sumOfInhibWeights;
     std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
+    double m_spikingPotential{};
+    double m_beforeInhibitionPotential{};
+    int m_negativeLimits;
 
 private:
     virtual void spike(size_t time) {};
@@ -71,6 +73,8 @@ public:
 
     [[nodiscard]] virtual size_t getSpikingTime() const { return m_spikingTime; }
 
+    [[nodiscard]] virtual double getSpikingPotential() const { return m_spikingPotential; }
+
     [[nodiscard]] virtual double getDecay() const { return m_decay; }
 
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
@@ -80,6 +84,8 @@ public:
     virtual void resetActivityCount();
 
     virtual NeuronConfig getConf() const { return m_conf; }
+
+    virtual void setPotentialTrack(std::vector<double> val) { m_conf.POTENTIAL_TRACK = val;}
 
     virtual double getWeights(long x, long y, long z) {};
 
@@ -119,6 +125,12 @@ public:
     virtual bool hasSpiked();
 
     virtual double getPotential(size_t time);
+
+    virtual size_t getLastSpikingTime() const { return m_lastSpikingTime; }
+
+    virtual double getBeforeInhibitionPotential() { return m_beforeInhibitionPotential; }
+
+    virtual const std::vector<size_t> &getInhibitionRange() { return m_range; }
 
     virtual void potentialDecay(size_t time);
 
@@ -200,6 +212,8 @@ public:
 
     virtual void setNeuromodulator(double neuromodulator) {};
 
+    virtual void setInhibitionRange(std::vector<size_t> inhibitionRange);
+
     virtual void trackPotential(size_t time);
 
     virtual void updateState(size_t timeInterval, double alpha);
@@ -213,6 +227,11 @@ public:
     virtual void resetNeuron();
 
 protected:
+
+    void checkNegativeLimits();
+
+    void setLastBeforeInhibitionPotential();
+
     void writeJson(json &state);
 
     void readJson(const json &state);

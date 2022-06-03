@@ -18,11 +18,10 @@ Neuron::Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Pos
         m_conf(conf),
         m_pos(pos),
         m_offset(offset),
-        m_range_x(1),
-        m_range_y(1),
+        m_range(std::vector<size_t>(2, 1)),
+        m_negativeLimits(-80),
         m_trackingSpikeTrain(std::vector<size_t>(0)),
         m_amount_of_events(std::vector<size_t>(4, 0)) {
-    // m_sumOfInhibWeights(std::vector<std::vector<double>(8,0)>(3))
     m_threshold = conf.VTHRESH;
     m_decay = 1.0;
     m_spike = false;
@@ -98,12 +97,14 @@ void Neuron::assignToAmountOfEvents(int type) {
  * @param wi
  */
 void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
+    int m_range_x = m_range.at(0);
+    int m_range_y = m_range.at(1);
     if (m_sumOfInhibWeights.size() == 0) {
         for (int i = 0; i < 2; i++) {
             std::vector<double> temp;
             m_sumOfInhibWeights.push_back(temp);
 
-            if (m_range_x == 0) {
+            /*if (m_range_x == 0) {
                 for (int j = -m_range_y; j < m_range_y; j++) {
                     m_sumOfInhibWeights.at(i).push_back(0);
                 }
@@ -111,9 +112,9 @@ void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
                 for (int j = -m_range_x; j < m_range_x; j++) {
                     m_sumOfInhibWeights.at(i).push_back(0);
                 }
-            } else {
-                for (int j = -m_range_x; j < m_range_x + 1; j++) {
-                    for (int k = -m_range_y; k < m_range_y + 1; k++) {
+            } else {*/
+                for (int j = static_cast<int>(-m_range_x); j < static_cast<int>(m_range_x + 1); j++) {
+                    for (int k = static_cast<int>(-m_range_y); k < static_cast<int>(m_range_y + 1); k++) {
                         if (j == 0 && k == 0) {
                             continue;
                         } else {
@@ -121,7 +122,7 @@ void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
                         }
                     }
                 }
-            }
+        //    }
         }
     }
     int x_border_min = m_pos.x() - m_range_x;
@@ -155,6 +156,15 @@ void Neuron::assignToTimingOfInhibition(int type, std::tuple<double, double, uin
         }
     }
     m_timingOfInhibition.at(type).push_back(variation);
+}
+
+/**
+ * @brief Set the Inhibition Range object
+ * 
+ * @param inhibitionRange 
+ */
+void Neuron::setInhibitionRange(std::vector<size_t> inhibitionRange) {
+    m_range = inhibitionRange;
 }
 
 /**
@@ -258,8 +268,20 @@ inline bool Neuron::hasSpiked() {
 inline void Neuron::newStaticInhibitoryEvent(NeuronEvent event) {
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
+    setLastBeforeInhibitionPotential();
     m_potential -= m_conf.ETA_INH;
+    checkNegativeLimits();
     m_timestampLastEvent = event.timestamp();
+}
+
+void Neuron::checkNegativeLimits() {
+    if(m_potential < m_negativeLimits) {
+        m_potential = m_negativeLimits;
+    }
+}
+
+void Neuron::setLastBeforeInhibitionPotential() {
+    m_beforeInhibitionPotential = m_potential;
 }
 
 /**

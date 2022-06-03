@@ -31,7 +31,7 @@ inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
     potentialDecay(event.timestamp());
     m_potential += m_weights(event.x(), event.y(), event.z());
     m_timestampLastEvent = event.timestamp();
-
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -46,6 +46,7 @@ inline void MotorNeuron::spike(size_t time) {
     ++m_spikeRateCounter;
     ++m_activityCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
     m_trackingSpikeTrain.push_back(time);
 }

@@ -20,6 +20,7 @@ inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     m_potential += m_weights(event.x(), event.y(), event.z())
                    - refractoryPotential(event.timestamp());
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -33,6 +34,7 @@ inline void ComplexNeuron::spike(const size_t time) {
     m_spike = true;
     ++m_spikeRateCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
 
     spikeRateAdaptation();

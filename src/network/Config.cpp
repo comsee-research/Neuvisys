@@ -31,7 +31,7 @@ void NetworkConfig::loadNetworkLayout() {
             layerSizes = static_cast<std::vector<std::vector<size_t>>>(conf["layerSizes"]);
             neuronSizes = static_cast<std::vector<std::vector<size_t>>>(conf["neuronSizes"]);
             neuronOverlap = static_cast<std::vector<std::vector<size_t>>>(conf["neuronOverlap"]);
-            neuronInhibitionRange = static_cast<std::vector<int>>(conf["neuronInhibitionRange"]);
+            neuronInhibitionRange = static_cast<std::vector<size_t>>(conf["neuronInhibitionRange"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
         } catch (const std::exception &e) {

@@ -78,12 +78,14 @@ public:
 
     void saveStatistics(int sequence);
 
+    void changeTrack(int n_x, int n_y);
+
 private:
     void updateNeurons(long time);
 
     void saveNeuronsStates();
 
-    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi);
+    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike=false);
 
     static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
 

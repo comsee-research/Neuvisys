@@ -55,8 +55,10 @@ void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
     m_topDownInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
+    setLastBeforeInhibitionPotential();
     m_potential -= m_topDownInhibitionWeights.at(event.id());
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
 }
 
 /**
@@ -67,8 +69,13 @@ void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
     m_lateralInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
-    m_potential -= m_lateralInhibitionWeights.at(event.id());
+    setLastBeforeInhibitionPotential();
+//    std::cout << "hey!, event id = " << event.id() << std::endl;
+//    std::cout << "weight =" << m_lateralInhibitionWeights[event.id()] << std::endl; //.at(event.id())
+    m_potential -= m_lateralInhibitionWeights[event.id()];
+//    std::cout << "it's ok for weights?" << std::endl;
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
 }
 
 /**
@@ -96,7 +103,7 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
                    - refractoryPotential(event.timestamp())
                    - m_adaptationPotential;
     m_timestampLastEvent = event.timestamp();
-
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -115,6 +122,7 @@ inline void SimpleNeuron::spike(const size_t time) {
     m_spike = true;
     ++m_spikeRateCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
 
     spikeRateAdaptation();

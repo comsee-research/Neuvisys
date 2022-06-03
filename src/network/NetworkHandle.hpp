@@ -139,6 +139,8 @@ public:
 
     double getLastTimestamp() const { return m_eventFile.lastTimestamp; }
 
+    void changeTrack(int n_x, int n_y);
+
 private:
     void load();
 

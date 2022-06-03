@@ -500,6 +500,10 @@ void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t l
     }
 }
 
+void NetworkHandle::changeTrack(int n_x, int n_y) {
+    m_spinet.changeTrack(n_x,n_y);
+}
+
 /**
  *
  * @param idNeuron

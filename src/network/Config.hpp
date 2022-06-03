@@ -43,7 +43,7 @@ class NetworkConfig {
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
-    std::vector<int> neuronInhibitionRange;
+    std::vector<size_t> neuronInhibitionRange;
 
 public:
     NetworkConfig();
@@ -76,7 +76,7 @@ public:
 
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
 
-    std::vector<int> getNeuronInhibitionRange() { return neuronInhibitionRange; }
+    std::vector<size_t> getNeuronInhibitionRange() { return neuronInhibitionRange; }
 
     static void createNetwork(const std::string &directory);
 };
