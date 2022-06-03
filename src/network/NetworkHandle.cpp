@@ -17,11 +17,8 @@ NetworkHandle::NetworkHandle() : m_saveTime(0) {
  * @param eventsPath - Path to the event file.
  * @param time - Starting time for the network.
  */
-NetworkHandle::NetworkHandle(std::string eventsPath, double time) : m_saveTime(time), m_eventsPath(std::move(eventsPath)) {
-    std::string hdf5 = ".h5";
-    if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
-        openH5File();
-    }
+NetworkHandle::NetworkHandle(const std::string &eventsPath, double time) : m_saveTime(time) {
+    setEventPath(eventsPath);
 }
 
 /**
@@ -93,6 +90,7 @@ void NetworkHandle::openH5File() {
  * @return true if all the events have been loaded. false otherwise.
  */
 bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
+    m_endTime = static_cast<double>(nbPass) * (getLastTimestamp() - getFirstTimestamp());
     std::string hdf5 = ".h5";
     std::string npz = ".npz";
     if (std::equal(hdf5.rbegin(), hdf5.rend(), m_eventsPath.rbegin())) {
@@ -126,7 +124,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 
         if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(5 * E6)) {
             m_saveTime.display = static_cast<double>(event.timestamp());
-            std::cout << static_cast<int>(100 * m_iteration / m_nbEvents) << "%" << std::endl;
+            std::cout << static_cast<int>(static_cast<double>(100 * event.timestamp()) / m_endTime) << "%" << std::endl;
 //            m_spinet.intermediateSave(m_saveCount);
 //            ++m_saveCount;
         }
@@ -244,7 +242,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
-        if (getRLConfig().getIntrisicReward()) {
+        if (getRLConfig().getIntrinsicReward()) {
             m_reward = 50 * m_spinet.getAverageActivity();
             m_spinet.transmitReward(m_reward);
         }
@@ -644,7 +642,9 @@ bool NetworkHandle::loadHDF5Events(std::vector<Event> &events, size_t nbPass) {
 
     auto vTOffset = m_eventFile.countPass * (m_eventFile.lastTimestamp - m_eventFile.firstTimestamp);
     for (int i = 0; i < m_eventFile.packetSize; i++) {
-        events.emplace_back(vT[i] - m_eventFile.firstTimestamp + vTOffset, vX[i], vY[i], vP[i], vC[i]);
+        if (getNetworkConfig().getNbCameras() == 2 || vC[i] == 0) {
+            events.emplace_back(vT[i] - m_eventFile.firstTimestamp + vTOffset, vX[i], vY[i], vP[i], vC[i]);
+        }
     }
 
     m_eventFile.offset += m_eventFile.packetSize;

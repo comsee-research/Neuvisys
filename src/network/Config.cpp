@@ -34,6 +34,8 @@ void NetworkConfig::loadNetworkLayout() {
             neuronInhibitionRange = static_cast<std::vector<int>>(conf["neuronInhibitionRange"]);
             neuron1Synapses = conf["neuron1Synapses"];
             sharingType = conf["sharingType"];
+            vfWidth = conf["vfWidth"];
+            vfHeight = conf["vfHeight"];
         } catch (const std::exception &e) {
             std::cerr << "In network config file:" << e.what() << std::endl;
             throw;
@@ -65,7 +67,7 @@ void ReinforcementLearningConfig::loadRLConfig(const std::string &fileName) {
             decayRate = conf["decayRate"];
             actionRate = static_cast<long>(E3) * static_cast<long>(conf["actionRate"]);
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
-            intrisicReward = conf["intrisicReward"];
+            intrinsicReward = conf["intrinsicReward"];
         } catch (const std::exception &e) {
             std::cerr << "In reinforcement learning config file:" << e.what() << std::endl;
             throw;
@@ -278,7 +280,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"neuronSizes",    {{10, 10, 1}, {4, 4, 64}}},
                     {"neuronOverlap",     {{0, 0, 0}, {0, 0, 0}}},
                     {"neuronInhibitionRange", {1, 1}},
-
+                    {"vfWidth", 346},
+                    {"vfHeight", 260},
             },
             {
                     {"nu",        0.5},
@@ -309,8 +312,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"TOPDOWN_NORM_FACTOR", 30},
                     {"DECAY_RATE", 0},
                     {"MIN_THRESH", 4},
-                    {"ETA_LTP", 0.0077},
-                    {"ETA_LTD", -0.0021},
+                    {"ETA_LTP", 0.00077},
+                    {"ETA_LTD", -0.00021},
                     {"ETA_ILTP", 7.7},
                     {"ETA_ILTD", -2.1},
                     {"ETA_SRA", 0.6},

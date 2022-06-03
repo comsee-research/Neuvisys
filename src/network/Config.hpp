@@ -18,14 +18,6 @@
 
 using json = nlohmann::json;
 
-namespace Conf {
-    /***** General parameters *****/
-    inline constexpr size_t WIDTH = 346; // px
-    inline constexpr size_t HEIGHT = 260; // px
-
-    inline constexpr size_t EVENT_FREQUENCY = 1000; // μs
-}
-
 class NetworkConfig {
     /***** Display parameters *****/
     std::string m_networkPath;
@@ -35,6 +27,8 @@ class NetworkConfig {
     size_t nbCameras{};
     size_t neuron1Synapses{};
     std::string sharingType{};
+    size_t vfWidth{};
+    size_t vfHeight{};
 
     std::vector<std::string> layerCellTypes;
     std::vector<std::vector<std::string>> layerInhibitions;
@@ -61,6 +55,10 @@ public:
     [[nodiscard]] size_t getNbCameras() const { return nbCameras; }
 
     [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
+
+    [[nodiscard]] size_t getVfWidth() const { return vfWidth; }
+
+    [[nodiscard]] size_t getVfHeight() const { return vfHeight; }
 
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
 
@@ -145,7 +143,7 @@ public:
     long actionRate{};
     long minActionRate{};
     double decayRate{};
-    bool intrisicReward{};
+    bool intrinsicReward{};
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
     ReinforcementLearningConfig();
@@ -168,7 +166,7 @@ public:
 
     [[nodiscard]] double getDecayRate() const { return decayRate; }
 
-    [[nodiscard]] bool getIntrisicReward() const { return intrisicReward; }
+    [[nodiscard]] bool getIntrinsicReward() const { return intrinsicReward; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 

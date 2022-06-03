@@ -65,11 +65,12 @@ class NetworkHandle {
     size_t m_scoreCount{};
     size_t m_countEvents{};
     size_t m_saveCount{};
+    double m_endTime{};
 
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string eventsPath, double time);
+    explicit NetworkHandle(const std::string& eventsPath, double time);
 
     explicit NetworkHandle(const std::string &networkPath);
 

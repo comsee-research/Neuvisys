@@ -5,7 +5,10 @@
 #include "Neuvisysgui.h"
 #include "./ui_neuvisysgui.h"
 
-NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(parent), ui(new Ui::NeuvisysGUI), neuvisysThread(argc, argv) {
+NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent) : QMainWindow(parent),
+                                                                                                                                 ui(new Ui::NeuvisysGUI),
+                                                                                                                                 neuvisysThread(argc,
+                                                                                                                                                argv) {
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
@@ -19,8 +22,8 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
     rangeSpiketrain = 1000000;
 
     ui->setupUi(this);
-    ui->text_event_file->setText("/home/thomas/Videos/simulation/horizontal_oscillations.h5");
-    ui->text_network_directory->setText("/home/thomas/Desktop/Networks/inhibition_learning/base_static_lateral_topdown/");
+    ui->text_event_file->setText(QString::fromStdString(eventPath));
+    ui->text_network_directory->setText(QString::fromStdString(networkPath));
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);
@@ -277,7 +280,8 @@ void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
 }
 
 void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
-                                    const std::vector<size_t> &networkStructure) {
+                                    const std::vector<size_t> &networkStructure,
+                                    const size_t vfWidth, const size_t vfHeight) {
     ui->console->clear();
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
@@ -291,6 +295,9 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     }
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
+
+    m_vfWidth = vfWidth;
+    m_vfHeight = vfHeight;
 }
 
 void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
@@ -352,7 +359,7 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
         for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
             for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
                 auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, static_cast<int>(layerSizes[2] + i),static_cast<int>(layerSizes[2] + j));
+                ui->weightLayout->addWidget(label, static_cast<int>(layerSizes[2] + i), static_cast<int>(layerSizes[2] + j));
                 label->show();
             }
         }
@@ -401,9 +408,9 @@ void NeuvisysGUI::onDisplayStatistics(double event_rate, double on_off_ratio, do
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
     m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>
-    (leftEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
+    (leftEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * m_vfWidth), static_cast<int>(1.5 * m_vfHeight));
     m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>
-    (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * 346), static_cast<int>(1.5 * 260));
+    (rightEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * m_vfWidth), static_cast<int>(1.5 * m_vfHeight));
     ui->opengl_left_events->setImage(m_leftImage);
     ui->opengl_left_events->update();
     ui->opengl_right_events->setImage(m_rightImage);

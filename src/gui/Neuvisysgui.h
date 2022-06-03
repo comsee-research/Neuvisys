@@ -23,7 +23,7 @@ class NeuvisysGUI : public QMainWindow {
 Q_OBJECT
 
 public:
-    NeuvisysGUI(int argc, char **argv, QWidget *parent = nullptr);
+    NeuvisysGUI(int argc, char **argv, const std::string &eventPath = "", const std::string &networkPath = "", QWidget *parent = nullptr);
 
     ~NeuvisysGUI() override;
 
@@ -51,7 +51,7 @@ public slots:
                                 const std::vector<size_t> &layerSizes, const
                                 std::vector<size_t> &neuronSizes);
 
-    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, size_t vfWidth, size_t vfHeight);
 
     void onNetworkDestruction();
 
@@ -148,6 +148,8 @@ protected:
 
     QImage m_leftImage;
     QImage m_rightImage;
+    size_t m_vfWidth{};
+    size_t m_vfHeight{};
 
     size_t m_id{};
     size_t m_zcell{};

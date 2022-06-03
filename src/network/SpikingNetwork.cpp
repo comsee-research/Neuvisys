@@ -17,7 +17,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
                                                                  m_complexNeuronConf(networkPath + "configs/complex_cell_config.json", 1),
                                                                  m_criticNeuronConf(networkPath + "configs/critic_cell_config.json", 2),
                                                                  m_actorNeuronConf(networkPath + "configs/actor_cell_config.json", 3),
-                                                                 m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
+                                                                 m_pixelMapping(std::vector<std::vector<uint64_t>>(m_networkConf.getVfWidth() * m_networkConf.getVfHeight(),
                                                                                                                    std::vector<uint64_t>(0))) {
     for (size_t i = 0; i < m_networkConf.getLayerCellTypes().size(); ++i) {
         addLayer(m_networkConf.getLayerCellTypes()[i], m_networkConf.getSharingType(),
@@ -36,7 +36,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
  * @param event - The event coming from the pixel array.
  */
 void SpikingNetwork::addEvent(const Event &event) {
-    for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
+    for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * m_networkConf.getVfHeight() +
                                     static_cast<uint32_t>(event.y())]) {
         auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
@@ -392,7 +392,7 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const size_t currLayer,
         for (size_t j = neuron.getOffset().y(); j < neuron.getOffset().y() + neuronSizes[1]; ++j) {
             for (size_t k = neuron.getOffset().z(); k < neuron.getOffset().z() + neuronSizes[2]; ++k) {
                 if (currLayer == 0) {
-                    m_pixelMapping[i * Conf::HEIGHT + j].push_back(neuron.getIndex());
+                    m_pixelMapping[i * m_networkConf.getVfHeight() + j].push_back(neuron.getIndex());
                 } else {
                     neuron.addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
                     m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron);
