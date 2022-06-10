@@ -75,7 +75,9 @@ private:
 
     int launchReal(NetworkHandle &network);
 
-    void readEventsFile();
+    void readEventsFile(NetworkHandle &network);
+
+    void readEventsSimulation();
 
     void readEventsRealTime();
 

@@ -243,7 +243,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.update = time;
         m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
         if (getRLConfig().getIntrinsicReward()) {
-            m_reward = 50 * m_spinet.getAverageActivity();
+            m_reward = 100 * (2 - m_spinet.getAverageActivity());
             m_spinet.transmitReward(m_reward);
         }
     }
@@ -265,7 +265,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-        computeNeuromodulator();
+//        computeNeuromodulator();
         if (m_action != -1) {
             updateActor();
         }
@@ -329,9 +329,9 @@ void NetworkHandle::computeNeuromodulator() {
  *
  */
 void NetworkHandle::updateActor() {
-    for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
-        m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
-    }
+//    for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
+//        m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
+//    }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
