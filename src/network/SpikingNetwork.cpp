@@ -156,9 +156,16 @@ void SpikingNetwork::transmitReward(double reward) {
     m_reward = reward;
 }
 
-//void SpikingNetwork::neuromodulation(Neuron &neuron) {
-//    neuron.setNeuromodulator(computeNeuromodulator(neuron.getSpikingTime()));
-//}
+void SpikingNetwork::neuromodulation(Neuron &neuron) {
+    double value = 0;
+    for (const auto &critic: m_neurons[2]) {
+        value += critic.get().updateKernelSpikingRate(neuron.getSpikingTime());
+    }
+    auto neuromodulator = -value / static_cast<double>(m_neurons[2].size()) + m_reward;
+//    auto V =  * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
+//    return -V / m_networkConf.getTauR() + m_reward;
+    neuron.setNeuromodulator(neuromodulator);
+}
 
 void SpikingNetwork::updateNeurons(const long time) {
     for (auto &simpleNeuron: m_simpleNeurons) {
@@ -176,15 +183,9 @@ void SpikingNetwork::updateNeurons(const long time) {
     }
 }
 
-//inline double SpikingNetwork::computeNeuromodulator(long time) {
-//    double value = 0;
-//    for (const auto &critic: m_neurons[2]) {
-//        value += critic.get().updateKernelSpikingRate(time);
-//    }
-//    return -value / static_cast<double>(m_neurons[2].size()) + m_reward;
-////    auto V = m_networkConf.getNu() * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
-////    return -V / m_networkConf.getTauR() + m_reward;
-//}
+inline double SpikingNetwork::computeNeuromodulator(long time) {
+
+}
 
 /**
  * @brief Previous update function used with synaptic delays.
