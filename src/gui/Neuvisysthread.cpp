@@ -232,7 +232,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
             network.transmitEvent(event);
         }
 
-        if (network.getNetworkStructure().size() > 2) { // critic and actor cells
+        if (network.getRLConfig().getRLTraining()) {
             m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
         }
     }

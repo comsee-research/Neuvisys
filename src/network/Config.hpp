@@ -136,6 +136,7 @@ private:
 
 class ReinforcementLearningConfig {
 public:
+    bool rlTraining{};
     double nu{};
     double V0{};
     double tauR{};
@@ -149,6 +150,8 @@ public:
     ReinforcementLearningConfig();
 
     explicit ReinforcementLearningConfig(const std::string& configFile);
+
+    [[nodiscard]] bool getRLTraining() const { return rlTraining; }
 
     [[nodiscard]] std::vector<std::pair<uint64_t, float>> getActionMapping() const { return actionMapping; }
 
