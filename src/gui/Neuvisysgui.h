@@ -31,8 +31,7 @@ public slots:
 
     void onDisplayProgress(int progress, double time);
 
-    void onDisplayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold,
-                             double bias);
+    void onDisplayStatistics(double spikeRate, double threshold, const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
 
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 
@@ -132,6 +131,10 @@ private slots:
 protected:
     NeuvisysThread neuvisysThread;
     Ui::NeuvisysGUI *ui;
+    QChart *eventRateChart;
+    QChart *networkRateChart;
+    QLineSeries *eventRateSeries;
+    QLineSeries *networkRateSeries;
     QLineSeries *potentialSeries;
     QChart *potentialChart;
     QScatterSeries *spikeSeries;

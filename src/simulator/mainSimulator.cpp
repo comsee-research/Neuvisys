@@ -7,7 +7,7 @@
 int launchLearningSimulation(std::string &networkPath, double simTime) {
     NetworkHandle network(networkPath);
 
-    SimulationInterface sim;
+    SimulationInterface sim(network.getRLConfig().getActionMapping());
     sim.enableSyncMode(true);
     sim.startSimulation();
 
@@ -20,13 +20,19 @@ int launchLearningSimulation(std::string &networkPath, double simTime) {
 
         sim.update();
         std::string msg;
+
+        if (!network.getRLConfig().getIntrinsicReward()) {
+            network.transmitReward(sim.getReward());
+        }
         if (!sim.getLeftEvents().empty()) {
-//            network.transmitReward(sim.getReward());
-            for (auto const &event : sim.getLeftEvents()) {
+            for (auto const &event: sim.getLeftEvents()) {
                 network.transmitEvent(event);
             }
-            action = network.learningLoop(sim.getLeftEvents().back().timestamp(), sim.getSimulationTime(), 0, msg);
+            network.updateNeurons(static_cast<size_t>(sim.getSimulationTime()));
 
+            if (network.getRLConfig().getRLTraining()) {
+                action = network.learningLoop(sim.getLeftEvents().back().timestamp(), sim.getSimulationTime(), 0, msg);
+            }
             if (action != -1) {
                 sim.activateMotors(action);
             }
@@ -34,44 +40,41 @@ int launchLearningSimulation(std::string &networkPath, double simTime) {
     }
 
     sim.stopSimulation();
-    network.save("Simulation", 1);
+//    network.save("Simulation", 1);
     return 0;
 }
 
-int launchSimulation(double simTime) {
-    SimulationInterface sim(false, true);
-    sim.enableSyncMode(true);
-    sim.startSimulation();
-
-    while (ros::ok() && sim.getSimulationTime() < simTime) {
-        sim.triggerNextTimeStep();
-        while(!sim.simStepDone()) {
-            ros::spinOnce();
-        }
-
-        sim.update();
-    }
-    sim.stopSimulation();
-    return 0;
-}
+//int launchSimulation(double simTime) {
+//    SimulationInterface sim(false, true);
+//    sim.enableSyncMode(true);
+//    sim.startSimulation();
+//
+//    while (ros::ok() && sim.getSimulationTime() < simTime) {
+//        sim.triggerNextTimeStep();
+//        while(!sim.simStepDone()) {
+//            ros::spinOnce();
+//        }
+//
+//        sim.update();
+//    }
+//    sim.stopSimulation();
+//    return 0;
+//}
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
 
-    launchSimulation(3.5);
+    std::string type = "none";//argv[1];
+    std::string m_networkPath;
 
-//    std::string type = "none";//argv[1];
-//    std::string m_networkPath;
-//
-//    if (type == "multi") {
-//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-//            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-//            std::cout << m_networkPath << std::endl;
-//            launchLearningSimulation(m_networkPath, 10);
-//        }
-//    } else {
-//        m_networkPath = "/home/thomas/Desktop/network_experiment/configs/network_config.json";
-//        std::cout << m_networkPath << std::endl;
-//        launchLearningSimulation(m_networkPath, 10);
-//    }
+    if (type == "multi") {
+        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+            std::cout << m_networkPath << std::endl;
+            launchLearningSimulation(m_networkPath, 10);
+        }
+    } else {
+        m_networkPath = "/home/thomas/Networks/validation/";
+        launchLearningSimulation(m_networkPath, 1.5);
+    }
 }

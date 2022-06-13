@@ -121,7 +121,7 @@ signals:
 
     void displayProgress(int progress, double time);
 
-    void displayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold, double bias);
+    void displayStatistics(double spike_rate, double threshold, const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
 
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 

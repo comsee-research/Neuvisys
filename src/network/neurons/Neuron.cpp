@@ -198,15 +198,14 @@ std::vector<std::vector<std::tuple<double, double, uint64_t>>> Neuron::getTiming
 }
 
 /**
-* Computes the neuron's lifespan as well as the exponential rolling average spiking rate depending on an alpha factor.
+* Computes the neuron's lifespan as well as the average spiking rate.
 * @param timeInterval
 * @param alpha
 */
 void Neuron::updateState(size_t timeInterval, double alpha) {
     m_lifeSpan += timeInterval;
-    double spikesPerSecond = static_cast<double>(m_spikeRateCounter) * (E6 / static_cast<double>(timeInterval)); // spikes/s
+    m_spikingRateAverage = static_cast<double>(m_spikeRateCounter) * (E6 / static_cast<double>(timeInterval)); // spikes/s
     m_spikeRateCounter = 0;
-    m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
 }
 
 /**

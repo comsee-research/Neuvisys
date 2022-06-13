@@ -116,11 +116,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     for (const auto &event: events) {
         ++m_iteration;
         transmitEvent(event);
-
-        if (static_cast<double>(event.timestamp()) - m_saveTime.update > UPDATE_INTERVAL) {
-            m_saveTime.update = static_cast<double>(event.timestamp());
-            m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
-        }
+        updateNeurons(event.timestamp());
 
         if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(5 * E6)) {
             m_saveTime.display = static_cast<double>(event.timestamp());
@@ -128,6 +124,27 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 //            m_spinet.intermediateSave(m_saveCount);
 //            ++m_saveCount;
         }
+    }
+}
+
+/**
+ *
+ * @param time
+ */
+void NetworkHandle::updateNeurons(size_t time) {
+    if (static_cast<double>(time) - m_saveTime.update > m_networkConf.getMeasurementInterval()) {
+        m_saveTime.update = static_cast<double>(time);
+        m_totalNbEvents += m_countEvents;
+        m_spinet.updateNeuronsStates(static_cast<long>(m_networkConf.getMeasurementInterval()));
+        auto alpha = 0.6;
+        m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
+        m_countEvents = 0;
+        if (getRLConfig().getIntrinsicReward()) {
+            m_reward = 100 * (2 - m_spinet.getAverageActivity()) / m_averageEventRate;
+            m_spinet.transmitReward(m_reward);
+        }
+        m_saveData["eventRate"].push_back(m_averageEventRate);
+        m_saveData["networkRate"].push_back(m_spinet.getAverageActivity());
     }
 }
 
@@ -158,7 +175,7 @@ void NetworkHandle::load() {
         try {
             ifs >> state;
             m_saveCount = state["save_count"];
-            m_countEvents = state["nb_events"];
+            m_totalNbEvents = state["nb_events"];
         } catch (const std::exception &e) {
             std::cerr << "In network state file: " << fileName << e.what() << std::endl;
         }
@@ -203,7 +220,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     state["action_rate"] = getRLConfig().getActionRate();
     state["exploration_factor"] = getRLConfig().getExplorationFactor();
     state["save_count"] = m_saveCount;
-    state["nb_events"] = m_countEvents;
+    state["nb_events"] = m_totalNbEvents;
 
     std::ofstream ofs(fileName);
     if (ofs.is_open()) {
@@ -239,28 +256,18 @@ void NetworkHandle::saveStatistics(size_t sequence) {
  */
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     ++m_packetCount;
-    if (time - m_saveTime.update > static_cast<double>(UPDATE_INTERVAL)) {
-        m_saveTime.update = time;
-        m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
-        if (getRLConfig().getIntrinsicReward()) {
-            m_reward = 100 * (2 - m_spinet.getAverageActivity());
-            m_spinet.transmitReward(m_reward);
-        }
-    }
-
     saveValueMetrics(lastTimestamp, nbEvents);
 
     ++m_scoreCount;
-    if (time - m_saveTime.console > SCORE_INTERVAL) {
+    if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
         m_saveTime.console = time;
-        learningDecay(SCORE_INTERVAL / E6);
+        learningDecay(m_rlConf.getScoreInterval() / E6);
 
         msg = "\n\nAverage reward: " + std::to_string(getScore(static_cast<long>(m_scoreCount))) +
               "\nExploration factor: " + std::to_string(getRLConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate());
         m_scoreCount = 0;
     }
-
     ++m_actionCount;
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;

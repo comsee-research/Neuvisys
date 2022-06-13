@@ -11,8 +11,6 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_INTERVAL 2000000 // µs
-#define UPDATE_INTERVAL 10000 // µs
 #define E3 1000 // µs
 #define E6 1000000 // µs
 
@@ -29,6 +27,7 @@ class NetworkConfig {
     std::string sharingType{};
     size_t vfWidth{};
     size_t vfHeight{};
+    double measurementInterval{};
 
     std::vector<std::string> layerCellTypes;
     std::vector<std::vector<std::string>> layerInhibitions;
@@ -59,6 +58,8 @@ public:
     [[nodiscard]] size_t getVfWidth() const { return vfWidth; }
 
     [[nodiscard]] size_t getVfHeight() const { return vfHeight; }
+
+    [[nodiscard]] double getMeasurementInterval() const { return measurementInterval; }
 
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
 
@@ -144,6 +145,7 @@ public:
     long actionRate{};
     long minActionRate{};
     double decayRate{};
+    double scoreInterval{};
     bool intrinsicReward{};
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
@@ -166,6 +168,8 @@ public:
     [[nodiscard]] long getActionRate() const { return actionRate; }
 
     [[nodiscard]] long getMinActionRate() const { return minActionRate; }
+
+    [[nodiscard]] double getScoreInterval() const { return scoreInterval; }
 
     [[nodiscard]] double getDecayRate() const { return decayRate; }
 

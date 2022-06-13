@@ -54,6 +54,23 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, co
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
 
     /* Qt charts */
+    eventRateSeries = new QLineSeries();
+    networkRateSeries = new QLineSeries();
+    eventRateChart = new QChart();
+    networkRateChart = new QChart();
+    eventRateChart->legend()->hide();
+    eventRateChart->addSeries(eventRateSeries);
+    eventRateChart->createDefaultAxes();
+    eventRateChart->setTitle("Event spike rates");
+    networkRateChart->legend()->hide();
+    networkRateChart->addSeries(networkRateSeries);
+    networkRateChart->createDefaultAxes();
+    networkRateChart->setTitle("Network spike rates");
+    ui->eventRateView->setChart(eventRateChart);
+    ui->eventRateView->setRenderHint(QPainter::Antialiasing);
+    ui->networkRateView->setChart(networkRateChart);
+    ui->networkRateView->setRenderHint(QPainter::Antialiasing);
+
     potentialSeries = new QLineSeries();
     potentialChart = new QChart();
     potentialChart->legend()->hide();
@@ -397,13 +414,30 @@ void NeuvisysGUI::onDisplayProgress(int progress, double time) {
     ui->lcd_sim_time->display(time);
 }
 
-void NeuvisysGUI::onDisplayStatistics(double event_rate, double on_off_ratio, double spike_rate, double threshold,
-                                      double bias) {
-    ui->lcd_event_rate->display(event_rate);
-    ui->lcd_on_off_ratio->display(on_off_ratio);
-    ui->lcd_spike_rate->display(spike_rate);
+void NeuvisysGUI::onDisplayStatistics(double spikeRate, double threshold,
+                                      const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain) {
+    eventRateChart->removeSeries(eventRateSeries);
+    networkRateChart->removeSeries(networkRateSeries);
+    eventRateSeries = new QLineSeries();
+    networkRateSeries = new QLineSeries();
+
+    auto end = eventRateTrain.size();
+    for (auto i = 1; i < 200; ++i) {
+        if (i >= end) { break; }
+        eventRateSeries->append(static_cast<qreal>(end - i), eventRateTrain[end - i]);
+        networkRateSeries->append(static_cast<qreal>(end - i), networkRateTrain[end - i]);
+    }
+    eventRateChart->addSeries(eventRateSeries);
+    networkRateChart->addSeries(networkRateSeries);
+
+    eventRateChart->createDefaultAxes();
+    networkRateChart->createDefaultAxes();
+
+    ui->eventRateView->repaint();
+    ui->networkRateView->repaint();
+
+    ui->lcd_spike_rate->display(spikeRate);
     ui->lcd_threshold->display(threshold);
-    ui->lcd_bias->display(bias);
 }
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {

@@ -245,23 +245,23 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 }
 
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
-    m_eventRate += static_cast<double>(events.size());
     if (!events.empty()) {
         for (auto const &event: events) {
             ++m_iterations;
             addEventToDisplay(event);
             network.transmitEvent(event);
         }
+        network.updateNeurons(static_cast<size_t>(time));
 
         if (network.getRLConfig().getRLTraining()) {
             m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
         }
     }
 
+    /*** GUI Display ***/
     emit consoleMessage(m_msg);
     m_msg.clear();
 
-    /*** GUI Display ***/
     if (time - m_displayTime > m_displayRate) {
         m_displayTime = time;
         display(network, m_displayTime);
@@ -314,9 +314,8 @@ inline void NeuvisysThread::display(NetworkHandle &network, double time) {
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             break;
         case 1: // statistics
-            m_eventRate = (E6 / m_displayRate) * m_eventRate;
-            emit displayStatistics(m_eventRate, on_off_ratio, network.getNeuron(m_id, m_layer).get().getSpikingRate(),
-                                   network.getNeuron(m_id, m_layer).get().getThreshold(), 0);
+            emit displayStatistics(network.getNeuron(m_id, m_layer).get().getSpikingRate(), network.getNeuron(m_id, m_layer).get().getThreshold(),
+                                   network.getSaveData()["eventRate"], network.getSaveData()["networkRate"]);
             break;
         case 2: // weights
             prepareWeights(network);
@@ -340,7 +339,6 @@ inline void NeuvisysThread::display(NetworkHandle &network, double time) {
         default:
             break;
     }
-    m_eventRate = 0;
     m_on_count = 0;
     m_off_count = 0;
     m_motorDisplay = std::vector<bool>(network.getNetworkStructure().back(), false);

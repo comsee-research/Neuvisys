@@ -64,8 +64,10 @@ class NetworkHandle {
     size_t m_actionCount{};
     size_t m_scoreCount{};
     size_t m_countEvents{};
+    size_t m_totalNbEvents{};
     size_t m_saveCount{};
     double m_endTime{};
+    double m_averageEventRate{};
 
 public:
     NetworkHandle();
@@ -107,6 +109,8 @@ public:
     double valueDerivative(const std::vector<double> &value);
 
     std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
+
+    void updateNeurons(size_t time);
 
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 

@@ -36,8 +36,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
  * @param event - The event coming from the pixel array.
  */
 void SpikingNetwork::addEvent(const Event &event) {
-    for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * m_networkConf.getVfHeight() +
-                                    static_cast<uint32_t>(event.y())]) {
+    for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * 260 + static_cast<uint32_t>(event.y())]) { // TODO: optim
         auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
         if (m_networkConf.getNeuron1Synapses() == 1) {
@@ -181,10 +180,6 @@ void SpikingNetwork::updateNeurons(const long time) {
             }
         }
     }
-}
-
-inline double SpikingNetwork::computeNeuromodulator(long time) {
-
 }
 
 /**
@@ -451,23 +446,22 @@ void SpikingNetwork::lateralStaticInhibitionConnection(Neuron &neuron, const siz
  * Computes each neurons average spiking rate.
  * Adapts the threshold of the 1st layer's neurons.
  * @param timeInterval
- * @param nbEvents
  */
-void SpikingNetwork::updateNeuronsStates(long timeInterval, size_t nbEvents) {
+void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     size_t layer;
-    m_averageActivity = 0;
+    double averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
             neuron.get().updateState(timeInterval, 1);
-
-//            neuron.get().learningDecay(static_cast<double>(nbEvents) / E6);
             if (layer == 0) {
                 neuron.get().thresholdAdaptation();
-                m_averageActivity += neuron.get().getSpikingRate();
+                averageActivity += neuron.get().getSpikingRate();
             }
         }
     }
-    m_averageActivity /= static_cast<double>(m_neurons[0].size());
+    averageActivity /= static_cast<double>(m_neurons[0].size());
+    auto alpha = 0.6;
+    m_averageActivity = (alpha * averageActivity) + (1.0 - alpha) * m_averageActivity;
 }
 
 /**

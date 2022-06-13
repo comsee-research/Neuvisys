@@ -54,13 +54,11 @@ public:
 
     void addEvent(const Event &event);
 
-    void updateNeuronsStates(long timeInterval, size_t nbEvents);
+    void updateNeuronsStates(long timeInterval);
 
     void loadWeights();
 
     void saveNetwork();
-
-    double computeNeuromodulator(long time);
 
     void transmitReward(double reward);
 

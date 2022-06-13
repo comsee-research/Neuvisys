@@ -36,6 +36,7 @@ void NetworkConfig::loadNetworkLayout() {
             sharingType = conf["sharingType"];
             vfWidth = conf["vfWidth"];
             vfHeight = conf["vfHeight"];
+            measurementInterval = E3 * static_cast<double>(conf["measurementInterval"]);
         } catch (const std::exception &e) {
             std::cerr << "In network config file:" << e.what() << std::endl;
             throw;
@@ -68,6 +69,7 @@ void ReinforcementLearningConfig::loadRLConfig(const std::string &fileName) {
             decayRate = conf["decayRate"];
             actionRate = static_cast<long>(E3) * static_cast<long>(conf["actionRate"]);
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
+            scoreInterval = E3 * static_cast<double>(conf["scoreInterval"]);
             intrinsicReward = conf["intrinsicReward"];
         } catch (const std::exception &e) {
             std::cerr << "In reinforcement learning config file:" << e.what() << std::endl;
@@ -280,6 +282,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"neuronInhibitionRange", {1, 1}},
                     {"vfWidth", 346},
                     {"vfHeight", 260},
+                    {"measurementInterval", 10}
             },
             {
                     {"rlTraining", false},
@@ -291,7 +294,8 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"actionMapping",         {{1, 5}, {1, -5}}},
                     {"minActionRate", 100},
                     {"decayRate",  0.01},
-                    {"intrinsicReward", false}
+                    {"intrinsicReward", false},
+                    {"scoreInterval", 2000}
             },
             {
                     {"VTHRESH",   30},
