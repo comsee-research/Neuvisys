@@ -337,12 +337,12 @@ void NetworkHandle::computeNeuromodulator() {
  */
 void NetworkHandle::updateActor() {
 //    for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
-//        m_spinet.getNeuron(i, 2).get().setNeuromodulator(m_neuromodulator);
+//        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().setNeuromodulator(m_neuromodulator);
 //    }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
-        m_spinet.getNeuron(i, 3).get().setNeuromodulator(m_neuromodulator);
+        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
     }
 //    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
 //        m_spinet.normalizeActions();
@@ -440,7 +440,7 @@ void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
-        value += m_spinet.getNeuron(i, 2).get().updateKernelSpikingRate(time);
+        value += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().updateKernelSpikingRate(time);
     }
     return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + getRLConfig().getV0();
 }

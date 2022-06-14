@@ -14,8 +14,8 @@ option(BUILD_MOTOR_CONTROL "Enable to be able to control motors" OFF)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-#set(GCC_COVERAGE_COMPILE_FLAGS "-O2 -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
-set(GCC_COVERAGE_COMPILE_FLAGS "-O0 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
+set(GCC_COVERAGE_COMPILE_FLAGS "-O2 -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
+#set(GCC_COVERAGE_COMPILE_FLAGS "-O0 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${GCC_COVERAGE_COMPILE_FLAGS}")
 
 # General build settings
