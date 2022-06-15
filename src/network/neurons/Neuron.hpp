@@ -202,7 +202,7 @@ public:
 
     virtual void trackPotential(size_t time);
 
-    virtual void updateState(size_t timeInterval, double alpha);
+    virtual void updateState(size_t timeInterval);
 
     virtual double updateKernelSpikingRate(long time) {};
 

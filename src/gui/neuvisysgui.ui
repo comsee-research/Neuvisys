@@ -15,6 +15,45 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_9">
+    <item row="3" column="0" colspan="2">
+     <layout class="QFormLayout" name="formLayoutProgress">
+      <item row="0" column="0">
+       <widget class="QLCDNumber" name="lcd_sim_time">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="smallDecimalPoint">
+         <bool>false</bool>
+        </property>
+        <property name="digitCount">
+         <number>15</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QProgressBar" name="progressBar">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>30</height>
+         </size>
+        </property>
+        <property name="value">
+         <number>24</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
     <item row="0" column="0">
      <widget class="QTabWidget" name="tab_selection">
       <property name="sizePolicy">
@@ -245,7 +284,7 @@
                 <x>0</x>
                 <y>0</y>
                 <width>452</width>
-                <height>160</height>
+                <height>164</height>
                </rect>
               </property>
               <layout class="QGridLayout" name="gridLayout_24">
@@ -518,8 +557,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>852</width>
-             <height>626</height>
+             <width>854</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout">
@@ -546,77 +585,6 @@
         <item row="0" column="0">
          <widget class="QChartView" name="eventRateView"/>
         </item>
-        <item row="2" column="0">
-         <widget class="QGroupBox" name="network_stats">
-          <property name="sizePolicy">
-           <sizepolicy hsizetype="MinimumExpanding" vsizetype="MinimumExpanding">
-            <horstretch>0</horstretch>
-            <verstretch>0</verstretch>
-           </sizepolicy>
-          </property>
-          <property name="title">
-           <string>Neuron statistics</string>
-          </property>
-          <layout class="QGridLayout" name="gridLayout_5">
-           <item row="0" column="0">
-            <layout class="QFormLayout" name="network_statistics">
-             <item row="1" column="0">
-              <widget class="QLabel" name="label_threshold">
-               <property name="text">
-                <string>Threshold (mV):</string>
-               </property>
-              </widget>
-             </item>
-             <item row="1" column="1">
-              <widget class="QLCDNumber" name="lcd_threshold">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>100</height>
-                </size>
-               </property>
-               <property name="digitCount">
-                <number>8</number>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="1">
-              <widget class="QLCDNumber" name="lcd_spike_rate">
-               <property name="minimumSize">
-                <size>
-                 <width>0</width>
-                 <height>40</height>
-                </size>
-               </property>
-               <property name="maximumSize">
-                <size>
-                 <width>200</width>
-                 <height>100</height>
-                </size>
-               </property>
-               <property name="digitCount">
-                <number>8</number>
-               </property>
-              </widget>
-             </item>
-             <item row="0" column="0">
-              <widget class="QLabel" name="label_spike_rate">
-               <property name="text">
-                <string>Spike Rate (spikes/s)</string>
-               </property>
-              </widget>
-             </item>
-            </layout>
-           </item>
-          </layout>
-         </widget>
-        </item>
         <item row="1" column="0">
          <widget class="QChartView" name="networkRateView"/>
         </item>
@@ -637,8 +605,8 @@
             <rect>
              <x>0</x>
              <y>0</y>
-             <width>852</width>
-             <height>626</height>
+             <width>854</width>
+             <height>630</height>
             </rect>
            </property>
            <layout class="QGridLayout" name="gridLayout_15">
@@ -659,7 +627,86 @@
        <attribute name="title">
         <string>Potential</string>
        </attribute>
-       <layout class="QGridLayout" name="gridLayout_8">
+       <layout class="QGridLayout" name="gridLayout_4">
+        <item row="1" column="0">
+         <layout class="QHBoxLayout" name="neuron_statistics">
+          <item>
+           <widget class="QLabel" name="label_spike_rate">
+            <property name="text">
+             <string>Spike Rate (spikes/s)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcd_spike_rate">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="digitCount">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_threshold">
+            <property name="text">
+             <string>Threshold (mV):</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcd_threshold">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>100</height>
+             </size>
+            </property>
+            <property name="digitCount">
+             <number>5</number>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_reset">
+            <property name="text">
+             <string>Reset Potential (mV)</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLCDNumber" name="lcd_reset">
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>40</height>
+             </size>
+            </property>
+            <property name="maximumSize">
+             <size>
+              <width>200</width>
+              <height>100</height>
+             </size>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
         <item row="0" column="0">
          <widget class="QChartView" name="potentialView"/>
         </item>
@@ -697,45 +744,6 @@
       </widget>
      </widget>
     </item>
-    <item row="3" column="0" colspan="2">
-     <layout class="QFormLayout" name="formLayoutProgress">
-      <item row="0" column="0">
-       <widget class="QLCDNumber" name="lcd_sim_time">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="minimumSize">
-         <size>
-          <width>200</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="smallDecimalPoint">
-         <bool>false</bool>
-        </property>
-        <property name="digitCount">
-         <number>15</number>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QProgressBar" name="progressBar">
-        <property name="minimumSize">
-         <size>
-          <width>0</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="value">
-         <number>24</number>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
    </layout>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
@@ -745,7 +753,7 @@
      <x>0</x>
      <y>0</y>
      <width>1402</width>
-     <height>24</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuNeuvisys_gui">

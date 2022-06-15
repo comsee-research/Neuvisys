@@ -121,13 +121,13 @@ signals:
 
     void displayProgress(int progress, double time);
 
-    void displayStatistics(double spike_rate, double threshold, const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
+    void displayStatistics(const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
 
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 
     void displayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layer);
 
-    void displayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+    void displayPotential(double spikeRate, double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
 
     void displaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrain, double time);
 

@@ -314,21 +314,21 @@ inline void NeuvisysThread::display(NetworkHandle &network, double time) {
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             break;
         case 1: // statistics
-            emit displayStatistics(network.getNeuron(m_id, m_layer).get().getSpikingRate(), network.getNeuron(m_id, m_layer).get().getThreshold(),
-                                   network.getSaveData()["eventRate"], network.getSaveData()["networkRate"]);
+            emit displayStatistics(network.getSaveData()["eventRate"], network.getSaveData()["networkRate"]);
             break;
         case 2: // weights
             prepareWeights(network);
             emit displayWeights(m_weightDisplay, m_layer);
             break;
         case 3: // potential
-            emit displayPotential(network.getSimpleNeuronConfig().VRESET,
+            emit displayPotential(network.getNeuron(m_id, m_layer).get().getSpikingRate(),
+                                  network.getSimpleNeuronConfig().VRESET,
                                   network.getNeuron(m_id, m_layer).get().getThreshold(),
                                   network.getNeuron(m_id, m_layer).get().getTrackingPotentialTrain());
             break;
         case 4: // spiketrain
             prepareSpikes(network);
-            emit displaySpike(m_spikeTrain, time * E6);
+            emit displaySpike(m_spikeTrain, time);
             break;
         case 5: // reward
             emit displayReward(network.getSaveData()["reward"], network.getSaveData()["value"], network.getSaveData()["valueDot"],

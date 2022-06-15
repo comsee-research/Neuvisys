@@ -452,7 +452,7 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     double averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
-            neuron.get().updateState(timeInterval, 1);
+            neuron.get().updateState(timeInterval);
             if (layer == 0) {
                 neuron.get().thresholdAdaptation();
                 averageActivity += neuron.get().getSpikingRate();

@@ -414,8 +414,7 @@ void NeuvisysGUI::onDisplayProgress(int progress, double time) {
     ui->lcd_sim_time->display(time);
 }
 
-void NeuvisysGUI::onDisplayStatistics(double spikeRate, double threshold,
-                                      const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain) {
+void NeuvisysGUI::onDisplayStatistics(const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain) {
     eventRateChart->removeSeries(eventRateSeries);
     networkRateChart->removeSeries(networkRateSeries);
     eventRateSeries = new QLineSeries();
@@ -429,15 +428,13 @@ void NeuvisysGUI::onDisplayStatistics(double spikeRate, double threshold,
     }
     eventRateChart->addSeries(eventRateSeries);
     networkRateChart->addSeries(networkRateSeries);
+    networkRateSeries->setColor(QColor(Qt::green));
 
     eventRateChart->createDefaultAxes();
     networkRateChart->createDefaultAxes();
 
     ui->eventRateView->repaint();
     ui->networkRateView->repaint();
-
-    ui->lcd_spike_rate->display(spikeRate);
-    ui->lcd_threshold->display(threshold);
 }
 
 void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
@@ -470,7 +467,7 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
     }
 }
 
-void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
+void NeuvisysGUI::onDisplayPotential(double spikeRate, double vreset, double threshold,
                                      const std::vector<std::pair<double, size_t>> &potentialTrain) {
     potentialChart->removeSeries(potentialSeries);
     potentialSeries = new QLineSeries();
@@ -488,6 +485,10 @@ void NeuvisysGUI::onDisplayPotential(double vreset, double threshold,
     potentialChart->createDefaultAxes();
     potentialChart->axes(Qt::Vertical, potentialSeries)[0]->setRange(vreset, threshold);
     ui->potentialView->repaint();
+
+    ui->lcd_spike_rate->display(spikeRate);
+    ui->lcd_threshold->display(threshold);
+    ui->lcd_reset->display(vreset);
 }
 
 void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time) {
@@ -497,7 +498,12 @@ void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const 
     spikeSeries->setMarkerSize(8);
 
     size_t index = 0;
+    size_t spikeLimit = spikeTrains.size();
     size_t nMax = 1000 / spikeTrains.size();
+    if (nMax < 1) {
+        nMax = 10;
+        spikeLimit = 1000;
+    }
     for (const auto &spikeTrain: spikeTrains) {
         size_t count = 0;
         for (auto spike = spikeTrain.get().rbegin(); spike != spikeTrain.get().rend(); ++spike) {
@@ -508,11 +514,14 @@ void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const 
                 break;
             }
         }
+        if (index > spikeLimit) {
+            break;
+        }
         ++index;
     }
     spikeChart->addSeries(spikeSeries);
     spikeChart->createDefaultAxes();
-    spikeChart->axes(Qt::Vertical, spikeSeries)[0]->setRange(0, static_cast<int>(spikeTrains.size()));
+    spikeChart->axes(Qt::Vertical, spikeSeries)[0]->setRange(0, static_cast<int>(spikeLimit));
     ui->spikeView->repaint();
 }
 

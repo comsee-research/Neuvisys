@@ -31,13 +31,13 @@ public slots:
 
     void onDisplayProgress(int progress, double time);
 
-    void onDisplayStatistics(double spikeRate, double threshold, const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
+    void onDisplayStatistics(const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain);
 
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 
     void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
 
-    void onDisplayPotential(double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
+    void onDisplayPotential(double spikeRate, double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
 
     void onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time);
 

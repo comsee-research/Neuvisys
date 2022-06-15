@@ -133,9 +133,8 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
  */
 void NetworkHandle::updateNeurons(size_t time) {
     if (static_cast<double>(time) - m_saveTime.update > m_networkConf.getMeasurementInterval()) {
-        m_saveTime.update = static_cast<double>(time);
         m_totalNbEvents += m_countEvents;
-        m_spinet.updateNeuronsStates(static_cast<long>(m_networkConf.getMeasurementInterval()));
+        m_spinet.updateNeuronsStates(static_cast<long>(static_cast<double>(time) - m_saveTime.update));
         auto alpha = 0.6;
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
@@ -145,6 +144,7 @@ void NetworkHandle::updateNeurons(size_t time) {
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         m_saveData["networkRate"].push_back(m_spinet.getAverageActivity());
+        m_saveTime.update = static_cast<double>(time);
     }
 }
 

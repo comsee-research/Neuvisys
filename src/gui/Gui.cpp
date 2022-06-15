@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     NeuvisysGUI w(argc, argv,
                   "/home/thomas/Videos/natural/shapes.h5",
-                  "/home/thomas/Networks/test/");
+                  "/home/thomas/Desktop/test/");
     w.setFixedSize(0.9 * QDesktopWidget().availableGeometry().size());
     w.show();
     return app.exec();
