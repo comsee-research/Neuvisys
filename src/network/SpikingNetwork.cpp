@@ -53,7 +53,7 @@ void SpikingNetwork::addEvent(const Event &event) {
             }
         } else if (m_networkConf.getNeuron1Synapses() > 1) {
             m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
-            updateNeurons(event.timestamp());
+            updateMultiSynapticNeurons(event.timestamp());
         }
     }
 }
@@ -166,7 +166,7 @@ void SpikingNetwork::neuromodulation(Neuron &neuron) {
     neuron.setNeuromodulator(neuromodulator);
 }
 
-void SpikingNetwork::updateNeurons(const long time) {
+void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
     for (auto &simpleNeuron: m_simpleNeurons) {
         while (simpleNeuron.checkRemainingEvents(time)) {
             if (simpleNeuron.update()) {
@@ -187,7 +187,7 @@ void SpikingNetwork::updateNeurons(const long time) {
  * Not in use at the moment.
  * @param time
  */
-//void SpikingNetwork::updateNeurons(const long time) {
+//void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
 //    for (auto &simpleNeuron: m_simpleNeurons) {
 //        while (simpleNeuron.checkRemainingEvents(time)) {
 //            if (simpleNeuron.update()) {
