@@ -204,7 +204,7 @@ std::vector<std::vector<std::tuple<double, double, uint64_t>>> Neuron::getTiming
 void Neuron::updateState(size_t timeInterval) {
     m_lifeSpan += timeInterval;
     double spikesPerSecond = static_cast<double>(m_spikeRateCounter) * (E6 / static_cast<double>(timeInterval)); // spikes/s
-    auto alpha = 0.2;
+    auto alpha = 0.1;
     m_spikingRateAverage = (alpha * spikesPerSecond) + (1.0 - alpha) * m_spikingRateAverage; // exponential rolling average
     m_spikeRateCounter = 0;
 }
@@ -218,7 +218,7 @@ void Neuron::learningDecay(double count) {
 }
 
 /**
- * Rescales the neuron's threshold depending on the deviation from teh average and a target spike rate.
+ * Rescales the neuron's threshold depending on the deviation from the average spike rate and a target spike rate.
  */
 inline void Neuron::thresholdAdaptation() {
     if (m_spikingRateAverage > m_conf.TARGET_SPIKE_RATE) {

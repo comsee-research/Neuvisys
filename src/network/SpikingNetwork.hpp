@@ -77,7 +77,7 @@ public:
     void saveStatistics(int sequence);
 
 private:
-    void updateNeurons(long time);
+    void updateMultiSynapticNeurons(long time);
 
     void saveNeuronsStates();
 
