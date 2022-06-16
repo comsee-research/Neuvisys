@@ -17,8 +17,9 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
                                                                  m_complexNeuronConf(networkPath + "configs/complex_cell_config.json", 1),
                                                                  m_criticNeuronConf(networkPath + "configs/critic_cell_config.json", 2),
                                                                  m_actorNeuronConf(networkPath + "configs/actor_cell_config.json", 3),
-                                                                 m_pixelMapping(std::vector<std::vector<uint64_t>>(m_networkConf.getVfWidth() * m_networkConf.getVfHeight(),
-                                                                                                                   std::vector<uint64_t>(0))) {
+                                                                 m_pixelMapping(std::vector<std::vector<uint64_t>>(
+                                                                         m_networkConf.getVfWidth() * m_networkConf.getVfHeight(),
+                                                                         std::vector<uint64_t>(0))) {
     for (size_t i = 0; i < m_networkConf.getLayerCellTypes().size(); ++i) {
         addLayer(m_networkConf.getLayerCellTypes()[i], m_networkConf.getSharingType(),
                  m_networkConf.getLayerInhibitions()[i],
@@ -98,9 +99,9 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 //        double wi = forwardNeuron.get().getWeights(neuronPos.x(), neuronPos.y(), neuronPos.z());
 //        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi);
         if (spiked) {
-//            if (forwardNeuron.get().getLayer() == 2) { // critic neuromodulation
-//                neuromodulation(forwardNeuron.get());
-//            }
+            if (forwardNeuron.get().getLayer() == getNetworkStructure().size() - 2) { // critic neuromodulation
+                neuromodulation(forwardNeuron.get());
+            }
             forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
             topDownDynamicInhibition(forwardNeuron.get());
@@ -157,15 +158,19 @@ void SpikingNetwork::transmitReward(double reward) {
 
 void SpikingNetwork::neuromodulation(Neuron &neuron) {
     double value = 0;
-    for (const auto &critic: m_neurons[2]) {
+    for (const auto &critic: m_neurons[getNetworkStructure().size() - 2]) {
         value += critic.get().updateKernelSpikingRate(neuron.getSpikingTime());
     }
-    auto neuromodulator = -value / static_cast<double>(m_neurons[2].size()) + m_reward;
+    auto neuromodulator = -value / static_cast<double>(m_neurons[getNetworkStructure().size() - 2].size()) + m_reward;
 //    auto V =  * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
 //    return -V / m_networkConf.getTauR() + m_reward;
     neuron.setNeuromodulator(neuromodulator);
 }
 
+/**
+ * @brief Update function used with synaptic delays.
+ * @param time
+ */
 void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
     for (auto &simpleNeuron: m_simpleNeurons) {
         while (simpleNeuron.checkRemainingEvents(time)) {
@@ -181,24 +186,6 @@ void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
         }
     }
 }
-
-/**
- * @brief Previous update function used with synaptic delays.
- * Not in use at the moment.
- * @param time
- */
-//void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
-//    for (auto &simpleNeuron: m_simpleNeurons) {
-//        while (simpleNeuron.checkRemainingEvents(time)) {
-//            if (simpleNeuron.update()) {
-//                for (auto &simpleNeuronToInhibit: simpleNeuron.getLateralStaticInhibitionConnections()) {
-//                    simpleNeuronToInhibit.get().newStaticInhibitoryEvent();
-//                }
-//                addNeuronEvent(simpleNeuron);
-//            }
-//        }
-//    }
-//}
 
 /**
  * @brief Generate all the weight matrices that will be used by neurons in the network.
@@ -666,12 +653,14 @@ void SpikingNetwork::loadWeights() {
         std::string path(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0.npy");
         liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0li.npy";
         tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0tdi.npy";
-        if (Util::fileExist(liFilePath)) {
+        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(), m_networkConf.getLayerInhibitions()[layer].end(), "lateral") !=
+            m_networkConf.getLayerInhibitions()[layer].end() && Util::fileExist(liFilePath)) {
             li = true;
         } else {
             li = false;
         }
-        if (Util::fileExist(tdiFilePath)) {
+        if (std::find(m_networkConf.getLayerInhibitions()[layer].begin(), m_networkConf.getLayerInhibitions()[layer].end(), "topdown") !=
+            m_networkConf.getLayerInhibitions()[layer].end() && Util::fileExist(tdiFilePath)) {
             tdi = true;
         } else {
             tdi = false;

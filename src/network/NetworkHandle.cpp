@@ -387,10 +387,9 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["tdError"].push_back(tdError);
 
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
-    size_t layer = m_spinet.getNetworkStructure().size() - 1;
     size_t action = 0, spikeCount = 0;
     for (size_t i = 0; i < m_spinet.getNetworkStructure().back(); ++i) {
-        spikeCount += m_spinet.getNeuron(i, layer).get().getActivityCount();
+        spikeCount += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().getActivityCount();
         if ((i + 1) % neuronPerAction == 0) {
             m_saveData["action_" + std::to_string(action)].push_back(static_cast<double>(spikeCount));
             spikeCount = 0;
@@ -439,10 +438,10 @@ void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
  */
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
-    for (size_t i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) {
+    for (size_t i = 0; i < m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2]; ++i) { // critic cells
         value += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().updateKernelSpikingRate(time);
     }
-    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[2]) + getRLConfig().getV0();
+    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure().size() - 2) + getRLConfig().getV0();
 }
 
 /**

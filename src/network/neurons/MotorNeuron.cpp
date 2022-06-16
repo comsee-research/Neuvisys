@@ -52,7 +52,6 @@ inline void MotorNeuron::spike(size_t time) {
 
 inline void MotorNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
-        std::cout << "update" << std::endl;
         for (NeuronEvent &event: m_events) {
             m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(
                     -(static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / m_conf.TAU_E);
