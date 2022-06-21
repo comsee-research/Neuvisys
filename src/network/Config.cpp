@@ -282,7 +282,7 @@ void NetworkConfig::createNetwork(const std::string &directory) {
                     {"neuronInhibitionRange", {1, 1}},
                     {"vfWidth", 346},
                     {"vfHeight", 260},
-                    {"measurementInterval", 10}
+                    {"measurementInterval", 100}
             },
             {
                     {"rlTraining", false},
