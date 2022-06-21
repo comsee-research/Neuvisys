@@ -12,16 +12,6 @@ NeuvisysThread::NeuvisysThread(int argc, char **argv, QObject *parent) : QThread
     m_nbPass = 0;
 }
 
-bool NeuvisysThread::init() {
-    ros::init(m_initArgc, m_initArgv, "neuvisysRos");
-    if (!ros::master::check()) {
-        return false;
-    }
-    ros::start();
-    ros::Time::init();
-    return true;
-}
-
 void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, size_t mode) {
     m_networkPath = std::move(networkPath);
     m_events = std::move(events);
@@ -37,8 +27,7 @@ void NeuvisysThread::run() {
         m_leftEventDisplay = cv::Mat::zeros(260, 346, CV_8UC3);
         m_rightEventDisplay = cv::Mat::zeros(260, 346, CV_8UC3);
         if (m_events.toStdString().empty()) {
-            readEventsSimulation();
-//            readEventsRealTime();
+            readEventsRealTime();
         } else {
             network.setEventPath(m_events.toStdString());
             readEventsFile(network);
@@ -63,7 +52,7 @@ void NeuvisysThread::run() {
         } else if (m_mode == 1) {
             launchReal(network);
         } else if (m_mode == 2) {
-            launchSimulation(network);
+
         }
     }
     emit networkDestruction();
@@ -94,22 +83,6 @@ void NeuvisysThread::readEventsFile(NetworkHandle &network) {
     }
 }
 
-void NeuvisysThread::readEventsSimulation() {
-    SimulationInterface sim(vector<pair<uint64_t, float>>{}, true, true);
-    sim.enableSyncMode(true);
-    sim.startSimulation();
-
-    while (!m_stop) {
-        sim.triggerNextTimeStep();
-        while (!sim.simStepDone() && !m_stop) {
-            ros::spinOnce();
-        }
-        sim.update();
-    }
-
-    sim.stopSimulation();
-}
-
 void NeuvisysThread::readEventsRealTime() {
     auto camera = EventCamera();
     auto eventFilter = Ynoise(346, 260);
@@ -122,26 +95,26 @@ void NeuvisysThread::readEventsRealTime() {
 
     while (!stop) {
         auto polarity = camera.receiveEvents(received, stop);
-
         auto events = eventFilter.run(*polarity);
 
         for (const auto &event: events) {
             addEventToDisplay(event);
-
-            time = event.timestamp();
-            if (time - displayTime > static_cast<size_t>(m_displayRate)) {
-                displayTime = time;
-
-                m_leftEventDisplay = 0;
-                m_rightEventDisplay = 0;
-            }
-
-            rtime = std::chrono::high_resolution_clock::now();
-            if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
-                rdisplayTime = rtime;
-                emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
-            }
         }
+
+        time = events.back().timestamp();
+        if (time - displayTime > static_cast<size_t>(m_displayRate)) {
+            displayTime = time;
+
+            emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
+            m_leftEventDisplay = 0;
+            m_rightEventDisplay = 0;
+        }
+
+//        rtime = std::chrono::high_resolution_clock::now();
+//        if (std::chrono::duration<double>(rtime - rdisplayTime).count() > m_displayRate / E6) {
+//            rdisplayTime = rtime;
+
+//        }
     }
 }
 
@@ -149,100 +122,94 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     std::vector<Event> events;
 
     while (network.loadEvents(events, m_nbPass) && !m_stop) {
-        eventLoop(network, events, events.back().timestamp());
+        eventLoop(network, events, static_cast<double>(events.back().timestamp()));
     }
 
     network.save(m_events.toStdString(), m_nbPass);
 }
 
-void NeuvisysThread::launchSimulation(NetworkHandle &network) {
-    SimulationInterface sim(network.getRLConfig().getActionMapping());
-    sim.enableSyncMode(true);
-    sim.startSimulation();
-
-    while (!m_stop) {
-        sim.triggerNextTimeStep();
-        while (!sim.simStepDone() && !m_stop) {
-            ros::spinOnce();
-        }
-        sim.update();
-
-        if (!network.getRLConfig().getIntrinsicReward()) {
-            network.transmitReward(sim.getReward());
-        }
-        eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
-        if (m_action != -1) {
-            sim.activateMotors(m_action);
-            m_motorDisplay[m_action] = true;
-        }
-
-        if (sim.getSimulationTime() > 300) {
-            m_stop = true;
-        }
-    }
-    sim.stopSimulation();
-    network.save("Simulation", 1);
-}
-
 int NeuvisysThread::launchReal(NetworkHandle &network) {
     auto time = std::chrono::high_resolution_clock::now();
-    auto motorTime = time;
-    auto positionTime = time;
-
-    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
-    lXMotor.setBounds(-55000, 55000);
-
-    std::vector<double> motorMapping;
-    motorMapping.emplace_back(350); // left horizontal -> left movement
-    motorMapping.emplace_back(0); // no movement
-    motorMapping.emplace_back(-350); // left horizontal  -> right movement
 
     auto camera = EventCamera();
     auto eventFilter = Ynoise(network.getNetworkConfig().getVfWidth(), network.getNetworkConfig().getVfHeight());
 
-    double position = 0;
-    double reward = 0;
     bool received = false;
 
     while (!m_stop) {
         auto polarity = camera.receiveEvents(received, m_stop);
-
-        auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
-        auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
-        lXMotor.jitterSpeed(static_cast<double>(dt));
-
-        if (lXMotor.isActionValid(position, 0)) {
-            reward = 80 * (55000 - abs(position)) / 55000;
-        } else {
-            reward = -100;
-        }
-
+        auto events = eventFilter.run(*polarity);
         time = std::chrono::high_resolution_clock::now();
-        eventLoop(network, eventFilter.run(*polarity), std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count());
-
-        if (m_action != -1) {
-            position += motorMapping[m_action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
-            if (lXMotor.isActionValid(position, 0)) {
-                motorTime = time;
-                lXMotor.setSpeed(motorMapping[m_action]);
-            } else {
-                lXMotor.setSpeed(0);
-            }
-        }
-
-        if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
-            positionTime = time;
-            std::cout << "Before: " << position << std::endl;
-            position = lXMotor.getPosition();
-            std::cout << "After: " << position << std::endl;
+        if (!events.empty()) {
+            eventLoop(network, events, static_cast<double>(events.back().timestamp()));
         }
     }
 
     // Close automatically done by destructor.
     printf("Shutdown successful.\n");
-    network.save("Simulation", 1);
+    network.save("RealTime", 1);
     return 0;
 }
+
+//int NeuvisysThread::launchReal(NetworkHandle &network) {
+//    auto time = std::chrono::high_resolution_clock::now();
+//    auto motorTime = time;
+//    auto positionTime = time;
+//
+//    BrushlessMotor lXMotor(0, "/dev/ttyUSB0");
+//    lXMotor.setBounds(-55000, 55000);
+//
+//    std::vector<double> motorMapping;
+//    motorMapping.emplace_back(350); // left horizontal -> left movement
+//    motorMapping.emplace_back(0); // no movement
+//    motorMapping.emplace_back(-350); // left horizontal  -> right movement
+//
+//    auto camera = EventCamera();
+//    auto eventFilter = Ynoise(network.getNetworkConfig().getVfWidth(), network.getNetworkConfig().getVfHeight());
+//
+//    double position = 0;
+//    double reward = 0;
+//    bool received = false;
+//
+//    while (!m_stop) {
+//        auto polarity = camera.receiveEvents(received, m_stop);
+//
+//        auto dt = std::chrono::duration_cast<std::chrono::seconds>(time - std::chrono::high_resolution_clock::now()).count();
+//        auto timeSec = static_cast<double>(std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count()) / E6;
+//        lXMotor.jitterSpeed(static_cast<double>(dt));
+//
+//        if (lXMotor.isActionValid(position, 0)) {
+//            reward = 80 * (55000 - abs(position)) / 55000;
+//        } else {
+//            reward = -100;
+//        }
+//
+//        time = std::chrono::high_resolution_clock::now();
+//        eventLoop(network, eventFilter.run(*polarity), std::chrono::time_point_cast<std::chrono::microseconds>(time).time_since_epoch().count());
+//
+//        if (m_action != -1) {
+//            position += motorMapping[m_action] * std::chrono::duration_cast<std::chrono::seconds>(time - motorTime).count();
+//            if (lXMotor.isActionValid(position, 0)) {
+//                motorTime = time;
+//                lXMotor.setSpeed(motorMapping[m_action]);
+//            } else {
+//                lXMotor.setSpeed(0);
+//            }
+//        }
+//
+//        if (std::chrono::duration<double>(time - positionTime).count() > 3.0) {
+//            positionTime = time;
+//            std::cout << "Before: " << position << std::endl;
+//            position = lXMotor.getPosition();
+//            std::cout << "After: " << position << std::endl;
+//        }
+//    }
+//
+//    // Close automatically done by destructor.
+//    printf("Shutdown successful.\n");
+//    network.save("Simulation", 1);
+//    return 0;
+//}
 
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
     if (!events.empty()) {

@@ -6,9 +6,9 @@
 #include "./ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent) : QMainWindow(parent),
-                                                                                                                                 ui(new Ui::NeuvisysGUI),
                                                                                                                                  neuvisysThread(argc,
-                                                                                                                                                argv) {
+                                                                                                                                                argv),
+                                                                                                                                 ui(new Ui::NeuvisysGUI) {
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
@@ -127,11 +127,6 @@ NeuvisysGUI::~NeuvisysGUI() {
     free(rewardSeries);
     free(valueSeries);
     free(rewardChart);
-
-    if (ros::isStarted()) {
-        ros::shutdown();
-        ros::waitForShutdown();
-    }
 }
 
 void NeuvisysGUI::on_button_launch_network_clicked() {

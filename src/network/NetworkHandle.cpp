@@ -268,11 +268,12 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate());
         m_scoreCount = 0;
     }
+
     ++m_actionCount;
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-//        computeNeuromodulator();
+        computeNeuromodulator();
         if (m_action != -1) {
             updateActor();
         }
@@ -330,15 +331,16 @@ void NetworkHandle::computeNeuromodulator() {
         }
         m_neuromodulator = meanTDError / static_cast<double>(10);
     }
+//    size_t layer = m_spinet.getNetworkStructure().size() - 2;
+//    for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+//        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
+//    }
 }
 
 /**
  *
  */
 void NetworkHandle::updateActor() {
-//    for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
-//        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().setNeuromodulator(m_neuromodulator);
-//    }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
     for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
@@ -438,10 +440,11 @@ void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
  */
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
-    for (size_t i = 0; i < m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2]; ++i) { // critic cells
-        value += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().updateKernelSpikingRate(time);
+    size_t layer = m_spinet.getNetworkStructure().size() - 2;
+    for (size_t i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+        value += m_spinet.getNeuron(i, layer).get().updateKernelSpikingRate(time);
     }
-    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure().size() - 2) + getRLConfig().getV0();
+    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[layer]) + getRLConfig().getV0();
 }
 
 /**

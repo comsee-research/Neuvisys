@@ -6,6 +6,7 @@
 #define NEUVISYSGUI_H
 
 #include <QMainWindow>
+#include <QApplication>
 #include <QFile>
 #include <QFileDialog>
 #include <QTextStream>

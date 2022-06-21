@@ -14,7 +14,6 @@
 #include "../motor-control/BrushlessMotor.hpp"
 #include "../network/NetworkHandle.hpp"
 #include "../dependencies/json.hpp"
-#include "../simulator/SimulationInterface.hpp"
 #include "../camera/Ynoise.hpp"
 #include "../camera/EventCamera.hpp"
 
@@ -59,25 +58,24 @@ protected:
     double m_displayTime = 0, m_trackTime = 0;
     std::string m_msg;
 
+    void readEventsFile(NetworkHandle &network);
+
+    int launchReal(NetworkHandle &network);
+
+    void eventLoop(NetworkHandle &network, const vector<Event> &events, double time);
+
+    void launchNetwork(NetworkHandle &network);
+
 public:
     NeuvisysThread(int argc, char **argv, QObject *parent = nullptr);
 
     void render(QString networkPath, QString events, size_t nbPass, size_t mode);
 
-    bool init();
+    bool init() { return true; }
 
     void run() override;
 
 private:
-    void launchNetwork(NetworkHandle &network);
-
-    void launchSimulation(NetworkHandle &network);
-
-    int launchReal(NetworkHandle &network);
-
-    void readEventsFile(NetworkHandle &network);
-
-    void readEventsSimulation();
 
     void readEventsRealTime();
 
@@ -90,8 +88,6 @@ private:
     void prepareWeights(NetworkHandle &network);
 
     void sensingZone(NetworkHandle &network);
-
-    void eventLoop(NetworkHandle &network, const vector<Event> &events, double time);
 
 public slots:
 

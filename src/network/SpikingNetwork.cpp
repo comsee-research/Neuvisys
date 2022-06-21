@@ -158,11 +158,12 @@ void SpikingNetwork::transmitReward(double reward) {
 
 void SpikingNetwork::neuromodulation(Neuron &neuron) {
     double value = 0;
-    for (const auto &critic: m_neurons[getNetworkStructure().size() - 2]) {
+    size_t layer = getNetworkStructure().size() - 2;
+    for (const auto &critic: m_neurons[layer]) {
         value += critic.get().updateKernelSpikingRate(neuron.getSpikingTime());
     }
-    auto neuromodulator = -value / static_cast<double>(m_neurons[getNetworkStructure().size() - 2].size()) + m_reward;
-//    auto V =  * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
+    auto neuromodulator = -value / static_cast<double>(m_neurons[layer].size()) + m_reward;
+//    auto V =  * value / static_cast<double>(m_neurons[layer].size()) + m_networkConf.getV0(); //TODO: reintroduce params
 //    return -V / m_networkConf.getTauR() + m_reward;
     neuron.setNeuromodulator(neuromodulator);
 }
