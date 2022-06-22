@@ -28,8 +28,8 @@ NetworkHandle::NetworkHandle(const std::string &eventsPath, double time) : m_sav
  * @param networkPath - Path to the network folder.
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
-                                                               m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
                                                                m_rlConf(networkPath + "configs/rl_config.json"),
+                                                               m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json",
                                                                                   0),
                                                                m_complexNeuronConf(

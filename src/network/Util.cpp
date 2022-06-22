@@ -306,22 +306,22 @@ namespace Util {
         }
     }
 
-    double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
+    void ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
         double noise = normalDistr(generator) * std::sqrt(dt);
         pos = theta * (mu - pos) * dt + sigma * noise;
     }
 }
 
-Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
-
-std::vector<double> Luts::expLUT(double tau) {
-    if (tau > 0) {
-        std::vector<double> exponential(1000000);
-        for (size_t i = 0; i < 1000000; ++i) {
-            exponential[i] = exp(-static_cast<double>(i) / tau);
-        }
-        return exponential;
-    } else {
-        throw std::runtime_error("Warning: tau parameter is not valid");
-    }
-}
+//Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
+//
+//std::vector<double> Luts::expLUT(double tau) {
+//    if (tau > 0) {
+//        std::vector<double> exponential(1000000);
+//        for (size_t i = 0; i < 1000000; ++i) {
+//            exponential[i] = exp(-static_cast<double>(i) / tau);
+//        }
+//        return exponential;
+//    } else {
+//        throw std::runtime_error("Warning: tau parameter is not valid");
+//    }
+//}

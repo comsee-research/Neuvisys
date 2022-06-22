@@ -11,8 +11,8 @@ FrameToEvents::FrameToEvents(int n_max, int blocksize, int log_threshold, float 
                                                                                                             adapt_thresh_coef_shift(
                                                                                                                     adapt_thresh_coef_shift),
                                                                                                             method(method),
-                                                                                                            m_saveFrames(saveFrames),
-                                                                                                            m_saveEvents(saveEvents) {
+                                                                                                            m_saveEvents(saveEvents),
+                                                                                                            m_saveFrames(saveFrames) {
     m_events = std::vector<Event>();
 }
 

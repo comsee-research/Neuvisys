@@ -10,36 +10,35 @@ find_package(libcaer)
 include_directories(${catkin_INCLUDE_DIRS})
 
 set(CAMERA_SOURCES
-        ../../camera/EventCamera.cpp
-        ../../camera/Ynoise.cpp)
+        ../camera/EventCamera.cpp
+        ../camera/Ynoise.cpp)
 
 set(PROJECT_SOURCES
-        ../../network/SpikingNetwork.cpp
-        ../../network/Util.cpp
-        ../../network/Config.cpp
-        ../../network/neurons/Neuron.cpp
-        ../../network/neurons/SimpleNeuron.cpp
-        ../../network/neurons/ComplexNeuron.cpp
-        ../../network/neurons/MotorNeuron.cpp
-        ../../network/NetworkHandle.cpp)
+        ../network/SpikingNetwork.cpp
+        ../network/Util.cpp
+        ../network/Config.cpp
+        ../network/neurons/Neuron.cpp
+        ../network/neurons/SimpleNeuron.cpp
+        ../network/neurons/ComplexNeuron.cpp
+        ../network/neurons/MotorNeuron.cpp
+        ../network/NetworkHandle.cpp)
 
 set(SIMULATION_SOURCES
-        ../../simulator/SimulationInterface.cpp
-        ../../simulator/FrameToEvents.cpp
-        ../../simulator/Motor.cpp)
+        ../simulator/SimulationInterface.cpp
+        ../simulator/FrameToEvents.cpp
+        ../simulator/Motor.cpp)
 
 set(MOTOR_SOURCES
-        ../../motor-control/BrushlessMotor.cpp
-        ../../motor-control/libserie/Faulhaber.cpp
-        ../../motor-control/libserie/comserie.cpp)
+        ../motor-control/BrushlessMotor.cpp
+        ../motor-control/libserie/Faulhaber.cpp
+        ../motor-control/libserie/comserie.cpp)
 
 set(GUI_SOURCES
-        ../Gui.cpp
-        ../Neuvisysgui.cpp
-        ../Neuvisysthread.cpp
-        ../GLWidget.cpp
-        ../neuvisysgui.ui
-        NeuvisysthreadSimulation.cpp)
+        neuvisysguisimulation.ui
+        GuiSimulation.cpp
+        NeuvisysguiSimulation.cpp
+        NeuvisysthreadSimulation.cpp
+        GLWidget.cpp)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-simulation-qt
