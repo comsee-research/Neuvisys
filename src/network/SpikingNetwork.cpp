@@ -100,7 +100,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 //        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi);
         if (spiked) {
             if (forwardNeuron.get().getLayer() == getNetworkStructure().size() - 2) { // critic neuromodulation
-                neuromodulation(forwardNeuron.get());
+                forwardNeuron.get().setNeuromodulator(m_neuromodulator);
             }
             forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
@@ -149,22 +149,11 @@ void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
 }
 
 /**
- * @brief Stores a reward as a neuromodulator for subsequent computation.
- * @param reward - The reward to be stored.
+ * @brief Stores a neuromodulator for subsequent computation.
+ * @param neuromodulator - The neuromodulator to be stored.
  */
-void SpikingNetwork::transmitReward(double reward) {
-    m_reward = reward;
-}
-
-void SpikingNetwork::neuromodulation(Neuron &neuron) {
-    double value = 0;
-    for (const auto &critic: m_neurons[getNetworkStructure().size() - 2]) {
-        value += critic.get().updateKernelSpikingRate(neuron.getSpikingTime());
-    }
-    auto neuromodulator = -value / static_cast<double>(m_neurons[getNetworkStructure().size() - 2].size()) + m_reward;
-//    auto V =  * value / static_cast<double>(m_neurons[2].size()) + m_networkConf.getV0(); //TODO: reintroduce params
-//    return -V / m_networkConf.getTauR() + m_reward;
-    neuron.setNeuromodulator(neuromodulator);
+void SpikingNetwork::transmitNeuromodulator(double neuromodulator) {
+    m_neuromodulator = neuromodulator;
 }
 
 /**

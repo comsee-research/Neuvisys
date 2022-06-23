@@ -28,8 +28,8 @@ NetworkHandle::NetworkHandle(const std::string &eventsPath, double time) : m_sav
  * @param networkPath - Path to the network folder.
  */
 NetworkHandle::NetworkHandle(const std::string &networkPath) : m_spinet(networkPath),
-                                                               m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
                                                                m_rlConf(networkPath + "configs/rl_config.json"),
+                                                               m_networkConf(NetworkConfig(networkPath + "configs/network_config.json")),
                                                                m_simpleNeuronConf(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json",
                                                                                   0),
                                                                m_complexNeuronConf(
@@ -140,7 +140,6 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
             m_reward = 100 * (2 - m_spinet.getAverageActivity()) / m_averageEventRate;
-            m_spinet.transmitReward(m_reward);
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         m_saveData["networkRate"].push_back(m_spinet.getAverageActivity());
@@ -257,6 +256,7 @@ void NetworkHandle::saveStatistics(size_t sequence) {
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     ++m_packetCount;
     saveValueMetrics(lastTimestamp, nbEvents);
+    m_spinet.transmitNeuromodulator(m_saveData["tdError"].back());
 
     ++m_scoreCount;
     if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
@@ -268,11 +268,12 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate());
         m_scoreCount = 0;
     }
+
     ++m_actionCount;
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-//        computeNeuromodulator();
+        updateCritic();
         if (m_action != -1) {
             updateActor();
         }
@@ -316,7 +317,7 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 /**
  *
  */
-void NetworkHandle::computeNeuromodulator() {
+void NetworkHandle::updateCritic() {
     double meanTDError = 0;
     auto count = 0;
     if (m_saveData["tdError"].size() > 10) {
@@ -330,22 +331,21 @@ void NetworkHandle::computeNeuromodulator() {
         }
         m_neuromodulator = meanTDError / static_cast<double>(10);
     }
+//    for (auto i = 0; i < m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2]; ++i) {
+//        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().setNeuromodulator(m_neuromodulator);
+//    }
 }
 
 /**
  *
  */
 void NetworkHandle::updateActor() {
-//    for (auto i = 0; i < m_spinet.getNetworkStructure()[2]; ++i) { // critic cells
-//        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().setNeuromodulator(m_neuromodulator);
-//    }
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
-    for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
+    for (auto i = start; i < start + neuronPerAction; ++i) {
         m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
     }
-//    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
-//        m_spinet.normalizeActions();
+//    m_spinet.normalizeActions();
 }
 
 /**
@@ -438,10 +438,11 @@ void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
  */
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
-    for (size_t i = 0; i < m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2]; ++i) { // critic cells
+    auto nbCritics = m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2];
+    for (size_t i = 0; i < nbCritics; ++i) { // critic cells
         value += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().updateKernelSpikingRate(time);
     }
-    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure().size() - 2) + getRLConfig().getV0();
+    return getRLConfig().getNu() * value / static_cast<double>(nbCritics) + getRLConfig().getV0();
 }
 
 /**
@@ -464,7 +465,6 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
  */
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
-    m_spinet.transmitReward(reward);
 }
 
 /**
