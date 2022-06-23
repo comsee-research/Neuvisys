@@ -256,7 +256,7 @@ void NetworkHandle::saveStatistics(size_t sequence) {
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     ++m_packetCount;
     saveValueMetrics(lastTimestamp, nbEvents);
-    m_spinet.transmitNeuromodulator(m_saveData["tdError"].back());
+//    m_spinet.transmitNeuromodulator(m_saveData["tdError"].back());
 
     ++m_scoreCount;
     if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
@@ -331,9 +331,10 @@ void NetworkHandle::updateCritic() {
         }
         m_neuromodulator = meanTDError / static_cast<double>(10);
     }
-//    for (auto i = 0; i < m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2]; ++i) {
-//        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().setNeuromodulator(m_neuromodulator);
-//    }
+    size_t layer = m_spinet.getNetworkStructure().size() - 2;
+    for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
+    }
 }
 
 /**
@@ -438,11 +439,11 @@ void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
  */
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
-    auto nbCritics = m_spinet.getNetworkStructure()[m_spinet.getNetworkStructure().size() - 2];
-    for (size_t i = 0; i < nbCritics; ++i) { // critic cells
-        value += m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 2).get().updateKernelSpikingRate(time);
+    size_t layer = m_spinet.getNetworkStructure().size() - 2;
+    for (size_t i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+        value += m_spinet.getNeuron(i, layer).get().updateKernelSpikingRate(time);
     }
-    return getRLConfig().getNu() * value / static_cast<double>(nbCritics) + getRLConfig().getV0();
+    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[layer]) + getRLConfig().getV0();
 }
 
 /**

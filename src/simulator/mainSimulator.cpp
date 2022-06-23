@@ -44,22 +44,30 @@ int launchLearningSimulation(std::string &networkPath, double simTime) {
     return 0;
 }
 
-//int launchSimulation(double simTime) {
-//    SimulationInterface sim(false, true);
-//    sim.enableSyncMode(true);
-//    sim.startSimulation();
-//
-//    while (ros::ok() && sim.getSimulationTime() < simTime) {
-//        sim.triggerNextTimeStep();
-//        while(!sim.simStepDone()) {
-//            ros::spinOnce();
-//        }
-//
-//        sim.update();
-//    }
-//    sim.stopSimulation();
-//    return 0;
-//}
+int launchSimulation(double simTime) {
+    std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
+    std::uniform_int_distribution<int> distr(0, 2);
+    std::vector<std::pair<uint64_t, float>> actionMapping({{1, 5}, {1, 0}, {1, -5}});
+
+    SimulationInterface sim(actionMapping, false, false);
+    sim.enableSyncMode(true);
+    sim.startSimulation();
+
+    while (ros::ok() && sim.getSimulationTime() < simTime) {
+        sim.triggerNextTimeStep();
+        while(!sim.simStepDone()) {
+            ros::spinOnce();
+        }
+
+        sim.update();
+
+        if (static_cast<int>(sim.getSimulationTime()) % 2 == 0) {
+            sim.activateMotors(distr(generator));
+        }
+    }
+    sim.stopSimulation();
+    return 0;
+}
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "neuvisysRos");
@@ -67,14 +75,16 @@ int main(int argc, char **argv) {
     std::string type = "none";//argv[1];
     std::string m_networkPath;
 
-    if (type == "multi") {
-        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-            std::cout << m_networkPath << std::endl;
-            launchLearningSimulation(m_networkPath, 10);
-        }
-    } else {
-        m_networkPath = "/home/thomas/Networks/validation/";
-        launchLearningSimulation(m_networkPath, 1.5);
-    }
+    launchSimulation(10);
+
+//    if (type == "multi") {
+//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+//            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+//            std::cout << m_networkPath << std::endl;
+//            launchLearningSimulation(m_networkPath, 10);
+//        }
+//    } else {
+//        m_networkPath = "/home/thomas/Networks/validation/";
+//        launchLearningSimulation(m_networkPath, 1.5);
+//    }
 }
