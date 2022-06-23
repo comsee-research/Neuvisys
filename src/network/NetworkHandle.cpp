@@ -331,10 +331,10 @@ void NetworkHandle::computeNeuromodulator() {
         }
         m_neuromodulator = meanTDError / static_cast<double>(10);
     }
-//    size_t layer = m_spinet.getNetworkStructure().size() - 2;
-//    for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
-//        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
-//    }
+    size_t layer = m_spinet.getNetworkStructure().size() - 2;
+    for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
+    }
 }
 
 /**

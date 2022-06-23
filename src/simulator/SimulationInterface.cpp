@@ -52,7 +52,8 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
 }
 
 void SimulationInterface::jointAngleCallBack(const ros::MessageEvent<std_msgs::Float32> &jointAngle) {
-    m_rewardStored = 50 * ((M_PI / 2) - std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2)));
+    m_rewardStored = 50 * std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2));
+//    m_rewardStored = 50 * ((M_PI / 2) - std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2)));
 }
 
 void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time) {
