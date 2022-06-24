@@ -140,7 +140,6 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
             m_reward = 100 * (2 - m_spinet.getAverageActivity()) / m_averageEventRate;
-            m_spinet.transmitReward(m_reward);
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         m_saveData["networkRate"].push_back(m_spinet.getAverageActivity());
@@ -257,6 +256,7 @@ void NetworkHandle::saveStatistics(size_t sequence) {
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     ++m_packetCount;
     saveValueMetrics(lastTimestamp, nbEvents);
+//    m_spinet.transmitNeuromodulator(m_saveData["tdError"].back());
 
     ++m_scoreCount;
     if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
@@ -273,7 +273,7 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-        computeNeuromodulator();
+        updateCritic();
         if (m_action != -1) {
             updateActor();
         }
@@ -317,7 +317,7 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 /**
  *
  */
-void NetworkHandle::computeNeuromodulator() {
+void NetworkHandle::updateCritic() {
     double meanTDError = 0;
     auto count = 0;
     if (m_saveData["tdError"].size() > 10) {
@@ -343,11 +343,10 @@ void NetworkHandle::computeNeuromodulator() {
 void NetworkHandle::updateActor() {
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
-    for (auto i = start; i < start + neuronPerAction; ++i) { // actor cells
+    for (auto i = start; i < start + neuronPerAction; ++i) {
         m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
     }
-//    std::cout << "Action: " << m_action + 1 << " TD: " << m_neuromodulator << std::endl;
-//        m_spinet.normalizeActions();
+//    m_spinet.normalizeActions();
 }
 
 /**
@@ -467,7 +466,6 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
  */
 void NetworkHandle::transmitReward(const double reward) {
     m_reward = reward;
-    m_spinet.transmitReward(reward);
 }
 
 /**

@@ -153,7 +153,7 @@ private:
 
     bool loadHDF5Events(std::vector<Event> &events, size_t nbPass);
 
-    void computeNeuromodulator();
+    void updateCritic();
 
     void readFirstAndLastTimestamp();
 
