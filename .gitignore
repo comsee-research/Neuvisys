@@ -1,1 +1,65 @@
-*.pyc *.png *.pdf *.npy *.json
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# build folder
+**/build
+**/debug_build
+
+# figures & screenshots
+/figures
+
+# dependencies
+**/libs
+
+# temporary files
+*~
+*.tmp
+*.swp
+
+*.old
+
+# folders
+build/
+logs/
+devel/
+.catkin_tools/
+datasets/
+script/
+res/
+
+# Other files
+*.pyc 
+*.png 
+*.pdf 
+*.npy 
+*.json
+*.csv
+*.js
+

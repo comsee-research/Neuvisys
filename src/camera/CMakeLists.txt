@@ -1,4 +1,4 @@
-find_package(libcaer)
+find_package(libcaer REQUIRED)
 
 set(SOURCES
         EventCamera.cpp

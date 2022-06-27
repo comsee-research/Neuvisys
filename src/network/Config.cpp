@@ -237,35 +237,35 @@ void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
 }
 
 void NetworkConfig::createNetwork(const std::string &directory) {
-    std::filesystem::create_directory(directory);
-    std::filesystem::create_directory(directory + "/configs");
-    std::filesystem::create_directory(directory + "/figures");
-    std::filesystem::create_directory(directory + "/figures/0");
-    std::filesystem::create_directory(directory + "/figures/1");
-    std::filesystem::create_directory(directory + "/figures/2");
-    std::filesystem::create_directory(directory + "/figures/3");
-    std::filesystem::create_directory(directory + "/gabors");
-    std::filesystem::create_directory(directory + "/gabors/0");
-    std::filesystem::create_directory(directory + "/gabors/1");
-    std::filesystem::create_directory(directory + "/gabors/2");
-    std::filesystem::create_directory(directory + "/gabors/3");
-    std::filesystem::create_directory(directory + "/gabors/figures");
-    std::filesystem::create_directory(directory + "/gabors/hists");
-    std::filesystem::create_directory(directory + "/images");
-    std::filesystem::create_directory(directory + "/images/0");
-    std::filesystem::create_directory(directory + "/images/1");
-    std::filesystem::create_directory(directory + "/images/2");
-    std::filesystem::create_directory(directory + "/images/3");
-    std::filesystem::create_directory(directory + "/weights");
-    std::filesystem::create_directory(directory + "/weights/0");
-    std::filesystem::create_directory(directory + "/weights/1");
-    std::filesystem::create_directory(directory + "/weights/2");
-    std::filesystem::create_directory(directory + "/weights/3");
-    std::filesystem::create_directory(directory + "/statistics");
-    std::filesystem::create_directory(directory + "/statistics/0");
-    std::filesystem::create_directory(directory + "/statistics/1");
-    std::filesystem::create_directory(directory + "/statistics/2");
-    std::filesystem::create_directory(directory + "/statistics/3");
+    fs::create_directory(directory);
+    fs::create_directory(directory + "/configs");
+    fs::create_directory(directory + "/figures");
+    fs::create_directory(directory + "/figures/0");
+    fs::create_directory(directory + "/figures/1");
+    fs::create_directory(directory + "/figures/2");
+    fs::create_directory(directory + "/figures/3");
+    fs::create_directory(directory + "/gabors");
+    fs::create_directory(directory + "/gabors/0");
+    fs::create_directory(directory + "/gabors/1");
+    fs::create_directory(directory + "/gabors/2");
+    fs::create_directory(directory + "/gabors/3");
+    fs::create_directory(directory + "/gabors/figures");
+    fs::create_directory(directory + "/gabors/hists");
+    fs::create_directory(directory + "/images");
+    fs::create_directory(directory + "/images/0");
+    fs::create_directory(directory + "/images/1");
+    fs::create_directory(directory + "/images/2");
+    fs::create_directory(directory + "/images/3");
+    fs::create_directory(directory + "/weights");
+    fs::create_directory(directory + "/weights/0");
+    fs::create_directory(directory + "/weights/1");
+    fs::create_directory(directory + "/weights/2");
+    fs::create_directory(directory + "/weights/3");
+    fs::create_directory(directory + "/statistics");
+    fs::create_directory(directory + "/statistics/0");
+    fs::create_directory(directory + "/statistics/1");
+    fs::create_directory(directory + "/statistics/2");
+    fs::create_directory(directory + "/statistics/3");
 
     std::vector<json> conf = {
             {

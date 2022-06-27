@@ -1,9 +1,10 @@
 //
 // Created by antony on 03/05/2022
 //
-
 #include "SurroundSuppression.hpp"
-namespace fs = std::filesystem;
+
+static constexpr int width_ = 346;
+static constexpr int height_ = 260;
 
 SurroundSuppression::SurroundSuppression(const std::string &networkPath, std::vector<std::string> path, NetworkHandle& network) : m_network(network)
 {

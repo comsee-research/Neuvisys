@@ -8,11 +8,23 @@
 #include <iostream>
 #include <fstream>
 #include <iomanip>
-#include <filesystem>
+
+#if __GNUC__ > 8
+	#include <filesystem>
+	namespace fs = std::filesystem;
+#else
+	#include <experimental/filesystem> //if gcc < 8
+	namespace fs = std::experimental::filesystem;
+#endif
+
 #include "../dependencies/json.hpp"
 
-#define E3 1000 // µs
-#define E6 1000000 // µs
+//#define E3 1000 // µs
+//#define E6 1000000 // µs
+
+static constexpr std::size_t E3 = 1000; // µs
+static constexpr std::size_t E6 = 1000000; // µs
+
 
 using json = nlohmann::json;
 

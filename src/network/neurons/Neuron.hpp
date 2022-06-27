@@ -52,7 +52,7 @@ protected:
     std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
 
 private:
-    virtual void spike(size_t time) {};
+    virtual void spike(size_t /* time */) {};
 
 public:
     Neuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset);
@@ -81,19 +81,19 @@ public:
 
     virtual NeuronConfig getConf() const { return m_conf; }
 
-    virtual double getWeights(long x, long y, long z) {};
+    virtual double getWeights(long /* x */, long /* y */, long /* z */) { return 1.; };
 
     virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights[neuronId]; }
 
     virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights[neuronId]; }
 
-    virtual double getWeights(long p, long c, long s, long x, long y) {};
+    virtual double getWeights(long /* p */, long /* c */, long /* s */, long /* x */, long /* y */) { return 1.; };
 
-    virtual std::vector<long> getWeightsDimension() {};
+    virtual std::vector<long> getWeightsDimension() { return {}; };
 
     virtual void weightUpdate() {};
 
-    virtual cv::Mat summedWeightMatrix() {};
+    virtual cv::Mat summedWeightMatrix() { return {}; };
 
     virtual void resetSpike() { m_spike = false; }
 
@@ -130,9 +130,9 @@ public:
 
     virtual void loadState(std::string &filePath);
 
-    virtual void saveWeights(std::string &filePath) {};
+    virtual void saveWeights(std::string & /*filePath */) {};
 
-    virtual void saveLateralInhibitionWeights(std::string &filePath) {};
+    virtual void saveLateralInhibitionWeights(std::string &/* filePath */) {};
 
     virtual void assignToPotentialTrain(std::pair<double, uint64_t> potential);
 
@@ -154,19 +154,19 @@ public:
 
     virtual std::vector<std::vector<std::tuple<double, double, uint64_t>>> getTimingOfInhibition();
 
-    virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
+    virtual void saveTopDownInhibitionWeights(std::string &/* filePath */) {};
 
-    virtual void loadWeights(std::string &filePath) {};
+    virtual void loadWeights(std::string &/* filePath */) {};
 
-    virtual void loadLateralInhibitionWeights(std::string &filePath) {};
+    virtual void loadLateralInhibitionWeights(std::string &/* filePath */) {};
 
-    virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
+    virtual void loadTopDownInhibitionWeights(std::string &/* filePath */) {};
 
-    virtual void loadWeights(cnpy::npz_t &arrayNPZ) {};
+    virtual void loadWeights(cnpy::npz_t &/* arrayNPZ */) {};
 
-    virtual void loadLateralInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
+    virtual void loadLateralInhibitionWeights(cnpy::npz_t &/* arrayNPZ */) {};
 
-    virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
+    virtual void loadTopDownInhibitionWeights(cnpy::npz_t &/* arrayNPZ */) {};
 
     virtual void normalizeInhibWeights() {};
 
@@ -186,27 +186,27 @@ public:
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
 
-    virtual bool newEvent(Event event) {};
+    virtual bool newEvent(Event /* event */) { return false; };
 
-    virtual bool newEvent(NeuronEvent event) {};
+    virtual bool newEvent(NeuronEvent /* event */) { return false; };
 
-    virtual void newStaticInhibitoryEvent(NeuronEvent event);
+    virtual void newStaticInhibitoryEvent(NeuronEvent /* event */);
 
-    virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
+    virtual void newTopDownInhibitoryEvent(NeuronEvent /* event */) {};
 
-    virtual void newLateralInhibitoryEvent(NeuronEvent event) {};
+    virtual void newLateralInhibitoryEvent(NeuronEvent /* event */) {};
 
-    virtual bool update() {};
+    virtual bool update() { return false; };
 
-    virtual void setNeuromodulator(double neuromodulator) {};
+    virtual void setNeuromodulator(double /* neuromodulator */) {};
 
     virtual void trackPotential(size_t time);
 
     virtual void updateState(size_t timeInterval);
 
-    virtual double updateKernelSpikingRate(long time) {};
+    virtual double updateKernelSpikingRate(long /* time */) { return 1.; };
 
-    virtual void rescaleWeights(double scale) {};
+    virtual void rescaleWeights(double /* scale */) {};
 
     virtual void learningDecay(double count);
 

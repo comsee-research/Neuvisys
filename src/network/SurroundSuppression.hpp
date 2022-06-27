@@ -5,8 +5,8 @@
 /*This is a module to evaluate the phenomenon of surround suppression 
     on multiple neurons with bars of different orientations and speed*/
 
-#ifndef NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 0
-#define NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 1
+#ifndef NEUVISYS_DV_SURROUND_SUPPRESSION_HPP
+#define NEUVISYS_DV_SURROUND_SUPPRESSION_HPP
 
 //#include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
@@ -16,11 +16,20 @@
 #include <algorithm>
 #include <random>
 #include <cmath>
-#include <filesystem>
+
+#if __GNUC__ > 8
+	#include <filesystem>
+	namespace fs = std::filesystem;
+#else
+	#include <experimental/filesystem> //if gcc < 8
+	namespace fs = std::experimental::filesystem;
+#endif
+
 #include "NetworkHandle.hpp"
 #include "Config.hpp"
-#define width_ 346
-#define height_ 260
+
+//#define width_ 346
+//#define height_ 260
 
 struct receptiveFieldDimensions {
     int x_minus;

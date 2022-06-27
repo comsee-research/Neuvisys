@@ -510,9 +510,9 @@ void SpikingNetwork::saveNetworkLayout() {
  */
 void SpikingNetwork::intermediateSave(size_t saveCount) {
     std::string fileName;
-    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/");
-    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/0/");
-    std::filesystem::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/1/");
+    fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/");
+    fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/0/");
+    fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/1/");
 
     size_t layer = 0;
     for (auto &neurons: m_neurons) {
@@ -787,11 +787,11 @@ void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, N
 void SpikingNetwork::saveStatistics(int sequence) {
     std::string fileName;
     size_t layer = 0;
-    std::filesystem::file_status s = std::filesystem::file_status{};
+    fs::file_status s = fs::file_status{};
     for (auto &neurons: m_neurons) {
         std::string path(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer));
-        if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(path)) {
-            std::filesystem::create_directory(
+        if (fs::status_known(s) ? fs::exists(s) : fs::exists(path)) {
+            fs::create_directory(
                     m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(sequence));
             for (auto &neuron: neurons) {
                 if (neuron.get().getConf().POTENTIAL_TRACK[0] == neuron.get().getPos().x() &&
