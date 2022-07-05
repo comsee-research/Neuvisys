@@ -50,8 +50,10 @@ if (NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_definitions(-O3)
 endif(NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
 
-add_definitions(-Wall -Wextra -Werror=format-security)
-
+add_definitions(
+	-pedantic -Wall -Wextra -Werror=format-security 
+	-Wshadow -Wnon-virtual-dtor -Wpedantic -Wduplicated-cond -Wuseless-cast
+)
 
 #set(GCC_COVERAGE_COMPILE_FLAGS "-03 -D_FORTIFY_SOURCE=2 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
 #set(GCC_COVERAGE_COMPILE_FLAGS "-O0 -D_GLIBCXX_ASSERTIONS -fasynchronous-unwind-tables -fexceptions -fpie -Wl,-pie -fstack-clash-protection -fstack-protector-strong -g -grecord-gcc-switches -pipe -Wall -Werror=format-security -Wl,-z,defs")
@@ -62,31 +64,32 @@ message("${PROJECT_NAME}")
 message("-----------------------------------------------------------------------------------------")
 
 #=================== include packages ==========================================
-find_package(OpenCV)# 4.0.0 REQUIRED)
+find_package(OpenCV REQUIRED) # 4.0.0 REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 
 #=================== build includes ============================================
-include_directories(${HDF5_INCLUDE_DIRS})
-include_directories(${OpenCV_INCLUDE_DIRS})
-#include_directories("/usr/include/opencv4/")
-include_directories(${PYTHON_INCLUDE_DIRS})
+#include_directories(${OpenCV_INCLUDE_DIRS}) #include_directories("/usr/include/opencv4/")
+#include_directories(${PYTHON_INCLUDE_DIRS})
+#include_directories(${HDF5_INCLUDE_DIRS})
 
 include_directories(PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/dependencies)
 include(GNUInstallDirs)
 link_directories(src/dependencies)
 set_source_files_properties(src/dependencies/* PROPERTIES COMPILE_OPTIONS "-w")
 
+#===============================================================================
 #=================== build sources and libs ====================================
+set(CMAKE_CURRENT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/src)
+
+message("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+add_subdirectory(src/network)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/network)
+
 set(NEUVISYS_SOURCES
-        src/network/SpikingNetwork.cpp
-        src/network/Util.cpp
-        src/network/Config.cpp
-        src/network/neurons/Neuron.cpp
-        src/network/neurons/SimpleNeuron.cpp
-        src/network/neurons/ComplexNeuron.cpp
-        src/network/neurons/MotorNeuron.cpp
-        src/network/NetworkHandle.cpp)
+	${NEUVISYS_NETWORK_SOURCES}
+)
 
 set(NEUVISYS_LIBS
 	${OpenCV_LIBS} 
@@ -96,12 +99,14 @@ set(NEUVISYS_LIBS
 	z
 	-lstdc++fs
 )
-#=================== build executable ==========================================
-add_executable(neuvisys-exe src/Neuvisys.cpp ${NEUVISYS_SOURCES})
-target_link_libraries(neuvisys-exe ${NEUVISYS_LIBS} )
 
+set(NEUVISYS_INCLUDE_DIRS
+	src/
+	${OpenCV_INCLUDE_DIRS} #include_directories("/usr/include/opencv4/")
+	${PYTHON_INCLUDE_DIRS}
+	${HDF5_INCLUDE_DIRS}
+)
 
-#===============================================================================
 #===============================================================================
 #=================== includes subdirectory =====================================
 if (BUILD_CAMERA)
@@ -120,8 +125,15 @@ if (BUILD_GUI_SIMULATION)
     add_subdirectory(src/gui-simulation)
 endif()
 
-#add_subdirectory(src/camera)
-#add_subdirectory(src/simulator)
-#add_subdirectory(src/gui)
-#add_subdirectory(src/motor-control)
-#add_subdirectory(src/gui-simulation)
+#=================== build executable ==========================================
+message("SOURCES: \n\t${NEUVISYS_SOURCES}\n")
+message("LIBS: \n\t${NEUVISYS_LIBS}\n")
+message("INCLUDES: \n\t${NEUVISYS_INCLUDE_DIRS}\n")
+
+include_directories(${NEUVISYS_INCLUDE_DIRS})
+add_executable(neuvisys-exe src/Neuvisys.cpp ${NEUVISYS_SOURCES})
+target_include_directories(neuvisys-exe PRIVATE ${NEUVISYS_INCLUDE_DIRS})
+target_link_libraries(neuvisys-exe ${NEUVISYS_LIBS})
+
+message("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
