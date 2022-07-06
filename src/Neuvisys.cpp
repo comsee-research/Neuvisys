@@ -4,6 +4,7 @@
 
 #include "src/network/NetworkHandle.hpp"
 #include "src/network/SurroundSuppression.hpp"
+#include "src/network/Type.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
@@ -28,7 +29,7 @@ int main(int argc, char *argv[]) {
         std::string eventsPath = "/home/thomas/Videos/natural/dsec/interlaken_00_c_downsample_160_120.h5";
 
         NetworkHandle network(networkPath, eventsPath);
-        std::vector<Event> events;
+        Events events;
         std::cout << "Feeding network... " << std::endl;
         size_t nbPass = 50;
 
