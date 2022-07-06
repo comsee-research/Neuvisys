@@ -6,16 +6,18 @@ message("-----------------------------------------------------------------------
 message("Neuvisys - ${PROJECT_NAME}")
 message("-----------------------------------------------------------------------------------------")
 
-find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
+#find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
+find_package(roscpp)
 find_package(libcaer REQUIRED)
 
 include_directories(${catkin_INCLUDE_DIRS})
 include_directories(${libcaer_INCLUDE_DIRS})
 
 set(NEUVISYS_SIMULATOR_SOURCES
-        SimulationInterface.cpp
-        Motor.cpp
-        FrameToEvents.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/SimulationInterface.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/Motor.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/FrameToEvents.cpp
+PARENT_SCOPE
 )
 
 add_executable(neuvisys-simulator mainSimulator.cpp ${NEUVISYS_SIMULATOR_SOURCES} ${NEUVISYS_NETWORK_SOURCES})

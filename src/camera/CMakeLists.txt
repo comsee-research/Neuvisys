@@ -8,6 +8,8 @@ message("-----------------------------------------------------------------------
 
 find_package(libcaer REQUIRED)
 
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 set(NEUVISYS_CAMERA_SOURCES
         ${CMAKE_CURRENT_SOURCE_DIR}/EventCamera.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Ynoise.cpp
@@ -15,4 +17,5 @@ set(NEUVISYS_CAMERA_SOURCES
 )
 set(NEUVISYS_CAMERA_LIBS libcaer::caer PARENT_SCOPE)
 set(NEUVISYS_CAMERA_INCLUDE_DIRS ${libcaer_INCLUDE_DIRS} PARENT_SCOPE)
-message("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
+
+message("\n\t-- Done.\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")
