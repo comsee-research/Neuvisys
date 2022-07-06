@@ -6,9 +6,6 @@
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 
 #include <utility>
-#include <vector>
-#include <array>
-#include <stack>
 #include "neurons/SimpleNeuron.hpp"
 #include "neurons/ComplexNeuron.hpp"
 #include "neurons/MotorNeuron.hpp"

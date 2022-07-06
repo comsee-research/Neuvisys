@@ -410,7 +410,7 @@ void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
  * @param neuron
  */
 void Neuron::initializeTopDownDynamicInhibitionWeights(Neuron &neuron) {
-    m_topDownInhibitionWeights[neuron.getIndex()] = 0;
+    m_topDownInhibitionWeights.addNewWeight(neuron.getIndex());
 }
 
 /**
@@ -427,7 +427,7 @@ void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
  */
 void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralDynamicInhibitionConnections.emplace_back(neuron);
-    m_lateralInhibitionWeights[neuron.getIndex()] = 0;
+    m_lateralInhibitionWeights.addNewWeight(neuron.getIndex());
 }
 
 void Neuron::resetNeuron() {

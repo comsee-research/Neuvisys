@@ -5,7 +5,7 @@
 #ifndef NEUVISYS_UTIL_HPP
 #define NEUVISYS_UTIL_HPP
 
-#include "../dependencies/unsupported/Eigen/CXX11/Tensor"
+#include "unsupported/Eigen/CXX11/Tensor"
 #include <random>
 #include <chrono>
 #include "cnpy.h"
@@ -32,10 +32,6 @@ namespace Util {
 
     void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName);
 
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, std::string &filePath);
-
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName);
-
     void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 
     void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName);
@@ -43,10 +39,6 @@ namespace Util {
     void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
 
     void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName);
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath);
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName);
 
     int winnerTakeAll(std::vector<size_t> vec);
 

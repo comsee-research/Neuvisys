@@ -10,7 +10,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include "ros/ros.h"
-#include "../network/Util.hpp"
+#include "../utils/Util.hpp"
 
 class FrameToEvents {
     int n_max;

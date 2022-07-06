@@ -4,7 +4,7 @@
 
 #include "src/network/NetworkHandle.hpp"
 #include "src/network/SurroundSuppression.hpp"
-#include "src/network/Type.hpp"
+#include "src/utils/Type.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {

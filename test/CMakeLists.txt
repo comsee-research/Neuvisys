@@ -4,8 +4,9 @@ project(tests)
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 
 set(TEST_SOURCES
+        ../src/utils/Util.cpp
+        ../src/utils/WeightMatrix.cpp
         ../src/network/SpikingNetwork.cpp
-        ../src/network/Util.cpp
         ../src/network/Config.cpp
         ../src/network/neurons/Neuron.cpp
         ../src/network/neurons/SimpleNeuron.cpp

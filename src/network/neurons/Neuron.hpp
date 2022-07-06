@@ -6,8 +6,8 @@
 #define NEUVISYS_DV_NEURON_HPP
 
 #include "../Config.hpp"
-#include "../Util.hpp"
-#include <boost/circular_buffer.hpp>
+#include "../../utils/Util.hpp"
+#include "../../utils/WeightMatrix.hpp"
 #include <cmath>
 #include <list>
 #include <iomanip>
@@ -27,8 +27,8 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_lateralStaticInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_topDownDynamicInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
-    std::unordered_map<size_t, double> m_topDownInhibitionWeights;
-    std::unordered_map<size_t, double> m_lateralInhibitionWeights;
+    WeightMatrix m_topDownInhibitionWeights;
+    WeightMatrix m_lateralInhibitionWeights;
     int m_range_x;
     int m_range_y;
     size_t m_spikingTime{};
@@ -83,9 +83,9 @@ public:
 
     virtual double getWeights(long x, long y, long z) {};
 
-    virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights[neuronId]; }
+    virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights.at(neuronId); }
 
-    virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights[neuronId]; }
+    virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights.at(neuronId); }
 
     virtual double getWeights(long p, long c, long s, long x, long y) {};
 

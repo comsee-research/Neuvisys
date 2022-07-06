@@ -5,8 +5,6 @@
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
-#include <vector>
-#include <queue>
 #include "Neuron.hpp"
 
 struct CompareEventsTimestamp {
@@ -22,6 +20,7 @@ class SimpleNeuron : public Neuron {
     boost::circular_buffer<NeuronEvent> m_lateralInhibitionEvents;
     Eigen::Tensor<double, SIMPLEDIM> &m_weights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
+
 public:
     SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset,
                  Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
