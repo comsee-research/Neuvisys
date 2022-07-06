@@ -10,7 +10,6 @@ find_package(catkin REQUIRED COMPONENTS roscpp std_msgs)
 add_subdirectory(libserie)
 
 set(NEUVISYS_MOTOR_SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/MotorRos.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/BrushlessMotor.cpp
 )
 
@@ -25,6 +24,8 @@ target_link_libraries(motor-control ${NEUVISYS_MOTOR_LIBS} ${NEUVISYS_LIBS})
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 set(NEUVISYS_MOTOR_SOURCES ${NEUVISYS_MOTOR_SOURCES} PARENT_SCOPE)
+set(NEUVISYS_LIBSERIE_SOURCES ${NEUVISYS_LIBSERIE_SOURCES} PARENT_SCOPE)
+
 set(NEUVISYS_MOTOR_LIBS ${NEUVISYS_MOTOR_LIBS} PARENT_SCOPE)
 set(NEUVISYS_MOTOR_INCLUDE_DIRS ${NEUVISYS_MOTOR_INCLUDE_DIRS} PARENT_SCOPE)
 

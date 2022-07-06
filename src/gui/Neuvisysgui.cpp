@@ -3,6 +3,7 @@
 //
 
 #include "Neuvisysgui.h"
+#include "ui_neuvisysgui.h"
 
 NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent) : QMainWindow(parent),
                                                                                                                                  neuvisysThread(argc,

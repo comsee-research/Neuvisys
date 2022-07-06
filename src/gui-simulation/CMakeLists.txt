@@ -1,3 +1,13 @@
+cmake_minimum_required(VERSION 3.10.0)
+
+project(neuvisys-simulation-qt)
+
+message("-----------------------------------------------------------------------------------------")
+message("Neuvisys - ${PROJECT_NAME}")
+message("-----------------------------------------------------------------------------------------")
+
+set(TARGET_NAME "neuvisys-simulation-qt")
+
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -5,68 +15,68 @@ set(CMAKE_AUTORCC ON)
 find_package(QT NAMES Qt5 COMPONENTS Widgets Charts REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets Charts REQUIRED)
 find_package(catkin REQUIRED COMPONENTS roscpp rospy std_msgs cv_bridge)
-find_package(libcaer)
+find_package(libcaer REQUIRED)
 
-include_directories(${catkin_INCLUDE_DIRS})
-
-set(CAMERA_SOURCES
-        ../camera/EventCamera.cpp
-        ../camera/Ynoise.cpp)
-
-set(PROJECT_SOURCES
-        ../network/SpikingNetwork.cpp
-        ../network/Util.cpp
-        ../network/Config.cpp
-        ../network/neurons/Neuron.cpp
-        ../network/neurons/SimpleNeuron.cpp
-        ../network/neurons/ComplexNeuron.cpp
-        ../network/neurons/MotorNeuron.cpp
-        ../network/NetworkHandle.cpp)
-
-set(SIMULATION_SOURCES
-        ../simulator/SimulationInterface.cpp
-        ../simulator/FrameToEvents.cpp
-        ../simulator/Motor.cpp)
-
-set(MOTOR_SOURCES
-        ../motor-control/BrushlessMotor.cpp
-        ../motor-control/libserie/Faulhaber.cpp
-        ../motor-control/libserie/comserie.cpp)
-
-set(GUI_SOURCES
+set(NEUVISY_GUI_SIMU_SOURCES
         neuvisysguisimulation.ui
         GuiSimulation.cpp
         NeuvisysguiSimulation.cpp
         NeuvisysthreadSimulation.cpp
-        GLWidget.cpp)
+        GLWidget.cpp
+)
 
-if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+set(NEUVISYS_GUI_SIMU_LIBS
+	Qt${QT_VERSION_MAJOR}::Widgets 
+	Qt${QT_VERSION_MAJOR}::Charts
+)
+
+set(NEUVISYS_GUI_SIMU_INCLUDE_DIRS
+	${catkin_INCLUDE_DIRS}
+)
+
+#-------------------------------------------------------------------------------
+if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(neuvisys-simulation-qt
-            ${CAMERA_SOURCES}
-            ${GUI_SOURCES}
-            ${PROJECT_SOURCES}
-            ${MOTOR_SOURCES}
-            ${SIMULATION_SOURCES}
-            )
-else()
-    if(ANDROID)
-        add_library(neuvisys-simulation-qt SHARED
-                ${CAMERA_SOURCES}
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-                ${MOTOR_SOURCES}
-                ${SIMULATION_SOURCES}
+        ${NEUVISYS_GUI_SIMU_SOURCES}
+        ${NEUVISYS_CAMERA_SOURCES}
+        ${NEUVISYS_SIMULATOR_SOURCES}
+        ${NEUVISYS_NETWORK_SOURCES}
+        ${NEUVISYS_MOTOR_SOURCES}
+    )
+else ()
+    if (ANDROID)
+        add_library(neuvisys-simulation-qt SHARED 
+                ${NEUVISYS_GUI_SIMU_SOURCES}
+                ${NEUVISYS_CAMERA_SOURCES}
+                ${NEUVISYS_SIMULATOR_SOURCES}
+                ${NEUVISYS_NETWORK_SOURCES}
+                ${NEUVISYS_MOTOR_SOURCES}
                 )
-    else()
-        add_executable(neuvisys-simulation-qt
-                ${CAMERA_SOURCES}
-                ${GUI_SOURCES}
-                ${PROJECT_SOURCES}
-                ${MOTOR_SOURCES}
-                ${SIMULATION_SOURCES}
+    else ()
+        add_executable(neuvisys-simulation-qt GuiSimulation.cpp NeuvisysguiSimulation.cpp NeuvisysthreadSimulation.cpp GLWidget.cpp
+                ${NEUVISYS_GUI_SIMU_SOURCES}
+                ${NEUVISYS_CAMERA_SOURCES}
+                ${NEUVISYS_SIMULATOR_SOURCES}
+                ${NEUVISYS_NETWORK_SOURCES}
+                ${NEUVISYS_MOTOR_SOURCES}
                 )
-    endif()
-endif()
+    endif ()
+endif ()
 
-target_link_libraries(neuvisys-simulation-qt PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Charts ${OpenCV_LIBS} ${catkin_LIBRARIES}
-        ${PYTHON_LIBRARIES} ${HDF5_LIBRARIES} cnpy caer z)
+
+target_link_libraries(neuvisys-simulation-qt 
+	PUBLIC 	${NEUVISYS_LIBS} 
+			${NEUVISYS_GUI_SIMU_LIBS} 
+			${NEUVISYS_NETWORK_LIBS} 
+			${NEUVISYS_SIMULATOR_LIBS} 
+			${NEUVISYS_CAMERA_LIBS} 
+			${NEUVISYS_MOTOR_LIBS}
+)
+target_include_directories(neuvisys-simulation-qt PUBLIC ${NEUVISYS_INCLUDE_DIRS} ${NEUVISYS_GUI_SIMU_INCLUDE_DIRS})
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+set(NEUVISY_GUI_SIMU_SOURCES ${NEUVISY_GUI_SIMU_SOURCES} PARENT_SCOPE)
+set(NEUVISYS_GUI_SIMU_LIBS ${NEUVISYS_GUI_SIMU_LIBS} PARENT_SCOPE)
+set(NEUVISYS_GUI_SIMU_INCLUDE_DIRS ${NEUVISYS_GUI_SIMU_INCLUDE_DIRS} PARENT_SCOPE)
+
+message("\n\t-- Done.\n%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%")

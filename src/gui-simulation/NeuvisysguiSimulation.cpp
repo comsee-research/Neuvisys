@@ -3,6 +3,7 @@
 //
 
 #include "NeuvisysguiSimulation.h"
+#include "ui_neuvisysguisimulation.h"
 
 NeuvisysGUISimulation::NeuvisysGUISimulation(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent)
         : QMainWindow(parent),

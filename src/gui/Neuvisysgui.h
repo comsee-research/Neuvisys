@@ -15,7 +15,6 @@
 #include <QtCharts>
 
 #include "Neuvisysthread.h"
-#include "./ui_neuvisysgui.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class NeuvisysGUI; }

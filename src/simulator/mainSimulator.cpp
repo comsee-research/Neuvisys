@@ -87,4 +87,5 @@ int main(int argc, char **argv) {
 //        m_networkPath = "/home/thomas/Networks/validation/";
 //        launchLearningSimulation(m_networkPath, 1.5);
 //    }
+	return 0;
 }

@@ -131,6 +131,7 @@ message("LIBS: \n\t${NEUVISYS_LIBS}\n")
 message("INCLUDES: \n\t${NEUVISYS_INCLUDE_DIRS}\n")
 
 include_directories(${NEUVISYS_INCLUDE_DIRS})
+
 add_executable(neuvisys-exe src/Neuvisys.cpp ${NEUVISYS_SOURCES})
 target_include_directories(neuvisys-exe PRIVATE ${NEUVISYS_INCLUDE_DIRS})
 target_link_libraries(neuvisys-exe ${NEUVISYS_LIBS})
