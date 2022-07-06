@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_COMPLEXNEURON_HPP
 #define NEUVISYS_DV_COMPLEXNEURON_HPP
 
@@ -30,8 +34,6 @@ private:
     bool membraneUpdate(NeuronEvent event);
 
     void spike(size_t time) override;
-
-    void normalizeWeights() override;
 };
 
 #endif //NEUVISYS_DV_COMPLEXNEURON_HPP

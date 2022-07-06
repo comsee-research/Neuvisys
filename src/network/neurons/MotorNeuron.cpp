@@ -1,24 +1,17 @@
 //
-// Created by alphat on 23/05/2021.
+// Created by Thomas on 23/05/2021.
 //
 
 #include "MotorNeuron.hpp"
 
-MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos,
-                         Eigen::Tensor<double, 3> &weights) :
+MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions) :
         Neuron(index, layer, conf, pos, Position()),
-        m_events(boost::circular_buffer<NeuronEvent>(1000)),
-        m_weights(weights) {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = m_weights.dimensions();
-    m_eligibilityTrace = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
-    m_eligibilityTiming = Eigen::Tensor<double, COMPLEXDIM>(d[0], d[1], d[2]);
-    for (long i = 0; i < d[0]; ++i) {
-        for (long j = 0; j < d[1]; ++j) {
-            for (long k = 0; k < d[2]; ++k) {
-                m_eligibilityTrace(i, j, k) = 0;
-                m_eligibilityTiming(i, j, k) = 0;
-            }
-        }
+        m_events(boost::circular_buffer<NeuronEvent>(1000)) {
+    for (size_t i = 0; i < dimensions.size(); ++i) {
+        m_weights[i] = WeightMatrix(dimensions[i], true);
+        m_weights[i].normalize(m_conf.NORM_FACTOR);
+        m_eligibilityTrace[i] = WeightMatrix(dimensions[i]);
+        m_eligibilityTiming[i] = WeightMatrix(dimensions[i]);
     }
 }
 
@@ -28,8 +21,8 @@ inline bool MotorNeuron::newEvent(NeuronEvent event) {
 }
 
 inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
-    m_potential *= exp(-static_cast<double>(event.timestamp() - m_timestampLastEvent) / m_conf.TAU_M);
-    m_potential += m_weights(event.x(), event.y(), event.z());
+    potentialDecay(event.timestamp());
+    m_potential += m_weights[event.layer()].at(event.id());
     m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {
@@ -53,16 +46,16 @@ inline void MotorNeuron::spike(size_t time) {
 inline void MotorNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event: m_events) {
-            m_eligibilityTrace(event.x(), event.y(), event.z()) *= exp(
-                    -(static_cast<double>(event.timestamp()) - m_eligibilityTiming(event.x(), event.y(), event.z())) / m_conf.TAU_E);
-            m_eligibilityTrace(event.x(), event.y(), event.z()) +=
+            m_eligibilityTrace[event.layer()].at(event.id()) *= exp(
+                    -(static_cast<double>(event.timestamp()) - m_eligibilityTiming[event.layer()].at(event.id())) / m_conf.TAU_E);
+            m_eligibilityTrace[event.layer()].at(event.id()) +=
                     m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
-            m_eligibilityTrace(event.x(), event.y(), event.z()) +=
+            m_eligibilityTrace[event.layer()].at(event.id()) +=
                     m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-            if (m_eligibilityTrace(event.x(), event.y(), event.z()) < 0) {
-                m_eligibilityTrace(event.x(), event.y(), event.z()) = 0;
+            if (m_eligibilityTrace[event.layer()].at(event.id()) < 0) {
+                m_eligibilityTrace[event.layer()].at(event.id()) = 0;
             }
-            m_eligibilityTiming(event.x(), event.y(), event.z()) = static_cast<double>(event.timestamp());
+            m_eligibilityTiming[event.layer()].at(event.id()) = static_cast<double>(event.timestamp());
         }
     }
     m_events.clear();
@@ -90,77 +83,62 @@ inline double MotorNeuron::kernel(double time) {
 //    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
 //}
 
-inline void MotorNeuron::normalizeWeights() {
-    auto norm = computeNormWeights();
-    if (norm != 0) {
-        m_weights = m_conf.NORM_FACTOR * m_weights / norm;
-    }
-}
-
-inline double MotorNeuron::computeNormWeights() {
-    Eigen::Tensor<double, 0> normT = m_weights.pow(2).sum().sqrt();
-    return normT(0);
-}
-
-inline void MotorNeuron::rescaleWeights(double scale) {
-    m_weights = m_weights * scale;
-}
-
-inline cv::Mat MotorNeuron::summedWeightMatrix() {
-    Eigen::Tensor<double, 2> sum = m_weights.sum(Eigen::array<double, 1>{2});
-    const Eigen::Tensor<long, 2>::Dimensions &dim = sum.dimensions();
-    Eigen::Tensor<double, 0> max = sum.maximum();
-    Eigen::Tensor<double, 2> result = sum * 255. / max(0);
-
-    cv::Mat mat = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
-    for (int i = 0; i < dim[0]; ++i) {
-        for (int j = 0; j < dim[1]; ++j) {
-            auto &color = mat.at<cv::Vec3b>(j, i);
-            color[0] = static_cast<unsigned char>(result(i, j));
-        }
-    }
-    return mat;
-}
+//inline cv::Mat MotorNeuron::summedWeightMatrix() {
+//    Eigen::Tensor<double, 2> sum = m_weights.sum(Eigen::array<double, 1>{2});
+//    const Eigen::Tensor<long, 2>::Dimensions &dim = sum.dimensions();
+//    Eigen::Tensor<double, 0> max = sum.maximum();
+//    Eigen::Tensor<double, 2> result = sum * 255. / max(0);
+//
+//    cv::Mat mat = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
+//    for (int i = 0; i < dim[0]; ++i) {
+//        for (int j = 0; j < dim[1]; ++j) {
+//            auto &color = mat.at<cv::Vec3b>(j, i);
+//            color[0] = static_cast<unsigned char>(result(i, j));
+//        }
+//    }
+//    return mat;
+//}
 
 void MotorNeuron::saveWeights(std::string &filePath) {
-    auto weightsFile = filePath + std::to_string(m_index);
-    Util::saveComplexTensorToNumpyFile(m_weights, weightsFile);
-//    auto arrayName = std::to_string(m_index);
-//    Util::saveComplexTensorToNumpyFile(m_weights, filePath, arrayName);
+    size_t count = 0;
+    for (const auto &weights : m_weights) {
+        auto weightsFile = filePath + std::to_string(m_index) + "_" + std::to_string(count);
+        Util::saveWeightsToNumpyFile(weights, weightsFile);
+        ++count;
+    }
 }
 
 void MotorNeuron::loadWeights(std::string &filePath) {
-    auto numpyFile = filePath + std::to_string(m_index) + ".npy";
-    Util::loadNumpyFileToComplexTensor(m_weights, numpyFile);
+    size_t count = 0;
+    for (auto &weights : m_weights) {
+        auto numpyFile = filePath + std::to_string(m_index) + "_" + std::to_string(count) + ".npy";
+        Util::loadNumpyFileToWeights(weights, numpyFile);
+        ++count;
+    }
 }
 
-void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
-    auto arrayName = std::to_string(m_index);
-    Util::loadNumpyFileToComplexTensor(m_weights, arrayNPZ, arrayName);
-}
+//void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+//    auto arrayName = std::to_string(m_index);
+//    Util::loadNumpyFileToWeights(m_weights, arrayNPZ, arrayName);
+//}
 
 double MotorNeuron::getWeights(long x, long y, long z) {
-    return m_weights(x, y, z);
+    return m_weights.at(x);
 }
 
-std::vector<long> MotorNeuron::getWeightsDimension() {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
-    std::vector<long> dim = {dimensions[0], dimensions[1], dimensions[2]};
-    return dim;
-}
+//std::vector<long> MotorNeuron::getWeightsDimension() {
+//    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
+//    std::vector<long> dim = {dimensions[0], dimensions[1], dimensions[2]};
+//    return dim;
+//}
 
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
-    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &d = m_weights.dimensions();
-    std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2]));
-    for (long x = 0; x < d[0]; ++x) {
-        for (long y = 0; y < d[1]; ++y) {
-            for (long z = 0; z < d[2]; ++z) {
-                m_weights(x, y, z) += m_conf.ETA * neuromodulator * m_eligibilityTrace(x, y, z);
-                m_eligibilityTrace(x, y, z) = 0;
-
-                if (m_weights(x, y, z) < 0) {
-                    m_weights(x, y, z) = 0;
-                }
+    for (size_t i = 0; i < m_weights.size(); ++i) {
+        for (size_t j = 0; j < m_weights[i].getSize(); ++i) {
+            m_weights[i].at(j) += m_conf.ETA * neuromodulator * m_eligibilityTrace[i].at(j);
+            m_eligibilityTrace[i].at(j) = 0;
+            if (m_weights[i].at(j) < 0) {
+                m_weights[i].at(j) = 0;
             }
         }
     }

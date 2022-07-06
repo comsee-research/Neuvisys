@@ -1,5 +1,5 @@
 //
-// Created by alphat on 23/05/2021.
+// Created by Thomas on 23/05/2021.
 //
 
 #ifndef NEUVISYS_DV_MOTORNEURON_HPP
@@ -10,12 +10,12 @@
 class MotorNeuron : public Neuron {
     double m_neuromodulator{};
     boost::circular_buffer<NeuronEvent> m_events;
-    Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTrace;
-    Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTiming;
-    Eigen::Tensor<double, COMPLEXDIM> &m_weights;
+    std::vector<WeightMatrix> m_weights;
+    std::vector<WeightMatrix> m_eligibilityTrace;
+    std::vector<WeightMatrix> m_eligibilityTiming;
 
 public:
-    MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
+    MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions);
 
     bool newEvent(NeuronEvent event) override;
 
@@ -31,8 +31,6 @@ public:
 
     void loadWeights(cnpy::npz_t &arrayNPZ) override;
 
-    void normalizeWeights() override;
-
     void setNeuromodulator(double neuromodulator) override;
 
     void weightUpdate() override;
@@ -40,8 +38,6 @@ public:
     cv::Mat summedWeightMatrix() override;
 
     double updateKernelSpikingRate(long time) override;
-
-    double computeNormWeights() override;
 
     void rescaleWeights(double scale) override;
 

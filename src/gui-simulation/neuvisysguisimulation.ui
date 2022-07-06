@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>NeuvisysGUI</class>
- <widget class="QMainWindow" name="NeuvisysGUI">
+ <class>NeuvisysGUISimulation</class>
+ <widget class="QMainWindow" name="NeuvisysGUISimulation">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>NeuvisysGUI</string>
+   <string>NeuvisysGUISimulation</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout_9">

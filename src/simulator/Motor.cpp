@@ -1,5 +1,5 @@
 //
-// Created by thomas on 04/06/2021.
+// Created by Thomas on 04/06/2021.
 //
 
 #include "Motor.hpp"
@@ -15,7 +15,7 @@ void Motor::jitter(double dt, double jitter) {
     } else {
         m_jitterSpeed = jitter;
     }
-    m_speed.data = static_cast<float>(m_motion + m_jitterSpeed);
+    m_speed.data = static_cast<float>(m_motion + 1000 * m_jitterSpeed);
     m_motorSpeedPub.publish(m_speed);
 }
 

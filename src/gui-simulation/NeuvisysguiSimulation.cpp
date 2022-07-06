@@ -2,12 +2,12 @@
 // Created by Thomas on 14/04/2021.
 //
 
-#include "Neuvisysgui.h"
+#include "NeuvisysguiSimulation.h"
 
-NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent) : QMainWindow(parent),
-                                                                                                                                 neuvisysThread(argc,
-                                                                                                                                                argv),
-                                                                                                                                 ui(new Ui::NeuvisysGUI) {
+NeuvisysGUISimulation::NeuvisysGUISimulation(int argc, char **argv, const std::string &eventPath, const std::string &networkPath, QWidget *parent)
+        : QMainWindow(parent),
+          neuvisysThread(argc, argv),
+          ui(new Ui::NeuvisysGUISimulation) {
     QSurfaceFormat format;
     format.setDepthBufferSize(24);
     format.setStencilBufferSize(8);
@@ -51,7 +51,6 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, co
     ui->lcd_precision_potential->display(static_cast<double>(precisionPotential) / 1000);
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
-
 
     /* Qt charts */
     eventRateSeries = new QLineSeries();
@@ -118,7 +117,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, co
     ui->actionView->setRenderHint(QPainter::Antialiasing);
 }
 
-NeuvisysGUI::~NeuvisysGUI() {
+NeuvisysGUISimulation::~NeuvisysGUISimulation() {
     delete ui;
     free(potentialSeries);
     free(potentialChart);
@@ -129,7 +128,7 @@ NeuvisysGUI::~NeuvisysGUI() {
     free(rewardChart);
 }
 
-void NeuvisysGUI::on_button_launch_network_clicked() {
+void NeuvisysGUISimulation::on_button_launch_network_clicked() {
     qRegisterMetaType<size_t>("size_t");
     qRegisterMetaType<std::string>("std::string");
     qRegisterMetaType<cv::Mat>("cv::Mat");
@@ -143,32 +142,32 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
     qRegisterMetaType<std::vector<std::pair<double, size_t>>>("std::vector<std::pair<double, size_t>>");
 
-    connect(&neuvisysThread, &NeuvisysThread::displayProgress, this, &NeuvisysGUI::onDisplayProgress);
-    connect(&neuvisysThread, &NeuvisysThread::displayStatistics, this, &NeuvisysGUI::onDisplayStatistics);
-    connect(&neuvisysThread, &NeuvisysThread::displayEvents, this, &NeuvisysGUI::onDisplayEvents);
-    connect(&neuvisysThread, &NeuvisysThread::displayPotential, this, &NeuvisysGUI::onDisplayPotential);
-    connect(&neuvisysThread, &NeuvisysThread::displaySpike, this, &NeuvisysGUI::onDisplaySpike);
-    connect(&neuvisysThread, &NeuvisysThread::displayWeights, this, &NeuvisysGUI::onDisplayWeights);
-    connect(&neuvisysThread, &NeuvisysThread::displayReward, this, &NeuvisysGUI::onDisplayReward);
-    connect(&neuvisysThread, &NeuvisysThread::displayAction, this, &NeuvisysGUI::onDisplayAction);
-    connect(&neuvisysThread, &NeuvisysThread::networkConfiguration, this, &NeuvisysGUI::onNetworkConfiguration);
-    connect(&neuvisysThread, &NeuvisysThread::networkCreation, this, &NeuvisysGUI::onNetworkCreation);
-    connect(&neuvisysThread, &NeuvisysThread::networkDestruction, this, &NeuvisysGUI::onNetworkDestruction);
-    connect(&neuvisysThread, &NeuvisysThread::consoleMessage, this, &NeuvisysGUI::onConsoleMessage);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayProgress, this, &NeuvisysGUISimulation::onDisplayProgress);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayStatistics, this, &NeuvisysGUISimulation::onDisplayStatistics);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayEvents, this, &NeuvisysGUISimulation::onDisplayEvents);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayPotential, this, &NeuvisysGUISimulation::onDisplayPotential);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displaySpike, this, &NeuvisysGUISimulation::onDisplaySpike);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayWeights, this, &NeuvisysGUISimulation::onDisplayWeights);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayReward, this, &NeuvisysGUISimulation::onDisplayReward);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::displayAction, this, &NeuvisysGUISimulation::onDisplayAction);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::networkConfiguration, this, &NeuvisysGUISimulation::onNetworkConfiguration);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::networkCreation, this, &NeuvisysGUISimulation::onNetworkCreation);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::networkDestruction, this, &NeuvisysGUISimulation::onNetworkDestruction);
+    connect(&neuvisysThread, &NeuvisysThreadSimulation::consoleMessage, this, &NeuvisysGUISimulation::onConsoleMessage);
     neuvisysThread.init();
 
-    connect(this, &NeuvisysGUI::tabVizChanged, &neuvisysThread, &NeuvisysThread::onTabVizChanged);
-    connect(this, &NeuvisysGUI::indexChanged, &neuvisysThread, &NeuvisysThread::onIndexChanged);
-    connect(this, &NeuvisysGUI::zcellChanged, &neuvisysThread, &NeuvisysThread::onZcellChanged);
-    connect(this, &NeuvisysGUI::cameraChanged, &neuvisysThread, &NeuvisysThread::onCameraChanged);
-    connect(this, &NeuvisysGUI::synapseChanged, &neuvisysThread, &NeuvisysThread::onSynapseChanged);
-    connect(this, &NeuvisysGUI::precisionEventChanged, &neuvisysThread, &NeuvisysThread::onPrecisionEventChanged);
-    connect(this, &NeuvisysGUI::rangePotentialChanged, &neuvisysThread, &NeuvisysThread::onRangePotentialChanged);
-    connect(this, &NeuvisysGUI::precisionPotentialChanged, &neuvisysThread,
-            &NeuvisysThread::onPrecisionPotentialChanged);
-    connect(this, &NeuvisysGUI::rangeSpikeTrainChanged, &neuvisysThread, &NeuvisysThread::onRangeSpikeTrainChanged);
-    connect(this, &NeuvisysGUI::layerChanged, &neuvisysThread, &NeuvisysThread::onLayerChanged);
-    connect(this, &NeuvisysGUI::stopNetwork, &neuvisysThread, &NeuvisysThread::onStopNetwork);
+    connect(this, &NeuvisysGUISimulation::tabVizChanged, &neuvisysThread, &NeuvisysThreadSimulation::onTabVizChanged);
+    connect(this, &NeuvisysGUISimulation::indexChanged, &neuvisysThread, &NeuvisysThreadSimulation::onIndexChanged);
+    connect(this, &NeuvisysGUISimulation::zcellChanged, &neuvisysThread, &NeuvisysThreadSimulation::onZcellChanged);
+    connect(this, &NeuvisysGUISimulation::cameraChanged, &neuvisysThread, &NeuvisysThreadSimulation::onCameraChanged);
+    connect(this, &NeuvisysGUISimulation::synapseChanged, &neuvisysThread, &NeuvisysThreadSimulation::onSynapseChanged);
+    connect(this, &NeuvisysGUISimulation::precisionEventChanged, &neuvisysThread, &NeuvisysThreadSimulation::onPrecisionEventChanged);
+    connect(this, &NeuvisysGUISimulation::rangePotentialChanged, &neuvisysThread, &NeuvisysThreadSimulation::onRangePotentialChanged);
+    connect(this, &NeuvisysGUISimulation::precisionPotentialChanged, &neuvisysThread,
+            &NeuvisysThreadSimulation::onPrecisionPotentialChanged);
+    connect(this, &NeuvisysGUISimulation::rangeSpikeTrainChanged, &neuvisysThread, &NeuvisysThreadSimulation::onRangeSpikeTrainChanged);
+    connect(this, &NeuvisysGUISimulation::layerChanged, &neuvisysThread, &NeuvisysThreadSimulation::onLayerChanged);
+    connect(this, &NeuvisysGUISimulation::stopNetwork, &neuvisysThread, &NeuvisysThreadSimulation::onStopNetwork);
 
     neuvisysThread.render(ui->text_network_directory->text() + "/",
                           ui->text_event_file->text(),
@@ -176,47 +175,47 @@ void NeuvisysGUI::on_button_launch_network_clicked() {
     ui->console->insertPlainText(QString("Starting network...\n"));
 }
 
-void NeuvisysGUI::on_text_network_directory_textChanged() {
+void NeuvisysGUISimulation::on_text_network_directory_textChanged() {
     openConfigFiles();
 }
 
-void NeuvisysGUI::on_text_network_config_textChanged() {
+void NeuvisysGUISimulation::on_text_network_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/network_config.json";
     QString text = ui->text_network_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_text_rl_config_textChanged() {
+void NeuvisysGUISimulation::on_text_rl_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/rl_config.json";
     QString text = ui->text_rl_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_text_simple_cell_config_textChanged() {
+void NeuvisysGUISimulation::on_text_simple_cell_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/simple_cell_config.json";
     QString text = ui->text_simple_cell_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_text_complex_cell_config_textChanged() {
+void NeuvisysGUISimulation::on_text_complex_cell_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/complex_cell_config.json";
     QString text = ui->text_complex_cell_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_text_critic_cell_config_textChanged() {
+void NeuvisysGUISimulation::on_text_critic_cell_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/critic_cell_config.json";
     QString text = ui->text_critic_cell_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_text_actor_cell_config_textChanged() {
+void NeuvisysGUISimulation::on_text_actor_cell_config_textChanged() {
     QString confDir = ui->text_network_directory->text() + "/configs/actor_cell_config.json";
     QString text = ui->text_actor_cell_config->toPlainText();
     modifyConfFile(confDir, text);
 }
 
-void NeuvisysGUI::on_button_event_file_clicked() {
+void NeuvisysGUISimulation::on_button_event_file_clicked() {
     QString fileName = QFileDialog::getOpenFileName(this, "Open the file");
     QFile file(fileName);
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
@@ -227,26 +226,26 @@ void NeuvisysGUI::on_button_event_file_clicked() {
     file.close();
 }
 
-void NeuvisysGUI::on_button_network_directory_clicked() {
+void NeuvisysGUISimulation::on_button_network_directory_clicked() {
     QString dir = QFileDialog::getExistingDirectory(this, "Open Directory", "/home",
                                                     QFileDialog::ShowDirsOnly | QFileDialog::DontResolveSymlinks);
     ui->text_network_directory->setText(dir);
     openConfigFiles();
 }
 
-void NeuvisysGUI::on_button_create_network_clicked() {
+void NeuvisysGUISimulation::on_button_create_network_clicked() {
     QString dir = QFileDialog::getSaveFileName(this, "Open Directory", "/home");
     NetworkConfig::createNetwork(dir.toStdString());
     ui->text_network_directory->setText(dir);
     openConfigFiles();
 }
 
-void NeuvisysGUI::on_button_stop_network_clicked() {
+void NeuvisysGUISimulation::on_button_stop_network_clicked() {
     emit stopNetwork();
     ui->console->insertPlainText(QString("Saving network...\n"));
 }
 
-void NeuvisysGUI::openConfigFiles() {
+void NeuvisysGUISimulation::openConfigFiles() {
     QString dir = ui->text_network_directory->text();
     QString confDir = dir + "/configs/network_config.json";
     ui->text_network_config->setText(readConfFile(confDir));
@@ -262,7 +261,7 @@ void NeuvisysGUI::openConfigFiles() {
     ui->text_actor_cell_config->setText(readConfFile(confDir));
 }
 
-QString NeuvisysGUI::readConfFile(QString &directory) {
+QString NeuvisysGUISimulation::readConfFile(QString &directory) {
     QFileInfo checkFile(directory);
     if (checkFile.exists() && checkFile.isFile()) {
         QFile file(directory);
@@ -277,7 +276,7 @@ QString NeuvisysGUI::readConfFile(QString &directory) {
     }
 }
 
-void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
+void NeuvisysGUISimulation::modifyConfFile(QString &directory, QString &text) {
     QFileInfo checkFile(directory);
     if (checkFile.exists() && checkFile.isFile()) {
         QFile file(directory);
@@ -291,9 +290,9 @@ void NeuvisysGUI::modifyConfFile(QString &directory, QString &text) {
     }
 }
 
-void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
-                                    const std::vector<size_t> &networkStructure,
-                                    const size_t vfWidth, const size_t vfHeight) {
+void NeuvisysGUISimulation::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
+                                              const std::vector<size_t> &networkStructure,
+                                              const size_t vfWidth, const size_t vfHeight) {
     ui->console->clear();
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
@@ -312,10 +311,10 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     m_vfHeight = vfHeight;
 }
 
-void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
-                                         const std::vector<std::vector<size_t>> &layerPatches,
-                                         const std::vector<size_t> &layerSizes, const
-                                         std::vector<size_t> &neuronSizes) {
+void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingType,
+                                                   const std::vector<std::vector<size_t>> &layerPatches,
+                                                   const std::vector<size_t> &layerSizes, const
+                                                   std::vector<size_t> &neuronSizes) {
     ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
     ui->spin_zcell_selection->setValue(0);
     buttonSelectionGroup = new QButtonGroup;
@@ -378,38 +377,38 @@ void NeuvisysGUI::onNetworkConfiguration(const std::string &sharingType,
     }
 }
 
-void NeuvisysGUI::on_button_selection_clicked(int index) {
+void NeuvisysGUISimulation::on_button_selection_clicked(int index) {
     m_id = static_cast<size_t>(ui->spin_zcell_selection->value() + 1) * index;
     emit indexChanged(m_id);
 }
 
-void NeuvisysGUI::on_spin_zcell_selection_valueChanged(int arg1) {
+void NeuvisysGUISimulation::on_spin_zcell_selection_valueChanged(int arg1) {
     m_zcell = static_cast<size_t>(arg1);
     m_id = static_cast<size_t>(m_zcell + 1) * buttonSelectionGroup->checkedId();
     emit zcellChanged(m_zcell);
     emit indexChanged(m_id);
 }
 
-void NeuvisysGUI::on_spin_camera_selection_valueChanged(int arg1) {
+void NeuvisysGUISimulation::on_spin_camera_selection_valueChanged(int arg1) {
     m_camera = static_cast<size_t>(arg1);
     emit cameraChanged(m_camera);
 }
 
-void NeuvisysGUI::on_spin_synapse_selection_valueChanged(int arg1) {
+void NeuvisysGUISimulation::on_spin_synapse_selection_valueChanged(int arg1) {
     m_synapse = static_cast<size_t>(arg1);
     emit synapseChanged(m_synapse);
 }
 
-void NeuvisysGUI::on_tab_visualization_currentChanged(int index) {
+void NeuvisysGUISimulation::on_tab_visualization_currentChanged(int index) {
     emit tabVizChanged(index);
 }
 
-void NeuvisysGUI::onDisplayProgress(int progress, double time) {
+void NeuvisysGUISimulation::onDisplayProgress(int progress, double time) {
     ui->progressBar->setValue(progress);
     ui->lcd_sim_time->display(time);
 }
 
-void NeuvisysGUI::onDisplayStatistics(const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain) {
+void NeuvisysGUISimulation::onDisplayStatistics(const std::vector<double> &eventRateTrain, const std::vector<double> &networkRateTrain) {
     eventRateChart->removeSeries(eventRateSeries);
     networkRateChart->removeSeries(networkRateSeries);
     eventRateSeries = new QLineSeries();
@@ -432,7 +431,7 @@ void NeuvisysGUI::onDisplayStatistics(const std::vector<double> &eventRateTrain,
     ui->networkRateView->repaint();
 }
 
-void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
+void NeuvisysGUISimulation::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay) {
     m_leftImage = QImage(static_cast<const uchar *>(leftEventDisplay.data), leftEventDisplay.cols, leftEventDisplay.rows, static_cast<int>
     (leftEventDisplay.step), QImage::Format_RGB888).rgbSwapped().scaled(static_cast<int>(1.5 * m_vfWidth), static_cast<int>(1.5 * m_vfHeight));
     m_rightImage = QImage(static_cast<const uchar *>(rightEventDisplay.data), rightEventDisplay.cols, rightEventDisplay.rows, static_cast<int>
@@ -443,7 +442,7 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
     ui->opengl_right_events->update();
 }
 
-void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
+void NeuvisysGUISimulation::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
     int count = 0;
     for (auto &weight: weightDisplay) {
         QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows,
@@ -462,8 +461,8 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
     }
 }
 
-void NeuvisysGUI::onDisplayPotential(double spikeRate, double vreset, double threshold,
-                                     const std::vector<std::pair<double, size_t>> &potentialTrain) {
+void NeuvisysGUISimulation::onDisplayPotential(double spikeRate, double vreset, double threshold,
+                                               const std::vector<std::pair<double, size_t>> &potentialTrain) {
     potentialChart->removeSeries(potentialSeries);
     potentialSeries = new QLineSeries();
     size_t last = 0;
@@ -486,7 +485,7 @@ void NeuvisysGUI::onDisplayPotential(double spikeRate, double vreset, double thr
     ui->lcd_reset->display(vreset);
 }
 
-void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time) {
+void NeuvisysGUISimulation::onDisplaySpike(const std::vector<std::reference_wrapper<const std::vector<size_t>>> &spikeTrains, double time) {
     spikeChart->removeSeries(spikeSeries);
     spikeSeries = new QScatterSeries();
     spikeSeries->setMarkerShape(QScatterSeries::MarkerShapeRectangle);
@@ -520,8 +519,8 @@ void NeuvisysGUI::onDisplaySpike(const std::vector<std::reference_wrapper<const 
     ui->spikeView->repaint();
 }
 
-void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain,
-                                  const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain) {
+void NeuvisysGUISimulation::onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain,
+                                            const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain) {
     rewardChart->removeSeries(rewardSeries);
     rewardChart->removeSeries(valueSeries);
     rewardChart->removeSeries(valueDotSeries);
@@ -553,7 +552,7 @@ void NeuvisysGUI::onDisplayReward(const std::vector<double> &rewardTrain, const 
     ui->rewardView->update();
 }
 
-void NeuvisysGUI::onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train) {
+void NeuvisysGUISimulation::onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train) {
     actionChart->removeSeries(actionSeries1);
     actionChart->removeSeries(actionSeries2);
     actionSeries1 = new QLineSeries();
@@ -576,41 +575,41 @@ void NeuvisysGUI::onDisplayAction(const std::vector<double> &action1Train, const
     ui->actionView->update();
 }
 
-void NeuvisysGUI::on_slider_precision_event_sliderMoved(int position) {
+void NeuvisysGUISimulation::on_slider_precision_event_sliderMoved(int position) {
     precisionEvent = static_cast<size_t>(position);
     ui->lcd_precision_event->display(static_cast<double>(precisionEvent) / 1000);
     emit precisionEventChanged(precisionEvent);
 }
 
-void NeuvisysGUI::on_slider_range_potential_sliderMoved(int position) {
+void NeuvisysGUISimulation::on_slider_range_potential_sliderMoved(int position) {
     rangePotential = static_cast<size_t>(position);
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
     emit rangePotentialChanged(rangePotential);
 }
 
-void NeuvisysGUI::on_slider_precision_potential_sliderMoved(int position) {
+void NeuvisysGUISimulation::on_slider_precision_potential_sliderMoved(int position) {
     precisionPotential = static_cast<size_t>(position);
     ui->lcd_precision_potential->display(static_cast<double>(precisionPotential) / 1000);
     emit precisionPotentialChanged(precisionPotential);
 }
 
-void NeuvisysGUI::on_slider_range_spiketrain_sliderMoved(int position) {
+void NeuvisysGUISimulation::on_slider_range_spiketrain_sliderMoved(int position) {
     rangeSpiketrain = static_cast<size_t>(position);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
     emit rangeSpikeTrainChanged(rangeSpiketrain);
 }
 
-void NeuvisysGUI::on_slider_layer_sliderMoved(int position) {
+void NeuvisysGUISimulation::on_slider_layer_sliderMoved(int position) {
     m_layer = position;
     m_id = 0;
     m_zcell = 0;
     emit layerChanged(m_layer);
 }
 
-void NeuvisysGUI::onConsoleMessage(const std::string &msg) {
+void NeuvisysGUISimulation::onConsoleMessage(const std::string &msg) {
     ui->console->insertPlainText(QString::fromStdString(msg));
 }
 
-void NeuvisysGUI::onNetworkDestruction() {
+void NeuvisysGUISimulation::onNetworkDestruction() {
     ui->console->insertPlainText(QString("Finished.\n"));
 }

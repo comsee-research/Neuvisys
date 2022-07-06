@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_UTIL_HPP
 #define NEUVISYS_DV_UTIL_HPP
 
@@ -12,9 +16,13 @@
 #define NBPOLARITY 2
 
 namespace Util {
-    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z);
+    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z, double normalizationFactor = 1);
 
-    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y);
+    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y, double normalizationFactor = 1);
+
+    void normalizeSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &weights, double normalizationFactor);
+
+    void normalizeComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &weights, double normalizationFactor);
 
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 
@@ -46,9 +54,9 @@ namespace Util {
 
     bool fileExist(std::string &filePath);
 
-    bool endsWith(std::string const & value, std::string const & ending);
+    bool endsWith(std::string const &value, std::string const &ending);
 
-    double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
+    void ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
 
     void saveEventFile(std::vector<Event> &events, std::string &filePath);
 }
@@ -80,6 +88,25 @@ public:
     [[nodiscard]] inline uint64_t y() const { return m_posy; }
 
     [[nodiscard]] inline uint64_t z() const { return m_posz; }
+};
+
+class WeightMatrix {
+    std::unordered_map<size_t, double> m_data;
+    std::vector<size_t> m_dimensions;
+
+public:
+    explicit WeightMatrix(std::vector<size_t> dimensions, bool uniform=false);
+
+    void normalize(double normFactor);
+
+    std::vector<size_t> getDimensions() const { return m_dimensions; }
+
+    size_t getSize() const { return m_data.size(); }
+
+    double &at(size_t id) { return m_data.at(id); }
+
+private:
+    double getNorm();
 };
 
 #endif //NEUVISYS_DV_UTIL_HPP

@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SPIKING_NETWORK_HPP
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 
@@ -21,8 +25,6 @@ class SpikingNetwork {
     std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsInhib;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsCritic;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsActor;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<size_t> m_structure;
@@ -34,7 +36,7 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
-    double m_reward{};
+    double m_neuromodulator{};
     double m_averageActivity{};
 
 public:
@@ -46,19 +48,17 @@ public:
                   const std::vector<std::string> &inhibition,
                   const std::vector<std::vector<size_t>> &layerPatches,
                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes,
-                  const std::vector<size_t> &neuronOverlap, size_t layerToConnect);
+                  const std::vector<size_t> &neuronOverlap, const std::vector<int> &layersToConnect);
 
     void addEvent(const Event &event);
 
-    void updateNeuronsStates(long timeInterval, size_t nbEvents);
+    void updateNeuronsStates(long timeInterval);
 
     void loadWeights();
 
     void saveNetwork();
 
-    double computeNeuromodulator(long time);
-
-    void transmitReward(double reward);
+    void transmitNeuromodulator(double neuromodulator);
 
     void normalizeActions();
 
@@ -72,16 +72,24 @@ public:
 
     void intermediateSave(size_t saveCount);
 
+    void saveStatistics(int sequence);
+
 private:
-    void updateNeurons(long time);
+    void updateMultiSynapticNeurons(long time);
 
     void saveNeuronsStates();
+
+    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi);
+
+    static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
+
+    static void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron);
 
     void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
 
     void addNeuronEvent(const Neuron &neuron);
 
-    void connectLayer(size_t layerToConnect, const std::vector<std::string> &inhibition,
+    void connectLayer(const std::vector<int> &layersToConnect, const std::vector<std::string> &inhibition,
                       const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes,
                       const std::vector<size_t> &neuronSizes);
 
@@ -93,8 +101,8 @@ private:
 
     void neuromodulation(Neuron &neuron);
 
-    void topDownConnection(Neuron &neuron, size_t currLayer, const std::vector<std::string> &inhibition,
-                           size_t layerToConnect, const std::vector<size_t> &neuronSizes);
+    void topDownConnection(Neuron &neuron, const std::vector<int> &layersToConnect, const size_t currLayer, const std::vector<size_t> &neuronSizes,
+                           const std::vector<std::string> &inhibition);
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
 

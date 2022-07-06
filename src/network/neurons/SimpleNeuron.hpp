@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
@@ -18,6 +22,7 @@ class SimpleNeuron : public Neuron {
     boost::circular_buffer<NeuronEvent> m_lateralInhibitionEvents;
     Eigen::Tensor<double, SIMPLEDIM> &m_weights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
+
 public:
     SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset,
                  Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
@@ -61,7 +66,7 @@ private:
 
     void spike(size_t time) override;
 
-    void normalizeWeights() override;
+    void normalizeInhibWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

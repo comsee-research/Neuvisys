@@ -1,35 +1,54 @@
+//
+// Created by Thomas on 04/06/2021.
+//
+
 #include "src/network/NetworkHandle.hpp"
+#include "src/network/SurroundSuppression.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
         std::string networkPath = argv[1];
-        std::string eventPath = argv[2];
-        size_t nbPass = std::stoi(argv[3]);
-
-        NetworkHandle network(networkPath, eventPath);
+        std::string eventsPath = argv[2];
+        NetworkHandle network(networkPath, eventsPath);
+        size_t nbCount = std::atoi(argv[3]);
         std::vector<Event> events;
+        std::cout << "argv[3] = " << nbCount << std::endl;
         std::cout << "Feeding network... " << std::endl;
 
-        while (network.loadEvents(events, nbPass)) {
+        while (network.loadEvents(events, nbCount)) {
             network.feedEvents(events);
         }
-        network.save(eventPath, 1);
+
+        network.save(eventsPath, nbCount);
     } else if (argc > 1) {
         NetworkConfig::createNetwork(argv[1]);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-
-        std::string networkPath = "/home/thomas/Desktop/Networks/RL/learn_critic/5/";
-        std::string eventsPath = "/home/thomas/Videos/DSEC/interlaken_00_c.h5";
+        std::string networkPath = "/home/thomas/Networks/natural/dsec/downsampling/";
+        std::string eventsPath = "/home/thomas/Videos/natural/dsec/interlaken_00_c_downsample_160_120.h5";
 
         NetworkHandle network(networkPath, eventsPath);
         std::vector<Event> events;
         std::cout << "Feeding network... " << std::endl;
+        size_t nbPass = 50;
 
-        while (network.loadEvents(events, 1)) {
+        while (network.loadEvents(events, nbPass)) {
             network.feedEvents(events);
         }
 
-        network.save(eventsPath, 1);
+        network.save(eventsPath, nbPass);
+
+//        std::vector<std::string> vectorOfPaths;
+//        for (const auto & frame : std::filesystem::directory_iterator{path_Events})
+//        {
+//            vectorOfPaths.emplace_back(frame.path().string());
+//        //    std::cout << frame.path().string() << std::endl;
+//        }
+//
+//        NetworkHandle network(networkPath, vectorOfPaths[0]);
+//        SurroundSuppression surround(networkPath,vectorOfPaths,network);
+//        std::string typeOfTraining = "all";
+    //    surround.Training(typeOfTraining,2,3);
+//        surround.launchTrainingNeurons();
     }
 }

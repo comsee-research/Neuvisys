@@ -2,8 +2,8 @@
 // Created by Thomas on 14/04/2021.
 //
 
-#ifndef NEUVISYSGUI_H
-#define NEUVISYSGUI_H
+#ifndef NEUVISYSGUISIMULATION_H
+#define NEUVISYSGUISIMULATION_H
 
 #include <QMainWindow>
 #include <QApplication>
@@ -14,24 +14,24 @@
 #include <QMessageBox>
 #include <QtCharts>
 
-#include "Neuvisysthread.h"
-#include "./ui_neuvisysgui.h"
+#include "NeuvisysthreadSimulation.h"
+#include "./ui_neuvisysguisimulation.h"
 
 QT_BEGIN_NAMESPACE
-namespace Ui { class NeuvisysGUI; }
+namespace Ui { class NeuvisysGUISimulation; }
 QT_END_NAMESPACE
 
-class NeuvisysGUI : public QMainWindow {
+class NeuvisysGUISimulation : public QMainWindow {
 Q_OBJECT
 
 public:
-    NeuvisysGUI(int argc, char **argv, const std::string &eventPath = "", const std::string &networkPath = "", QWidget *parent = nullptr);
+    NeuvisysGUISimulation(int argc, char **argv, const std::string &eventPath = "", const std::string &networkPath = "", QWidget *parent = nullptr);
 
-    ~NeuvisysGUI() override;
+    ~NeuvisysGUISimulation() override;
 
 protected:
-    NeuvisysThread neuvisysThread;
-    Ui::NeuvisysGUI *ui;
+    NeuvisysThreadSimulation neuvisysThread;
+    Ui::NeuvisysGUISimulation *ui;
     QChart *eventRateChart;
     QChart *networkRateChart;
     QLineSeries *eventRateSeries;
@@ -172,7 +172,6 @@ private slots:
     void on_slider_layer_sliderMoved(int position);
 
     void on_button_stop_network_clicked();
-
 };
 
-#endif // NEUVISYSGUI_H
+#endif // NEUVISYSGUISIMULATION_H

@@ -2,8 +2,8 @@
 // Created by Thomas on 14/04/2021.
 //
 
-#ifndef NEUVISYSTHREAD_H
-#define NEUVISYSTHREAD_H
+#ifndef NEUVISYSTHREADSIMULATION_H
+#define NEUVISYSTHREADSIMULATION_H
 
 #include <QThread>
 #include <chrono>
@@ -16,8 +16,9 @@
 #include "../dependencies/json.hpp"
 #include "../camera/Ynoise.hpp"
 #include "../camera/EventCamera.hpp"
+#include "../simulator/SimulationInterface.hpp"
 
-class NeuvisysThread : public QThread {
+class NeuvisysThreadSimulation : public QThread {
 Q_OBJECT
 
 protected:
@@ -60,24 +61,17 @@ protected:
 
     void readEventsFile(NetworkHandle &network);
 
-    int launchReal(NetworkHandle &network);
+    void readEventsRealTime();
 
-    void eventLoop(NetworkHandle &network, const vector<Event> &events, double time);
+    void readEventsSimulation();
+
+    int launchReal(NetworkHandle &network);
 
     void launchNetwork(NetworkHandle &network);
 
-public:
-    NeuvisysThread(int argc, char **argv, QObject *parent = nullptr);
+    void launchSimulation(NetworkHandle &network);
 
-    void render(QString networkPath, QString events, size_t nbPass, size_t mode);
-
-    bool init() { return true; }
-
-    void run() override;
-
-private:
-
-    void readEventsRealTime();
+    void eventLoop(NetworkHandle &network, const vector<Event> &events, double time);
 
     void display(NetworkHandle &network, double time);
 
@@ -88,6 +82,17 @@ private:
     void prepareWeights(NetworkHandle &network);
 
     void sensingZone(NetworkHandle &network);
+
+public:
+    NeuvisysThreadSimulation(int argc, char **argv, QObject *parent = nullptr);
+
+    ~NeuvisysThreadSimulation();
+
+    void render(QString networkPath, QString events, size_t nbPass, size_t mode);
+
+    bool init();
+
+    void run() override;
 
 public slots:
 
@@ -143,4 +148,4 @@ signals:
     void consoleMessage(const std::string &msg);
 };
 
-#endif // NEUVISYSTHREAD_H
+#endif // NEUVISYSTHREADSIMULATION_H

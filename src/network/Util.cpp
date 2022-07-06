@@ -1,4 +1,10 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #include "Util.hpp"
+
+#include <utility>
 
 std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
 std::normal_distribution<double> normalDistr(0.0, 1.0);
@@ -95,7 +101,7 @@ namespace Util {
         return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
     }
 
-    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(const long x, const long y, const long z) {
+    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(const long x, const long y, const long z, const double normalizationFactor) {
         Eigen::Tensor<double, COMPLEXDIM> mat(x, y, z);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
@@ -104,10 +110,11 @@ namespace Util {
                 }
             }
         }
+        normalizeComplexTensor(mat, normalizationFactor);
         return mat;
     }
 
-    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(const long p, const long c, const long s, const long x, const long y) {
+    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(const long p, const long c, const long s, const long x, const long y, const double normalizationFactor) {
         Eigen::Tensor<double, SIMPLEDIM> mat(p, c, s, x, y);
         for (long i = 0; i < x; ++i) {
             for (long j = 0; j < y; ++j) {
@@ -121,7 +128,51 @@ namespace Util {
                 }
             }
         }
+        normalizeSimpleTensor(mat, normalizationFactor);
         return mat;
+    }
+
+    void normalizeSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &weights, double normalizationFactor) {
+        const Eigen::Tensor<double, SIMPLEDIM>::Dimensions& d = weights.dimensions();
+
+//    for (long p = 0; p < d[0]; ++p) {
+//        for (int c = 0; c < d[1]; ++c) {
+//            for (long s = 0; s < d[2]; ++s) {
+//                Eigen::array<long, SIMPLEDIM> start = {p, c, s, 0, 0};
+//                Eigen::array<long, SIMPLEDIM> size = {1, 1, 1, d[3], d[4]};
+//                Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
+//
+//                if (norm(0) != 0) {
+//                    m_weights.slice(start, size) = m_conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
+//                }
+//            }
+//        }
+//    }
+
+        // weight normalization on the camera axes
+//    for (long c = 0; c < d[1]; ++c) {
+//        Eigen::array<long, SIMPLEDIM> start = {0, c, 0, 0, 0};
+//        Eigen::array<long, SIMPLEDIM> size = {d[0], 1, d[2], d[3], d[4]};
+//        Eigen::Tensor<double, 0> norm = m_weights.slice(start, size).pow(2).sum().sqrt();
+//
+//        if (norm(0) != 0) {
+//            m_weights.slice(start, size) = m_conf.NORM_FACTOR * m_weights.slice(start, size) / norm(0);
+//        }
+//    }
+
+        Eigen::Tensor<double, 0> norm = weights.pow(2).sum().sqrt();
+
+        if (norm(0) != 0) {
+            weights = normalizationFactor * weights / norm(0);
+        }
+    }
+
+    void normalizeComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &weights, double normalizationFactor) {
+        Eigen::Tensor<double, 0> norm = weights.pow(2).sum().sqrt();
+
+        if (norm(0) != 0) {
+            weights = normalizationFactor * weights / norm(0);
+        }
     }
 
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
@@ -257,22 +308,53 @@ namespace Util {
         }
     }
 
-    double ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
+    void ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
         double noise = normalDistr(generator) * std::sqrt(dt);
         pos = theta * (mu - pos) * dt + sigma * noise;
     }
 }
 
-Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
+//Luts::Luts(double tauM, double tauRP, double tauSRA) : lutM(expLUT(tauM)), lutRP(expLUT(tauRP)), lutSRA(expLUT(tauSRA)) {}
+//
+//std::vector<double> Luts::expLUT(double tau) {
+//    if (tau > 0) {
+//        std::vector<double> exponential(1000000);
+//        for (size_t i = 0; i < 1000000; ++i) {
+//            exponential[i] = exp(-static_cast<double>(i) / tau);
+//        }
+//        return exponential;
+//    } else {
+//        throw std::runtime_error("Warning: tau parameter is not valid");
+//    }
+//}
 
-std::vector<double> Luts::expLUT(double tau) {
-    if (tau > 0) {
-        std::vector<double> exponential(1000000);
-        for (size_t i = 0; i < 1000000; ++i) {
-            exponential[i] = exp(-static_cast<double>(i) / tau);
+WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform) : m_dimensions(std::move(dimensions)) {
+    for (const auto d : m_dimensions) {
+        for (size_t i = 0; i < d; ++i) {
+            if (uniform) {
+                m_data[i] = uniformRealDistr(generator);
+            } else {
+                m_data[i] = 0;
+            }
         }
-        return exponential;
-    } else {
-        throw std::runtime_error("Warning: tau parameter is not valid");
+    }
+}
+
+double WeightMatrix::getNorm() {
+    double norm = 0;
+    for (const auto d : m_dimensions) {
+        for (size_t i = 0; i < d; ++i) {
+            norm += m_data.at(i);
+        }
+    }
+    return norm;
+}
+
+void WeightMatrix::normalize(const double normFactor) {
+    auto norm = getNorm();
+    for (const auto d : m_dimensions) {
+        for (size_t i = 0; i < d; ++i) {
+            m_data.at(i) *= normFactor / norm;
+        }
     }
 }

@@ -1,12 +1,11 @@
 //
-// Created by thomas on 04/06/2021.
+// Created by Thomas on 04/06/2021.
 //
 
 #ifndef NEUVISYS_SIMULATIONINTERFACE_HPP
 #define NEUVISYS_SIMULATIONINTERFACE_HPP
 
 #include <sstream>
-
 #include "../network/NetworkHandle.hpp"
 #include "Motor.hpp"
 #include "FrameToEvents.hpp"
@@ -15,7 +14,7 @@ class SimulationInterface {
     ros::NodeHandle nh;
     ros::Subscriber m_leftSensorSub;
     ros::Subscriber m_rightSensorSub;
-    ros::Subscriber m_rewardSub;
+    ros::Subscriber m_leftMotorAngleSub;
     ros::Subscriber m_timeSub;
     ros::Subscriber m_simStepDoneSub;
     ros::Subscriber m_simTimeStepSub;
@@ -23,10 +22,10 @@ class SimulationInterface {
     ros::Publisher m_stopSimulation;
     ros::Publisher m_enableSyncMode;
     ros::Publisher m_triggerNextStep;
-    Motor m_leftMotor1Pub = Motor(nh, "leftmotor1");
-    Motor m_leftMotor2Pub = Motor(nh, "leftmotor2");
-    Motor m_rightMotor1Pub = Motor(nh, "rightmotor1");
-    Motor m_rightMotor2Pub = Motor(nh, "rightmotor2");
+    Motor m_leftMotorPhiPub = Motor(nh, "leftmotor1");
+    Motor m_leftMotorThetaPub = Motor(nh, "leftmotor2");
+    Motor m_rightMotorPhiPub = Motor(nh, "rightmotor1");
+    Motor m_rightMotorThetaPub = Motor(nh, "rightmotor2");
     ros::Time m_lastImageTime, m_imageTime;
     double m_elapsedTime{};
     double m_lambda{};
@@ -65,7 +64,7 @@ private:
     void visionCallBack(const ros::MessageEvent<const sensor_msgs::Image> &frame, const std::string &topic);
     void timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time);
     void timeStepCallBack(const ros::MessageEvent<std_msgs::Float32> &timeStep);
-    void rewardSignalCallBack(const ros::MessageEvent<std_msgs::Float32> &reward);
+    void jointAngleCallBack(const ros::MessageEvent<std_msgs::Float32> &jointAngle);
     void simulationStepDoneCallBack(const ros::MessageEvent<std_msgs::Bool> &simStepDone);
     bool poissonProcess();
 };

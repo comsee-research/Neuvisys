@@ -1,5 +1,5 @@
 //
-// Created by thomas on 04/06/2021.
+// Created by Thomas on 04/06/2021.
 //
 
 #include "FrameToEvents.hpp"
@@ -11,8 +11,8 @@ FrameToEvents::FrameToEvents(int n_max, int blocksize, int log_threshold, float 
                                                                                                             adapt_thresh_coef_shift(
                                                                                                                     adapt_thresh_coef_shift),
                                                                                                             method(method),
-                                                                                                            m_saveFrames(saveFrames),
-                                                                                                            m_saveEvents(saveEvents) {
+                                                                                                            m_saveEvents(saveEvents),
+                                                                                                            m_saveFrames(saveFrames) {
     m_events = std::vector<Event>();
 }
 
@@ -25,7 +25,11 @@ void FrameToEvents::frameConversion(const std::string &topic, const ros::Message
                      CV_BGR2GRAY);
         input.convertTo(input, CV_32F);
         if (m_saveFrames) {
-            cv::imwrite("/home/thomas/Desktop/frames/" + std::to_string(m_iterations) + ".png", input);
+            if (camera) {
+                cv::imwrite("/home/thomas/Desktop/frames/" + std::to_string(m_iterations) + "_0.png", input);
+            } else {
+                cv::imwrite("/home/thomas/Desktop/frames/" + std::to_string(m_iterations) + "_1.png", input);
+            }
         }
 
         logFrame(input);

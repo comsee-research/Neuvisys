@@ -1,5 +1,5 @@
 //
-// Created by alphat on 06/05/2021.
+// Created by Thomas on 06/05/2021.
 //
 
 #ifndef NEUVISYS_DV_NETWORK_HANDLE_HPP
@@ -8,6 +8,7 @@
 #include "SpikingNetwork.hpp"
 #include "H5Cpp.h"
 #include "hdf5.h"
+#include <utility>
 
 struct H5EventFile {
     H5::H5File file;
@@ -20,6 +21,9 @@ struct H5EventFile {
     hsize_t dims;
     hsize_t packetSize = 10000;
     hsize_t offset = 0;
+    hsize_t countPass = 0;
+    uint64_t firstTimestamp = 0;
+    uint64_t lastTimestamp = 0;
 };
 
 struct SaveTime {
@@ -31,7 +35,7 @@ struct SaveTime {
     explicit SaveTime(double initTime) : action(initTime), update(initTime), console(initTime), display(initTime) {};
 };
 
-/*
+/**
  * Used as an abstraction layer on top of the SpikingNetwork class.
  * It offers functions used for communication between the environment (mainly the incoming flow of events) and the spiking neural network.
  * Example:
@@ -60,22 +64,27 @@ class NetworkHandle {
     size_t m_actionCount{};
     size_t m_scoreCount{};
     size_t m_countEvents{};
+    size_t m_totalNbEvents{};
     size_t m_saveCount{};
+    double m_endTime{};
+    double m_averageEventRate{};
 
 public:
     NetworkHandle();
 
-    explicit NetworkHandle(std::string eventsPath, double time);
+    explicit NetworkHandle(const std::string& eventsPath, double time);
 
     explicit NetworkHandle(const std::string &networkPath);
 
-    NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+    explicit NetworkHandle(const std::string &networkPath, const std::string &eventsPath);
+
+    void setEventPath(const std::string &eventsPath);
 
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
     void feedEvents(const std::vector<Event> &events);
 
-    void updateActor(size_t action);
+    void updateActor();
 
     void saveValueMetrics(long time, size_t nbEvents);
 
@@ -91,15 +100,17 @@ public:
 
     void save(const std::string &eventFileName, size_t nbRun);
 
-    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
+    void saveStatistics(size_t sequence);
 
-    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
+    void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
     double valueFunction(long time);
 
     double valueDerivative(const std::vector<double> &value);
 
     std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
+
+    void updateNeurons(size_t time);
 
     int learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg);
 
@@ -129,16 +140,24 @@ public:
 
     NeuronConfig getActorNeuronConfig() { return m_actorNeuronConf; }
 
+    double getFirstTimestamp() const { return m_eventFile.firstTimestamp; }
+
+    double getLastTimestamp() const { return m_eventFile.lastTimestamp; }
+
 private:
     void load();
 
-    void loadH5File();
+    void loadNpzEvents(std::vector<Event> &events, size_t nbPass = 1);
 
-    bool loadHDF5Events(std::vector<Event> &events);
+    void openH5File();
 
-    bool loadHDF5EventsStereo(std::vector<Event> &events);
+    bool loadHDF5Events(std::vector<Event> &events, size_t nbPass);
 
-    void computeNeuromodulator();
+    void updateCritic();
+
+    void readFirstAndLastTimestamp();
+
+    void resetAllNeurons();
 };
 
 #endif //NEUVISYS_DV_NETWORK_HANDLE_HPP

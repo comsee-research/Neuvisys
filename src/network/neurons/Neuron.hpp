@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_NEURON_HPP
 #define NEUVISYS_DV_NEURON_HPP
 
@@ -25,6 +29,8 @@ protected:
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
     std::unordered_map<size_t, double> m_topDownInhibitionWeights;
     std::unordered_map<size_t, double> m_lateralInhibitionWeights;
+    int m_range_x;
+    int m_range_y;
     size_t m_spikingTime{};
     size_t m_lastSpikingTime{};
     size_t m_totalSpike{};
@@ -37,10 +43,13 @@ protected:
     size_t m_timestampLastEvent{};
     bool m_spike;
     size_t m_lifeSpan{};
-
     double m_spikingRateAverage{};
     std::vector<size_t> m_trackingSpikeTrain;
-    std::vector<std::pair<double, size_t>> m_trackingPotentialTrain;
+    std::vector<std::pair<double, uint64_t>> m_trackingPotentialTrain;
+    std::vector<double> m_potentialThreshold;
+    std::vector<size_t> m_amount_of_events;
+    std::vector<std::vector<double>> m_sumOfInhibWeights;
+    std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
 
 private:
     virtual void spike(size_t time) {};
@@ -67,6 +76,10 @@ public:
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
 
     [[nodiscard]] virtual size_t getActivityCount();
+
+    virtual void resetActivityCount();
+
+    virtual NeuronConfig getConf() const { return m_conf; }
 
     virtual double getWeights(long x, long y, long z) {};
 
@@ -107,13 +120,11 @@ public:
 
     virtual double getPotential(size_t time);
 
-    virtual double potentialDecay(size_t time);
+    virtual void potentialDecay(size_t time);
 
     virtual double refractoryPotential(size_t time);
 
-    virtual double adaptationPotentialDecay(size_t time);
-
-    virtual void inhibition();
+    virtual void adaptationPotentialDecay(size_t time);
 
     virtual void saveState(std::string &filePath);
 
@@ -122,6 +133,26 @@ public:
     virtual void saveWeights(std::string &filePath) {};
 
     virtual void saveLateralInhibitionWeights(std::string &filePath) {};
+
+    virtual void assignToPotentialTrain(std::pair<double, uint64_t> potential);
+
+    virtual void assignToPotentialThreshold();
+
+    virtual void assignToAmountOfEvents(int type);
+
+    virtual void assignToSumInhibWeights(int type, Position pos, double wi);
+
+    virtual void assignToTimingOfInhibition(int type, std::tuple<double, double, uint64_t> variation);
+
+    virtual std::vector<std::pair<double, uint64_t>> getPotentialTrain();
+
+    virtual std::vector<double> getPotentialThreshold();
+
+    virtual std::vector<size_t> getAmountOfEvents();
+
+    virtual std::vector<std::vector<double>> getSumInhibWeights();
+
+    virtual std::vector<std::vector<std::tuple<double, double, uint64_t>>> getTimingOfInhibition();
 
     virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
@@ -137,7 +168,7 @@ public:
 
     virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void normalizeWeights() {};
+    virtual void normalizeInhibWeights() {};
 
     virtual void thresholdAdaptation();
 
@@ -149,6 +180,8 @@ public:
 
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
+    virtual void initializeTopDownDynamicInhibitionWeights(Neuron &neuron);
+
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
@@ -156,6 +189,8 @@ public:
     virtual bool newEvent(Event event) {};
 
     virtual bool newEvent(NeuronEvent event) {};
+
+    virtual void newStaticInhibitoryEvent(NeuronEvent event);
 
     virtual void newTopDownInhibitoryEvent(NeuronEvent event) {};
 
@@ -167,21 +202,20 @@ public:
 
     virtual void trackPotential(size_t time);
 
-    virtual void updateState(size_t timeInterval, double alpha);
+    virtual void updateState(size_t timeInterval);
 
     virtual double updateKernelSpikingRate(long time) {};
-
-    virtual double computeNormWeights() {};
 
     virtual void rescaleWeights(double scale) {};
 
     virtual void learningDecay(double count);
 
+    virtual void resetNeuron();
+
 protected:
     void writeJson(json &state);
 
     void readJson(const json &state);
-
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

@@ -1,3 +1,7 @@
+//
+// Created by Thomas on 14/04/2021.
+//
+
 #ifndef NEUVISYS_DV_CONFIG_HPP
 #define NEUVISYS_DV_CONFIG_HPP
 
@@ -7,20 +11,10 @@
 #include <filesystem>
 #include "../dependencies/json.hpp"
 
-#define SCORE_INTERVAL 2000000 // µs
-#define UPDATE_INTERVAL 10000 // µs
 #define E3 1000 // µs
 #define E6 1000000 // µs
 
 using json = nlohmann::json;
-
-namespace Conf {
-    /***** General parameters *****/
-    inline constexpr size_t WIDTH = 346; // px
-    inline constexpr size_t HEIGHT = 260; // px
-
-    inline constexpr size_t EVENT_FREQUENCY = 1000; // μs
-}
 
 class NetworkConfig {
     /***** Display parameters *****/
@@ -31,14 +25,18 @@ class NetworkConfig {
     size_t nbCameras{};
     size_t neuron1Synapses{};
     std::string sharingType{};
+    size_t vfWidth{};
+    size_t vfHeight{};
+    double measurementInterval{};
 
     std::vector<std::string> layerCellTypes;
     std::vector<std::vector<std::string>> layerInhibitions;
-    std::vector<int> interLayerConnections;
+    std::vector<std::vector<int>> interLayerConnections;
     std::vector<std::vector<std::vector<size_t>>> layerPatches;
     std::vector<std::vector<size_t>> layerSizes;
     std::vector<std::vector<size_t>> neuronSizes;
     std::vector<std::vector<size_t>> neuronOverlap;
+    std::vector<int> neuronInhibitionRange;
 
 public:
     NetworkConfig();
@@ -57,11 +55,17 @@ public:
 
     [[nodiscard]] size_t getNeuron1Synapses() const { return neuron1Synapses; }
 
+    [[nodiscard]] size_t getVfWidth() const { return vfWidth; }
+
+    [[nodiscard]] size_t getVfHeight() const { return vfHeight; }
+
+    [[nodiscard]] double getMeasurementInterval() const { return measurementInterval; }
+
     std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
 
     std::vector<std::vector<std::string>> &getLayerInhibitions() { return layerInhibitions; }
 
-    std::vector<int> &getInterLayerConnections() { return interLayerConnections; }
+    std::vector<std::vector<int>> &getInterLayerConnections() { return interLayerConnections; }
 
     std::vector<std::vector<std::vector<size_t>>> getLayerPatches() { return layerPatches; }
 
@@ -70,6 +74,8 @@ public:
     std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
 
     std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
+
+    std::vector<int> getNeuronInhibitionRange() { return neuronInhibitionRange; }
 
     static void createNetwork(const std::string &directory);
 };
@@ -108,6 +114,8 @@ public:
     size_t SYNAPSE_DELAY{}; // μs
 
     double NORM_FACTOR{};
+    double LATERAL_NORM_FACTOR{};
+    double TOPDOWN_NORM_FACTOR{};
     double DECAY_RATE{};
 
     double TARGET_SPIKE_RATE{}; // spikes/s
@@ -115,6 +123,7 @@ public:
 
     std::string STDP_LEARNING{};
     std::string TRACKING{};
+    std::vector<double> POTENTIAL_TRACK;
 
 private:
     void loadSimpleNeuronsParameters(const std::string &fileName);
@@ -128,6 +137,7 @@ private:
 
 class ReinforcementLearningConfig {
 public:
+    bool rlTraining{};
     double nu{};
     double V0{};
     double tauR{};
@@ -135,11 +145,15 @@ public:
     long actionRate{};
     long minActionRate{};
     double decayRate{};
+    double scoreInterval{};
+    bool intrinsicReward{};
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
     ReinforcementLearningConfig();
 
     explicit ReinforcementLearningConfig(const std::string& configFile);
+
+    [[nodiscard]] bool getRLTraining() const { return rlTraining; }
 
     [[nodiscard]] std::vector<std::pair<uint64_t, float>> getActionMapping() const { return actionMapping; }
 
@@ -155,7 +169,11 @@ public:
 
     [[nodiscard]] long getMinActionRate() const { return minActionRate; }
 
+    [[nodiscard]] double getScoreInterval() const { return scoreInterval; }
+
     [[nodiscard]] double getDecayRate() const { return decayRate; }
+
+    [[nodiscard]] bool getIntrinsicReward() const { return intrinsicReward; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 

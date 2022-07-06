@@ -2,32 +2,31 @@
 // Created by Thomas on 14/04/2021.
 //
 
-#include "Neuvisysthread.h"
+#include "NeuvisysthreadSimulation.h"
 
-using namespace std::chrono_literals; // ns, us, ms, s, h, etc.
-
-NeuvisysThread::NeuvisysThread(int argc, char **argv, QObject *parent) : QThread(parent), m_initArgc(argc),
-                                                                         m_initArgv(argv) {
+NeuvisysThreadSimulation::NeuvisysThreadSimulation(int argc, char **argv, QObject *parent) : QThread(parent), m_initArgc(argc),
+                                                                                             m_initArgv(argv) {
     m_iterations = 0;
     m_nbPass = 0;
 }
 
-void NeuvisysThread::render(QString networkPath, QString events, size_t nbPass, size_t mode) {
-    m_networkPath = std::move(networkPath);
-    m_events = std::move(events);
-    m_nbPass = nbPass;
-    m_iterations = 0;
-    m_mode = mode;
-    start(HighPriority);
+bool NeuvisysThreadSimulation::init() {
+    ros::init(m_initArgc, m_initArgv, "neuvisysRos");
+    if (!ros::master::check()) {
+        return false;
+    }
+    ros::start();
+    ros::Time::init();
+    return true;
 }
 
-void NeuvisysThread::run() {
+void NeuvisysThreadSimulation::run() {
     if (m_mode == 3) {
         auto network = NetworkHandle();
         m_leftEventDisplay = cv::Mat::zeros(260, 346, CV_8UC3);
         m_rightEventDisplay = cv::Mat::zeros(260, 346, CV_8UC3);
         if (m_events.toStdString().empty()) {
-            readEventsRealTime();
+            readEventsSimulation();
         } else {
             network.setEventPath(m_events.toStdString());
             readEventsFile(network);
@@ -52,14 +51,75 @@ void NeuvisysThread::run() {
         } else if (m_mode == 1) {
             launchReal(network);
         } else if (m_mode == 2) {
-            std::cout << "lel" << std::endl;
+            launchSimulation(network);
         }
     }
     emit networkDestruction();
     quit();
 }
 
-void NeuvisysThread::readEventsFile(NetworkHandle &network) {
+void NeuvisysThreadSimulation::readEventsSimulation() {
+    SimulationInterface sim(vector<pair<uint64_t, float>>{}, true, true);
+    sim.enableSyncMode(true);
+    sim.startSimulation();
+
+    while (!m_stop) {
+        sim.triggerNextTimeStep();
+        while (!sim.simStepDone() && !m_stop) {
+            ros::spinOnce();
+        }
+        sim.update();
+    }
+
+    sim.stopSimulation();
+}
+
+void NeuvisysThreadSimulation::launchSimulation(NetworkHandle &network) {
+    SimulationInterface sim(network.getRLConfig().getActionMapping());
+    sim.enableSyncMode(true);
+    sim.startSimulation();
+
+    while (!m_stop) {
+        sim.triggerNextTimeStep();
+        while (!sim.simStepDone() && !m_stop) {
+            ros::spinOnce();
+        }
+        sim.update();
+
+        if (!network.getRLConfig().getIntrinsicReward()) {
+            network.transmitReward(sim.getReward());
+        }
+        eventLoop(network, sim.getLeftEvents(), sim.getSimulationTime() * E6);
+        if (m_action != -1) {
+            sim.activateMotors(m_action);
+            m_motorDisplay[m_action] = true;
+        }
+
+        if (sim.getSimulationTime() > 300) {
+            m_stop = true;
+        }
+    }
+    sim.stopSimulation();
+    network.save("Simulation", 1);
+}
+
+NeuvisysThreadSimulation::~NeuvisysThreadSimulation() {
+    if (ros::isStarted()) {
+        ros::shutdown();
+        ros::waitForShutdown();
+    }
+}
+
+void NeuvisysThreadSimulation::render(QString networkPath, QString events, size_t nbPass, size_t mode) {
+    m_networkPath = std::move(networkPath);
+    m_events = std::move(events);
+    m_nbPass = nbPass;
+    m_iterations = 0;
+    m_mode = mode;
+    start(HighPriority);
+}
+
+void NeuvisysThreadSimulation::readEventsFile(NetworkHandle &network) {
     auto rtime = std::chrono::high_resolution_clock::now();
     auto rdisplayTime = rtime;
     auto events = std::vector<Event>();
@@ -83,7 +143,7 @@ void NeuvisysThread::readEventsFile(NetworkHandle &network) {
     }
 }
 
-void NeuvisysThread::readEventsRealTime() {
+void NeuvisysThreadSimulation::readEventsRealTime() {
     auto camera = EventCamera();
     auto eventFilter = Ynoise(346, 260);
 
@@ -118,7 +178,7 @@ void NeuvisysThread::readEventsRealTime() {
     }
 }
 
-void NeuvisysThread::launchNetwork(NetworkHandle &network) {
+void NeuvisysThreadSimulation::launchNetwork(NetworkHandle &network) {
     std::vector<Event> events;
 
     while (network.loadEvents(events, m_nbPass) && !m_stop) {
@@ -128,7 +188,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     network.save(m_events.toStdString(), m_nbPass);
 }
 
-int NeuvisysThread::launchReal(NetworkHandle &network) {
+int NeuvisysThreadSimulation::launchReal(NetworkHandle &network) {
     auto time = std::chrono::high_resolution_clock::now();
 
     auto camera = EventCamera();
@@ -151,7 +211,7 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
     return 0;
 }
 
-void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
+void NeuvisysThreadSimulation::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
     if (!events.empty()) {
         for (auto const &event: events) {
             ++m_iterations;
@@ -180,7 +240,7 @@ void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> 
     }
 }
 
-inline void NeuvisysThread::addEventToDisplay(const Event &event) {
+inline void NeuvisysThreadSimulation::addEventToDisplay(const Event &event) {
     if (event.polarity() == 0) {
         ++m_off_count;
     } else {
@@ -199,7 +259,7 @@ inline void NeuvisysThread::addEventToDisplay(const Event &event) {
     }
 }
 
-inline void NeuvisysThread::display(NetworkHandle &network, double time) {
+inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double time) {
     if (m_change) {
         m_change = false;
         auto sharing = "none";
@@ -253,7 +313,7 @@ inline void NeuvisysThread::display(NetworkHandle &network, double time) {
     m_rightEventDisplay = 0;
 }
 
-inline void NeuvisysThread::sensingZone(NetworkHandle &network) {
+inline void NeuvisysThreadSimulation::sensingZone(NetworkHandle &network) {
     for (size_t i = 0; i < network.getNetworkConfig().getLayerPatches()[0][0].size(); ++i) {
         for (size_t j = 0; j < network.getNetworkConfig().getLayerPatches()[0][1].size(); ++j) {
             auto offsetXPatch = static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i] +
@@ -272,14 +332,14 @@ inline void NeuvisysThread::sensingZone(NetworkHandle &network) {
     }
 }
 
-inline void NeuvisysThread::prepareSpikes(NetworkHandle &network) {
+inline void NeuvisysThreadSimulation::prepareSpikes(NetworkHandle &network) {
     m_spikeTrain.clear();
     for (size_t i = 0; i < network.getNetworkStructure()[m_layer]; ++i) {
         m_spikeTrain.push_back(std::ref(network.getNeuron(i, m_layer).get().getTrackingSpikeTrain()));
     }
 }
 
-inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
+inline void NeuvisysThreadSimulation::prepareWeights(NetworkHandle &network) {
     m_weightDisplay.clear();
     size_t count = 0;
     if (m_layer == 0) {
@@ -323,7 +383,7 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
     }
 }
 
-//int NeuvisysThread::launchReal(NetworkHandle &network) {
+//int NeuvisysThreadSimulation::launchReal(NetworkHandle &network) {
 //    auto time = std::chrono::high_resolution_clock::now();
 //    auto motorTime = time;
 //    auto positionTime = time;
@@ -383,49 +443,49 @@ inline void NeuvisysThread::prepareWeights(NetworkHandle &network) {
 //    return 0;
 //}
 
-void NeuvisysThread::onTabVizChanged(size_t index) {
+void NeuvisysThreadSimulation::onTabVizChanged(size_t index) {
     m_currentTab = index;
 }
 
-void NeuvisysThread::onIndexChanged(size_t index) {
+void NeuvisysThreadSimulation::onIndexChanged(size_t index) {
     m_id = index;
 }
 
-void NeuvisysThread::onZcellChanged(size_t zcell) {
+void NeuvisysThreadSimulation::onZcellChanged(size_t zcell) {
     m_zcell = zcell;
 }
 
-void NeuvisysThread::onCameraChanged(size_t camera) {
+void NeuvisysThreadSimulation::onCameraChanged(size_t camera) {
     m_camera = camera;
 }
 
-void NeuvisysThread::onSynapseChanged(size_t synapse) {
+void NeuvisysThreadSimulation::onSynapseChanged(size_t synapse) {
     m_synapse = synapse;
 }
 
-void NeuvisysThread::onPrecisionEventChanged(size_t displayRate) {
+void NeuvisysThreadSimulation::onPrecisionEventChanged(size_t displayRate) {
     m_displayRate = static_cast<double>(displayRate);
 }
 
-void NeuvisysThread::onPrecisionPotentialChanged(size_t trackRate) {
+void NeuvisysThreadSimulation::onPrecisionPotentialChanged(size_t trackRate) {
     m_trackRate = static_cast<double>(trackRate);
 }
 
-void NeuvisysThread::onRangePotentialChanged(size_t rangePotential) {
+void NeuvisysThreadSimulation::onRangePotentialChanged(size_t rangePotential) {
     m_rangePotential = rangePotential;
 }
 
-void NeuvisysThread::onRangeSpikeTrainChanged(size_t rangeSpiketrain) {
+void NeuvisysThreadSimulation::onRangeSpikeTrainChanged(size_t rangeSpiketrain) {
     m_rangeSpiketrain = rangeSpiketrain;
 }
 
-void NeuvisysThread::onLayerChanged(size_t layer) {
+void NeuvisysThreadSimulation::onLayerChanged(size_t layer) {
     m_layer = layer;
     m_id = 0;
     m_zcell = 0;
     m_change = true;
 }
 
-void NeuvisysThread::onStopNetwork() {
+void NeuvisysThreadSimulation::onStopNetwork() {
     m_stop = true;
 }

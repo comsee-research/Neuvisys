@@ -1,5 +1,5 @@
 //
-// Created by thomas on 19/11/2021.
+// Created by Thomas on 19/11/2021.
 //
 
 #ifndef NEUVISYS_BRUSHLESSMOTOR_HPP
