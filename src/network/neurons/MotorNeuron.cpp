@@ -8,10 +8,10 @@ MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Positio
         Neuron(index, layer, conf, pos, Position()),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
     for (size_t i = 0; i < dimensions.size(); ++i) {
-        m_weights[i] = WeightMatrix(dimensions[i], true);
+        m_weights.emplace_back(dimensions[i], 0, true);
         m_weights[i].normalize(m_conf.NORM_FACTOR);
-        m_eligibilityTrace[i] = WeightMatrix(dimensions[i]);
-        m_eligibilityTiming[i] = WeightMatrix(dimensions[i]);
+        m_eligibilityTrace.emplace_back(dimensions[i], 0);
+        m_eligibilityTiming.emplace_back(dimensions[i], 0);
     }
 }
 
@@ -83,7 +83,7 @@ inline double MotorNeuron::kernel(double time) {
 //    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
 //}
 
-//inline cv::Mat MotorNeuron::summedWeightMatrix() {
+inline cv::Mat MotorNeuron::summedWeightMatrix() {
 //    Eigen::Tensor<double, 2> sum = m_weights.sum(Eigen::array<double, 1>{2});
 //    const Eigen::Tensor<long, 2>::Dimensions &dim = sum.dimensions();
 //    Eigen::Tensor<double, 0> max = sum.maximum();
@@ -97,13 +97,14 @@ inline double MotorNeuron::kernel(double time) {
 //        }
 //    }
 //    return mat;
-//}
+    return cv::Mat();
+}
 
-void MotorNeuron::saveWeights(std::string &filePath) {
+void MotorNeuron::saveWeights(const std::string &filePath) {
     size_t count = 0;
-    for (const auto &weights : m_weights) {
+    for (auto &weights : m_weights) {
         auto weightsFile = filePath + std::to_string(m_index) + "_" + std::to_string(count);
-        Util::saveWeightsToNumpyFile(weights, weightsFile);
+        weights.saveWeightsToNumpyFile(weightsFile);
         ++count;
     }
 }
@@ -112,25 +113,27 @@ void MotorNeuron::loadWeights(std::string &filePath) {
     size_t count = 0;
     for (auto &weights : m_weights) {
         auto numpyFile = filePath + std::to_string(m_index) + "_" + std::to_string(count) + ".npy";
-        Util::loadNumpyFileToWeights(weights, numpyFile);
+        weights.saveWeightsToNumpyFile(numpyFile);
         ++count;
     }
 }
 
-//void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
-//    auto arrayName = std::to_string(m_index);
-//    Util::loadNumpyFileToWeights(m_weights, arrayNPZ, arrayName);
-//}
-
-double MotorNeuron::getWeights(long x, long y, long z) {
-    return m_weights.at(x);
+void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
+    size_t count = 0;
+    for (auto &weights : m_weights) {
+        auto arrayName = std::to_string(m_index) + "_" + std::to_string(count);
+        weights.loadNumpyFile(arrayNPZ, arrayName);
+        ++count;
+    }
 }
 
-//std::vector<long> MotorNeuron::getWeightsDimension() {
-//    const Eigen::Tensor<double, COMPLEXDIM>::Dimensions &dimensions = m_weights.dimensions();
-//    std::vector<long> dim = {dimensions[0], dimensions[1], dimensions[2]};
-//    return dim;
-//}
+double MotorNeuron::getWeights(long x, long y, long z) { // TODO: change
+    return m_weights[0].get(x, y, z);
+}
+
+std::vector<size_t> MotorNeuron::getWeightsDimension() {
+    return m_weights[0].getDimensions();
+}
 
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
     for (size_t i = 0; i < m_weights.size(); ++i) {
@@ -153,4 +156,8 @@ void MotorNeuron::learningDecay(double decay) {
     if (m_conf.NU_K > m_conf.MIN_NU_K) {
         m_conf.NU_K *= decay;
     }
+}
+
+void MotorNeuron::rescaleWeights(double scale) {
+
 }

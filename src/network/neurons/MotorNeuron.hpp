@@ -23,9 +23,9 @@ public:
 
     double getWeights(long x, long y, long z) override;
 
-    std::vector<long> getWeightsDimension() override;
+    std::vector<size_t> getWeightsDimension() override;
 
-    void saveWeights(std::string &filePath) override;
+    void saveWeights(const std::string &filePath) override;
 
     void loadWeights(std::string &filePath) override;
 

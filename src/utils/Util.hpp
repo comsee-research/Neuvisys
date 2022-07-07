@@ -2,14 +2,14 @@
 // Created by Thomas on 14/04/2021.
 //
 
-#ifndef NEUVISYS_DV_UTIL_HPP
-#define NEUVISYS_DV_UTIL_HPP
+#ifndef NEUVISYS_UTIL_HPP
+#define NEUVISYS_UTIL_HPP
 
-#include "../dependencies/unsupported/Eigen/CXX11/Tensor"
+#include "unsupported/Eigen/CXX11/Tensor"
 #include <random>
 #include <chrono>
 #include "cnpy.h"
-#include "Event.hpp"
+#include "Type.hpp"
 
 #define SIMPLEDIM 5
 #define COMPLEXDIM 3
@@ -32,10 +32,6 @@ namespace Util {
 
     void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName);
 
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, std::string &filePath);
-
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName);
-
     void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 
     void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName);
@@ -43,10 +39,6 @@ namespace Util {
     void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
 
     void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName);
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath);
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName);
 
     int winnerTakeAll(std::vector<size_t> vec);
 
@@ -70,6 +62,7 @@ public:
     std::vector<double> const lutSRA;
 private:
     static std::vector<double> expLUT(double tau);
+
 };
 
 class Position {
@@ -90,23 +83,4 @@ public:
     [[nodiscard]] inline uint64_t z() const { return m_posz; }
 };
 
-class WeightMatrix {
-    std::unordered_map<size_t, double> m_data;
-    std::vector<size_t> m_dimensions;
-
-public:
-    explicit WeightMatrix(std::vector<size_t> dimensions, bool uniform=false);
-
-    void normalize(double normFactor);
-
-    std::vector<size_t> getDimensions() const { return m_dimensions; }
-
-    size_t getSize() const { return m_data.size(); }
-
-    double &at(size_t id) { return m_data.at(id); }
-
-private:
-    double getNorm();
-};
-
-#endif //NEUVISYS_DV_UTIL_HPP
+#endif //NEUVISYS_UTIL_HPP

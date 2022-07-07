@@ -40,14 +40,6 @@ void weightsToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, const dou
     }
 }
 
-void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights) {
-    size_t count = 0;
-    for (auto &element: map) {
-        element.second = weights[count];
-        ++count;
-    }
-}
-
 void simpleTensorToWeights(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::vector<double> &data,
                            const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d) {
     size_t count = 0;
@@ -75,14 +67,6 @@ void complexTensorToWeights(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std
                 ++count;
             }
         }
-    }
-}
-
-void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data) {
-    size_t count = 0;
-    for (auto const &element: map) {
-        data[count] = element.second;
-        ++count;
     }
 }
 
@@ -195,16 +179,6 @@ namespace Util {
         weightsToComplexTensor(tensor, weights);
     }
 
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, std::string &filePath) {
-        auto *weights = cnpy::npy_load(filePath).data<double>();
-        weightsToMap(map, weights);
-    }
-
-    void loadNumpyFileToWeights(std::unordered_map<size_t, double> &map, cnpy::npz_t &arrayNPZ, std::string &arrayName) {
-        auto *weights = arrayNPZ[arrayName].data<double>();
-        weightsToMap(map, weights);
-    }
-
     void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
         const Eigen::Tensor<double, SIMPLEDIM>::Dimensions &d = tensor.dimensions();
         std::vector<double> data(static_cast<size_t>(d[0] * d[1] * d[2] * d[3] * d[4]));
@@ -234,18 +208,6 @@ namespace Util {
         complexTensorToWeights(tensor, data, d);
         cnpy::npz_save(filePath, arrayName, &data[0],
                        {static_cast<size_t>(d[0]), static_cast<size_t>(d[1]), static_cast<size_t>(d[2])}, "a");
-    }
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath) {
-        std::vector<double> data(static_cast<size_t>(map.size()));
-        mapToWeights(map, data);
-        cnpy::npy_save(filePath + ".npy", &data[0], {map.size()}, "w");
-    }
-
-    void saveWeightsToNumpyFile(const std::unordered_map<size_t, double> &map, std::string &filePath, std::string &arrayName) {
-        std::vector<double> data(static_cast<size_t>(map.size()));
-        mapToWeights(map, data);
-        cnpy::npz_save(filePath, arrayName, &data[0], {map.size()}, "a");
     }
 
     void saveEventFile(std::vector<Event> &events, std::string &filePath) {
@@ -327,34 +289,3 @@ namespace Util {
 //        throw std::runtime_error("Warning: tau parameter is not valid");
 //    }
 //}
-
-WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform) : m_dimensions(std::move(dimensions)) {
-    for (const auto d : m_dimensions) {
-        for (size_t i = 0; i < d; ++i) {
-            if (uniform) {
-                m_data[i] = uniformRealDistr(generator);
-            } else {
-                m_data[i] = 0;
-            }
-        }
-    }
-}
-
-double WeightMatrix::getNorm() {
-    double norm = 0;
-    for (const auto d : m_dimensions) {
-        for (size_t i = 0; i < d; ++i) {
-            norm += m_data.at(i);
-        }
-    }
-    return norm;
-}
-
-void WeightMatrix::normalize(const double normFactor) {
-    auto norm = getNorm();
-    for (const auto d : m_dimensions) {
-        for (size_t i = 0; i < d; ++i) {
-            m_data.at(i) *= normFactor / norm;
-        }
-    }
-}

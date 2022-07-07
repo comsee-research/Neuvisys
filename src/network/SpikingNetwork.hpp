@@ -6,9 +6,6 @@
 #define NEUVISYS_DV_SPIKING_NETWORK_HPP
 
 #include <utility>
-#include <vector>
-#include <array>
-#include <stack>
 #include "neurons/SimpleNeuron.hpp"
 #include "neurons/ComplexNeuron.hpp"
 #include "neurons/MotorNeuron.hpp"
@@ -44,11 +41,7 @@ public:
 
     explicit SpikingNetwork(const std::string &networkPath);
 
-    void addLayer(const std::string &neuronType, const std::string &sharingType,
-                  const std::vector<std::string> &inhibition,
-                  const std::vector<std::vector<size_t>> &layerPatches,
-                  const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes,
-                  const std::vector<size_t> &neuronOverlap, const std::vector<int> &layersToConnect);
+    void addLayer(const std::string &sharingType, const LayerConnectivity &connections);
 
     void addEvent(const Event &event);
 
@@ -85,13 +78,11 @@ private:
 
     static void writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron);
 
-    void generateWeightSharing(const std::string &neuronType, const std::vector<size_t> &neuronSizes, size_t nbNeurons);
+    void generateWeightSharing(const LayerConnectivity &connections, size_t nbNeurons);
 
     void addNeuronEvent(const Neuron &neuron);
 
-    void connectLayer(const std::vector<int> &layersToConnect, const std::vector<std::string> &inhibition,
-                      const std::vector<std::vector<size_t>> &layerPatches, const std::vector<size_t> &layerSizes,
-                      const std::vector<size_t> &neuronSizes);
+    void connectLayer(const LayerConnectivity &connections);
 
     static void topDownDynamicInhibition(Neuron &neuron);
 
@@ -101,8 +92,8 @@ private:
 
     void neuromodulation(Neuron &neuron);
 
-    void topDownConnection(Neuron &neuron, const std::vector<int> &layersToConnect, const size_t currLayer, const std::vector<size_t> &neuronSizes,
-                           const std::vector<std::string> &inhibition);
+    void topDownConnection(Neuron &neuron, const std::vector<int> &interConnections, const size_t currLayer, const std::vector<std::vector<size_t>> &neuronSizes, const
+    std::vector<std::string> &inhibition);
 
     void lateralStaticInhibitionConnection(Neuron &neuron, size_t currLayer, const std::vector<size_t> &layerSizes);
 

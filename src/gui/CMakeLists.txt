@@ -12,7 +12,8 @@ set(CAMERA_SOURCES
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Util.cpp
+        ../utils/Util.cpp
+        ../utils/WeightMatrix.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp

@@ -151,10 +151,8 @@ void NetworkHandle::updateNeurons(size_t time) {
  *
  */
 void NetworkHandle::resetAllNeurons() {
-    for (int layer = 0; layer < m_networkConf.getLayerCellTypes().size(); layer++) {
-        int numberOfNeuronsInLayer = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] *
-                                     m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] *
-                                     m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+    for (int layer = 0; layer < m_networkConf.getLayerConnectivity().size(); layer++) {
+        size_t numberOfNeuronsInLayer = m_spinet.getNetworkStructure()[layer];
         for (int j = 0; j < numberOfNeuronsInLayer; j++) {
             m_spinet.getNeuron(j, layer).get().resetNeuron();
         }
@@ -168,7 +166,7 @@ void NetworkHandle::load() {
     std::string fileName;
     fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
 
-    json state;
+    nlohmann::json state;
     std::ifstream ifs(fileName);
     if (ifs.is_open()) {
         try {
@@ -192,7 +190,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     std::string fileName;
     fileName = m_networkConf.getNetworkPath() + "networkState.json";
     m_iteration = 0;
-    json state;
+    nlohmann::json state;
     std::ifstream ifs(fileName);
 //    resetAllNeurons();
     if (ifs.is_open()) {

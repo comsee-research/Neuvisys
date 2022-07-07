@@ -47,8 +47,10 @@ link_directories(src/dependencies)
 set_source_files_properties(src/dependencies/* PROPERTIES COMPILE_OPTIONS "-w")
 
 set(PROJECT_SOURCES
+        src/resources/DefaultConfig.cpp
         src/network/SpikingNetwork.cpp
-        src/network/Util.cpp
+        src/utils/Util.cpp
+        src/utils/WeightMatrix.cpp
         src/network/Config.cpp
         src/network/neurons/Neuron.cpp
         src/network/neurons/SimpleNeuron.cpp
@@ -81,3 +83,4 @@ add_subdirectory(src/simulator)
 add_subdirectory(src/gui)
 add_subdirectory(src/motor-control)
 add_subdirectory(src/gui-simulation)
+add_subdirectory(test)

@@ -9,12 +9,21 @@
 #include <fstream>
 #include <iomanip>
 #include <filesystem>
-#include "../dependencies/json.hpp"
+#include "../resources/DefaultConfig.hpp"
+#include <utility>
 
 #define E3 1000 // µs
 #define E6 1000000 // µs
 
-using json = nlohmann::json;
+struct LayerConnectivity {
+    std::string neuronType;
+    std::vector<std::string> inhibitions;
+    std::vector<int> interConnections;
+    std::vector<std::vector<size_t>> patches;
+    std::vector<size_t> size;
+    std::vector<std::vector<size_t>> neuronSizes;
+    std::vector<size_t> neuronOverlap;
+};
 
 class NetworkConfig {
     /***** Display parameters *****/
@@ -28,15 +37,9 @@ class NetworkConfig {
     size_t vfWidth{};
     size_t vfHeight{};
     double measurementInterval{};
-
-    std::vector<std::string> layerCellTypes;
-    std::vector<std::vector<std::string>> layerInhibitions;
-    std::vector<std::vector<int>> interLayerConnections;
-    std::vector<std::vector<std::vector<size_t>>> layerPatches;
-    std::vector<std::vector<size_t>> layerSizes;
-    std::vector<std::vector<size_t>> neuronSizes;
-    std::vector<std::vector<size_t>> neuronOverlap;
     std::vector<int> neuronInhibitionRange;
+
+    std::vector<LayerConnectivity> connections;
 
 public:
     NetworkConfig();
@@ -61,23 +64,12 @@ public:
 
     [[nodiscard]] double getMeasurementInterval() const { return measurementInterval; }
 
-    std::vector<std::string> &getLayerCellTypes() { return layerCellTypes; }
+    std::vector<LayerConnectivity> &getLayerConnectivity() { return connections; }
 
-    std::vector<std::vector<std::string>> &getLayerInhibitions() { return layerInhibitions; }
+    static void createNetwork(const std::string &directory, const std::function<NetConf()> &config);
 
-    std::vector<std::vector<int>> &getInterLayerConnections() { return interLayerConnections; }
-
-    std::vector<std::vector<std::vector<size_t>>> getLayerPatches() { return layerPatches; }
-
-    std::vector<std::vector<size_t>> getLayerSizes() { return layerSizes; }
-
-    std::vector<std::vector<size_t>> getNeuronSizes() { return neuronSizes; }
-
-    std::vector<std::vector<size_t>> getNeuronOverlap() { return neuronOverlap; }
-
-    std::vector<int> getNeuronInhibitionRange() { return neuronInhibitionRange; }
-
-    static void createNetwork(const std::string &directory);
+private:
+    static void createNetworkDirectory(const std::string &directory);
 };
 
 class NeuronConfig {

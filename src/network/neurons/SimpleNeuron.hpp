@@ -5,8 +5,6 @@
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
-#include <vector>
-#include <queue>
 #include "Neuron.hpp"
 
 struct CompareEventsTimestamp {
@@ -37,9 +35,9 @@ public:
 
     double getWeights(long p, long c, long s, long x, long y) override { return m_weights(p, c, s, x, y); }
 
-    std::vector<long> getWeightsDimension() override;
+    std::vector<size_t> getWeightsDimension() override;
 
-    void saveWeights(std::string &filePath) override;
+    void saveWeights(const std::string &filePath) override;
 
     void saveLateralInhibitionWeights(std::string &filePath) override;
 
