@@ -183,38 +183,30 @@ void SpikingNetwork::updateMultiSynapticNeurons(const long time) {
  * @param nbNeurons
  */
 void SpikingNetwork::generateWeightSharing(const LayerConnectivity &connections, const size_t nbNeurons) {
-    long x = static_cast<long>(connections.neuronSizes[0][0]);
-    long y = static_cast<long>(connections.neuronSizes[0][1]);
-    long z = static_cast<long>(connections.neuronSizes[0][2]);
+    size_t x = static_cast<long>(connections.neuronSizes[0][0]);
+    size_t y = static_cast<long>(connections.neuronSizes[0][1]);
+    size_t z = static_cast<long>(connections.neuronSizes[0][2]);
     if (connections.neuronType == "SimpleCell") {
+        auto dimensions = std::vector<size_t>({NBPOLARITY, static_cast<size_t>(m_networkConf.getNbCameras()),
+                                               static_cast<size_t>(m_networkConf.getNeuron1Synapses()), x, y});
+
         if (m_networkConf.getSharingType() == "none") {
             for (size_t i = 0; i < nbNeurons; ++i) {
-                m_sharedWeightsSimple.push_back(Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                                          static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y,
-                                                                          m_simpleNeuronConf.NORM_FACTOR));
+                m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
             }
         } else if (m_networkConf.getSharingType() == "patch") {
             size_t patch_size = connections.patches[0].size() * connections.patches[1].size();
             for (size_t patch = 0; patch < patch_size; ++patch) {
                 for (size_t i = 0; i < connections.size[2]; ++i) {
-                    m_sharedWeightsSimple.push_back(
-                            Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                      static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y, m_simpleNeuronConf.NORM_FACTOR));
+                    m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
                 }
             }
         } else if (m_networkConf.getSharingType() == "full") {
             for (size_t i = 0; i < connections.size[2]; ++i) {
-                m_sharedWeightsSimple.push_back(
-                        Util::uniformMatrixSimple(NBPOLARITY, static_cast<long>(m_networkConf.getNbCameras()),
-                                                  static_cast<long>(m_networkConf.getNeuron1Synapses()), x, y, m_simpleNeuronConf.NORM_FACTOR));
+                m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
             }
         } else {
             std::cout << "Wrong type of sharing" << std::endl;
-        }
-    }
-    if (connections.neuronType == "ComplexCell") {
-        for (size_t i = 0; i < nbNeurons; ++i) {
-            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(x, y, z, m_complexNeuronConf.NORM_FACTOR));
         }
     }
 }
@@ -261,8 +253,7 @@ void SpikingNetwork::addLayer(const std::string &sharingType, const LayerConnect
                                 m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, layer, m_simpleNeuronConf, pos, offset,
                                                                           m_sharedWeightsSimple[weightIndex], m_networkConf.getNeuron1Synapses()));
                             } else if (connections.neuronType == "ComplexCell") {
-                                m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset,
-                                                                            m_sharedWeightsComplex[neuronIndex]));
+                                m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset, connections.neuronSizes[0]));
                             } else if (connections.neuronType == "CriticCell") {
                                 m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_criticNeuronConf, pos, connections.neuronSizes));
                             } else if (connections.neuronType == "ActorCell") {

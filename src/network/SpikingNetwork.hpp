@@ -19,9 +19,7 @@ class SpikingNetwork {
     NeuronConfig m_criticNeuronConf;
     NeuronConfig m_actorNeuronConf;
 
-    std::vector<Eigen::Tensor<double, SIMPLEDIM>> m_sharedWeightsSimple;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsInhib;
-    std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
+    std::vector<WeightMatrix> m_sharedWeightsSimple;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<size_t> m_structure;

@@ -5,7 +5,7 @@
 #include "SpikingNetworkTest.hpp"
 
 void SpikingNetworkTest::SetUp() {
-    NetworkConfig::createNetwork("../../src/resources/network_test", PredefinedConfigurations::twoLayerOnePatchCenteredConfig);
+    NetworkConfig::createNetwork("../../src/resources/network_test", PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     spinet = SpikingNetwork("../../src/resources/network_test/");
 }
 

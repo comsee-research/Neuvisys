@@ -18,7 +18,7 @@ class WeightMatrix {
 public:
     WeightMatrix();
 
-    WeightMatrix(std::vector<size_t> dimensions, unsigned long seed, bool uniform=false);
+    WeightMatrix(std::vector<size_t> dimensions, bool uniform, unsigned long seed, double normFactor);
 
     void normalize(double normFactor);
 
@@ -35,6 +35,10 @@ public:
     double &get(size_t a, size_t b);
 
     double &get(size_t a, size_t b, size_t c);
+
+    double &get(size_t a, size_t b, size_t c, size_t d);
+
+    double &get(size_t a, size_t b, size_t c, size_t d, size_t e);
 
     void loadNumpyFile(const std::string &filePath);
 

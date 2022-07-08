@@ -8,7 +8,8 @@
 #include "../utils/Type.hpp"
 
 namespace PredefinedConfigurations {
-    NetConf twoLayerOnePatchCenteredConfig();
+    NetConf oneLayerOnePatchNoWeightSharingConfig();
+    NetConf twoLayerOnePatchWeightSharingCenteredConfig();
     NetConf fourLayerRLOnePatchCenteredConfig();
 }
 

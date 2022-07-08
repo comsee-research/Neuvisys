@@ -22,6 +22,7 @@ protected:
     static std::string eventsPath;
     static std::string networkPath;
     static std::string networkPath2;
+    static std::string networkPath3;
     Events events;
 };
 

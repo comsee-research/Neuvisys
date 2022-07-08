@@ -39,7 +39,7 @@ public:
         return m_timestamp < event.m_timestamp;
     }
 
-    void operator=(Event event) {
+    Event &operator=(Event event) {
         m_x = event.x();
         m_y = event.y();
         m_polarity = event.polarity();

@@ -7,6 +7,7 @@
 
 #include "../network/Event.hpp"
 #include "../dependencies/json.hpp"
+#include "WeightMatrix.hpp"
 #include <vector>
 #include <unordered_map>
 #include <array>

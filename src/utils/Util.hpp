@@ -5,40 +5,14 @@
 #ifndef NEUVISYS_UTIL_HPP
 #define NEUVISYS_UTIL_HPP
 
-#include "unsupported/Eigen/CXX11/Tensor"
+#include "Type.hpp"
 #include <random>
 #include <chrono>
 #include "cnpy.h"
-#include "Type.hpp"
 
-#define SIMPLEDIM 5
-#define COMPLEXDIM 3
 #define NBPOLARITY 2
 
 namespace Util {
-    Eigen::Tensor<double, COMPLEXDIM> uniformMatrixComplex(long x, long y, long z, double normalizationFactor = 1);
-
-    Eigen::Tensor<double, SIMPLEDIM> uniformMatrixSimple(long p, long c, long s, long x, long y, double normalizationFactor = 1);
-
-    void normalizeSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &weights, double normalizationFactor);
-
-    void normalizeComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &weights, double normalizationFactor);
-
-    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
-
-    void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName);
-
-    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
-
-    void loadNumpyFileToComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName);
-
-    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
-
-    void saveSimpleTensorToNumpyFile(const Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath, std::string &arrayName);
-
-    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath);
-
-    void saveComplexTensorToNumpyFile(const Eigen::Tensor<double, COMPLEXDIM> &tensor, std::string &filePath, std::string &arrayName);
 
     int winnerTakeAll(std::vector<size_t> vec);
 
@@ -53,22 +27,11 @@ namespace Util {
     void saveEventFile(std::vector<Event> &events, std::string &filePath);
 }
 
-class Luts {
-public:
-    Luts(double tauM, double tauRP, double tauSRA);
-
-    std::vector<double> const lutM;
-    std::vector<double> const lutRP;
-    std::vector<double> const lutSRA;
-private:
-    static std::vector<double> expLUT(double tau);
-
-};
-
 class Position {
     uint64_t m_posx{};
     uint64_t m_posy{};
     uint64_t m_posz{};
+
 public:
     inline Position() : m_posx(0), m_posy(0), m_posz(0) {};
 

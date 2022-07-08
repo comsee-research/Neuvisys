@@ -455,7 +455,7 @@ memory for tensors with cuda.
 In the documentation of the tensor methods and Operation we mention datatypes
 that are tensor-type specific:
 
-#### `<Tensor-Type>::``Dimensions`
+#### `<Tensor-Type>::``Dims`
 
 Acts like an array of ints.  Has an `int size` attribute, and can be
 indexed like an array to access individual values.  Used to represent the
@@ -501,13 +501,13 @@ known as the tensor "rank".
       cout << "Dims " << a.NumDimensions;
       => Dims 2
 
-### `Dimensions dimensions()`
+### `Dims dimensions()`
 
 Returns an array-like object representing the dimensions of the tensor.
-The actual type of the `dimensions()` result is `<Tensor-Type>::``Dimensions`.
+The actual type of the `dimensions()` result is `<Tensor-Type>::``Dims`.
 
     Eigen::Tensor<float, 2> a(3, 4);
-    const Eigen::Tensor<float, 2>::Dimensions& d = a.dimensions();
+    const Eigen::Tensor<float, 2>::Dims& d = a.dimensions();
     cout << "Dim size: " << d.size << ", dim 0: " << d[0]
          << ", dim 1: " << d[1];
     => Dim size: 2, dim 0: 3, dim 1: 4
@@ -541,7 +541,7 @@ the tensor dimensions.  The actual type of the `size()` result is
     => Size: 12
 
 
-### Getting Dimensions From An Operation
+### Getting Dims From An Operation
 
 A few operations provide `dimensions()` directly,
 e.g. `TensorReslicingOp`.  Most operations defer calculating dimensions
@@ -1045,10 +1045,10 @@ The Eigen Tensor library provides a set of predefined reduction operators such
 as `maximum()` and `sum()` and lets you define additional operators by
 implementing a few methods from a reductor template.
 
-### Reduction Dimensions
+### Reduction Dims
 
 All reduction operations take a single parameter of type
-`<TensorType>::``Dimensions` which can always be specified as an array of
+`<TensorType>::``Dims` which can always be specified as an array of
 ints.  These are called the "reduction dimensions."  The values are the indices
 of the dimensions of the input tensor over which the reduction is done.  The
 parameter can have at most as many element as the rank of the input tensor;
@@ -1129,50 +1129,50 @@ scalar, represented as a zero-dimension tensor.
     276
 
 
-### `<Operation> sum(const Dimensions& new_dims)`
+### `<Operation> sum(const Dims& new_dims)`
 ### `<Operation> sum()`
 
 Reduce a tensor using the sum() operator.  The resulting values
 are the sum of the reduced values.
 
-### `<Operation> mean(const Dimensions& new_dims)`
+### `<Operation> mean(const Dims& new_dims)`
 ### `<Operation> mean()`
 
 Reduce a tensor using the mean() operator.  The resulting values
 are the mean of the reduced values.
 
-### `<Operation> maximum(const Dimensions& new_dims)`
+### `<Operation> maximum(const Dims& new_dims)`
 ### `<Operation> maximum()`
 
 Reduce a tensor using the maximum() operator.  The resulting values are the
 largest of the reduced values.
 
-### `<Operation> minimum(const Dimensions& new_dims)`
+### `<Operation> minimum(const Dims& new_dims)`
 ### `<Operation> minimum()`
 
 Reduce a tensor using the minimum() operator.  The resulting values
 are the smallest of the reduced values.
 
-### `<Operation> prod(const Dimensions& new_dims)`
+### `<Operation> prod(const Dims& new_dims)`
 ### `<Operation> prod()`
 
 Reduce a tensor using the prod() operator.  The resulting values
 are the product of the reduced values.
 
-### `<Operation> all(const Dimensions& new_dims)`
+### `<Operation> all(const Dims& new_dims)`
 ### `<Operation> all()`
 Reduce a tensor using the all() operator.  Casts tensor to bool and then checks
 whether all elements are true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
-### `<Operation> any(const Dimensions& new_dims)`
+### `<Operation> any(const Dims& new_dims)`
 ### `<Operation> any()`
 Reduce a tensor using the any() operator.  Casts tensor to bool and then checks
 whether any element is true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
 
-### `<Operation> reduce(const Dimensions& new_dims, const Reducer& reducer)`
+### `<Operation> reduce(const Dims& new_dims, const Reducer& reducer)`
 
 Reduce a tensor using a user-defined reduction operator.  See `SumReducer`
 in TensorFunctors.h for information on how to implement a reduction operator.
@@ -1183,8 +1183,8 @@ in TensorFunctors.h for information on how to implement a reduction operator.
 A *Trace* operation returns a tensor with fewer dimensions than the original
 tensor. It returns a tensor whose elements are the sum of the elements of the
 original tensor along the main diagonal for a list of specified dimensions, the
-"trace dimensions". Similar to the `Reduction Dimensions`, the trace dimensions
-are passed as an input parameter to the operation, are of type `<TensorType>::``Dimensions`
+"trace dimensions". Similar to the `Reduction Dims`, the trace dimensions
+are passed as an input parameter to the operation, are of type `<TensorType>::``Dims`
 , and have the same requirements when passed as an input parameter. In addition,
 the trace dimensions must have the same size.
 
@@ -1208,7 +1208,7 @@ Example: Trace along 2 dimensions.
     15
 
 
-### `<Operation> trace(const Dimensions& new_dims)`
+### `<Operation> trace(const Dims& new_dims)`
 ### `<Operation> trace()`
 
 As a special case, if no parameter is passed to the operation, trace is computed
@@ -1270,7 +1270,7 @@ Perform a scan by multiplying consecutive entries.
 
 ## Convolutions
 
-### `<Operation> convolve(const Kernel& kernel, const Dimensions& dims)`
+### `<Operation> convolve(const Kernel& kernel, const Dims& dims)`
 
 Returns a tensor that is the output of the convolution of the input tensor with the kernel,
 along the specified dimensions of the input tensor. The dimension size for dimensions of the output tensor
@@ -1313,7 +1313,7 @@ These operations return a Tensor with different dimensions than the original
 Tensor.  They can be used to access slices of tensors, see them with different
 dimensions, or pad tensors with additional data.
 
-### `<Operation> reshape(const Dimensions& new_dims)`
+### `<Operation> reshape(const Dims& new_dims)`
 
 Returns a view of the input tensor that has been reshaped to the specified
 new dimensions.  The argument new_dims is an array of Index values.  The

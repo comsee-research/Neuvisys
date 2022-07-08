@@ -4,7 +4,7 @@
 
 #include "src/network/NetworkHandle.hpp"
 #include "src/network/SurroundSuppression.hpp"
-#include "src/utils/Type.hpp"
+#include "src/resources/DefaultConfig.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 
         network.save(eventsPath, nbCount);
     } else if (argc > 1) {
-        NetworkConfig::createNetwork(argv[1]);
+        NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
         std::string networkPath = "/home/thomas/Networks/natural/dsec/downsampling/";

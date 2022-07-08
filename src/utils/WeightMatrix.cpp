@@ -8,7 +8,7 @@ WeightMatrix::WeightMatrix() : m_data() {
     m_dimensions.push_back(0);
 }
 
-WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, unsigned long seed, bool uniform) : m_dimensions(std::move(dimensions)) {
+WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, unsigned long seed, double normFactor) : m_dimensions(std::move(dimensions)) {
     generator = std::mt19937(seed);
     std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
@@ -24,6 +24,7 @@ WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, unsigned long seed, b
             m_data[i] = 0;
         }
     }
+    normalize(normFactor);
 }
 
 void WeightMatrix::addNewWeight(size_t id) {
@@ -40,8 +41,10 @@ double WeightMatrix::getNorm() {
 
 void WeightMatrix::normalize(const double normFactor) {
     auto norm = getNorm();
-    for (size_t i = 0; i < getSize(); ++i) {
-        m_data.at(i) *= normFactor / norm;
+    if (norm != 0) {
+        for (size_t i = 0; i < getSize(); ++i) {
+            m_data.at(i) *= normFactor / norm;
+        }
     }
 }
 
@@ -97,4 +100,13 @@ double &WeightMatrix::get(size_t a, size_t b) {
 
 double &WeightMatrix::get(size_t a, size_t b, size_t c) {
     return m_data.at(a + b * m_dimensions[0] + c * m_dimensions[0] * m_dimensions[1]);
+}
+
+double &WeightMatrix::get(size_t a, size_t b, size_t c, size_t d) {
+    return m_data.at(a + b * m_dimensions[0] + c * m_dimensions[0] * m_dimensions[1] + d * m_dimensions[0] * m_dimensions[1] * m_dimensions[2]);
+}
+
+double &WeightMatrix::get(size_t a, size_t b, size_t c, size_t d, size_t e) {
+    return m_data.at(a + b * m_dimensions[0] + c * m_dimensions[0] * m_dimensions[1] + d * m_dimensions[0] * m_dimensions[1] * m_dimensions[2] + e * m_dimensions[0] *
+    m_dimensions[1] * m_dimensions[2] * m_dimensions[3]);
 }
