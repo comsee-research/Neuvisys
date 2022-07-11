@@ -10,7 +10,7 @@ namespace PredefinedConfigurations {
                 {
                         {"nbCameras",  1},
                         {"neuron1Synapses", 1},
-                        {"sharingType", "none"},
+                        {"sharingType", "full"},
                         {"neuronType",  {"SimpleCell"}},
                         {"inhibitions",  {{"static"}}},
                         {"interConnections", {{-1}}},

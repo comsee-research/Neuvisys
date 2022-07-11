@@ -25,13 +25,13 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/Networks/natural/dsec/downsampling/";
-        std::string eventsPath = "/home/thomas/Videos/natural/dsec/interlaken_00_c_downsample_160_120.h5";
+        std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_nws_test/";
+        std::string eventsPath = "/home/thomas/Videos/natural/shapes.h5";
 
         NetworkHandle network(networkPath, eventsPath);
         Events events;
         std::cout << "Feeding network... " << std::endl;
-        size_t nbPass = 50;
+        size_t nbPass = 1;
 
         while (network.loadEvents(events, nbPass)) {
             network.feedEvents(events);

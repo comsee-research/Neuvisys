@@ -192,18 +192,18 @@ void SpikingNetwork::generateWeightSharing(const LayerConnectivity &connections,
 
         if (m_networkConf.getSharingType() == "none") {
             for (size_t i = 0; i < nbNeurons; ++i) {
-                m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
+                m_sharedWeightsSimple.emplace_back(dimensions, true, 0, m_simpleNeuronConf.NORM_FACTOR);
             }
         } else if (m_networkConf.getSharingType() == "patch") {
             size_t patch_size = connections.patches[0].size() * connections.patches[1].size();
             for (size_t patch = 0; patch < patch_size; ++patch) {
                 for (size_t i = 0; i < connections.size[2]; ++i) {
-                    m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
+                    m_sharedWeightsSimple.emplace_back(dimensions, true, 0, m_simpleNeuronConf.NORM_FACTOR);
                 }
             }
         } else if (m_networkConf.getSharingType() == "full") {
             for (size_t i = 0; i < connections.size[2]; ++i) {
-                m_sharedWeightsSimple.emplace_back(dimensions, 0, true, m_simpleNeuronConf.NORM_FACTOR);
+                m_sharedWeightsSimple.emplace_back(dimensions, true, 0, m_simpleNeuronConf.NORM_FACTOR);
             }
         } else {
             std::cout << "Wrong type of sharing" << std::endl;

@@ -30,7 +30,7 @@ void NetworkHandleTest::TearDownTestSuite() {
     network = nullptr;
     std::filesystem::remove_all(networkPath);
     std::filesystem::remove_all(networkPath2);
-    std::filesystem::remove_all(networkPath2=3);
+    std::filesystem::remove_all(networkPath2);
 }
 
 TEST_F(NetworkHandleTest, runningNetwork) {

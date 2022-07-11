@@ -13,12 +13,12 @@ class WeightMatrix {
     std::unordered_map<size_t, double> m_data;
     std::vector<size_t> m_dimensions;
 
-    std::mt19937 generator;
+    static std::mt19937 m_generator;
 
 public:
     WeightMatrix();
 
-    WeightMatrix(std::vector<size_t> dimensions, bool uniform, unsigned long seed, double normFactor);
+    WeightMatrix(std::vector<size_t> dimensions, bool uniform, double normFactor);
 
     void normalize(double normFactor);
 

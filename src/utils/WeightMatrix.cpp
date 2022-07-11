@@ -4,12 +4,13 @@
 
 #include "WeightMatrix.hpp"
 
+std::mt19937 m_generator();
+
 WeightMatrix::WeightMatrix() : m_data() {
     m_dimensions.push_back(0);
 }
 
-WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, unsigned long seed, double normFactor) : m_dimensions(std::move(dimensions)) {
-    generator = std::mt19937(seed);
+WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, double normFactor) : m_dimensions(std::move(dimensions)) {
     std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
     size_t nbWeights = 1;
@@ -19,7 +20,7 @@ WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, unsigne
 
     for (size_t i = 0; i < nbWeights; ++i) {
         if (uniform) {
-            m_data[i] = uniformRealDistr(generator);
+            m_data[i] = uniformRealDistr(m_generator);
         } else {
             m_data[i] = 0;
         }
@@ -34,9 +35,9 @@ void WeightMatrix::addNewWeight(size_t id) {
 double WeightMatrix::getNorm() {
     double norm = 0;
     for (size_t i = 0; i < getSize(); ++i) {
-        norm += m_data.at(i);
+        norm += pow(m_data.at(i), 2);
     }
-    return norm;
+    return sqrt(norm);
 }
 
 void WeightMatrix::normalize(const double normFactor) {
@@ -61,13 +62,13 @@ void WeightMatrix::loadNumpyFile(cnpy::npz_t &arrayNPZ, const std::string &array
 void WeightMatrix::saveWeightsToNumpyFile(const std::string &filePath) {
     std::vector<double> data(static_cast<size_t>(m_data.size()));
     mapToWeights(m_data, data);
-    cnpy::npy_save(filePath + ".npy", &data[0], {m_data.size()}, "w");
+    cnpy::npy_save(filePath + ".npy", &data[0], m_dimensions, "w");
 }
 
 void WeightMatrix::saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName) {
     std::vector<double> data(static_cast<size_t>(m_data.size()));
     mapToWeights(m_data, data);
-    cnpy::npz_save(filePath, arrayName, &data[0], {m_data.size()}, "a");
+    cnpy::npz_save(filePath, arrayName, &data[0], m_dimensions, "a");
 }
 
 void WeightMatrix::mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data) {
