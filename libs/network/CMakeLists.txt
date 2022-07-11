@@ -27,8 +27,6 @@ set(NEUVISYS_NETWORK_SOURCES
         ${SRC_BASE_PATH}/neurons/MotorNeuron.cpp
 )
 
-
-
 set(NEUVISYS_NETWORK_HEADERS       
 		${HDRS_BASE_PATH}/Event.hpp
 		${HDRS_BASE_PATH}/SpikingNetwork.hpp
