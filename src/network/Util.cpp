@@ -173,6 +173,34 @@ namespace Util {
         }
     }
 
+    void normalizeLateralWeights(std::unordered_map<size_t, double> &lateralDynamicInhibitionWeights, double normalizationFactor) {
+        double norm_lateral = 0;
+        for (auto index: lateralDynamicInhibitionWeights) {
+            norm_lateral += lateralDynamicInhibitionWeights.at(index.first) * lateralDynamicInhibitionWeights.at(index.first);
+        }
+        norm_lateral = sqrt(norm_lateral);
+
+        if (norm_lateral != 0) {
+            for (auto index: lateralDynamicInhibitionWeights) {
+                lateralDynamicInhibitionWeights.at(index.first) = normalizationFactor * (lateralDynamicInhibitionWeights.at(index.first) / norm_lateral);
+            }
+        }
+    }
+
+    void normalizeTopDownWeights(std::unordered_map<size_t, double> &topDownInhibitionWeights, double normalizationFactor) {
+        double norm_topdown = 0;
+        for (auto index: topDownInhibitionWeights) {
+            norm_topdown += topDownInhibitionWeights.at(index.first) * topDownInhibitionWeights.at(index.first);
+        }
+        norm_topdown = sqrt(norm_topdown);
+
+        if (norm_topdown != 0) {
+            for (auto index: topDownInhibitionWeights) {
+                topDownInhibitionWeights.at(index.first) = normalizationFactor * (topDownInhibitionWeights.at(index.first) / norm_topdown);
+            }
+        }
+    }
+
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath) {
         auto *weights = cnpy::npy_load(filePath).data<double>();
         weightsToSimpleTensor(tensor, weights);

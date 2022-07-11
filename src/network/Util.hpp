@@ -24,6 +24,10 @@ namespace Util {
 
     void normalizeComplexTensor(Eigen::Tensor<double, COMPLEXDIM> &weights, double normalizationFactor);
 
+    void normalizeLateralWeights(std::unordered_map<size_t, double> &lateralDynamicInhibitionWeights, double normalizationFactor);
+
+    void normalizeTopDownWeights(std::unordered_map<size_t, double> &topDownInhibitionWeights, double normalizationFactor);
+
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, std::string &filePath);
 
     void loadNumpyFileToSimpleTensor(Eigen::Tensor<double, SIMPLEDIM> &tensor, cnpy::npz_t &arrayNPZ, std::string &arrayName);

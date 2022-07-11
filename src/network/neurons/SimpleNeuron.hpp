@@ -65,7 +65,7 @@ private:
 
     void spike(size_t time) override;
 
-    void normalizeInhibWeights() override;
+//    void normalizeInhibWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

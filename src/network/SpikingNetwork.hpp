@@ -27,6 +27,7 @@ class SpikingNetwork {
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsCritic;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsActor;
+    std::vector<std::vector<std::vector<double>>> m_gaborParameters;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<size_t> m_structure;
@@ -37,6 +38,9 @@ class SpikingNetwork {
     std::vector<MotorNeuron> m_criticNeurons;
     std::vector<MotorNeuron> m_actorNeurons;
     std::vector<std::vector<uint64_t>> m_pixelMapping;
+
+    std::vector<std::vector<int>> m_simpleWeightsOrientations;
+    std::vector<std::vector<int>> m_complexCellsOrientations;
 
     double m_reward{};
     double m_averageActivity{};
@@ -76,9 +80,22 @@ public:
 
     void intermediateSave(size_t saveCount);
 
-    void saveStatistics(int sequence);
+    void saveStatistics(int simulation, int sequence);
 
     void changeTrack(int n_x, int n_y);
+
+    void randomLateralInhibition();
+
+    void shuffleInhibition(int cases);
+
+    void assignOrientations(int index_z, int orientation);
+
+    void assignComplexOrientations(int id, int orientation);
+
+    void saveOrientations();
+
+    void resetSTrain();
+
 
 private:
     void updateNeurons(long time);
@@ -117,6 +134,7 @@ private:
                                             const std::vector<size_t> &layerSizes);
 
     void saveNetworkLayout();
+
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

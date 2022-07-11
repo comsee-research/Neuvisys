@@ -18,7 +18,9 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
                                                                  m_criticNeuronConf(networkPath + "configs/critic_cell_config.json", 2),
                                                                  m_actorNeuronConf(networkPath + "configs/actor_cell_config.json", 3),
                                                                  m_pixelMapping(std::vector<std::vector<uint64_t>>(Conf::WIDTH * Conf::HEIGHT,
-                                                                                                                   std::vector<uint64_t>(0))) {
+                                                                                                                   std::vector<uint64_t>(0))), 
+                                                                 m_simpleWeightsOrientations(m_networkConf.getLayerSizes()[0][2],std::vector<int>(0)),
+                                                                 m_complexCellsOrientations(m_networkConf.getLayerSizes()[1][0]*m_networkConf.getLayerSizes()[1][1]*m_networkConf.getLayerSizes()[1][2],std::vector<int>(0)){
     for (size_t i = 0; i < m_networkConf.getLayerCellTypes().size(); ++i) {
         addLayer(m_networkConf.getLayerCellTypes()[i], m_networkConf.getSharingType(),
                  m_networkConf.getLayerInhibitions()[i],
@@ -36,10 +38,25 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
  * @param event - The event coming from the pixel array.
  */
 void SpikingNetwork::addEvent(const Event &event) {
+/*    if(event.x() < 150) { 
+        for(int v: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +static_cast<uint32_t>(event.y())]) {
+                        std::cout << "x, y, timestamp init = " << static_cast<uint32_t>(event.x()) << " ; " << static_cast<uint32_t>(event.y()) << " ; " << event.timestamp() << " ; event pol = " << event.polarity() << std::endl;
+                        std::cout << "v = " << v << std::endl;
+        }
+            //    std::cout << "v = " << v << std::endl;
+            }*/
     for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
                                     static_cast<uint32_t>(event.y())]) {
+
+    /*    if(event.x() < 150) { 
+                std::cout << "x, y, timestamp init = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; event pol = " << event.polarity() << std::endl;
+            }*/
         auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                  event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
+    /*        if(event.x() < 150) { 
+                std::cout << "x, y, timestamp = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; event pos = " << eventPos.x() << " ; " << eventPos.y() << " ; event pol = " << event.polarity() << std::endl;
+                std::cout << "ind = " << ind << std::endl << std::endl;
+            }*/
         if (m_networkConf.getNeuron1Synapses() == 1) {
             bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
             double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y());
@@ -105,7 +122,7 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 //            }
             forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
-            topDownDynamicInhibition(forwardNeuron.get());
+        //    topDownDynamicInhibition(forwardNeuron.get());
 
             addNeuronEvent(forwardNeuron.get());
         }
@@ -120,7 +137,8 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &previousNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
         previousNeuron.get().newTopDownInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
+        Position pos(neuron.getPos().x(), neuron.getPos().y(),neuron.getIndex());
+        neuronsStatistics(event.timestamp(), 3, pos, previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
     }
 }
 
@@ -130,9 +148,30 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
  */
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
-        auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-        lateralNeuron.get().newLateralInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
+        Position pos = neuron.getPos();
+
+        //angle = 135° network = network6test
+    /*    if(!(pos.z()==9 || pos.z()==10 || pos.z() == 17 || pos.z()==22 || pos.z()==24 || pos.z() == 25 || pos.z()==28 || pos.z() == 37 || pos.z() ==43 || pos.z() == 45 || pos.z() == 51 || pos.z() == 52
+                                || pos.z() == 56 || pos.z() == 59 || pos.z() == 80 || pos.z() == 86 || pos.z() == 87 || pos.z() == 88 || pos.z() == 97 || pos.z() == 98 || pos.z() == 106 
+                                || pos.z() == 112 || pos.z() == 120 || pos.z() == 124 || pos.z() == 133 || pos.z() == 139 || pos.z() == 144 || pos.z() == 146 || pos.z() == 148 || pos.z() == 151 || pos.z() == 152 || pos.z() == 157 || pos.z() == 158 || pos.z() == 162 || pos.z() == 171 || pos.z() == 176 || pos.z() == 181 || pos.z() == 182 || pos.z() == 178 || pos.z() == 183
+                                || pos.z() == 184 || pos.z() == 194 || pos.z() == 196 || pos.z() == 200 || pos.z() == 201 || pos.z() == 202 || pos.z() == 205 || pos.z() == 208 || pos.z() == 212 || pos.z() == 220 || pos.z() == 235 || pos.z() == 223 || pos.z() == 228 || pos.z() == 231 || pos.z() == 245 || pos.z() == 246 || pos.z() == 248)) {*/
+
+    //angle = 0° network = network6test        
+    /*    if(!(pos.z()==7 || pos.z()==8 || pos.z() == 16 || pos.z() == 23 || pos.z() == 26 || pos.z() == 50 || pos.z() == 57 || pos.z() == 61 || pos.z() == 64 || pos.z() == 70 || pos.z() == 85 || pos.z() == 90 
+             || pos.z() == 92 || pos.z() == 101 || pos.z() == 105 || pos.z() == 123 || pos.z() == 129 || pos.z()== 132 || pos.z() == 141 || pos.z() == 142 || pos.z() == 147 || pos.z() == 153 || pos.z() == 160 
+             || pos.z() == 165 || pos.z() == 187 || pos.z() == 195 || pos.z() == 202 || pos.z() == 224 || pos.z() == 225)) {*/
+            
+    //angle = 90° network = network6test
+    /*    if( !(pos.z()==25 || pos.z()==34 || pos.z() == 44 || pos.z() == 46 || pos.z() == 54 || pos.z() == 55 || pos.z() == 58 || pos.z() == 71 || pos.z() == 79 || pos.z() == 80 || pos.z() == 83 || pos.z() == 99
+            || pos.z() == 108 || pos.z() == 111 || pos.z() == 120 || pos.z() == 137 || pos.z() == 146 || pos.z() == 150 || pos.z() == 163 || pos.z() == 181 || pos.z() == 185 || pos.z() == 188 || pos.z() == 189 
+            || pos.z() == 206 || pos.z() == 215 || pos.z() == 217 || pos.z() == 218 || pos.z() == 240)) {*/       
+            
+            auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+            lateralNeuron.get().newLateralInhibitoryEvent(event);
+            neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
+                                
+    //    }
+        
     }
 }
 
@@ -250,6 +289,10 @@ void SpikingNetwork::generateWeightSharing(const std::string &neuronType, const 
         for (size_t i = 0; i < nbNeurons; ++i) {
             m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(x, y, z, m_complexNeuronConf.NORM_FACTOR));
         }
+    /*    for (size_t i = 0; i < m_networkConf.getLayerSizes()[1][2]; ++i) {
+                            m_sharedWeightsComplex.push_back(Util::uniformMatrixComplex(x, y, z, m_complexNeuronConf.NORM_FACTOR));
+            }*/
+
     }
     if (neuronType == "CriticCell") {
         for (size_t i = 0; i < nbNeurons; ++i) {
@@ -319,6 +362,8 @@ void SpikingNetwork::addLayer(const std::string &neuronType, const std::string &
                             } else if (neuronType == "ComplexCell") {
                                 m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset,
                                                                             m_sharedWeightsComplex[neuronIndex]));
+                            //    m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset,
+                                                                    //        m_sharedWeightsComplex[weightIndex]));
                             } else if (neuronType == "CriticCell") {
                                 m_criticNeurons.emplace_back(MotorNeuron(neuronIndex, layer, m_criticNeuronConf, pos,
                                                                          m_sharedWeightsCritic[neuronIndex]));
@@ -788,11 +833,17 @@ std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, co
     throw std::runtime_error("Wrong layer or index for neuron selection");
 }
 
-
+/**
+ * Updates the statistics of a tracked neuron everytime it receives an event.
+ * @param time 
+ * @param type_ 
+ * @param pos 
+ * @param neuron 
+ * @param wi 
+ * @param spike 
+ */
 void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike) {
     if (neuron.getConf().POTENTIAL_TRACK[0] == neuron.getPos().x() && neuron.getConf().POTENTIAL_TRACK[1] == neuron.getPos().y()) {
-//    if (neuron.getConf().POTENTIAL_TRACK[1] == neuron.getPos().y()) {
-
         neuron.assignToAmountOfEvents(type_);
         if(spike) {
             neuron.assignToPotentialTrain(std::make_pair(neuron.getSpikingPotential(), time));
@@ -803,42 +854,49 @@ void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, N
         if (type_ != 0) {
             type_ -= 1;
             if (type_ != 2) {
-                neuron.assignToSumInhibWeights(type_, pos, wi);
+                neuron.assignToSumLateralWeights(type_, pos, wi);
+            }
+            if(type_ == 2) {
+                neuron.assignToSumTopDownWeights(pos.z(),wi,16);
             }
             std::tuple<double, double, uint64_t> var = {neuron.getBeforeInhibitionPotential(), neuron.getPotential(time), time};
-//                std::cout << "value of potential = " << std::get<0>(var) << " ; value of potential afterwards = " << std::get<1>(var) << " ; value of time = " << std::get<2>(var) << std::endl << std::endl;
-//                std::cout << "real value of potential now = " << neuron.getPotential(time) << std::endl;
             neuron.assignToTimingOfInhibition(type_, var);
+        }
+        else {
+            std::tuple<double,uint64_t> ev = {neuron.getPotential(time), time};
+            neuron.assignToExcitatoryEvents(ev);
         }
     }
 }
 
-void SpikingNetwork::saveStatistics(int sequence) {
+/**
+ * Saves the statistics of all tracked neurons while making sure to erase potential old statistics that exists in the folder.
+ * @param simulation 
+ * @param sequence 
+ */
+void SpikingNetwork::saveStatistics(int simulation, int sequence) {
     std::string fileName;
     size_t layer = 0;
     std::filesystem::file_status s = std::filesystem::file_status{};
-/*    static bool entered=false;
-    if(!entered) {
-        for(int l=0; l<m_networkConf.getLayerCellTypes().size(); l++) {
-            if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(l))) {
-                for (const auto& entry : std::filesystem::directory_iterator()) {
-                    std::filesystem::remove_all(entry.path());
-                }
-            }
-            entered=true;
-        }
-    }   */
+    static bool entered = false;
     for (auto &neurons: m_neurons) {
+        if(!entered) {
+        std::filesystem::remove_all(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/"); 
+        std::filesystem::create_directory(
+                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/");
+        entered = true;
+        }
         std::string path(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer));
         if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(path)) {
             std::filesystem::create_directory(
-                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(sequence));
+                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation));
+            std::filesystem::create_directory(
+                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation) + "/" + std::to_string(sequence));
 
             for (auto &neuron: neurons) {
                 if (neuron.get().getConf().POTENTIAL_TRACK[0] == neuron.get().getPos().x() &&
                     neuron.get().getConf().POTENTIAL_TRACK[1] == neuron.get().getPos().y()) {
-//                if (neuron.get().getConf().POTENTIAL_TRACK[1] == neuron.get().getPos().y()) {
-                    fileName = m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(sequence) + "/";
+                    fileName = m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation) + "/" + std::to_string(sequence) + "/";
                     saveStatesStatistics(fileName, neuron.get());
                 }
             }
@@ -847,12 +905,19 @@ void SpikingNetwork::saveStatistics(int sequence) {
     }
 }
 
+/**
+ * Writes the json file of the statistics of a neuron.
+ * @param state 
+ * @param neuron 
+ */
 void SpikingNetwork::writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &neuron) {
     state["amount_of_events"] = neuron.getAmountOfEvents();
     state["potentials_thresholds"] = neuron.getPotentialThreshold();
     state["potential_train"] = neuron.getPotentialTrain();
-    state["sum_inhib_weights"] = neuron.getSumInhibWeights();
+    state["sum_inhib_weights"] = neuron.getSumLateralWeights();
+    state["sum_topdown_weights"] = neuron.getSumTopDownWeights();
     state["timing_of_inhibition"] = neuron.getTimingOfInhibition();
+    state["excitatory_ev"] = neuron.getExcitatoryEvents();
 }
 
 void SpikingNetwork::saveStatesStatistics(std::string &fileName, Neuron &neuron) {
@@ -867,6 +932,11 @@ void SpikingNetwork::saveStatesStatistics(std::string &fileName, Neuron &neuron)
     ofs.close();
 }
 
+/**
+ * Change the coordinates of the neuron to track regardless of what is in the config file.
+ * @param n_x 
+ * @param n_y 
+ */
 void SpikingNetwork::changeTrack(int n_x, int n_y) {
     std::vector<double>val{n_x,n_y};
     int layer=0;
@@ -879,5 +949,101 @@ void SpikingNetwork::changeTrack(int n_x, int n_y) {
             {
                 break;
             }
+    }
+}
+
+/**
+ * Re-initializes the lateral inhibition weights to random values sampled from an uniform distribution.
+ */
+void SpikingNetwork::randomLateralInhibition() {
+    for (auto &neurons: m_neurons) {
+        for (auto &neuron: neurons) {
+                neuron.get().randomInhibition();
+            }
+    }
+}
+/**
+ * Shuffles a specific type or all inhibitory weights.
+ * @param cases 
+ */
+void SpikingNetwork::shuffleInhibition(int cases) {
+    size_t depth = m_networkConf.getNeuronSizes()[0][2];
+    int index = m_simpleNeuronConf.POTENTIAL_TRACK[0] *m_networkConf.getLayerSizes()[0][1]*m_networkConf.getLayerSizes()[0][2] + m_simpleNeuronConf.POTENTIAL_TRACK[1]*m_networkConf.getLayerSizes()[0][2];
+    switch (cases) {
+        case 1:
+            for (auto &neurons: m_neurons[0]) {
+                neurons.get().shuffleLateralInhibition();
+            }
+            break;
+        case 2:
+            for (auto &neurons: m_neurons[0]) {
+                neurons.get().shuffleTopDownInhibition();
+            }
+            break;
+        case 3:
+            for (auto &neurons: m_neurons[0]) {
+                neurons.get().shuffleLateralInhibition();
+                neurons.get().shuffleTopDownInhibition();
+            }
+            break;
+        default:
+            std::cout << "No argument passed in \"shuffleInhibition()\". Function aborted." << std::endl;
+            break;
+    } 
+}
+
+/**
+ * Assigns an orientation to a simple cell.
+ * @param index_z 
+ * @param orientation 
+ */
+void SpikingNetwork::assignOrientations(int index_z, int orientation) {
+    m_simpleWeightsOrientations.at(index_z).push_back(orientation);
+}
+
+/**
+ * Assigns an orientation to a complex cell.
+ * @param id 
+ * @param orientation 
+ */
+void SpikingNetwork::assignComplexOrientations(int id, int orientation) {
+    m_complexCellsOrientations.at(id).push_back(orientation);
+}
+
+/**
+ * Saves the orientation of simple and complex cells in a json file.
+ */
+void SpikingNetwork::saveOrientations() {
+    std::string fileName;
+    size_t layer = 0;
+    std::filesystem::file_status s = std::filesystem::file_status{};
+    std::string path(m_networkConf.getNetworkPath() + "statistics/");
+    if (std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(path)) {
+        std::filesystem::create_directory(m_networkConf.getNetworkPath() + "statistics/" + "orientations");
+        fileName = m_networkConf.getNetworkPath() + "statistics/" + "orientations" + "/";
+        
+        nlohmann::json state;
+        state["orientations"] = m_simpleWeightsOrientations;
+        state["complex_orientations"] = m_complexCellsOrientations;
+        std::ofstream ofs(fileName + "orientations.json");
+        if (ofs.is_open()) {
+            ofs << std::setw(4) << state << std::endl;
+        } else {
+            std::cout << "cannot save neuron state statistics file" << std::endl;
+        }
+        ofs.close();
+    }
+}
+
+/**
+ * Resets the spike train of all neurons.
+ */
+void SpikingNetwork::resetSTrain() {
+    size_t layer = 0;
+    for (auto &neurons: m_neurons) {
+            for (auto &neuron: neurons) {
+                neuron.get().resetSpikeTrain();
+            }
+            ++layer;
     }
 }

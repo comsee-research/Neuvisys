@@ -32,12 +32,12 @@ IF (NOT CMAKE_INSTALL_PREFIX)
     ENDIF()
 ENDIF()
 
-find_package(OpenCV 4.0.0 REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(PythonLibs REQUIRED)
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
 
 include_directories(${HDF5_INCLUDE_DIRS})
-include_directories ("/usr/include/opencv4/")
+include_directories(${OpenCV_INCLUDE_DIRS})
 include_directories(${PYTHON_INCLUDE_DIRS})
 include_directories(PUBLIC ${CMAKE_CURRENT_LIST_DIR}/src/dependencies)
 include(GNUInstallDirs)
@@ -52,7 +52,8 @@ set(PROJECT_SOURCES
         src/network/neurons/SimpleNeuron.cpp
         src/network/neurons/ComplexNeuron.cpp
         src/network/neurons/MotorNeuron.cpp
-        src/network/NetworkHandle.cpp)
+        src/network/NetworkHandle.cpp
+        src/network/SurroundSuppression.cpp)
 
 add_executable(neuvisys-exe src/Neuvisys.cpp ${PROJECT_SOURCES})
 
@@ -71,7 +72,7 @@ if (BUILD_MOTOR_CONTROL)
     add_subdirectory(src/motor-control)
 endif()
 
-add_subdirectory(src/camera)
-add_subdirectory(src/simulator)
+#add_subdirectory(src/camera)
+#add_subdirectory(src/simulator)
 add_subdirectory(src/gui)
-add_subdirectory(src/motor-control)
+#add_subdirectory(src/motor-control)

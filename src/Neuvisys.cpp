@@ -24,25 +24,17 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1]);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-//        std::string eventsPath = "/home/thomas/Videos/simulation/full_rotation.npz";
-//
-//        NetworkHandle network(networkPath, eventsPath);
-//        std::vector<Event> events;
-//        std::cout << "Feeding network... " << std::endl;
-
-        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/100/vertical_diff_speeds_12_new_range/";
-        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/new_bars/events/";
+        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_grey1/";
+        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars/events/";
         std::vector<std::string> vectorOfPaths;
-        for (const auto & frame : std::filesystem::directory_iterator{path_Events}) 
-        {
+        for (const auto & frame : std::filesystem::directory_iterator{path_Events}) {
             vectorOfPaths.emplace_back(frame.path().string());
-        //    std::cout << frame.path().string() << std::endl;
         }
-
         NetworkHandle network(networkPath, vectorOfPaths[0]);
         SurroundSuppression surround(networkPath,vectorOfPaths,network);
-        std::string typeOfTraining = "all";
-    //    surround.Training(typeOfTraining,2,5);
-        surround.launchTrainingNeurons();
+        std::string typeOfTraining = "inhibitory";
+    //    surround.train(typeOfTraining,1,3);
+    //    surround.shuffleInhibition(1);
+        surround.evaluateResponsesOnStimuli();
     }
 }

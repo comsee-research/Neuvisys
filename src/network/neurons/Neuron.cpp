@@ -47,7 +47,7 @@ inline double Neuron::refractoryPotential(size_t time) {
 }
 
 /**
- *
+ * 
  * @param time
  */
 inline void Neuron::potentialDecay(size_t time) {
@@ -63,7 +63,7 @@ inline void Neuron::adaptationPotentialDecay(size_t time) {
 }
 
 /**
- *
+ * Keeps track of the potential of the neuron.
  * @param potential
  */
 void Neuron::assignToPotentialTrain(std::pair<double, uint64_t> potential) {
@@ -71,14 +71,15 @@ void Neuron::assignToPotentialTrain(std::pair<double, uint64_t> potential) {
 }
 
 /**
- *
+ * Assigns the actual threshold of the neuron to the list of thresholds. 
+ * This function is useful if the threshold isn't static.
  */
 void Neuron::assignToPotentialThreshold() {
     m_potentialThreshold.push_back(m_threshold);
 }
 
 /**
- *
+ * Updates the total number of events received, depending on its type (excitatory or inhibitory).
  * @param type
  */
 void Neuron::assignToAmountOfEvents(int type) {
@@ -91,40 +92,29 @@ void Neuron::assignToAmountOfEvents(int type) {
 }
 
 /**
- *
+ * Updates the amount of lateral inhibition received from neurons at the same position in the actual layer.
  * @param type
  * @param pos
  * @param wi
  */
-void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
+void Neuron::assignToSumLateralWeights(int type, Position pos, double wi) {
     int m_range_x = m_range.at(0);
     int m_range_y = m_range.at(1);
     if (m_sumOfInhibWeights.size() == 0) {
         for (int i = 0; i < 2; i++) {
             std::vector<double> temp;
             m_sumOfInhibWeights.push_back(temp);
-
-            /*if (m_range_x == 0) {
-                for (int j = -m_range_y; j < m_range_y; j++) {
-                    m_sumOfInhibWeights.at(i).push_back(0);
-                }
-            } else if (m_range_y == 0) {
-                for (int j = -m_range_x; j < m_range_x; j++) {
-                    m_sumOfInhibWeights.at(i).push_back(0);
-                }
-            } else {*/
-                for (int j = static_cast<int>(-m_range_x); j < static_cast<int>(m_range_x + 1); j++) {
-                    for (int k = static_cast<int>(-m_range_y); k < static_cast<int>(m_range_y + 1); k++) {
-                        if (j == 0 && k == 0) {
-                            continue;
-                        } else {
-                            m_sumOfInhibWeights.at(i).push_back(0);
-                        }
+            for (int j = static_cast<int>(-m_range_x); j < static_cast<int>(m_range_x + 1); j++) {
+                for (int k = static_cast<int>(-m_range_y); k < static_cast<int>(m_range_y + 1); k++) {
+                    if (j == 0 && k == 0) {
+                        continue;
+                    } else {
+                        m_sumOfInhibWeights.at(i).push_back(0);
                     }
                 }
-        //    }
-        }
+            }
     }
+}
     int x_border_min = m_pos.x() - m_range_x;
     int y_border_min = m_pos.y() - m_range_y;
     int position;
@@ -133,18 +123,40 @@ void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
     } else {
         position = (2 * (m_range_y) + 1) * (pos.x() - x_border_min) + (pos.y() - y_border_min);
     }
-    if (m_sumOfInhibWeights.at(type).size() <= position) {
-        std::cout << "size = " << m_sumOfInhibWeights.at(type).size() << " ; position = " << position << std::endl;
-        std::cout << "pos x = " << pos.x() << " ; x border min = " << x_border_min << " ; pos y = " << pos.y() << " ; y_border_min = " << y_border_min
-                  << std::endl;
-        std::cout << "m pos x = " << m_pos.x() << " ; m pos y = " << m_pos.y() << std::endl;
-        std::cout << "m_range_x = " << m_range_x << " ; m_range_y = " << m_range_y << std::endl;
-    }
     m_sumOfInhibWeights.at(type).at(position) += wi;
 }
 
 /**
- *
+ * Updates the amount of top-down inhibition received from neurons at the same position in the next layer.
+ * @param index 
+ * @param wi 
+ * @param depth 
+ */
+void Neuron::assignToSumTopDownWeights(int index, double wi, int depth) {
+    static std::vector<int> start;
+    static int size = m_outConnections.size() / depth;
+    if (m_sumOfTopDownWeights.size() == 0) {
+        start.clear();
+        for (int i = 0; i < size; i++) {
+            std::vector<double> temp;
+            start.push_back(m_outConnections.at(i*depth).get().getIndex());
+            m_sumOfTopDownWeights.push_back(temp);
+                for (int j = 0; j < depth; j++) {
+                    m_sumOfTopDownWeights.at(i).push_back(0);
+                }
+        }
+    }
+    int actual_start = 0;
+    for(int i = 0; i<size; i++) {
+        if(index >= start.at(i) && index < start.at(i)+depth) {
+            actual_start = i;
+        }
+    }
+    m_sumOfTopDownWeights.at(actual_start).at(index-start.at(actual_start)) += wi;
+}
+
+/**
+ * Keeps track of the modification of the potential by inhibitory events.
  * @param type
  * @param variation
  */
@@ -159,8 +171,14 @@ void Neuron::assignToTimingOfInhibition(int type, std::tuple<double, double, uin
 }
 
 /**
- * @brief Set the Inhibition Range object
- * 
+ * Keeps track of the modification of the potential by excitatory events. 
+ * @param event 
+ */
+void Neuron::assignToExcitatoryEvents(std::tuple<double, uint64_t> event) {
+    m_excitatoryEvents.push_back(event);
+}
+/**
+ * Sets the range of the lateral inhibition of the neuron.
  * @param inhibitionRange 
  */
 void Neuron::setInhibitionRange(std::vector<size_t> inhibitionRange) {
@@ -168,43 +186,59 @@ void Neuron::setInhibitionRange(std::vector<size_t> inhibitionRange) {
 }
 
 /**
- *
- * @return
+ * Returns the train of potentials.
+ * @return std::vector<std::pair<double, uint64_t>> 
  */
 std::vector<std::pair<double, uint64_t>> Neuron::getPotentialTrain() {
     return m_trackingPotentialTrain;
 }
 
 /**
- *
- * @return
+ * Returns the train of thresholds.
+ * @return std::vector<double> 
  */
 std::vector<double> Neuron::getPotentialThreshold() {
     return m_potentialThreshold;
 }
 
 /**
- *
- * @return
+ * Returns the vector containing the number of events per type.
+ * @return std::vector<size_t> 
  */
 std::vector<size_t> Neuron::getAmountOfEvents() {
     return m_amount_of_events;
 }
 
 /**
- *
- * @return
+ * Returns the amount of lateral inhibition received by the neuron from different neurons at the same layer.
+ * @return std::vector<std::vector<double>> 
  */
-std::vector<std::vector<double>> Neuron::getSumInhibWeights() {
+std::vector<std::vector<double>> Neuron::getSumLateralWeights() {
     return m_sumOfInhibWeights;
 }
 
 /**
- *
- * @return
+ * Returns the amount of top-down inhibition received by the neuron from different neurons from the next layer.
+ * @return std::vector<std::vector<double>> 
+ */
+std::vector<std::vector<double>> Neuron::getSumTopDownWeights() {
+    return m_sumOfTopDownWeights;
+}
+
+/**
+ * Returns the potentials modified from inhibitory events.
+ * @return std::vector<std::vector<std::tuple<double, double, uint64_t>>> 
  */
 std::vector<std::vector<std::tuple<double, double, uint64_t>>> Neuron::getTimingOfInhibition() {
     return m_timingOfInhibition;
+}
+
+/**
+ * Returns the potentials modified from the excitatory events.
+ * @return std::vector<std::tuple<double, uint64_t>> 
+ */
+std::vector<std::tuple<double, uint64_t>> Neuron::getExcitatoryEvents() {
+    return m_excitatoryEvents;
 }
 
 /**
@@ -280,6 +314,9 @@ void Neuron::checkNegativeLimits() {
     }
 }
 
+/**
+ * Sets the value of the potential before it gets inhibited.
+ */
 void Neuron::setLastBeforeInhibitionPotential() {
     m_beforeInhibitionPotential = m_potential;
 }
@@ -452,20 +489,24 @@ void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralInhibitionWeights[neuron.getIndex()] = 0;
 }
 
+/**
+ * Reset to initialization values the different process parameters and statistics of the neuron.
+ * This function DOES NOT reset the weights.
+ */
 void Neuron::resetNeuron() {
     m_potential = 0;
     m_timestampLastEvent = 0;
     m_lastSpikingTime = 0;
     m_spikingTime = 0;
     m_totalSpike = 0;
-    m_spikeRateCounter = 0;
-    m_activityCounter = 0;
+//    m_spikeRateCounter = 0;
+//    m_activityCounter = 0;
     m_decay = 1.0;
     m_adaptationPotential = 0;
     m_threshold = m_conf.VTHRESH;
     m_spike = false;
-    m_lifeSpan = 0;
-    m_spikingRateAverage = 0;
+//    m_lifeSpan = 0;
+//    m_spikingRateAverage = 0;
     m_trackingSpikeTrain.clear();
     m_trackingPotentialTrain.clear();
     m_potentialThreshold.clear();
@@ -474,8 +515,70 @@ void Neuron::resetNeuron() {
         m_sumOfInhibWeights[i].clear();
     }
     m_sumOfInhibWeights.clear();
+    for (int k=0; k<m_sumOfTopDownWeights.size(); k++) {
+        m_sumOfTopDownWeights[k].clear();
+    }
+    m_sumOfTopDownWeights.clear();
     for (int j = 0; j < m_timingOfInhibition.size(); j++) {
         m_timingOfInhibition[j].clear();
-    }
+    }    
     m_timingOfInhibition.clear();
+    m_excitatoryEvents.clear();
+}
+
+/**
+ * Initializes the lateral inhibition weights randomly from an uniform distribution.
+ */
+void Neuron::randomInhibition() {
+    std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
+    std::normal_distribution<double> normalDistr(0.0, 1.0);
+    std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
+
+    for (auto neuron: m_lateralDynamicInhibitionConnections) {
+        m_lateralInhibitionWeights.at(neuron.get().getIndex()) = uniformRealDistr(generator);
+    }
+    Util::normalizeLateralWeights(m_lateralInhibitionWeights, m_conf.LATERAL_NORM_FACTOR);
+}
+
+/**
+ * Shuffles the lateral inhibition weights.
+ */
+void Neuron::shuffleLateralInhibition() {
+    std::vector<double> weights;
+    for (auto neuron: m_lateralDynamicInhibitionConnections) {
+        weights.push_back(m_lateralInhibitionWeights.at(neuron.get().getIndex()));
+    }
+    auto rng = std::default_random_engine {};
+    std::shuffle(std::begin(weights), std::end(weights), rng);
+    int i = 0;
+    for (auto neuron: m_lateralDynamicInhibitionConnections) {
+        m_lateralInhibitionWeights.at(neuron.get().getIndex()) = weights.at(i);
+        i++;
+    }
+    Util::normalizeLateralWeights(m_lateralInhibitionWeights, m_conf.LATERAL_NORM_FACTOR);
+}
+
+/**
+ * Shuffles the top-down inhibition weights.
+ */
+void Neuron::shuffleTopDownInhibition() {
+    std::vector<double> weights;
+    for (auto neuron: m_topDownDynamicInhibitionConnections) {
+        weights.push_back(m_topDownInhibitionWeights.at(neuron.get().getIndex()));
+    }
+    auto rng = std::default_random_engine {};
+    std::shuffle(std::begin(weights), std::end(weights), rng);
+    int i = 0;
+    for (auto neuron: m_topDownDynamicInhibitionConnections) {
+        m_topDownInhibitionWeights.at(neuron.get().getIndex()) = weights.at(i);
+        i++;
+    }
+    Util::normalizeTopDownWeights(m_topDownInhibitionWeights, m_conf.TOPDOWN_NORM_FACTOR);
+}
+
+/**
+ * Resets the train of spikes.
+ */
+void Neuron::resetSpikeTrain() {
+    m_trackingSpikeTrain.clear();
 }

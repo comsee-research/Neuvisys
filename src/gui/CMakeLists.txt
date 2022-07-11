@@ -21,7 +21,8 @@ set(PROJECT_SOURCES
         ../network/neurons/SimpleNeuron.cpp
         ../network/neurons/ComplexNeuron.cpp
         ../network/neurons/MotorNeuron.cpp
-        ../network/NetworkHandle.cpp)
+        ../network/NetworkHandle.cpp
+        ../network/SurroundSuppression.cpp)
 
 set(ROS_SOURCES
         ../simulator/SimulationInterface.cpp

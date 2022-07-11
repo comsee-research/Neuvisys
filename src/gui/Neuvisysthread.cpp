@@ -120,13 +120,53 @@ void NeuvisysThread::readEventsRealTime() {
 }
 
 void NeuvisysThread::launchNetwork(NetworkHandle &network) {
-    std::vector<Event> events;
+/*    std::vector<Event> events;
 
     while (network.loadEvents(events, m_nbPass)) {
         eventLoop(network, events, events.back().timestamp());
     }
 
-    network.save(m_events.toStdString(), m_nbPass);
+    network.save(m_events.toStdString(), m_nbPass);*/
+        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars7/events/";
+        std::vector<std::string> vectorOfPaths;
+        for (const auto & frame : std::filesystem::directory_iterator{path_Events}) 
+        {
+            vectorOfPaths.emplace_back(frame.path().string());
+        }
+
+        network.setEventPath(vectorOfPaths[0]);
+        int epochs=10;
+        int numberOfTimes = 1;
+        std::string typeOfTraining = "all";
+        if(typeOfTraining==network.getSimpleNeuronConfig().STDP_LEARNING){
+
+        std::cout << "Training is about to start..." << std::endl;
+        std::vector<Event> events;
+        auto rng = std::default_random_engine {};
+        for(int j=0; j<epochs; j++){
+            std::shuffle(std::begin(vectorOfPaths), std::end(vectorOfPaths), rng);
+            std::cout << "It's epoch number : " << j << " !" << std::endl;
+            for(int i=0; i<vectorOfPaths.size();i++){
+                    std::cout << "Training of event folder number : " << i+1 << " !" << std::endl;
+                    double time = i+1;
+                    while (network.loadEvents(events, numberOfTimes)) {
+                        eventLoop(network, events, time);
+                        break;
+                }
+                network.save(vectorOfPaths[i], numberOfTimes);
+                events.clear();
+                if(i!=vectorOfPaths.size()-1){
+                    network.setEventPath(vectorOfPaths[i+1]);
+                }
+            }
+            network.setEventPath(vectorOfPaths[0]);
+        }
+    }
+    else{
+
+        std::cout << "Please, verify that the type of learning is correct." << std::endl;
+    }
+
     emit networkDestruction();
 }
 
@@ -220,29 +260,40 @@ int NeuvisysThread::launchReal(NetworkHandle &network) {
 
 void NeuvisysThread::eventLoop(NetworkHandle &network, const std::vector<Event> &events, double time) {
     m_eventRate += static_cast<double>(events.size());
+    m_displayTime = 0;
     if (!events.empty()) {
         for (auto const &event : events) {
             ++m_iterations;
-            addEventToDisplay(event);
+        //    std::cout << "m_iteration = " << m_iterations << std::endl;
+        //    addEventToDisplay(event);
+
+                /*** GUI Display ***/
+         time = event.timestamp();
+        // if (  (time - m_displayTime > 0) || (m_displayTime==0)) {
+        if (time - m_displayTime > m_displayRate) { 
+            m_displayTime +=m_displayRate;
+        /*    std::cout << "time = " << time << std::endl;
+            std::cout << "m_displaytime = " << m_displayTime << std::endl;*/
+            display(network, m_displayTime);
+        }
+        if (time - m_trackTime > m_trackRate) {
+            m_trackTime = time;
+            network.trackNeuron(time, m_id, m_layer);
+        }
+
             network.transmitEvent(event);
         }
 
 //        m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
     }
 
-    emit consoleMessage(m_msg);
-    m_msg.clear();
+/*    if(m_displayTime==144) {
+        m_displayTime = 0;
+    }*/
 
-    /*** GUI Display ***/
-    if (time - m_displayTime > m_displayRate) {
-        m_displayTime = time;
-        display(network, m_displayTime);
-    }
-
-    if (time - m_trackTime > m_trackRate) {
-        m_trackTime = time;
-        network.trackNeuron(time, m_id, m_layer);
-    }
+//    emit consoleMessage(m_msg);
+//    m_msg.clear();
+    
 }
 
 inline void NeuvisysThread::addEventToDisplay(const Event &event) {

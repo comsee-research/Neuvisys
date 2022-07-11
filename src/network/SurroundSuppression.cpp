@@ -5,32 +5,30 @@
 #include "SurroundSuppression.hpp"
 namespace fs = std::filesystem;
 
-SurroundSuppression::SurroundSuppression(const std::string &networkPath, std::vector<std::string> path, NetworkHandle& network) : m_network(network)
-{
-    for(int i=0; i<path.size(); i++)
+/**
+ * Creates an object of the class Surround Suppression. 
+ * @param networkPath 
+ * @param path 
+ * @param network 
+ */
+SurroundSuppression::SurroundSuppression(const std::string &networkPath, const paths_container &path, NetworkHandle& network) : m_network(network) {
+    for(const auto& p: path)
     {
-    //    std::cout << path[i] << std::endl;
-        m_path.emplace_back(path[i]);
+        m_path.emplace_back(p);
     }
     m_networkPath = networkPath;
 
-    m_networkConf = NetworkConfig(networkPath + "configs/network_config.json");
-    m_simpleNeuronConf= NeuronConfig(m_networkConf.getNetworkPath() + "configs/simple_cell_config.json", 0);
-    m_complexNeuronConf= NeuronConfig(m_networkConf.getNetworkPath() + "configs/complex_cell_config.json", 1);
-    m_criticNeuronConf= NeuronConfig(m_networkConf.getNetworkPath() + "configs/critic_cell_config.json", 2);
-    m_actorNeuronConf= NeuronConfig(m_networkConf.getNetworkPath() + "configs/actor_cell_config.json", 3);
-
-    for(int layer=0; layer<m_networkConf.getLayerCellTypes().size(); layer++){
-        std::vector<struct receptiveFieldDimensions> to_concatenate;
-        int numberOfNeuronsInLayer = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] * m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+    for(int layer=0; layer<m_network.getNetworkConfig().getLayerCellTypes().size(); layer++){
+        std::vector<receptivefield> to_concatenate;
+        int numberOfNeuronsInLayer = m_network.getNetworkConfig().getLayerPatches()[layer][0].size() * m_network.getNetworkConfig().getLayerSizes()[layer][0] * m_network.getNetworkConfig().getLayerPatches()[layer][1].size() * m_network.getNetworkConfig().getLayerSizes()[layer][1] * m_network.getNetworkConfig().getLayerPatches()[layer][2].size() * m_network.getNetworkConfig().getLayerSizes()[layer][2];
         for(int j=0; j<numberOfNeuronsInLayer; j++){
-            receptiveFieldDimensions temp;
+            receptivefield temp;
             getReceptiveField(layer, j, temp);
             to_concatenate.emplace_back(temp);
         }
         m_neuronsReceptiveField.emplace_back(to_concatenate);
     }
-    m_time_gap=1000;//1e6/1000;
+    m_time_gap=1000;
     m_log_threshold=0;
     m_map_threshold=0.4;
     m_n_max=5;
@@ -38,13 +36,19 @@ SurroundSuppression::SurroundSuppression(const std::string &networkPath, std::ve
     m_timestamp_noise=50;
 }
 
-void SurroundSuppression::Training(const std::string &typeOfTraining, int numberOfTimes, int epochs){
-    if(typeOfTraining==m_simpleNeuronConf.STDP_LEARNING){
-
-        std::cout << "Training is about to start..." << std::endl;
-        std::vector<Event> events;
+/**
+ * Trains the network on the dataset.
+ * @param typeOfTraining 
+ * @param numberOfTimes 
+ * @param epochs 
+ */
+void SurroundSuppression::train(const std::string &typeOfTraining, int numberOfTimes, int epochs){
+    if(typeOfTraining==m_network.getSimpleNeuronConfig().STDP_LEARNING){
         auto rng = std::default_random_engine {};
+        std::cout << "Training is about to start..." << std::endl;
+        events_list events;
         for(int j=0; j<epochs; j++){
+            std::shuffle(std::begin(m_path), std::end(m_path), rng);
             std::cout << "It's epoch number : " << j << " !" << std::endl;
             for(int i=0; i<m_path.size();i++){
                     std::cout << "Training of event folder number : " << i+1 << " !" << std::endl;
@@ -57,23 +61,27 @@ void SurroundSuppression::Training(const std::string &typeOfTraining, int number
                     m_network.setEventPath(m_path[i+1]);
                 }
             }
-            std::shuffle(std::begin(m_path), std::end(m_path), rng);
             m_network.setEventPath(m_path[0]);
         }
     }
     else{
 
         std::cout << "Please, verify that the type of learning is correct." << std::endl;
-    }
-        
+    }        
 }
 
-void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveFieldDimensions &to_return){
-    if(layer>=m_networkConf.getLayerCellTypes().size() || layer <0){
+/**
+ * Identifies the receptive field of a simple cell.
+ * @param layer 
+ * @param neuron_id 
+ * @param to_return 
+ */
+void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptivefield &to_return) {
+    if(layer>=m_network.getNetworkConfig().getLayerCellTypes().size() || layer <0){
         std::cout << "Please verify the value you gave to the parameter 'layer'." << std::endl;
     }
     else{
-        int totalNumberOfNeurons = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] * m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+        int totalNumberOfNeurons = m_network.getNetworkConfig().getLayerPatches()[layer][0].size() * m_network.getNetworkConfig().getLayerSizes()[layer][0] * m_network.getNetworkConfig().getLayerPatches()[layer][1].size() * m_network.getNetworkConfig().getLayerSizes()[layer][1] * m_network.getNetworkConfig().getLayerPatches()[layer][2].size() * m_network.getNetworkConfig().getLayerSizes()[layer][2];
         if(neuron_id<0 || neuron_id>=totalNumberOfNeurons){
             std::cout << "Please verify the value you gave to the parameter 'neuron_id'." << std::endl;
         }
@@ -81,14 +89,14 @@ void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveF
             int id = neuron_id;
             int actual_x = 0;
             while(id>=0){
-                id=id - m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerSizes()[layer][2];
+                id=id - m_network.getNetworkConfig().getLayerSizes()[layer][1] * m_network.getNetworkConfig().getLayerSizes()[layer][2];
                 actual_x++;
             }
             actual_x = actual_x -1;
-            id+=m_networkConf.getLayerSizes()[layer][1] * m_networkConf.getLayerSizes()[layer][2];
+            id+=m_network.getNetworkConfig().getLayerSizes()[layer][1] * m_network.getNetworkConfig().getLayerSizes()[layer][2];
             int actual_y = 0;
             while(id>=0){
-                id = id - m_networkConf.getLayerSizes()[layer][2];
+                id = id - m_network.getNetworkConfig().getLayerSizes()[layer][2];
                 actual_y++;            
             }
             actual_y = actual_y -1;
@@ -96,8 +104,8 @@ void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveF
             int y_minus=0;
             int x_plus=0;
             int y_plus=0;
-            int neursizes_x = m_networkConf.getNeuronSizes()[layer][0];
-            int overlap_x = m_networkConf.getNeuronOverlap()[layer][0];
+            int neursizes_x = m_network.getNetworkConfig().getNeuronSizes()[layer][0];
+            int overlap_x = m_network.getNetworkConfig().getNeuronOverlap()[layer][0];
             if(overlap_x!=0)
             {
                 x_minus= (actual_x)*(neursizes_x-overlap_x);
@@ -107,10 +115,10 @@ void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveF
                 x_minus=(actual_x)*neursizes_x;
             }
             
-            x_plus = x_minus + m_networkConf.getNeuronSizes()[layer][0];
+            x_plus = x_minus + m_network.getNetworkConfig().getNeuronSizes()[layer][0];
 
-            int neursizes_y = m_networkConf.getNeuronSizes()[layer][1];
-            int overlap_y = m_networkConf.getNeuronOverlap()[layer][1];
+            int neursizes_y = m_network.getNetworkConfig().getNeuronSizes()[layer][1];
+            int overlap_y = m_network.getNetworkConfig().getNeuronOverlap()[layer][1];
             if(overlap_y!=0)
             {
                 y_minus= (actual_y) *(neursizes_y-overlap_y);
@@ -120,7 +128,7 @@ void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveF
                 y_minus=(actual_y)*neursizes_y;
             }
             
-            y_plus = y_minus + m_networkConf.getNeuronSizes()[layer][1];
+            y_plus = y_minus + m_network.getNetworkConfig().getNeuronSizes()[layer][1];
             to_return.x_minus = x_minus;
             to_return.x_plus = x_plus;
             to_return.y_minus = y_minus;
@@ -129,295 +137,383 @@ void SurroundSuppression::getReceptiveField(int layer, int neuron_id, receptiveF
     }
 }
 
-void SurroundSuppression::generateVerticalBars(std::vector<std::vector<Event>> &ev, int id_neur, int numberOfTypesOfBars, std::vector<int> lengthsOfBars, std::vector<int> yPositionStart, int speed, int nbPass){
-    if(numberOfTypesOfBars==lengthsOfBars.size()){
-        if(std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i>=0; }) && std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i<height_; })){
-            for(int i=0; i<numberOfTypesOfBars; i++)
-            {
-                //creation of images for each bar. always make sure that the path exists
-                int frame = 0;
-                int framerate = 1000;
-                int shift = 0;
-                if(speed >0 )
-                {
-                    int x = 0;
-                    while(shift < width_ + 5 )
-                    {
-                        cv::Mat img(height_, width_, CV_8UC3,cv::Scalar(0, 0, 0));
-                        shift = int(frame * float(float(speed)/framerate));
-                        cv::Point p1(x+shift, yPositionStart.at(i));
-                        cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
-                        int thickness =4;
-                    //    std::cout << "x+ shift = " << x+shift << " ; speed = " << speed << " ; framerate = " << framerate << " ; float of speed / framerate = " << float(float(speed)/framerate) << " ; frame = " << frame << " ; yPositionStart = " << yPositionStart.at(i)+lengthsOfBars.at(i) << " ; length of bars = " << lengthsOfBars.at(i) << std::endl;
-                        cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, 8);
-                    /*    cv::imshow("Output", img);
-                        cv::waitKey(0);*/
-                        
-                        std::ostringstream path;
-                        path << "/home/comsee/Internship_Antony/neuvisys/Events/frames/neur" << id_neur << "/" << i << "/img_" << frame << ".png";
-                        cv::imwrite(path.str(), img);
-                        frame+=1;
+/**
+ * Generates sequences of an increasing number of bars of the same length.
+ * @param ev 
+ * @param yPositionStart 
+ * @param lengthsOfBars 
+ * @param speed 
+ * @param num_disparities 
+ * @param nbPass 
+ * @param pathToImgs 
+ * @param thickness 
+ * @param angle 
+ */
+void SurroundSuppression::multiBars1Length(events_sequences &ev, const std::vector<int> &yPositionStart, const std::vector<int> &lengthsOfBars, int speed, int num_disparities, int nbPass, const std::string &pathToImgs, int thickness, int angle) {
+    std::vector<int> disparities;
+    for(int i=0; i<num_disparities; i++) {
+        std::filesystem::create_directory(pathToImgs + std::to_string(i));
+        int frame = 0;
+        int framerate = 1000;
+        int shift = 0;
+        int once = 0;
+        bool ok = true;
+        if(speed >0 ) {
+            while(ok) {
+                if(once==0 || (once<=i && (shift + disparities.at(once-1))>=10)) {
+                    if(once==0) {
+                        disparities.push_back(0);
+                    }
+                    else {
+                        disparities.push_back(disparities.at(once-1)-10);
+                    }
+                    once+=1;
+                }
+                image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                shift = int(frame * float(float(speed)/framerate));
+                for(int j=0; j<disparities.size(); j++) {
+                    cv::Point p1(disparities.at(j)+shift, yPositionStart.at(0));
+                    cv::Point p2(disparities.at(j)+shift, yPositionStart.at(0)+lengthsOfBars.at(0));
+                    cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
+                }
+                if(once-1==i) {
+                    if(shift + disparities.at(i) > width_ + 5 ) {
+                        ok=false;
                     }
                 }
-                else if (speed < 0)
-                {
-                    int x = width_-1;
-                    while(shift > -(width_+5))
-                    {
-                        cv::Mat img(height_, width_, CV_8UC3,cv::Scalar(0, 0, 0));
-                        shift = frame * float(float(speed) / framerate);
-                        cv::Point p1(x+shift, yPositionStart.at(i));
-                        cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
-                        int thickness = 4;
-                        cv::line(img, p1, p2, cv::Scalar(255, 255,255),thickness, 8);
-                        std::ostringstream path;
-                        path << "/home/comsee/Internship_Antony/neuvisys/Events/frames/neur" << id_neur << "/" << i << "/img_" << frame << ".png";
-                        cv::imwrite(path.str(), img);
-                        frame+=1;
-                    }
-                }
-                //converting saved frames to events
-                std::string new_path = "/home/comsee/Internship_Antony/neuvisys/Events/frames/neur" + std::to_string(id_neur) + "/" + std::to_string(i) + "/";
-                std::cout << new_path << std::endl;
-                std::vector<Event> temp_ev;
-                createEvents(new_path, temp_ev, nbPass);
-                ev.emplace_back(temp_ev);
+                cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                image_matrix rot = getRotationMatrix2D(center, angle, 1.0); 
+                image_matrix newimg;
+                cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                std::ostringstream path;
+                path << pathToImgs << i << "/img_" << frame << ".png";
+                cv::imwrite(path.str(), newimg);
+                frame+=1;
             }
-            
+            disparities.clear();
         }
-        else{
-            std::cout << "The start position of the ordinate must be between 0 and " << width_ << " excluded." << std::endl;
-        }
+        std::string new_path = pathToImgs + std::to_string(i) + "/";
+        std::cout << new_path << std::endl;
+        events_list temp_ev;
+        createEvents(new_path, temp_ev, nbPass);
+        ev.emplace_back(temp_ev);
     }
-    else{
-        std::cout << "number of type of bars = " << numberOfTypesOfBars << " ; length of bars size = " << lengthsOfBars.size() << std::endl;
-        std::cout << "Number of types of bars is wrong." << std::endl;
-    }
-
 }
 
-void SurroundSuppression::launchTrainingNeurons()
-{
-    int numberOfMax_nx = m_networkConf.getLayerSizes()[0][0];
-    int numberOfMax_ny = m_networkConf.getLayerSizes()[0][1]; 
-    int n_x;
-    int n_y;
-    int nbPass = 1;
-    std::cout << "Type the number of the abscissa x of the neuron(s) you want to evaluate." << std::endl;
-    std::cin >> n_x;
-    std::cout << "Now, type the number of the ordinate y of the neuron(s) you want to evaluate." << std::endl;
-    std::cin >> n_y;
-    while(n_x<0 || n_y <0 || n_x>=numberOfMax_nx || n_y >= numberOfMax_ny)
+/**
+ * Generates sequences of one bar with an increasing length.
+ * @param ev 
+ * @param lengthsOfBars 
+ * @param yPositionStart 
+ * @param angle 
+ * @param speed 
+ * @param nbPass 
+ * @param pathToImgs 
+ * @param thickness 
+ */
+void SurroundSuppression::oneBarMultiLengths(events_sequences &ev, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass, const std::string &pathToImgs, int thickness) {
+    for(int i=0; i<lengthsOfBars.size(); i++)
     {
-        std::cout << "Please, type an abscissa x that is comprised between 0 and " << numberOfMax_nx << " excluded." << std::endl;
-        std::cin >> n_x;
-        std::cout << "Now, type an ordinate y that is comprised between 0 and " << numberOfMax_ny << " excluded." << std::endl;
-        std::cin >> n_y;
+        std::filesystem::create_directory(pathToImgs + std::to_string(i));
+        int frame = 0;
+        int framerate = 1000;
+        int shift = 0;
+        if(speed >0 )
+        {
+            int x = 0;
+            while(shift < width_ + 5 )
+            {
+                image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                shift = int(frame * float(float(speed)/framerate));
+                cv::Point p1(x+shift, yPositionStart.at(i));
+                cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
+                cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                image_matrix rot = getRotationMatrix2D(center, angle, 1.0);
+                image_matrix newimg;
+                cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                std::ostringstream path;
+                path << pathToImgs << i << "/img_" << frame << ".png";
+                cv::imwrite(path.str(), newimg);
+                frame+=1;
+            }
+        }
+        else if (speed < 0)
+        {
+            int x = width_-1;
+            while(shift > -(width_+5))  {
+                image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                shift = int(frame * float(float(speed)/framerate));
+                cv::Point p1(x+shift, yPositionStart.at(i));
+                cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
+                cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                image_matrix rot = getRotationMatrix2D(center, angle, 1.0);      //Mat object for storing after rotation
+                image_matrix newimg;
+                cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                std::ostringstream path;
+                path << pathToImgs << i << "/img_" << frame << ".png";
+                cv::imwrite(path.str(), newimg);
+                frame+=1;
+             }
+        }
+        std::string new_path = pathToImgs + std::to_string(i) + "/";
+        std::cout << new_path << std::endl;
+        events_list temp_ev;
+        createEvents(new_path, temp_ev, nbPass);
+        ev.emplace_back(temp_ev);
     }
-    if(n_x != m_simpleNeuronConf.POTENTIAL_TRACK[0] || n_y != m_simpleNeuronConf.POTENTIAL_TRACK[1])
-    {
-        std::cout << "WARNING! You are not saving the potentials and weights statistics of the neuron you want to evaluate. Do you want to restart the program? (y/n)" << std::endl;
-        std::string response;
-        std::cin >> response;
-        while(response!="y" && response!="n" && response!="yes" && response!="no")
-        {
-            std::cout << "Type either 'y' for yes or 'n' for no." << std::endl;
-            std::cin >> response;
+}
+
+/**
+ * Generate sequences of bars.
+ * @param ev 
+ * @param numberOfTypesOfBars 
+ * @param lengthsOfBars 
+ * @param yPositionStart 
+ * @param angle 
+ * @param speed 
+ * @param nbPass 
+ */
+void SurroundSuppression::generateBars(events_sequences &ev,  int numberOfTypesOfBars, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass) {
+        if(std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i>=0; }) && std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i<height_; })){
+            int num_disparities = numberOfTypesOfBars;
+            int thickness =1;
+            std::string choice;
+            std::cout << "Do you want to enter the mode to generate multiple bars of the same length in the same frame?" << std::endl;
+            std::cin >> choice;
+            std::string path = m_network.getNetworkConfig().getNetworkPath() + "generateSequences/";
+            std::filesystem::file_status s = std::filesystem::file_status{};
+            if(std::filesystem::status_known(s) ? std::filesystem::exists(s) : std::filesystem::exists(path)) {
+                std::filesystem::remove_all(path); 
+            }
+            std::filesystem::create_directory(path);
+            if(choice=="yes" || choice=="y") {
+                int fac;
+                fac = 34;
+                num_disparities = fac;
+                multiBars1Length(ev, yPositionStart, lengthsOfBars, speed, num_disparities, nbPass, path, thickness, angle);
+            }
+            else {
+                oneBarMultiLengths(ev, lengthsOfBars, yPositionStart, angle, speed, nbPass, path, thickness);
+            }
         }
-        if(response=="y" || response=="yes")
-        {
-            std::cout << "Program aborted." << std::endl;
-            exit(-1);
+}
+
+/**
+ * Finds the position where to start the bar to keep it centered on the tracked neuron regardless of the length.
+ * @param middle 
+ * @param value 
+ * @param positionStart 
+ * @param listOfLengths 
+ * @param numberOfBars 
+ */
+void SurroundSuppression::findCenteredBarsPosition(int middle, int value, std::vector<int> &positionStart, std::vector<int> &listOfLengths, int numberOfBars) {
+    int start;
+    int offset;
+    int n_ = numberOfBars;
+    int border;
+    for(int i=0; i<n_; i++) { 
+        offset = value * (i+1); 
+        border = middle-int(offset/2)+ m_network.getNetworkConfig().getLayerPatches().at(0).at(1).at(0);
+        if(i>=0 && border>=0) {
+            start = border;  
+        }      
+        else {
+            start = 0;
         }
-        else
-        {
-            std::cout << "The program will continue then." << std::endl;
+        if(start>=0 && start+offset<height_) {
+            listOfLengths.emplace_back(offset);
+            positionStart.emplace_back(start);
         }
     }
-//    for(n_y=2; n_y<17; n_y++){
-//    m_network.changeTrack(n_x,n_y);
-    int n = n_x*m_networkConf.getLayerSizes()[0][1]*m_networkConf.getLayerSizes()[0][2] + n_y*m_networkConf.getLayerSizes()[0][2];
+}
+
+/**
+ * Finds the center of the bar according to its orientation.
+ * @param middle 
+ * @param angle 
+ */
+void SurroundSuppression::findMiddlePointOrdinate(int &middle, int angle) {
+    int real_track_coord = m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[0]*m_network.getNetworkConfig().getLayerSizes()[0][1]*m_network.getNetworkConfig().getLayerSizes()[0][2] + m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[1]*m_network.getNetworkConfig().getLayerSizes()[0][2];
+    int to_track_x = ((m_neuronsReceptiveField[0][real_track_coord]).x_plus+(m_neuronsReceptiveField[0][real_track_coord]).x_minus)/2 + m_network.getNetworkConfig().getLayerPatches().at(0).at(0).at(0);
+    int to_track_y = ((m_neuronsReceptiveField[0][real_track_coord]).y_plus+(m_neuronsReceptiveField[0][real_track_coord]).y_minus)/2 + m_network.getNetworkConfig().getLayerPatches().at(0).at(1).at(0);
+    double sin_rad = sin(angle*M_PI/180);
+    double cos_rad = cos(angle*M_PI/180);
+    double center_x = width_/2;
+    double center_y = height_/2;
+    double num = to_track_y + (sin_rad/cos_rad)*to_track_x - (sin_rad/cos_rad)*(1-cos_rad)*center_x + (sin_rad/cos_rad)*(sin_rad*center_y)-(sin_rad*center_x)-(1-cos_rad)*center_y;
+    double den = sin_rad*sin_rad/cos_rad + cos_rad;
+    middle = int(floor(num/den)) - m_network.getNetworkConfig().getLayerPatches().at(0).at(1).at(0);
+}
+
+/**
+ * Verifies if the parameters to launch the evaluation of Surround Suppression are safe.
+ * @return true 
+ * @return false 
+ */
+bool SurroundSuppression::verifyIfSafe() {
+    int numberOfMax_nx = m_network.getNetworkConfig().getLayerSizes()[0][0];
+    int numberOfMax_ny = m_network.getNetworkConfig().getLayerSizes()[0][1]; 
+    if(numberOfMax_nx <= m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[0] || numberOfMax_ny <= m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[1]) {
+        std::cout << "The coordinates in \"POTENTIAL_TRACK\" are not right. Program aborted." << std::endl;
+        return false;
+    }
+    int n = m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[0] *m_network.getNetworkConfig().getLayerSizes()[0][1]*m_network.getNetworkConfig().getLayerSizes()[0][2] + m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[1] *m_network.getNetworkConfig().getLayerSizes()[0][2];
     int x_minus=(m_neuronsReceptiveField[0][n]).x_minus;
     int x_plus=(m_neuronsReceptiveField[0][n]).x_plus;
     int y_minus=(m_neuronsReceptiveField[0][n]).y_minus;
     int y_plus=(m_neuronsReceptiveField[0][n]).y_plus;
-    std::cout << "The neurons " << n << "-" << n + m_networkConf.getLayerSizes()[0][2] -1 << " (last one included) should have their stats data being saved." << std::endl;
+    std::cout << "The neurons with indexes " << n << "-" << n + m_network.getNetworkConfig().getLayerSizes()[0][2] -1 << " (last one included) should have their stats data being saved." << std::endl;
     std::cout << "The receptive field of this neuron is : " << x_minus << " - " << x_plus << " X " << y_minus << " - " << y_plus << std::endl << std::endl;
-    std::cout << "The bars are only vertical, thus we will proceed to evaluate all the neurons sharing the same ordinate as receptive field. (regardless of their X or Z value)" << std::endl;
-    if(m_simpleNeuronConf.STDP_LEARNING!="excitatory" && m_simpleNeuronConf.STDP_LEARNING!="inhibitory" && m_simpleNeuronConf.STDP_LEARNING!="all")
-    {
-        int value = 5;
-        if(m_networkConf.getNeuronSizes()[0][1]>=value)
-        {
-            int n_;
-            int max_n_ = 150;
-
-            std::cout << "Type the number of bars that will be generated." << std::endl;
-            std::cin >> n_;
-            while(n_<=0 || n_>=max_n_)
-            {
-                std::cout << "Please, type a number of bar that is comprised between 0 and " << max_n_ << "." << std::endl;
-                std::cin >> n_;
-            }
-            std::vector<int> listOfLengths;
-            int middle = (m_neuronsReceptiveField[0][n].y_plus + m_neuronsReceptiveField[0][n].y_minus)/2;
-            int start;
-            int end;
-            std::string choice;
-            std::cout << "Do you want the bar to be centered, or not?" << std::endl;
-            std::cin >> choice;
-            if(choice=="no" || choice=="n") {
-                std::cout << "What is the start of the bar?" << std::endl;
-                std::cin >> start;
-                std::cout << "What is the end of the bar?" << std::endl;
-                std::cin >> end;
-                int offset;
-                bool up=true;
-                std::cout << "so, from the start or not? (y/n)" << std::endl;
-                std::cin >> choice;
-                if(choice=="no" || choice=="n") {
-                    up = false;
-                }
-
-                int new_offset;
-                std::vector<int>positionStart;
-                for(int i=0; i<n_; i++)
-                { 
-                    if(up) {
-                        offset = value * (i+1);
-                        if(start>=0 && start+offset<end+1)
-                        {
-                            listOfLengths.emplace_back(offset);
-                            positionStart.emplace_back(start);
-                        }
-                    }
-                    else {
-                        offset = - value * (i+1);
-                        if(end<height_ && end+offset>=0) {
-                            listOfLengths.emplace_back(offset);
-                            positionStart.emplace_back(end);
-                        }
-                    }
-                }
-                std::vector<std::vector<Event>> ev;
-                int speedValue = 150;
-                generateVerticalBars(ev,n,n_,listOfLengths,positionStart,speedValue, nbPass);
-                for(int i=0; i< ev.size(); i++)
-                {
-                    std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
-                    m_network.feedEvents(ev.at(i)); 
-                    m_network.saveStatistics(i);
-                }
-                m_network.save("g",0);
-            }
-
-            else {
-                int offset;
-                int new_offset;
-                std::vector<int>positionStart;
-                for(int i=0; i<n_; i++) { 
-                    offset = value * (i+1);
-                    start = middle - int(offset/2);                      
-                    if(start>=0 && start+offset<height_)
-                    {
-                        listOfLengths.emplace_back(offset);
-                        positionStart.emplace_back(start);
-                    }
-                    else
-                    {
-                        while(start<0 || start+offset>=height_)
-                        {
-                            offset = offset-1;
-                            start = middle - int(offset/2); 
-                        }
-                        if(m_neuronsReceptiveField[0][n].y_minus==0)
-                        {
-                            offset = value * (i+1);
-                        }                        
-                        if(listOfLengths.size()==0)
-                        {
-                            listOfLengths.emplace_back(offset);
-                            if(m_neuronsReceptiveField[0][n].y_minus!=0)
-                            {
-                                n_ = i+1; // ( = 1)
-                            }
-                            positionStart.emplace_back(start);
-                        }
-                        else if(offset!=listOfLengths.at(listOfLengths.size()-1))
-                        {
-                            listOfLengths.emplace_back(offset);
-                            if(m_neuronsReceptiveField[0][n].y_minus!=0)
-                            {
-                                n_ = i+1; // ( = 1)
-                            }
-                            positionStart.emplace_back(start);
-                        }
-                        if(m_neuronsReceptiveField[0][n].y_minus!=0)
-                        {
-                            break;
-                        }
-                    }
-                }
-                std::vector<std::vector<Event>> ev;
-                int speedValue = 150;
-                generateVerticalBars(ev,n,n_,listOfLengths,positionStart,speedValue, nbPass);
-                for(int i=0; i< ev.size(); i++)
-                {
-                    std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
-                    m_network.feedEvents(ev.at(i)); 
-                    m_network.saveStatistics(i);
-                }
-                m_network.save("g",0);
-            }
-        }
+    if(m_network.getSimpleNeuronConfig().STDP_LEARNING!="excitatory" && m_network.getSimpleNeuronConfig().STDP_LEARNING!="inhibitory" && m_network.getSimpleNeuronConfig().STDP_LEARNING!="all") {
+        return true;
     }
-    
-    else
-    {
+    else {
         std::cout << "Change the parameter \"STDP_LEARNING\" for the program to work." << std::endl;
+        return false;
     }
-//    }
 }
 
-void SurroundSuppression::convertFrame(cv::Mat frame, cv::Mat& new_frame)
-{
-    cv::Mat channels[3];
-    cv::split(frame,channels);
-    for(int i=0; i<width_; i++)
-    {
-        for(int j=0; j<height_; j++)
-        {
-            new_frame.at<double>(cv::Point(i, j)) = channels[0].at<double>(cv::Point(i, j))*0.299 + channels[1].at<double>(cv::Point(i, j))*0.299 +channels[2].at<double>(cv::Point(i, j))*0.299;
-            if(new_frame.at<double>(cv::Point(i, j)) > m_log_threshold)
-            {
+/**
+ * Specifies the simulation choices for the evaluation of Surround Suppression.
+ * @param choice 
+ * @param simulation 
+ * @param n_ 
+ */
+void SurroundSuppression::simulationChoices(std::string &choice, int &simulation, int &n_) {
+    std::string str_n;
+    int max_n_ = 150;
+    std::cout << "Type the number of bars that will be generated." << std::endl;
+    std::cin >> str_n;
+    while(std::stoi(str_n)<=0 || std::stoi(str_n)>=max_n_) {
+        std::cout << "Please, type a number of bar that is comprised between 1 and " << max_n_ << "." << std::endl;
+        std::cin >> str_n;
+    }
+    n_ = std::stoi(str_n);
+    std::cout << "Do you want the bar to be centered, or not?" << std::endl;
+    std::cin >> choice;
+    std::cout << "How many simulations do you want to run ?" << std::endl;
+    std::cin >> simulation;
+}
+
+/**
+ * Evaluates the responses of the network to different gratings stimuli.
+ */
+void SurroundSuppression::evaluateResponsesOnStimuli() {
+    bool ok = verifyIfSafe();
+    if(ok) {
+        int value = 1;
+        int nbPass = 1;
+        int speedValue = 150;
+        int n_;
+        int middle;
+        std::string choice;
+        int simulation;
+        simulationChoices(choice, simulation, n_);
+        if(choice=="yes" || choice=="y") {
+            int angle = 0; // {0, 23, 45, 68, 90, 113, 135, 158, 180, 203, 225, 248, 270, 293, 315, 338};
+            findMiddlePointOrdinate(middle, angle);
+            std::vector<int> listOfLengths;
+            std::vector<int>positionStart;
+            findCenteredBarsPosition(middle, value, positionStart, listOfLengths, n_);
+            for(int sim=0; sim < simulation; sim++) {
+                std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
+                events_sequences ev;
+                generateBars(ev, n_, listOfLengths, positionStart, angle, speedValue, nbPass);
+                for(int i=0; i< ev.size(); i++)
+                {
+                    if(listOfLengths.size() != 1 ) {
+                        std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                    }
+                    else {
+                        std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(0) << " and goes from ordinate " << positionStart.at(0) << " to " << positionStart.at(0) + listOfLengths.at(0) << std::endl;
+                    }
+                    m_network.feedEvents(ev.at(i)); 
+                    m_network.saveStatistics(sim, i);
+                }
+            }
+        }
+        else {
+            int index_neur = m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[0] * m_network.getNetworkConfig().getLayerSizes()[0][1] * m_network.getNetworkConfig().getLayerSizes()[0][2] + m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[1] * m_network.getNetworkConfig().getLayerSizes()[0][2];
+            int depth = m_network.getNetworkConfig().getLayerSizes()[0][2];
+            int num_angles = 8;
+            std::vector<std::vector<int>> vec(depth, std::vector<int> (num_angles, 0));
+            int angles[8] = {0, 23, 45, 68, 90, 113, 135, 158};
+            for(int val=0; val<8; val++) {
+                int angle = angles[val];
+                std::cout << "Angle = " << angle << std::endl;
+                findMiddlePointOrdinate(middle, angle);
+                std::vector<int> listOfLengths;
+                std::vector<int> positionStart;
+                findCenteredBarsPosition(middle, value, positionStart, listOfLengths, n_);
+                for(int sim=0; sim < simulation; sim++) {
+                    std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
+                    events_sequences ev;
+                    generateBars(ev,n_,listOfLengths,positionStart,angle, speedValue, nbPass);
+                    for(int i=0; i< ev.size(); i++) {
+                        std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                        m_network.feedEvents(ev.at(i)); 
+                        m_network.saveStatistics(sim, i);
+                    }
+                }
+                for(int neur = 0; neur < m_network.getNetworkConfig().getLayerSizes()[0][2]; neur++) {
+                    vec.at(neur).at(val)=m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().size();
+                }
+            }
+            for(int neur = 0; neur < m_network.getNetworkConfig().getLayerSizes()[0][2]; neur++) {
+                int angle_index = std::max_element(vec.at(neur).begin(),vec.at(neur).end()) - vec.at(neur).begin();
+                m_network.assignOrientation(neur,angles[angle_index]);
+            }
+            m_network.saveStatistics(simulation, 0, true);
+        }
+    } 
+}
+
+/**
+ * Calculates the logarithmic value of the frame to simulate events.(fro the ESIM simulator)
+ * @param frame 
+ * @param new_frame 
+ */
+void SurroundSuppression::convertFrame(image_matrix frame, image_matrix& new_frame) {
+    image_matrix channels[3];
+    cv::split(frame,channels);    
+    for(int i=0; i<width_; i++) {
+        for(int j=0; j<height_; j++) {
+            new_frame.at<double>(cv::Point(i, j)) = (int)channels[0].at<uchar>(cv::Point(i, j))*0.299 + (int)channels[1].at<uchar>(cv::Point(i, j))*0.587 + (int)channels[2].at<uchar>(cv::Point(i, j))*0.114;
+            if(new_frame.at<double>(cv::Point(i, j)) > m_log_threshold) {
                 new_frame.at<double>(cv::Point(i, j)) = log(new_frame.at<double>(cv::Point(i, j)));
             }
         }
     }
 }
-
-void SurroundSuppression::writeEvents(std::vector<Event> &events, float delta_b, float thresh, float frame_id, int x, int y, int polarity)
-{
+/**
+ * Generates events.
+ * @param events 
+ * @param delta_b 
+ * @param thresh 
+ * @param frame_id 
+ * @param x 
+ * @param y 
+ * @param polarity 
+ */
+void SurroundSuppression::writeEvents(events_list &events, float delta_b, float thresh, float frame_id, int x, int y, int polarity) {
     std::random_device rd;
     std::default_random_engine generator(rd());
 
     std::uniform_int_distribution<int> distribution(floor(-m_timestamp_noise/2),floor(m_timestamp_noise/2)+1);
     int nb_event;
     int moddiff = int(delta_b/thresh);
-    if(moddiff > m_n_max || moddiff <0)
-    {
+    if(moddiff > m_n_max || moddiff <0) {
         nb_event = m_n_max;
     }
-    else
-    {
+    else {
         nb_event = moddiff;
     }
-    for(int e=0; e<nb_event; e++)
-    {
+    for(int e=0; e<nb_event; e++) {
         int random_val = distribution(generator);
         int timestamp = ( ( (m_time_gap * (e+1) * thresh) /delta_b) + m_time_gap * frame_id + random_val );
-        if(timestamp < 0)
-        {
+        if(timestamp < 0) {
             timestamp = 0;
         }
         events.emplace_back(Event(timestamp,x,y,polarity,false));
@@ -425,59 +521,67 @@ void SurroundSuppression::writeEvents(std::vector<Event> &events, float delta_b,
     }
 }
 
-void SurroundSuppression::frameToEvents(int frame_id, cv::Mat frame, cv::Mat reference, cv::Mat &threshold_map, std::vector<Event> &events)
-{
-    cv::Mat delta = frame - reference;
-    for(int i=0; i<width_; i++)
-    {
-        for(int j=0; j<height_; j++)
-        {
-            if(delta.at<double>(cv::Point(i,j)) > threshold_map.at<double>(cv::Point(i,j)))
-            {
+/**
+ * Converts successive frames to events if a brightness threshold is locally reached.
+ * @param frame_id 
+ * @param frame 
+ * @param reference 
+ * @param threshold_map 
+ * @param events 
+ */
+void SurroundSuppression::frameToEvents(int frame_id, image_matrix frame, image_matrix reference, image_matrix &threshold_map, events_list &events) {
+    image_matrix delta = frame - reference;
+    for(int i=0; i<width_; i++) {
+        for(int j=0; j<height_; j++) {
+            if(delta.at<double>(cv::Point(i,j)) > threshold_map.at<double>(cv::Point(i,j))) {
                 writeEvents(events, delta.at<double>(cv::Point(i,j)), threshold_map.at<double>(cv::Point(i,j)), frame_id, i, j, 1);
                 threshold_map.at<double>(cv::Point(i,j)) *= (1+m_adapt_thresh_coef_shift);
             }
-            else if(delta.at<double>(cv::Point(i,j)) < -threshold_map.at<double>(cv::Point(i,j)))
-            {
+            else if(delta.at<double>(cv::Point(i,j)) < -threshold_map.at<double>(cv::Point(i,j))) {
                 writeEvents(events, -delta.at<double>(cv::Point(i,j)), threshold_map.at<double>(cv::Point(i,j)), frame_id, i, j, 0);
                 threshold_map.at<double>(cv::Point(i,j)) *= (1+m_adapt_thresh_coef_shift);
             }
-            else if(delta.at<double>(cv::Point(i,j)) <= threshold_map.at<double>(cv::Point(i,j)) || delta.at<double>(cv::Point(i,j)) >= -threshold_map.at<double>(cv::Point(i,j)))
-            {
+            else if(delta.at<double>(cv::Point(i,j)) <= threshold_map.at<double>(cv::Point(i,j)) || delta.at<double>(cv::Point(i,j)) >= -threshold_map.at<double>(cv::Point(i,j))) {
                 threshold_map.at<double>(cv::Point(i,j)) *= (1-m_adapt_thresh_coef_shift);
             }
         }
     }
 }
 
-void SurroundSuppression::createEvents(const std::string &pathToFrames, std::vector<Event> &events, int nbPass)
-{
-    cv::Mat threshold_map(cv::Size(width_, height_), CV_64FC1, cv::Scalar(m_map_threshold)); 
-    std::vector<std::string> frames;
-    for (const auto & frame : std::filesystem::directory_iterator{pathToFrames}) 
-    {
+/**
+ * Creates events sequence from a folder of frames of a moving object.
+ * @param pathToFrames 
+ * @param events 
+ * @param nbPass 
+ */
+void SurroundSuppression::createEvents(const std::string &pathToFrames, events_list &events, int nbPass) {
+    image_matrix threshold_map(cv::Size(width_, height_), CV_64FC1, cv::Scalar(m_map_threshold)); 
+    paths_container frames;
+    for (const auto & frame : std::filesystem::directory_iterator{pathToFrames}) {
         frames.emplace_back(frame.path().filename().stem().string());
     }
     std::sort(frames.begin(), frames.end(), compareImgName);
     std::string extension = ".png";
-    cv::Mat init = cv::imread(pathToFrames + frames[0] + extension);
-    cv::Mat reference(cv::Size(width_, height_), CV_64FC1);
+    image_matrix init = cv::imread(pathToFrames + frames[0] + extension);
+    image_matrix reference(cv::Size(width_, height_), CV_64FC1);
     convertFrame(init,reference);
     int sze = frames.size();
     int i =1;
-    while(i<frames.size())
-    {
+    while(i<frames.size()) {
         std::string newpath = pathToFrames + frames[i] + extension;
         init = cv::imread(pathToFrames + frames[i] + extension);
-        if (!init.data) 
-        {
+        if (!init.data) {
             std::cout << "Could not open or find" << " the image" << std::endl;
         }
-        cv::Mat frame(cv::Size(width_, height_), CV_64FC1, cv::Scalar(0));
+        image_matrix frame(cv::Size(width_, height_), CV_64FC1, cv::Scalar(0));
         convertFrame(init,frame);
         
         frameToEvents(i,frame,reference,threshold_map,events);
-        reference = frame;
+        for(int v=0; v<width_; v++) {
+            for(int w = 0; w<height_; w++) {
+                reference.at<double>(cv::Point(v,w)) = frame.at<double>(cv::Point(v,w));
+            }
+        }
         i++;
     }
     std::sort(events.begin(),events.end());
@@ -485,11 +589,9 @@ void SurroundSuppression::createEvents(const std::string &pathToFrames, std::vec
     long firstTimestamp = static_cast<long>((events.at(0)).timestamp());
     long actualLast = static_cast<long>((events.at(size-1)).timestamp());
     long value = actualLast - firstTimestamp;
-    int k=0;
     
     for(i=0; i<nbPass; i++)
     {
-        k+=1;
         for (int j=0; j<size; j++)
         {
             if(i>0)
@@ -502,5 +604,38 @@ void SurroundSuppression::createEvents(const std::string &pathToFrames, std::vec
                 break;
             }
         }
+    }
+}
+
+/**
+ * Re-initializes randomly the lateral inhibition weights.
+ */
+void SurroundSuppression::randomLateralInit() {
+    m_network.lateralRandom();
+}
+
+/**
+ * Shuffles one or all inhibition weights.
+ * @param c 
+ */
+void SurroundSuppression::shuffleInhibition(int c) {
+    m_network.inhibitionShuffle(c);
+}
+
+/**
+ * Orders correctly the png files generated by the class.
+ * @param file_1 
+ * @param file_2 
+ * @return true 
+ * @return false 
+ */
+bool SurroundSuppression::compareImgName(std::string file_1, std::string file_2) {
+    if(file_1.at(0)=='i' && file_1.at(1)=='m' && file_1.at(2) == 'g' && file_1.at(3)== '_' && file_2.at(0)=='i' && file_2.at(1)=='m' && file_2.at(2) == 'g' && file_2.at(3)== '_') {
+        file_1.erase(0,4);
+        file_2.erase(0,4);
+        return(std::stoi(file_1) < std::stoi(file_2));
+    }
+    else {
+        return false;
     }
 }

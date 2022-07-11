@@ -48,6 +48,8 @@ protected:
     std::vector<double> m_potentialThreshold;
     std::vector<size_t> m_amount_of_events;
     std::vector<std::vector<double>> m_sumOfInhibWeights;
+    std::vector<std::vector<double>> m_sumOfTopDownWeights;
+    std::vector<std::tuple<double, uint64_t>> m_excitatoryEvents;
     std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
     double m_spikingPotential{};
     double m_beforeInhibitionPotential{};
@@ -152,9 +154,13 @@ public:
 
     virtual void assignToAmountOfEvents(int type);
 
-    virtual void assignToSumInhibWeights(int type, Position pos, double wi);
+    virtual void assignToSumLateralWeights(int type, Position pos, double wi);
+
+    virtual void assignToSumTopDownWeights(int index, double wi, int depth);
 
     virtual void assignToTimingOfInhibition(int type, std::tuple<double, double, uint64_t> variation);
+
+    virtual void assignToExcitatoryEvents(std::tuple<double, uint64_t> event);
 
     virtual std::vector<std::pair<double, uint64_t>> getPotentialTrain();
 
@@ -162,9 +168,13 @@ public:
 
     virtual std::vector<size_t> getAmountOfEvents();
 
-    virtual std::vector<std::vector<double>> getSumInhibWeights();
+    virtual std::vector<std::vector<double>> getSumLateralWeights();
+
+    virtual std::vector<std::vector<double>> getSumTopDownWeights();
 
     virtual std::vector<std::vector<std::tuple<double, double, uint64_t>>> getTimingOfInhibition();
+
+    virtual std::vector<std::tuple<double, uint64_t>> getExcitatoryEvents();
 
     virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
@@ -180,7 +190,7 @@ public:
 
     virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void normalizeInhibWeights() {};
+//    virtual void normalizeInhibWeights() {};
 
     virtual void thresholdAdaptation();
 
@@ -225,6 +235,14 @@ public:
     virtual void learningDecay(double count);
 
     virtual void resetNeuron();
+
+    virtual void randomInhibition();
+
+    virtual void shuffleLateralInhibition();
+
+    virtual void shuffleTopDownInhibition();
+
+    virtual void resetSpikeTrain();
 
 protected:
 

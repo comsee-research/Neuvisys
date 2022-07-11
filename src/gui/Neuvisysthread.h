@@ -17,6 +17,7 @@
 #include "../simulator/SimulationInterface.hpp"
 #include "../camera/Ynoise.hpp"
 #include "../camera/EventCamera.hpp"
+#include "../network/SurroundSuppression.hpp"
 
 class NeuvisysThread : public QThread {
 Q_OBJECT
@@ -50,7 +51,7 @@ protected:
     size_t m_synapse = 0;
     size_t m_layer = 0;
 
-    double m_displayRate = 5000; // µs
+    double m_displayRate = 20000; // µs
     double m_trackRate = 10000; // µs
     size_t m_rangePotential = 10000; // µs
     size_t m_rangeSpiketrain = 1000000; // µs

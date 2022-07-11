@@ -2,16 +2,15 @@
 // Created by antony on 03/05/2022
 //
 
-/*This is a module to evaluate the phenomenon of surround suppression 
-    on multiple neurons with bars of different orientations and speed*/
+/**
+ * This is a class that works with SNNs to train sequentially data and generate simulated sequences of bars to evaluate the 
+ * surround suppression phenomenon. 
+ */
 
-#ifndef NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 0
-#define NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 1
+#ifndef NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 
+#define NEUVISYS_DV_SURROUND_SUPPRESSION_HPP 
 
-//#include <opencv2/core/core.hpp>
 #include <opencv2/opencv.hpp>
-/*#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc.hpp>*/
 #include <sstream>
 #include <algorithm>
 #include <random>
@@ -19,34 +18,28 @@
 #include <filesystem>
 #include "NetworkHandle.hpp"
 #include "Config.hpp"
-#define width_ 346
-#define height_ 260
 
-struct receptiveFieldDimensions {
-    int x_minus;
-    int x_plus;
-    int y_minus;
-    int y_plus;
-};
+typedef struct {int x_minus; int x_plus; int y_minus; int y_plus;} receptivefield;
+typedef std::vector<std::vector<receptivefield>> rfs_container;
+typedef std::vector<std::string> paths_container;
+typedef cv::Mat image_matrix;
+typedef std::vector<Event> events_list;
+typedef std::vector<events_list> events_sequences;
+const int width_ = 346;
+const int height_ = 260;
 
 class SurroundSuppression {
-    std::vector<std::string> m_path;
+    paths_container m_path;
     std::string m_networkPath;
     NetworkHandle& m_network;
-    NetworkConfig m_networkConf;
-    NeuronConfig m_simpleNeuronConf;
-    NeuronConfig m_complexNeuronConf;
-    NeuronConfig m_criticNeuronConf;
-    NeuronConfig m_actorNeuronConf;
-    std::vector<std::vector<receptiveFieldDimensions>> m_neuronsReceptiveField; 
+    rfs_container m_neuronsReceptiveField; 
 
 public: 
-//    SurroundSuppression();
-    SurroundSuppression(const std::string &networkPath, std::vector<std::string> path, NetworkHandle& network);
-    void Training(const std::string &typeOfTraining, int numberOfTimes, int epochs);
-    void getReceptiveField(int layer, int neuron_id, receptiveFieldDimensions &to_return);
-    void generateVerticalBars(std::vector<std::vector<Event>> &ev, int id_neur, int numberOfTypesOfBars, std::vector<int> lengthsOfBars, std::vector<int> yPositionStart, int speed, int nbPass);
-    void launchTrainingNeurons();
+    SurroundSuppression(const std::string &networkPath, const paths_container &path, NetworkHandle& network);
+    void train(const std::string &typeOfTraining, int numberOfTimes, int epochs);
+    void evaluateResponsesOnStimuli();
+    void randomLateralInit();
+    void shuffleInhibition(int c);
 
 private:
     int m_time_gap;
@@ -55,21 +48,19 @@ private:
     int m_n_max;
     float m_adapt_thresh_coef_shift;
     int m_timestamp_noise;
-    void convertFrame(cv::Mat frame, cv::Mat& new_frame);
-    void writeEvents(std::vector<Event> &events, float delta_b, float thresh, float frame_id, int x, int y, int polarity);
-    void frameToEvents(int frame_id, cv::Mat frame, cv::Mat reference, cv::Mat &threshold_map, std::vector<Event> &events);
-    void createEvents(const std::string &pathToFrames, std::vector<Event> &events, int nbPass);
-    static bool compareImgName(std::string file_1, std::string file_2){
-    if(file_1.at(0)=='i' && file_1.at(1)=='m' && file_1.at(2) == 'g' && file_1.at(3)== '_' && file_2.at(0)=='i' && file_2.at(1)=='m' && file_2.at(2) == 'g' && file_2.at(3)== '_')
-    {
-        file_1.erase(0,4);
-        file_2.erase(0,4);
-        return(stoi(file_1) < stoi(file_2));
-    }
-    else{
-        return false;
-    }
-    };
+    void getReceptiveField(int layer, const int neuron_id, receptivefield &to_return);
+    void generateBars(events_sequences &ev,  int numberOfTypesOfBars, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass);
+    void multiBars1Length(events_sequences &ev, const std::vector<int> &yPositionStart, const std::vector<int> &lengthsOfBars, int speed, int num_disparities, int nbPass, const std::string &pathToImgs, int thickness, int angle);
+    void oneBarMultiLengths(events_sequences &ev, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass, const std::string &pathToImgs, int thickness);
+    void findCenteredBarsPosition(int middle, int value, std::vector<int> &positionStart, std::vector<int> &listOfLengths, int numberOfBars);
+    void findMiddlePointOrdinate(int &middle, int angle);
+    bool verifyIfSafe();
+    void simulationChoices(std::string &choice, int &simulation, int &n_);
+    void convertFrame(image_matrix frame, image_matrix& new_frame);
+    void writeEvents(events_list &events, float delta_b, float thresh, float frame_id, int x, int y, int polarity);
+    void frameToEvents(int frame_id, image_matrix frame, image_matrix reference, image_matrix &threshold_map, events_list &events);
+    void createEvents(const std::string &pathToFrames, events_list &events, int nbPass);
+    static bool compareImgName(std::string file_1, std::string file_2);
 };
 
 #endif

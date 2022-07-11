@@ -97,7 +97,7 @@ public:
 
     void save(const std::string &eventFileName, size_t nbRun);
 
-    void saveStatistics(size_t sequence);
+    void saveStatistics(size_t simulation, size_t sequence, bool reset=false);
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
@@ -139,7 +139,15 @@ public:
 
     double getLastTimestamp() const { return m_eventFile.lastTimestamp; }
 
-    void changeTrack(int n_x, int n_y);
+    void changeNeuronToTrack(int n_x, int n_y);
+
+    void lateralRandom();
+
+    void inhibitionShuffle(int case_);
+
+    void assignOrientation(int z, int ori);
+
+    void assignComplexOrientation(int neur, int ori);
 
 private:
     void load();
