@@ -4,6 +4,7 @@
 
 #include "src/network/NetworkHandle.hpp"
 #include "src/network/SurroundSuppression.hpp"
+#include "src/resources/DefaultConfig.hpp"
 
 int main(int argc, char *argv[]) {
     if (argc > 2) {
@@ -21,16 +22,19 @@ int main(int argc, char *argv[]) {
 
         network.save(eventsPath, nbCount);
     } else if (argc > 1) {
-        NetworkConfig::createNetwork(argv[1]);
+        NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/Networks/natural/dsec/downsampling/";
-        std::string eventsPath = "/home/thomas/Videos/natural/dsec/interlaken_00_c_downsample_160_120.h5";
+        std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_nws_test/";
+        std::string eventsPath = "/home/thomas/neuvisys-dv/src/resources/shapes.h5";
 
+        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::oneLayerOnePatchNoWeightSharingConfig);
+
+        WeightMatrix::setSeed(15);
         NetworkHandle network(networkPath, eventsPath);
-        std::vector<Event> events;
+        Events events;
         std::cout << "Feeding network... " << std::endl;
-        size_t nbPass = 50;
+        size_t nbPass = 1;
 
         while (network.loadEvents(events, nbPass)) {
             network.feedEvents(events);

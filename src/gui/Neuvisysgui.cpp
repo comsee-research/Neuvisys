@@ -52,6 +52,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, const std::string &eventPath, co
     ui->lcd_range_potential->display(static_cast<double>(rangePotential) / 1000);
     ui->lcd_range_spiketrain->display(static_cast<double>(rangeSpiketrain) / 1000);
 
+
     /* Qt charts */
     eventRateSeries = new QLineSeries();
     networkRateSeries = new QLineSeries();
@@ -235,7 +236,7 @@ void NeuvisysGUI::on_button_network_directory_clicked() {
 
 void NeuvisysGUI::on_button_create_network_clicked() {
     QString dir = QFileDialog::getSaveFileName(this, "Open Directory", "/home");
-    NetworkConfig::createNetwork(dir.toStdString());
+    NetworkConfig::createNetwork(dir.toStdString(), PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     ui->text_network_directory->setText(dir);
     openConfigFiles();
 }

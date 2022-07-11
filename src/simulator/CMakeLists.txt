@@ -4,7 +4,8 @@ include_directories(${catkin_INCLUDE_DIRS})
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
-        ../network/Util.cpp
+        ../utils/Util.cpp
+        ../utils/WeightMatrix.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp

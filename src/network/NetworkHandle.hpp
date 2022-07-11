@@ -6,9 +6,6 @@
 #define NEUVISYS_DV_NETWORK_HANDLE_HPP
 
 #include "SpikingNetwork.hpp"
-#include "H5Cpp.h"
-#include "hdf5.h"
-#include <utility>
 
 struct H5EventFile {
     H5::H5File file;
@@ -124,7 +121,7 @@ public:
 
     uint64_t getLayout(size_t layer, Position pos) { return m_spinet.getLayout()[layer][{pos.x(), pos.y(), pos.z()}]; }
 
-    cv::Mat getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
+    cv::Mat neuronWeightMatrix(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z);
 
     cv::Mat getSummedWeightNeuron(size_t idNeuron, size_t layer);
 

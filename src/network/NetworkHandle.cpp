@@ -151,10 +151,8 @@ void NetworkHandle::updateNeurons(size_t time) {
  *
  */
 void NetworkHandle::resetAllNeurons() {
-    for (int layer = 0; layer < m_networkConf.getLayerCellTypes().size(); layer++) {
-        int numberOfNeuronsInLayer = m_networkConf.getLayerPatches()[layer][0].size() * m_networkConf.getLayerSizes()[layer][0] *
-                                     m_networkConf.getLayerPatches()[layer][1].size() * m_networkConf.getLayerSizes()[layer][1] *
-                                     m_networkConf.getLayerPatches()[layer][2].size() * m_networkConf.getLayerSizes()[layer][2];
+    for (int layer = 0; layer < m_networkConf.getLayerConnectivity().size(); layer++) {
+        size_t numberOfNeuronsInLayer = m_spinet.getNetworkStructure()[layer];
         for (int j = 0; j < numberOfNeuronsInLayer; j++) {
             m_spinet.getNeuron(j, layer).get().resetNeuron();
         }
@@ -168,7 +166,7 @@ void NetworkHandle::load() {
     std::string fileName;
     fileName = getNetworkConfig().getNetworkPath() + "networkState.json";
 
-    json state;
+    nlohmann::json state;
     std::ifstream ifs(fileName);
     if (ifs.is_open()) {
         try {
@@ -192,7 +190,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     std::string fileName;
     fileName = m_networkConf.getNetworkPath() + "networkState.json";
     m_iteration = 0;
-    json state;
+    nlohmann::json state;
     std::ifstream ifs(fileName);
 //    resetAllNeurons();
     if (ifs.is_open()) {
@@ -516,9 +514,9 @@ void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t l
  * @param z
  * @return
  */
-cv::Mat NetworkHandle::getWeightNeuron(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
+cv::Mat NetworkHandle::neuronWeightMatrix(size_t idNeuron, size_t layer, size_t camera, size_t synapse, size_t z) {
     if (m_spinet.getNetworkStructure()[layer] > 0) {
-        auto dim = m_spinet.getNeuron(0, layer).get().getWeightsDimension();
+        auto dim = getNetworkConfig().getLayerConnectivity()[layer].neuronSizes[0];
         cv::Mat weightImage = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
 
         double weight;
@@ -526,15 +524,12 @@ cv::Mat NetworkHandle::getWeightNeuron(size_t idNeuron, size_t layer, size_t cam
             for (size_t y = 0; y < dim[1]; ++y) {
                 if (layer == 0) {
                     for (size_t p = 0; p < NBPOLARITY; p++) {
-                        weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights(p, camera, synapse, x, y) * 255;
-                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 -
-                                                                                                             p)] = static_cast<unsigned char>
-                        (weight);
+                        weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights().get(p, camera, synapse, x, y) * 255;
+                        weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
                     }
                 } else {
-                    weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights(x, y, z) * 255;
-                    weightImage.at<cv::Vec3b>(static_cast<int>(y),
-                                              static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
+                    weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights().get(x, y, z) * 255;
+                    weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
                 }
             }
         }

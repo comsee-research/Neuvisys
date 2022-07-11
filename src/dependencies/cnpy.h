@@ -92,14 +92,14 @@ namespace cnpy {
         if(mode == "a") fp = fopen(fname.c_str(),"r+b");
 
         if(fp) {
-            //file exists. we need to append to it. read the header, modify the array size
+            //file exists. we need to append to it. read the header, modify the array sizes
             size_t word_size;
             bool fortran_order;
             parse_npy_header(fp,word_size,true_data_shape,fortran_order);
             assert(!fortran_order);
 
             if(word_size != sizeof(T)) {
-                std::cout<<"libnpy error: "<<fname<<" has word size "<<word_size<<" but npy_save appending data sized "<<sizeof(T)<<"\n";
+                std::cout<<"libnpy error: "<<fname<<" has word sizes "<<word_size<<" but npy_save appending data sized "<<sizeof(T)<<"\n";
                 assert( word_size == sizeof(T) );
             }
             if(true_data_shape.size() != shape.size()) {
@@ -145,7 +145,7 @@ namespace cnpy {
 
         if(fp) {
             //zip file exists. we need to add a new npy file to it.
-            //first read the footer. this gives us the offset and size of the global header
+            //first read the footer. this gives us the offset and sizes of the global header
             //then read and store the global header.
             //below, we will write the the new data at the start of the global header then append the global header and footer below it
             size_t global_header_size;
@@ -181,8 +181,8 @@ namespace cnpy {
         local_header += (uint16_t) 0; //file last mod time
         local_header += (uint16_t) 0;     //file last mod date
         local_header += (uint32_t) crc; //crc
-        local_header += (uint32_t) nbytes; //compressed size
-        local_header += (uint32_t) nbytes; //uncompressed size
+        local_header += (uint32_t) nbytes; //compressed sizes
+        local_header += (uint32_t) nbytes; //uncompressed sizes
         local_header += (uint16_t) fname.size(); //fname length
         local_header += (uint16_t) 0; //extra field length
         local_header += fname;

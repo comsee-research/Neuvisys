@@ -7,8 +7,8 @@
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     NeuvisysGUI w(argc, argv,
-                  "/home/thomas/Videos/natural/shapes/shapes_multiple_disparity.h5",
-                  "/home/thomas/Networks/simulation/rl/orientation_task/learn_value/");
+                  "/home/thomas/Videos/natural/shapes/shapes.h5",
+                  "/home/thomas/Networks/network/");
     w.setFixedSize(0.8 * QDesktopWidget().availableGeometry().size());
     w.show();
     return app.exec();

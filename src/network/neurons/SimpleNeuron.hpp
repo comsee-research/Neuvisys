@@ -5,8 +5,6 @@
 #ifndef NEUVISYS_DV_SIMPLENEURON_HPP
 #define NEUVISYS_DV_SIMPLENEURON_HPP
 
-#include <vector>
-#include <queue>
 #include "Neuron.hpp"
 
 struct CompareEventsTimestamp {
@@ -16,15 +14,16 @@ struct CompareEventsTimestamp {
 };
 
 class SimpleNeuron : public Neuron {
+protected:
     std::vector<size_t> m_delays;
     boost::circular_buffer<Event> m_events;
     boost::circular_buffer<NeuronEvent> m_topDownInhibitionEvents;
     boost::circular_buffer<NeuronEvent> m_lateralInhibitionEvents;
-    Eigen::Tensor<double, SIMPLEDIM> &m_weights;
     std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_waitingList;
+    WeightMatrix &m_sharedWeights;
+
 public:
-    SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset,
-                 Eigen::Tensor<double, SIMPLEDIM> &weights, size_t nbSynapses);
+    SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, WeightMatrix &weights, size_t nbSynapses);
 
     bool newEvent(Event event) override;
 
@@ -34,11 +33,11 @@ public:
 
     bool update() override;
 
-    double getWeights(long p, long c, long s, long x, long y) override { return m_weights(p, c, s, x, y); }
+    WeightMatrix &getWeights() override;
 
-    std::vector<long> getWeightsDimension() override;
+    std::vector<size_t> getWeightsDimension() override;
 
-    void saveWeights(std::string &filePath) override;
+    void saveWeights(const std::string &filePath) override;
 
     void saveLateralInhibitionWeights(std::string &filePath) override;
 
@@ -65,7 +64,6 @@ private:
 
     void spike(size_t time) override;
 
-    void normalizeInhibWeights() override;
 };
 
 #endif //NEUVISYS_DV_SIMPLENEURON_HPP

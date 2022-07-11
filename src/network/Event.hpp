@@ -57,27 +57,30 @@ public:
 
 class NeuronEvent {
     uint64_t m_timestamp{};
-    uint64_t m_x{};
-    uint64_t m_y{};
-    uint64_t m_z{};
-    uint64_t m_id{};
+    uint32_t m_x{};
+    uint32_t m_y{};
+    uint32_t m_z{};
+    uint32_t m_id{};
+    uint32_t m_layer{};
 
 public:
     NeuronEvent() = default;
 
-    inline NeuronEvent(uint64_t timestamp, uint32_t x, uint32_t y, uint32_t z) : m_timestamp(timestamp), m_x(x), m_y(y), m_z(z) {}
+    NeuronEvent(uint64_t timestamp, uint32_t id) : m_timestamp(timestamp), m_id(id) {}
 
-    inline NeuronEvent(uint64_t timestamp, uint64_t id) : m_timestamp(timestamp), m_id(id) {}
+    NeuronEvent(uint64_t timestamp, uint32_t x, uint32_t y, uint32_t z, uint32_t layer=0) : m_timestamp(timestamp), m_x(x), m_y(y), m_z(z), m_layer(layer) {}
 
-    [[nodiscard]] inline uint64_t timestamp() const { return m_timestamp; }
+    [[nodiscard]] uint64_t timestamp() const { return m_timestamp; }
 
-    [[nodiscard]] inline uint32_t x() const { return m_x; }
+    [[nodiscard]] uint32_t x() const { return m_x; }
 
-    [[nodiscard]] inline uint32_t y() const { return m_y; }
+    [[nodiscard]] uint32_t y() const { return m_y; }
 
-    [[nodiscard]] inline uint32_t z() const { return m_z; }
+    [[nodiscard]] uint32_t z() const { return m_z; }
 
-    [[nodiscard]] inline uint32_t id() const { return m_id; }
+    [[nodiscard]] uint32_t id() const { return m_id; }
+
+    [[nodiscard]] uint32_t layer() const { return m_layer; }
 };
 
 #endif //NEUVISYS_DV_EVENT_HPP

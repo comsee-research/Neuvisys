@@ -133,7 +133,7 @@ void Neuron::assignToSumInhibWeights(int type, Position pos, double wi) {
         position = (2 * (m_range_y) + 1) * (pos.x() - x_border_min) + (pos.y() - y_border_min);
     }
     if (m_sumOfInhibWeights.at(type).size() <= position) {
-        std::cout << "size = " << m_sumOfInhibWeights.at(type).size() << " ; position = " << position << std::endl;
+        std::cout << "sizes = " << m_sumOfInhibWeights.at(type).size() << " ; position = " << position << std::endl;
         std::cout << "pos x = " << pos.x() << " ; x border min = " << x_border_min << " ; pos y = " << pos.y() << " ; y_border_min = " << y_border_min
                   << std::endl;
         std::cout << "m pos x = " << m_pos.x() << " ; m pos y = " << m_pos.y() << std::endl;
@@ -409,8 +409,8 @@ void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
  *
  * @param neuron
  */
-void Neuron::initializeTopDownDynamicInhibitionWeights(Neuron &neuron) {
-    m_topDownInhibitionWeights[neuron.getIndex()] = 0;
+void Neuron::initializeTopDownDynamicInhibitionWeights() {
+    m_topDownInhibitionWeights.addNewWeight();
 }
 
 /**
@@ -427,7 +427,7 @@ void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
  */
 void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralDynamicInhibitionConnections.emplace_back(neuron);
-    m_lateralInhibitionWeights[neuron.getIndex()] = 0;
+    m_lateralInhibitionWeights.addNewWeight();
 }
 
 void Neuron::resetNeuron() {

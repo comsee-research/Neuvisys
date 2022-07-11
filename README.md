@@ -179,11 +179,11 @@ The network parameters are saved in json configuration files:
 | nbCameras | integer | [1, 2] | for mono or stereo applications. |
 | neuron1Synapses | integer | [1 - inf] | number of synapses between the pixel array and the first layer |
 | sharingType | string | ["none", "patch", "full"] | type of weight sharing. "none" = no weight sharing, "patch" = weights shared between patches/regions of neurons, "full" = weights shared among all network (even if there is multiple pacthes) |
-| layerCellTypes | list string | (["SimpleCell", "ComplexCell", "CriticCell", "ActorCell"], ...) | type of neuron used for each layer |
-| layerInhibitions | list string | (["none", "static", "topdown", "lateral"], ...) | type of newStaticInhibitoryEvent |
-| interLayerConnections | list integer | ([0 - inf], ...) | indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1) |
-| layerPatches | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z coordinates of the patches |
-| layerSizes | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of each neuronal layer |
+| neuronType | list string | (["SimpleCell", "ComplexCell", "CriticCell", "ActorCell"], ...) | type of neuron used for each layer |
+| inhibitions | list string | (["none", "static", "topdown", "lateral"], ...) | type of newStaticInhibitoryEvent |
+| interConnections | list integer | ([0 - inf], ...) | indicates to which layer the indicated one is connected to. The first layer is the layer 0 and is always connected to the pixel array (-1) |
+| patches | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z coordinates of the patches |
+| sizes | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of each neuronal layer |
 | neuronSizes | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | width, height and depth of the neurons receptive fields |
 | neuronOverlap | list of integer | (([0 - inf], [0 - inf], [0 - inf]), ...) | x, y and z overlap between neuronal receptive fields |
 | nu | real | [0 - inf] | learning rate for computing the td-error |

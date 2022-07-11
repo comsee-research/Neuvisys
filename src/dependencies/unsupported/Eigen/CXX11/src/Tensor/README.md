@@ -19,7 +19,7 @@ tensor rank.  The rank is the number of dimensions, for example rank 2 is a
 matrix.
 
 Tensors of this class are resizable.  For example, if you assign a tensor of a
-different size to a Tensor, that tensor is resized to match its new value.
+different sizes to a Tensor, that tensor is resized to match its new value.
 
 #### Constructor `Tensor<data_type, rank>(size0, size1, ...)`
 
@@ -47,11 +47,11 @@ from an initializer list.
 
 ### Class `TensorFixedSize<data_type, Sizes<size0, size1, ...>>`
 
-Class to use for tensors of fixed size, where the size is known at compile
+Class to use for tensors of fixed sizes, where the sizes is known at compile
 time.  Fixed sized tensors can provide very fast computations because all their
 dimensions are known by the compiler.  FixedSize tensors are not resizable.
 
-If the total number of elements in a fixed size tensor is small enough the
+If the total number of elements in a fixed sizes tensor is small enough the
 tensor data is held onto the stack and does not cause heap allocation and free.
 
     // Create a 4 m_jitterPos 3 tensor of floats.
@@ -70,7 +70,7 @@ are stored.
 #### Constructor `TensorMap<Tensor<data_type, rank>>(data, size0, size1, ...)`
 
 Constructor for a Tensor.  The constructor must be passed a pointer to the
-storage for the data, and "rank" size attributes.  The storage has to be
+storage for the data, and "rank" sizes attributes.  The storage has to be
 large enough to hold all the data.
 
     // Map a tensor of ints on top of stack-allocated storage.
@@ -81,8 +81,8 @@ large enough to hold all the data.
     // You can also pass the sizes as an array.
     TensorMap<Tensor<int, 2>> t_2d(storage, 16, 8);
 
-    // You can also map fixed-size tensors.  Here we get a 1d view of
-    // the 2d fixed-size tensor.
+    // You can also map fixed-sizes tensors.  Here we get a 1d view of
+    // the 2d fixed-sizes tensor.
     TensorFixedSize<float, Sizes<4, 3>> t_4x3;
     TensorMap<Tensor<float, 1>> t_12(t_4x3.data(), 12);
 
@@ -219,7 +219,7 @@ want to hold non-evaluated expressions.
 
 When you need the results of set of tensor computations you have to assign the
 result to a Tensor that will be capable of holding onto them.  This can be
-either a normal Tensor, a fixed size Tensor, or a TensorMap on an existing
+either a normal Tensor, a fixed sizes Tensor, or a TensorMap on an existing
 piece of memory.  All the following will work:
 
     auto t4 = t1 + t2;
@@ -292,10 +292,10 @@ expression Operation.
     Tensor<float, 3> result = ((t1 + t2).eval() * 0.2f).exp();
 
 Semantically, calling `eval()` is equivalent to materializing the value of
-the expression in a temporary Tensor of the right size.  The code above in
+the expression in a temporary Tensor of the right sizes.  The code above in
 effect does:
 
-    // .eval() knows the size!
+    // .eval() knows the sizes!
     TensorFixedSize<float, Sizes<4, 4, 2>> tmp = t1 + t2;
     Tensor<float, 3> result = (tmp * 0.2f).exp();
 
@@ -409,7 +409,7 @@ single-threaded CPU implementation:
 To choose a different implementation you have to insert a `device()` call
 before the assignment of the result.  For technical C++ reasons this requires
 that the Tensor for the result be declared on its own.  This means that you
-have to know the size of the result.
+have to know the sizes of the result.
 
     Eigen::Tensor<float, 2> c(30, 40);
     c.device(...) = a + b;
@@ -455,16 +455,16 @@ memory for tensors with cuda.
 In the documentation of the tensor methods and Operation we mention datatypes
 that are tensor-type specific:
 
-#### `<Tensor-Type>::``Dimensions`
+#### `<Tensor-Type>::``Dims`
 
-Acts like an array of ints.  Has an `int size` attribute, and can be
+Acts like an array of ints.  Has an `int sizes` attribute, and can be
 indexed like an array to access individual values.  Used to represent the
 dimensions of a tensor.  See `dimensions()`.
 
 #### `<Tensor-Type>::``Index`
 
 Acts like an `int`.  Used for indexing tensors along their dimensions.  See
-`operator()`, `dimension()`, and `size()`.
+`operator()`, `dimension()`, and `sizes()`.
 
 #### `<Tensor-Type>::``Scalar`
 
@@ -501,23 +501,23 @@ known as the tensor "rank".
       cout << "Dims " << a.NumDimensions;
       => Dims 2
 
-### `Dimensions dimensions()`
+### `Dims dimensions()`
 
 Returns an array-like object representing the dimensions of the tensor.
-The actual type of the `dimensions()` result is `<Tensor-Type>::``Dimensions`.
+The actual type of the `dimensions()` result is `<Tensor-Type>::``Dims`.
 
     Eigen::Tensor<float, 2> a(3, 4);
-    const Eigen::Tensor<float, 2>::Dimensions& d = a.dimensions();
-    cout << "Dim size: " << d.size << ", dim 0: " << d[0]
+    const Eigen::Tensor<float, 2>::Dims& d = a.dimensions();
+    cout << "Dim sizes: " << d.sizes << ", dim 0: " << d[0]
          << ", dim 1: " << d[1];
-    => Dim size: 2, dim 0: 3, dim 1: 4
+    => Dim sizes: 2, dim 0: 3, dim 1: 4
 
 If you use a C++11 compiler, you can use `auto` to simplify the code:
 
     const auto& d = a.dimensions();
-    cout << "Dim size: " << d.size << ", dim 0: " << d[0]
+    cout << "Dim sizes: " << d.sizes << ", dim 0: " << d[0]
          << ", dim 1: " << d[1];
-    => Dim size: 2, dim 0: 3, dim 1: 4
+    => Dim sizes: 2, dim 0: 3, dim 1: 4
 
 ### `Index dimension(Index n)`
 
@@ -530,18 +530,18 @@ always use it like an int.
       cout << "Dim 1: " << dim1;
       => Dim 1: 4
 
-### `Index size()`
+### `Index sizes()`
 
 Returns the total number of elements in the tensor.  This is the product of all
-the tensor dimensions.  The actual type of the `size()` result is
+the tensor dimensions.  The actual type of the `sizes()` result is
 `<Tensor-Type>::``Index`, but you can always use it like an int.
 
     Eigen::Tensor<float, 2> a(3, 4);
-    cout << "Size: " << a.size();
+    cout << "Size: " << a.sizes();
     => Size: 12
 
 
-### Getting Dimensions From An Operation
+### Getting Dims From An Operation
 
 A few operations provide `dimensions()` directly,
 e.g. `TensorReslicingOp`.  Most operations defer calculating dimensions
@@ -561,7 +561,7 @@ dimensionality while remaining agnostic to the underlying type.
 
 ### Tensor
 
-Creates a tensor of the specified size. The number of arguments must be equal
+Creates a tensor of the specified sizes. The number of arguments must be equal
 to the rank of the tensor. The content of the tensor is not initialized.
 
     Eigen::Tensor<float, 2> a(3, 4);
@@ -570,7 +570,7 @@ to the rank of the tensor. The content of the tensor is not initialized.
 
 ### TensorFixedSize
 
-Creates a tensor of the specified size. The number of arguments in the Sizes<>
+Creates a tensor of the specified sizes. The number of arguments in the Sizes<>
 template parameter determines the rank of the tensor. The content of the tensor
 is not initialized.
 
@@ -583,7 +583,7 @@ is not initialized.
 ### TensorMap
 
 Creates a tensor mapping an existing array of data. The data must not be freed
-until the TensorMap is discarded, and the size of the data must be large enough
+until the TensorMap is discarded, and the sizes of the data must be large enough
 to accommodate the coefficients of the tensor.
 
     float data[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -654,7 +654,7 @@ The type of the initializer list depends on the type and rank of the tensor.
 
 If the tensor has rank N, the initializer list must be nested N times.  The
 most deeply nested lists must contains P scalars of the Tensor type where P is
-the size of the last dimension of the Tensor.
+the sizes of the last dimension of the Tensor.
 
 For example, for a `TensorFixedSize<float, 2, 3>` the initializer list must
 contains 2 lists of 3 floats each.
@@ -1045,10 +1045,10 @@ The Eigen Tensor library provides a set of predefined reduction operators such
 as `maximum()` and `sum()` and lets you define additional operators by
 implementing a few methods from a reductor template.
 
-### Reduction Dimensions
+### Reduction Dims
 
 All reduction operations take a single parameter of type
-`<TensorType>::``Dimensions` which can always be specified as an array of
+`<TensorType>::``Dims` which can always be specified as an array of
 ints.  These are called the "reduction dimensions."  The values are the indices
 of the dimensions of the input tensor over which the reduction is done.  The
 parameter can have at most as many element as the rank of the input tensor;
@@ -1070,7 +1070,7 @@ Example: Reduction along one dimension.
     // Reduce it along the second dimension (1)...
     Eigen::array<int, 1> dims({1 /* dimension to reduce */});
     // ...using the "maximum" operator.
-    // The result is a tensor with one dimension.  The size of
+    // The result is a tensor with one dimension.  The sizes of
     // that dimension is the same as the first (non-reduced) dimension of a.
     Eigen::Tensor<int, 1> b = a.maximum(dims);
     cout << "a" << endl << a << endl << endl;
@@ -1095,7 +1095,7 @@ Example: Reduction along two dimensions.
                   {20.0f, 21.0f, 22.0f, 23.0f}}});
     // The tensor a has 3 dimensions.  We reduce along the
     // first 2, resulting in a tensor with a single dimension
-    // of size 4 (the last dimension of a.)
+    // of sizes 4 (the last dimension of a.)
     // Note that we pass the array of reduction dimensions
     // directly to the maximum() call.
     Eigen::Tensor<float, 1, Eigen::ColMajor> b =
@@ -1129,50 +1129,50 @@ scalar, represented as a zero-dimension tensor.
     276
 
 
-### `<Operation> sum(const Dimensions& new_dims)`
+### `<Operation> sum(const Dims& new_dims)`
 ### `<Operation> sum()`
 
 Reduce a tensor using the sum() operator.  The resulting values
 are the sum of the reduced values.
 
-### `<Operation> mean(const Dimensions& new_dims)`
+### `<Operation> mean(const Dims& new_dims)`
 ### `<Operation> mean()`
 
 Reduce a tensor using the mean() operator.  The resulting values
 are the mean of the reduced values.
 
-### `<Operation> maximum(const Dimensions& new_dims)`
+### `<Operation> maximum(const Dims& new_dims)`
 ### `<Operation> maximum()`
 
 Reduce a tensor using the maximum() operator.  The resulting values are the
 largest of the reduced values.
 
-### `<Operation> minimum(const Dimensions& new_dims)`
+### `<Operation> minimum(const Dims& new_dims)`
 ### `<Operation> minimum()`
 
 Reduce a tensor using the minimum() operator.  The resulting values
 are the smallest of the reduced values.
 
-### `<Operation> prod(const Dimensions& new_dims)`
+### `<Operation> prod(const Dims& new_dims)`
 ### `<Operation> prod()`
 
 Reduce a tensor using the prod() operator.  The resulting values
 are the product of the reduced values.
 
-### `<Operation> all(const Dimensions& new_dims)`
+### `<Operation> all(const Dims& new_dims)`
 ### `<Operation> all()`
 Reduce a tensor using the all() operator.  Casts tensor to bool and then checks
 whether all elements are true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
-### `<Operation> any(const Dimensions& new_dims)`
+### `<Operation> any(const Dims& new_dims)`
 ### `<Operation> any()`
 Reduce a tensor using the any() operator.  Casts tensor to bool and then checks
 whether any element is true.  Runs through all elements rather than
 short-circuiting, so may be significantly inefficient.
 
 
-### `<Operation> reduce(const Dimensions& new_dims, const Reducer& reducer)`
+### `<Operation> reduce(const Dims& new_dims, const Reducer& reducer)`
 
 Reduce a tensor using a user-defined reduction operator.  See `SumReducer`
 in TensorFunctors.h for information on how to implement a reduction operator.
@@ -1183,10 +1183,10 @@ in TensorFunctors.h for information on how to implement a reduction operator.
 A *Trace* operation returns a tensor with fewer dimensions than the original
 tensor. It returns a tensor whose elements are the sum of the elements of the
 original tensor along the main diagonal for a list of specified dimensions, the
-"trace dimensions". Similar to the `Reduction Dimensions`, the trace dimensions
-are passed as an input parameter to the operation, are of type `<TensorType>::``Dimensions`
+"trace dimensions". Similar to the `Reduction Dims`, the trace dimensions
+are passed as an input parameter to the operation, are of type `<TensorType>::``Dims`
 , and have the same requirements when passed as an input parameter. In addition,
-the trace dimensions must have the same size.
+the trace dimensions must have the same sizes.
 
 Example: Trace along 2 dimensions.
 
@@ -1208,7 +1208,7 @@ Example: Trace along 2 dimensions.
     15
 
 
-### `<Operation> trace(const Dimensions& new_dims)`
+### `<Operation> trace(const Dims& new_dims)`
 ### `<Operation> trace()`
 
 As a special case, if no parameter is passed to the operation, trace is computed
@@ -1216,7 +1216,7 @@ along *all* dimensions of the input tensor.
 
 Example: Trace along all dimensions.
 
-    // Create a tensor of 3 dimensions, with all dimensions having the same size.
+    // Create a tensor of 3 dimensions, with all dimensions having the same sizes.
     Eigen::Tensor<int, 3> a(3, 3, 3);
     a.setValues({{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}},
                 {{10, 11, 12}, {13, 14, 15}, {16, 17, 18}},
@@ -1247,7 +1247,7 @@ dd a comment to this line
     a.setValues({{1, 2, 3}, {4, 5, 6}});
     // Scan it along the second dimension (1) using summation
     Eigen::Tensor<int, 2> b = a.cumsum(1);
-    // The result is a tensor with the same size as the input
+    // The result is a tensor with the same sizes as the input
     cout << "a" << endl << a << endl << endl;
     cout << "b" << endl << b << endl << endl;
     =>
@@ -1270,10 +1270,10 @@ Perform a scan by multiplying consecutive entries.
 
 ## Convolutions
 
-### `<Operation> convolve(const Kernel& kernel, const Dimensions& dims)`
+### `<Operation> convolve(const Kernel& kernel, const Dims& dims)`
 
 Returns a tensor that is the output of the convolution of the input tensor with the kernel,
-along the specified dimensions of the input tensor. The dimension size for dimensions of the output tensor
+along the specified dimensions of the input tensor. The dimension sizes for dimensions of the output tensor
 which were part of the convolution will be reduced by the formula:
 output_dim_size = input_dim_size - kernel_dim_size + 1 (requires: input_dim_size >= kernel_dim_size).
 The dimension sizes for dimensions that were not part of the convolution will remain the same.
@@ -1313,7 +1313,7 @@ These operations return a Tensor with different dimensions than the original
 Tensor.  They can be used to access slices of tensors, see them with different
 dimensions, or pad tensors with additional data.
 
-### `<Operation> reshape(const Dimensions& new_dims)`
+### `<Operation> reshape(const Dims& new_dims)`
 
 Returns a view of the input tensor that has been reshaped to the specified
 new dimensions.  The argument new_dims is an array of Index values.  The
@@ -1323,7 +1323,7 @@ The product of all the sizes in the new dimension array must be equal to
 the number of elements in the input tensor.
 
     // Increase the rank of the input tensor by introducing a new dimension
-    // of size 1.
+    // of sizes 1.
     Tensor<float, 2> input(7, 11);
     array<int, 3> three_dims{{7, 11, 1}};
     Tensor<float, 3> result = input.reshape(three_dims);
@@ -1396,9 +1396,9 @@ the reshape view of b.
 
 Returns a copy of the input tensor whose dimensions have been
 reordered according to the specified permutation. The argument shuffle
-is an array of Index values. Its size is the rank of the input
+is an array of Index values. Its sizes is the rank of the input
 tensor. It must contain a permutation of 0, 1, ..., rank - 1. The i-th
-dimension of the output tensor equals to the size of the shuffle[i]-th
+dimension of the output tensor equals to the sizes of the shuffle[i]-th
 dimension of the input tensor. For example:
 
     // Shuffle all dimensions to the left by 1.
@@ -1713,16 +1713,16 @@ which is expected to have dimensions ordered as follows (depending on the data
 layout of the input tensor, and the number of additional dimensions 'N'):
 
 *) ColMajor
-1st dimension: channels (of size d)
-2nd dimension: rows (of size r)
-3rd dimension: columns (of size c)
+1st dimension: channels (of sizes d)
+2nd dimension: rows (of sizes r)
+3rd dimension: columns (of sizes c)
 4th-Nth dimension: time (for video) or batch (for bulk processing).
 
 *) RowMajor (reverse order of ColMajor)
 1st-Nth dimension: time (for video) or batch (for bulk processing).
-N+1'th dimension: columns (of size c)
-N+2'th dimension: rows (of size r)
-N+3'th dimension: channels (of size d)
+N+1'th dimension: columns (of sizes c)
+N+2'th dimension: rows (of sizes r)
+N+3'th dimension: channels (of sizes d)
 
 The returned tensor has one greater dimension than the input tensor, which is
 used to index each patch. The patch index in the output tensor depends on the
@@ -1799,7 +1799,7 @@ TODO
 
 ## Representation of scalar values
 
-Scalar values are often represented by tensors of size 1 and rank 0.For example
+Scalar values are often represented by tensors of sizes 1 and rank 0.For example
 Tensor<T, N>::maximum() currently returns a Tensor<T, 0>. Similarly, the inner
 product of 2 1d tensors (through contractions) returns a 0d tensor.
 

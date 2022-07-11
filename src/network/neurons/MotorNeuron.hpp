@@ -10,22 +10,18 @@
 class MotorNeuron : public Neuron {
     double m_neuromodulator{};
     boost::circular_buffer<NeuronEvent> m_events;
-    Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTrace;
-    Eigen::Tensor<double, COMPLEXDIM> m_eligibilityTiming;
-    Eigen::Tensor<double, COMPLEXDIM> &m_weights;
+    std::vector<WeightMatrix> m_weights;
+    std::vector<WeightMatrix> m_eligibilityTrace;
+    std::vector<WeightMatrix> m_eligibilityTiming;
 
 public:
-    MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Eigen::Tensor<double, 3> &weights);
+    MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions);
 
     bool newEvent(NeuronEvent event) override;
 
     void spike(size_t time) override;
 
-    double getWeights(long x, long y, long z) override;
-
-    std::vector<long> getWeightsDimension() override;
-
-    void saveWeights(std::string &filePath) override;
+    void saveWeights(const std::string &filePath) override;
 
     void loadWeights(std::string &filePath) override;
 

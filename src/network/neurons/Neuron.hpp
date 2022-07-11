@@ -6,8 +6,7 @@
 #define NEUVISYS_DV_NEURON_HPP
 
 #include "../Config.hpp"
-#include "../Util.hpp"
-#include <boost/circular_buffer.hpp>
+#include "../../utils/Util.hpp"
 #include <cmath>
 #include <list>
 #include <iomanip>
@@ -22,13 +21,14 @@ protected:
     NeuronConfig &m_conf;
     Position m_pos{};
     Position m_offset{};
+    WeightMatrix m_weights;
+    WeightMatrix m_topDownInhibitionWeights;
+    WeightMatrix m_lateralInhibitionWeights;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralStaticInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_topDownDynamicInhibitionConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralDynamicInhibitionConnections;
-    std::unordered_map<size_t, double> m_topDownInhibitionWeights;
-    std::unordered_map<size_t, double> m_lateralInhibitionWeights;
     int m_range_x;
     int m_range_y;
     size_t m_spikingTime{};
@@ -50,6 +50,18 @@ protected:
     std::vector<size_t> m_amount_of_events;
     std::vector<std::vector<double>> m_sumOfInhibWeights;
     std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
+
+    void writeJson(nlohmann::json &state);
+
+    void readJson(const nlohmann::json &state);
+
+    virtual void potentialDecay(size_t time);
+
+    virtual double refractoryPotential(size_t time);
+
+    virtual void adaptationPotentialDecay(size_t time);
+
+    virtual void spikeRateAdaptation();
 
 private:
     virtual void spike(size_t time) {};
@@ -79,17 +91,15 @@ public:
 
     virtual void resetActivityCount();
 
-    virtual NeuronConfig getConf() const { return m_conf; }
+    [[nodiscard]] virtual NeuronConfig getConf() const { return m_conf; }
 
-    virtual double getWeights(long x, long y, long z) {};
+    virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights.at(neuronId); }
 
-    virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights[neuronId]; }
+    virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights.at(neuronId); }
 
-    virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights[neuronId]; }
+    [[nodiscard]] virtual WeightMatrix &getWeights() { return m_weights; }
 
-    virtual double getWeights(long p, long c, long s, long x, long y) {};
-
-    virtual std::vector<long> getWeightsDimension() {};
+    virtual std::vector<size_t> getWeightsDimension() { return m_weights.getDimensions(); }
 
     virtual void weightUpdate() {};
 
@@ -120,17 +130,11 @@ public:
 
     virtual double getPotential(size_t time);
 
-    virtual void potentialDecay(size_t time);
-
-    virtual double refractoryPotential(size_t time);
-
-    virtual void adaptationPotentialDecay(size_t time);
-
     virtual void saveState(std::string &filePath);
 
     virtual void loadState(std::string &filePath);
 
-    virtual void saveWeights(std::string &filePath) {};
+    virtual void saveWeights(const std::string &filePath) {};
 
     virtual void saveLateralInhibitionWeights(std::string &filePath) {};
 
@@ -168,11 +172,7 @@ public:
 
     virtual void loadTopDownInhibitionWeights(cnpy::npz_t &arrayNPZ) {};
 
-    virtual void normalizeInhibWeights() {};
-
     virtual void thresholdAdaptation();
-
-    virtual void spikeRateAdaptation();
 
     virtual void addOutConnection(Neuron &neuron);
 
@@ -180,7 +180,7 @@ public:
 
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
-    virtual void initializeTopDownDynamicInhibitionWeights(Neuron &neuron);
+    virtual void initializeTopDownDynamicInhibitionWeights();
 
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
@@ -212,10 +212,6 @@ public:
 
     virtual void resetNeuron();
 
-protected:
-    void writeJson(json &state);
-
-    void readJson(const json &state);
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

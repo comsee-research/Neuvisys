@@ -172,6 +172,7 @@ private slots:
     void on_slider_layer_sliderMoved(int position);
 
     void on_button_stop_network_clicked();
+
 };
 
 #endif // NEUVISYSGUI_H
