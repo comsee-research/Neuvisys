@@ -13,3 +13,7 @@ set_target_properties(cnpy PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DI
 add_library(blocsc_filter SHARED IMPORTED GLOBAL)
 set_target_properties(blocsc_filter PROPERTIES IMPORTED_LOCATION "${CMAKE_CURRENT_LIST_DIR}/blocsc_filter/libblocsc_filter.so")
 
+if (BUILD_MOTOR_CONTROL OR (BUILD_GUI OR BUILD_GUI_SIMULATION))
+    add_subdirectory(libserie)
+endif ()
+
