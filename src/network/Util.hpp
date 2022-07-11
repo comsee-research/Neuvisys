@@ -8,6 +8,7 @@
 #include "../dependencies/unsupported/Eigen/CXX11/Tensor"
 #include <random>
 #include <chrono>
+#include <utility>
 #include "cnpy.h"
 #include "Event.hpp"
 
@@ -88,6 +89,51 @@ public:
     [[nodiscard]] inline uint64_t y() const { return m_posy; }
 
     [[nodiscard]] inline uint64_t z() const { return m_posz; }
+};
+
+class Matrix {
+    std::vector<size_t> m_dimensions;
+    std::vector<double> m_data;
+public:
+    explicit Matrix(std::vector<size_t> dimensions) : m_dimensions(std::move(dimensions)) {
+        size_t size = 0;
+        for (const auto &dim: dimensions) {
+            size += dim;
+        }
+        m_data = std::vector<double>(size);
+    }
+
+    double &operator()(size_t a, size_t b) {
+        return m_data[a * m_dimensions[0] + b];
+    }
+
+    double operator()(size_t a, size_t b) const {
+        return m_data[a * m_dimensions[0] + b];
+    }
+
+    double &operator()(size_t a, size_t b, size_t c) {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c];
+    }
+
+    double operator()(size_t a, size_t b, size_t c) const {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c];
+    }
+
+    double &operator()(size_t a, size_t b, size_t c, size_t d) {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c * m_dimensions[2] + d];
+    }
+
+    double operator()(size_t a, size_t b, size_t c, size_t d) const {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c * m_dimensions[2] + d];
+    }
+
+    double &operator()(size_t a, size_t b, size_t c, size_t d, size_t e) {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c * m_dimensions[2] + d * m_dimensions[3] + e];
+    }
+
+    double operator()(size_t a, size_t b, size_t c, size_t d, size_t e) const {
+        return m_data[a * m_dimensions[0] + b * m_dimensions[1] + c * m_dimensions[2] + d * m_dimensions[3] + e];
+    }
 };
 
 #endif //NEUVISYS_DV_UTIL_HPP

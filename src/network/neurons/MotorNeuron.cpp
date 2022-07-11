@@ -72,7 +72,7 @@ double MotorNeuron::updateKernelSpikingRate(long time) {
     double kernelSpikingRate = 0;
     size_t count = 0;
     for (auto spikeTime = m_trackingSpikeTrain.rbegin(); spikeTime != m_trackingSpikeTrain.rend(); ++spikeTime) {
-        if (count > 200) {
+        if (count > 10000) {
             break;
         } else {
             kernelSpikingRate += kernel(static_cast<double>(time - *spikeTime) / E6);
