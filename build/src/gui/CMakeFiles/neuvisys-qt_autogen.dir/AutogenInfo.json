@@ -1,0 +1,226 @@
+{
+	"BUILD_DIR" : "/home/comsee/neuvisys-cpp/build/src/gui/neuvisys-qt_autogen",
+	"CMAKE_BINARY_DIR" : "/home/comsee/neuvisys-cpp/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/comsee/neuvisys-cpp/build/src/gui",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/comsee/neuvisys-cpp/src/gui",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
+	"CMAKE_SOURCE_DIR" : "/home/comsee/neuvisys-cpp",
+	"HEADERS" : 
+	[
+		[
+			"/home/comsee/neuvisys-cpp/src/camera/EventCamera.hpp",
+			"MU",
+			"L5HO7FV7KU/moc_EventCamera.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/camera/Ynoise.hpp",
+			"MU",
+			"L5HO7FV7KU/moc_Ynoise.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/gui/GLWidget.h",
+			"MU",
+			"EWIEGA46WW/moc_GLWidget.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/gui/Neuvisysgui.h",
+			"MU",
+			"EWIEGA46WW/moc_Neuvisysgui.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/gui/Neuvisysthread.h",
+			"MU",
+			"EWIEGA46WW/moc_Neuvisysthread.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/BrushlessMotor.hpp",
+			"MU",
+			"MSI3OICUAL/moc_BrushlessMotor.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/libserie/Faulhaber.hpp",
+			"MU",
+			"OL555T4Y3B/moc_Faulhaber.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/libserie/comserie.hpp",
+			"MU",
+			"OL555T4Y3B/moc_comserie.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/Config.hpp",
+			"MU",
+			"4KSEZJVZ5M/moc_Config.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/NetworkHandle.hpp",
+			"MU",
+			"4KSEZJVZ5M/moc_NetworkHandle.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/SpikingNetwork.hpp",
+			"MU",
+			"4KSEZJVZ5M/moc_SpikingNetwork.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/SurroundSuppression.hpp",
+			"MU",
+			"4KSEZJVZ5M/moc_SurroundSuppression.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/Util.hpp",
+			"MU",
+			"4KSEZJVZ5M/moc_Util.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/ComplexNeuron.hpp",
+			"MU",
+			"WMX6VGR6OR/moc_ComplexNeuron.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/MotorNeuron.hpp",
+			"MU",
+			"WMX6VGR6OR/moc_MotorNeuron.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/Neuron.hpp",
+			"MU",
+			"WMX6VGR6OR/moc_Neuron.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/SimpleNeuron.hpp",
+			"MU",
+			"WMX6VGR6OR/moc_SimpleNeuron.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/simulator/FrameToEvents.hpp",
+			"MU",
+			"ZDK2RHNEWY/moc_FrameToEvents.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/simulator/Motor.hpp",
+			"MU",
+			"ZDK2RHNEWY/moc_Motor.cpp"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/simulator/SimulationInterface.hpp",
+			"MU",
+			"ZDK2RHNEWY/moc_SimulationInterface.cpp"
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/home/comsee/neuvisys-cpp/build/src/gui/neuvisys-qt_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/comsee/neuvisys-cpp/build/src/gui/neuvisys-qt_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CHARTS_LIB",
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NO_DEBUG",
+		"QT_WIDGETS_LIB",
+		"ROSCONSOLE_BACKEND_LOG4CXX",
+		"ROS_BUILD_SHARED_LIBS=1",
+		"ROS_PACKAGE_NAME=\"neuvisys\""
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/home/comsee/neuvisys-cpp/build/src/gui",
+		"/home/comsee/neuvisys-cpp/src/gui",
+		"/usr/include/hdf5/serial",
+		"/usr/include/python3.8",
+		"/home/comsee/neuvisys-cpp/PUBLIC",
+		"/home/comsee/neuvisys-cpp/src/dependencies",
+		"/opt/ros/noetic/include",
+		"/opt/ros/noetic/include/xmlrpcpp",
+		"/usr/include/opencv4",
+		"/usr/local/include/opencv4",
+		"/usr/include/x86_64-linux-gnu/qt5",
+		"/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
+		"/usr/include/x86_64-linux-gnu/qt5/QtGui",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCore",
+		"/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCharts",
+		"/usr/include",
+		"/usr/include/c++/9",
+		"/usr/include/x86_64-linux-gnu/c++/9",
+		"/usr/include/c++/9/backward",
+		"/usr/lib/gcc/x86_64-linux-gnu/9/include",
+		"/usr/local/include",
+		"/usr/include/x86_64-linux-gnu"
+	],
+	"MOC_MACRO_NAMES" : [ "Q_OBJECT", "Q_GADGET", "Q_NAMESPACE" ],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : true,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-dM",
+		"-E",
+		"-c",
+		"/usr/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/home/comsee/neuvisys-cpp/build/src/gui/neuvisys-qt_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "/home/comsee/neuvisys-cpp/build/src/gui/CMakeFiles/neuvisys-qt_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/lib/qt5/bin/uic",
+	"QT_VERSION_MAJOR" : 5,
+	"SETTINGS_FILE" : "/home/comsee/neuvisys-cpp/build/src/gui/CMakeFiles/neuvisys-qt_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[ "/home/comsee/neuvisys-cpp/src/camera/EventCamera.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/camera/Ynoise.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/gui/GLWidget.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/gui/Gui.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/gui/Neuvisysgui.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/gui/Neuvisysthread.cpp", "MU" ],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/BrushlessMotor.cpp",
+			"MU"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/libserie/Faulhaber.cpp",
+			"MU"
+		],
+		[
+			"/home/comsee/neuvisys-cpp/src/motor-control/libserie/comserie.cpp",
+			"MU"
+		],
+		[ "/home/comsee/neuvisys-cpp/src/network/Config.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/network/NetworkHandle.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/network/SpikingNetwork.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/network/SurroundSuppression.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/network/Util.cpp", "MU" ],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/ComplexNeuron.cpp",
+			"MU"
+		],
+		[ "/home/comsee/neuvisys-cpp/src/network/neurons/MotorNeuron.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/network/neurons/Neuron.cpp", "MU" ],
+		[
+			"/home/comsee/neuvisys-cpp/src/network/neurons/SimpleNeuron.cpp",
+			"MU"
+		],
+		[ "/home/comsee/neuvisys-cpp/src/simulator/FrameToEvents.cpp", "MU" ],
+		[ "/home/comsee/neuvisys-cpp/src/simulator/Motor.cpp", "MU" ],
+		[
+			"/home/comsee/neuvisys-cpp/src/simulator/SimulationInterface.cpp",
+			"MU"
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}
