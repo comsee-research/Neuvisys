@@ -1,4 +1,4 @@
-set(PROG_NAME neuvisys-exe)
+set(PROG_NAME neuvisys-control)
 
 message("-----------------------------------------------------------------------------------------")
 message("\tNeuvisys - ${PROG_NAME}")
@@ -7,7 +7,7 @@ message("-----------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 #-------------------------------------------------------------------------------
 add_executable(${PROG_NAME} src/main.cpp)
-target_link_libraries(${PROG_NAME} PRIVATE network)
+target_link_libraries(${PROG_NAME} PRIVATE network motor_control)
 
 install(TARGETS ${PROG_NAME} DESTINATION bin)
 

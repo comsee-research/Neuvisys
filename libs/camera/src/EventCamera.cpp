@@ -3,7 +3,7 @@
 //
 
 #include <iostream>
-#include "EventCamera.hpp"
+#include <camera/EventCamera.hpp>
 
 static std::atomic_bool globalShutdown(false);
 

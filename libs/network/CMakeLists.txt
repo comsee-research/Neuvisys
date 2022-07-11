@@ -59,7 +59,7 @@ target_include_directories(
 	${MY_LIB_NAME} 
 	PUBLIC ${HDF5_INCLUDE_DIRS} include/
 	PROTECTED ${PYTHON_INCLUDE_DIRS} ${OpenCV_INCLUDE_DIRS} 
-	PRIVATE include/network/neurons include/network
+	PRIVATE ${HDRS_BASE_PATH}/neurons ${HDRS_BASE_PATH}
 )
 target_link_libraries(
 	${MY_LIB_NAME} 

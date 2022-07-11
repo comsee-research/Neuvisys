@@ -2,7 +2,7 @@
 // Created by Thomas on 10/12/2021.
 //
 
-#include "Ynoise.hpp"
+#include <camera/Ynoise.hpp>
 
 Ynoise::Ynoise(uint32_t sizeX, uint32_t sizeY, uint32_t deltaT, uint8_t lParam, uint8_t threshold) :
         deltaT(deltaT), lParam(lParam), threshold(threshold), sizeX(sizeX), sizeY(sizeY) {

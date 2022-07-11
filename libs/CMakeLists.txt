@@ -9,7 +9,7 @@ endif ()
 
 #motor-control + required by gui and gui-simu
 if (BUILD_MOTOR_CONTROL OR (BUILD_GUI OR BUILD_GUI_SIMULATION))
-    add_subdirectory(motor-control)
+    add_subdirectory(motor_control)
 endif ()
 
 #simulator + required by gui-simu
@@ -24,7 +24,7 @@ endif ()
 
 #gui-simu
 if (BUILD_GUI_SIMULATION)
-    add_subdirectory(gui-simulation)
+    add_subdirectory(gui_simulation)
 endif()
 
 #=================== includes apps subdirectory ================================

@@ -4,7 +4,7 @@ add_subdirectory(neuvisys)
 
 #motor-control
 if (BUILD_MOTOR_CONTROL)
-    add_subdirectory(motor-control)
+    add_subdirectory(motor_control)
 endif ()
 
 #simulator
@@ -19,7 +19,7 @@ endif ()
 
 #gui-simu
 if (BUILD_GUI_SIMULATION)
-    add_subdirectory(gui-simulation)
+    add_subdirectory(gui_simulation)
 endif()
 
 
