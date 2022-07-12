@@ -7,10 +7,23 @@
 MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions) :
         Neuron(index, layer, conf, pos, Position()),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
+    size_t lay = 0;
     for (const auto &dimension : dimensions) {
-        m_multiWeights.emplace_back(dimension, true, m_conf.NORM_FACTOR); // TODO: only working for all to all connections
-        m_eligibilityTrace.emplace_back(dimension, false, 0);
-        m_eligibilityTiming.emplace_back(dimension, false, 0);
+        m_multiWeights.emplace_back(dimension);
+        m_eligibilityTrace.emplace_back(dimension);
+        m_eligibilityTiming.emplace_back(dimension);
+
+        size_t nbWeights = 1;
+        for (const auto d : dimension) {
+            nbWeights *= d;
+        }
+        for (size_t i = 0; i < nbWeights; ++i) {
+            m_multiWeights[lay].addWeight(i, true);
+            m_eligibilityTrace[lay].addWeight(i, false);
+            m_eligibilityTiming[lay].addWeight(i, false);
+        }
+        m_multiWeights[lay].normalize(m_conf.NORM_FACTOR);
+        ++lay;
     }
 }
 
@@ -90,7 +103,7 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
     for (int i = 0; i < dim[0]; ++i) {
         for (int j = 0; j < dim[1]; ++j) {
             for (int k = 0; k < dim[2]; ++k) {
-                sum += m_multiWeights[0].get(i, j, k);
+                sum += m_multiWeights[0].at(k + j * dim[2] + i * dim[2] * dim[1]);
             }
             if (sum > max) {
                 max = sum;

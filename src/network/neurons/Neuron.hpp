@@ -7,6 +7,7 @@
 
 #include "../Config.hpp"
 #include "../../utils/Util.hpp"
+#include "../../utils/WeightMap.hpp"
 #include <cmath>
 #include <list>
 #include <iomanip>
@@ -21,9 +22,9 @@ protected:
     NeuronConfig &m_conf;
     Position m_pos{};
     Position m_offset{};
-    WeightMatrix m_weights;
-    WeightMatrix m_topDownInhibitionWeights;
-    WeightMatrix m_lateralInhibitionWeights;
+    WeightMap m_weights;
+    WeightMap m_topDownInhibitionWeights;
+    WeightMap m_lateralInhibitionWeights;
     std::vector<std::reference_wrapper<Neuron>> m_outConnections;
     std::vector<std::reference_wrapper<Neuron>> m_inConnections;
     std::vector<std::reference_wrapper<Neuron>> m_lateralStaticInhibitionConnections;
@@ -97,7 +98,9 @@ public:
 
     virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights.at(neuronId); }
 
-    [[nodiscard]] virtual WeightMatrix &getWeights() { return m_weights; }
+    [[nodiscard]] virtual WeightMap &getWeightsMap() { return m_weights; }
+
+    virtual WeightMatrix &getWeightsMatrix() {};
 
     virtual std::vector<size_t> getWeightsDimension() { return m_weights.getDimensions(); }
 
@@ -178,11 +181,17 @@ public:
 
     virtual void addInConnection(Neuron &neuron);
 
+    virtual void initInWeights(size_t id);
+
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
+
+    virtual void initTopDownDynamicInhibitionWeights(size_t id);
 
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
+
+    virtual void initLateralDynamicInhibitionWeights(size_t id);
 
     virtual bool newEvent(Event event) {};
 
@@ -209,8 +218,6 @@ public:
     virtual void learningDecay(double count);
 
     virtual void resetNeuron();
-
-    virtual void initWeights();
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

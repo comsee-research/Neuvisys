@@ -524,11 +524,11 @@ cv::Mat NetworkHandle::neuronWeightMatrix(size_t idNeuron, size_t layer, size_t 
             for (size_t y = 0; y < dim[1]; ++y) {
                 if (layer == 0) {
                     for (size_t p = 0; p < NBPOLARITY; p++) {
-                        weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights().get(p, camera, synapse, x, y) * 255;
+                        weight = m_spinet.getNeuron(idNeuron, layer).get().getWeightsMatrix().get(p, camera, synapse, x, y) * 255;
                         weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[static_cast<int>(2 - p)] = static_cast<unsigned char>(weight);
                     }
                 } else {
-                    weight = m_spinet.getNeuron(idNeuron, layer).get().getWeights().get(x, y, z) * 255;
+                    weight = m_spinet.getNeuron(idNeuron, layer).get().getWeightsMap().at(z + y * dim[2] + x * dim[2] * dim[1]) * 255;
                     weightImage.at<cv::Vec3b>(static_cast<int>(y), static_cast<int>(x))[0] = static_cast<unsigned char>(weight);
                 }
             }

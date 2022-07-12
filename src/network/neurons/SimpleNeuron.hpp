@@ -33,7 +33,7 @@ public:
 
     bool update() override;
 
-    WeightMatrix &getWeights() override;
+    WeightMatrix &getWeightsMatrix() override;
 
     std::vector<size_t> getWeightsDimension() override;
 

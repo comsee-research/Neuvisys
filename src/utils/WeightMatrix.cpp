@@ -4,8 +4,6 @@
 
 #include "WeightMatrix.hpp"
 
-#include <utility>
-
 std::random_device WeightMatrix::m_rd;
 std::mt19937 WeightMatrix::m_generator(WeightMatrix::m_rd());
 std::uniform_real_distribution<double> WeightMatrix::m_uniformRealDistr(0.0, 1.0);
@@ -26,20 +24,9 @@ WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, double 
 
     for (size_t i = 0; i < nbWeights; ++i) {
         if (uniform) {
-            m_data[i] = m_uniformRealDistr(m_generator);
+            m_data.push_back(m_uniformRealDistr(m_generator));
         } else {
-            m_data[i] = 0;
-        }
-    }
-    normalize(normFactor);
-}
-
-void WeightMatrix::initWeights(const std::vector<size_t> &indices, bool uniform, double normFactor) {
-    for (const auto &id : indices) {
-        if (uniform) {
-            m_data[id] = m_uniformRealDistr(m_generator);
-        } else {
-            m_data[id] = 0;
+            m_data.push_back(0);
         }
     }
     normalize(normFactor);
@@ -48,7 +35,7 @@ void WeightMatrix::initWeights(const std::vector<size_t> &indices, bool uniform,
 double WeightMatrix::getNorm() {
     double norm = 0;
     for (const auto &element : m_data) {
-        norm += pow(element.second, 2);
+        norm += pow(element, 2);
     }
     return sqrt(norm);
 }
@@ -57,7 +44,7 @@ void WeightMatrix::normalize(const double normFactor) {
     auto norm = getNorm();
     if (norm != 0) {
         for (auto &element : m_data) {
-            element.second *= normFactor / norm;
+            element *= normFactor / norm;
         }
     }
 }
@@ -84,24 +71,20 @@ void WeightMatrix::saveWeightsToNumpyFile(const std::string &filePath, const std
     cnpy::npz_save(filePath, arrayName, &data[0], m_dimensions, "a");
 }
 
-void WeightMatrix::mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data) {
+void WeightMatrix::mapToWeights(const std::vector<double> &map, std::vector<double> &data) {
     size_t count = 0;
     for (auto const &element: map) {
-        data[count] = element.second;
+        data[count] = element;
         ++count;
     }
 }
 
-void WeightMatrix::weightsToMap(std::unordered_map<size_t, double> &map, const double *weights) {
+void WeightMatrix::weightsToMap(std::vector<double> &map, const double *weights) {
     size_t count = 0;
     for (auto &element: map) {
-        element.second = weights[count];
+        element = weights[count];
         ++count;
     }
-}
-
-double &WeightMatrix::at(size_t id) { // direct indexing
-    return m_data.at(id);
 }
 
 double &WeightMatrix::get(size_t a) { // dimensional indexing

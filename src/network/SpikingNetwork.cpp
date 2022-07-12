@@ -296,7 +296,6 @@ void SpikingNetwork::connectLayer(const LayerConnectivity &connections) {
         if (std::find(connections.inhibitions.begin(), connections.inhibitions.end(), "lateral") != connections.inhibitions.end()) {
             lateralDynamicInhibitionConnection(neuron.get(), currLayer, connections.patches, connections.sizes);
         }
-        neuron.get().initWeights();
     }
 }
 
@@ -327,9 +326,11 @@ void SpikingNetwork::topDownConnection(Neuron &neuron, const std::vector<int> &i
                         m_pixelMapping[i * m_networkConf.getVfHeight() + j].push_back(neuron.getIndex());
                     } else {
                         neuron.addInConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
+                        neuron.initInWeights(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().getIndex());
                         m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addOutConnection(neuron);
                         if ((std::find(inhibition.begin(), inhibition.end(), "topdown") != inhibition.end())) {
                             neuron.addTopDownDynamicInhibitionConnection(m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]]);
+                            m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().initTopDownDynamicInhibitionWeights(neuron.getIndex());
                             m_neurons[layerToConnect][m_layout[layerToConnect][{i, j, k}]].get().addTopDownDynamicInhibitionConnection(neuron);
                         }
                     }
@@ -356,6 +357,7 @@ void SpikingNetwork::lateralDynamicInhibitionConnection(Neuron &neuron, const si
                     x < layerPatches[0].size() * layerSizes[0] &&
                     y < layerPatches[1].size() * layerSizes[1]) {
                     neuron.addLateralDynamicInhibitionConnections(m_neurons[currLayer][m_layout[currLayer][{x, y, z}]]);
+                    neuron.initLateralDynamicInhibitionWeights(m_neurons[currLayer][m_layout[currLayer][{x, y, z}]].get().getIndex());
                 }
             }
         }

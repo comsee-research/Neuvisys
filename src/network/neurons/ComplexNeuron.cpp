@@ -7,7 +7,7 @@
 ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, const std::vector<size_t> &dimensions) :
         Neuron(index, layer, conf, pos, offset),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
-    m_weights = WeightMatrix(dimensions);
+    m_weights = WeightMap(dimensions);
 }
 
 inline bool ComplexNeuron::newEvent(NeuronEvent event) {
@@ -69,7 +69,7 @@ inline cv::Mat ComplexNeuron::summedWeightMatrix() {
     for (int i = 0; i < dim[0]; ++i) {
         for (int j = 0; j < dim[1]; ++j) {
             for (int k = 0; k < dim[2]; ++k) {
-                sum += m_weights.get(i, j, k);
+                sum += m_weights.at(k + j * dim[2] + i * dim[2] * dim[1]);
             }
             if (sum > max) {
                 max = sum;

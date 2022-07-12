@@ -6,6 +6,7 @@ set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
         ../utils/Util.cpp
         ../utils/WeightMatrix.cpp
+        ../utils/WeightMap.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp

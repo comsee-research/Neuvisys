@@ -18,6 +18,7 @@ set(PROJECT_SOURCES
         ../resources/DefaultConfig.cpp
         ../utils/Util.cpp
         ../utils/WeightMatrix.cpp
+        ../utils/WeightMap.cpp
         ../network/Config.cpp
         ../network/neurons/Neuron.cpp
         ../network/neurons/SimpleNeuron.cpp

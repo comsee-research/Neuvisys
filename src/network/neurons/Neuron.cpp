@@ -399,11 +399,28 @@ void Neuron::addInConnection(Neuron &neuron) {
 
 /**
  *
+ * @param id
+ */
+void Neuron::initInWeights(size_t id) {
+    m_weights.addWeight(id, true);
+}
+
+/**
+ *
  * @param neuron
  */
 void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
     m_topDownDynamicInhibitionConnections.emplace_back(neuron);
 }
+
+/**
+ *
+ * @param neuron
+ */
+void Neuron::initTopDownDynamicInhibitionWeights(size_t id) {
+    m_topDownInhibitionWeights.addWeight(id, false);
+}
+
 
 /**
  *
@@ -419,26 +436,15 @@ void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
  */
 void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralDynamicInhibitionConnections.emplace_back(neuron);
+
 }
 
-void Neuron::initWeights() {
-    std::vector<size_t> indices;
-    for (const auto &neuron : m_inConnections) {
-        indices.push_back(neuron.get().getIndex());
-    }
-    m_weights.initWeights(indices, true, m_conf.NORM_FACTOR);
-
-    indices.clear();
-    for (const auto &neuron : m_topDownDynamicInhibitionConnections) {
-        indices.push_back(neuron.get().getIndex());
-    }
-
-
-    indices.clear();
-    for (const auto &neuron : m_lateralDynamicInhibitionConnections) {
-        indices.push_back(neuron.get().getIndex());
-    }
-    m_lateralInhibitionWeights.initWeights(indices, false, 0);
+/**
+ *
+ * @param id
+ */
+void Neuron::initLateralDynamicInhibitionWeights(size_t id) {
+    m_lateralInhibitionWeights.addWeight(id, false);
 }
 
 /**

@@ -1,17 +1,17 @@
 //
-// Created by thomas on 06/07/22.
+// Created by thomas on 12/07/2022.
 //
 
-#ifndef NEUVISYS_WEIGHTMATRIX_HPP
-#define NEUVISYS_WEIGHTMATRIX_HPP
+#ifndef NEUVISYS_WEIGHTMAP_HPP
+#define NEUVISYS_WEIGHTMAP_HPP
 
 #include <random>
-#include <utility>
 #include "Type.hpp"
+#include <utility>
 #include "cnpy.h"
 
-class WeightMatrix {
-    std::vector<double> m_data;
+class WeightMap {
+    std::unordered_map<size_t, double> m_data;
     std::vector<size_t> m_dimensions;
 
     static std::random_device m_rd;
@@ -19,13 +19,13 @@ class WeightMatrix {
     static std::uniform_real_distribution<double> m_uniformRealDistr;
 
 public:
-    WeightMatrix();
+    WeightMap();
 
-    WeightMatrix(std::vector<size_t> dimensions);
-
-    WeightMatrix(std::vector<size_t> dimensions, bool uniform, double normFactor);
+    explicit WeightMap(std::vector<size_t> dimensions);
 
     static void setSeed(size_t seed);
+
+    void addWeight(size_t id, bool uniform);
 
     void normalize(double normFactor);
 
@@ -33,15 +33,7 @@ public:
 
     size_t getSize() const { return m_data.size(); }
 
-    double &get(size_t a);
-
-    double &get(size_t a, size_t b);
-
-    double &get(size_t a, size_t b, size_t c);
-
-    double &get(size_t a, size_t b, size_t c, size_t d);
-
-    double &get(size_t a, size_t b, size_t c, size_t d, size_t e);
+    double &at(size_t id);
 
     void loadNumpyFile(const std::string &filePath);
 
@@ -54,10 +46,11 @@ public:
 private:
     double getNorm();
 
-    static void mapToWeights(const std::vector<double> &map, std::vector<double> &data);
+    static void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data);
 
-    static void weightsToMap(std::vector<double> &map, const double *weights);
+    static void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights);
 
 };
 
-#endif //NEUVISYS_WEIGHTMATRIX_HPP
+
+#endif //NEUVISYS_WEIGHTMAP_HPP

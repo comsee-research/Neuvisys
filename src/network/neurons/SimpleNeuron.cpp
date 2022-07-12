@@ -250,7 +250,7 @@ void SimpleNeuron::loadTopDownInhibitionWeights(std::string &filePath) {
  *
  * @return
  */
-WeightMatrix &SimpleNeuron::getWeights() {
+WeightMatrix &SimpleNeuron::getWeightsMatrix() {
     return m_sharedWeights;
 }
 

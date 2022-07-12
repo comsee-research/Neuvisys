@@ -10,9 +10,9 @@
 class MotorNeuron : public Neuron {
     double m_neuromodulator{};
     boost::circular_buffer<NeuronEvent> m_events;
-    std::vector<WeightMatrix> m_multiWeights;
-    std::vector<WeightMatrix> m_eligibilityTrace;
-    std::vector<WeightMatrix> m_eligibilityTiming;
+    std::vector<WeightMap> m_multiWeights;
+    std::vector<WeightMap> m_eligibilityTrace;
+    std::vector<WeightMap> m_eligibilityTiming;
 
 public:
     MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions);
