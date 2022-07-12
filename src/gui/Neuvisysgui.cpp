@@ -20,7 +20,7 @@ NeuvisysGUI::NeuvisysGUI(int argc, char **argv, QWidget *parent) : QMainWindow(p
 
     ui->setupUi(this);
     ui->text_event_file->setText("/home/comsee/Internship_Antony/datasets/shapes.npz");
-    ui->text_network_directory->setText("/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_all_80_changedataset_corrected_2/");
+    ui->text_network_directory->setText("/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_grey_RFslow_syn/");
     openConfigFiles();
     ui->number_runs->setValue(1);
     ui->progressBar->setValue(0);

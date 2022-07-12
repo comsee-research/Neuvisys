@@ -38,26 +38,11 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
  * @param event - The event coming from the pixel array.
  */
 void SpikingNetwork::addEvent(const Event &event) {
-/*    if(event.x() < 150) { 
-        for(int v: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +static_cast<uint32_t>(event.y())]) {
-                        std::cout << "x, y, timestamp init = " << static_cast<uint32_t>(event.x()) << " ; " << static_cast<uint32_t>(event.y()) << " ; " << event.timestamp() << " ; event pol = " << event.polarity() << std::endl;
-                        std::cout << "v = " << v << std::endl;
-        }
-            //    std::cout << "v = " << v << std::endl;
-            }*/
-    for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
-                                    static_cast<uint32_t>(event.y())]) {
-
-    /*    if(event.x() < 150) { 
-                std::cout << "x, y, timestamp init = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; event pol = " << event.polarity() << std::endl;
-            }*/
-        auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
-                                 event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
-    /*        if(event.x() < 150) { 
-                std::cout << "x, y, timestamp = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; event pos = " << eventPos.x() << " ; " << eventPos.y() << " ; event pol = " << event.polarity() << std::endl;
-                std::cout << "ind = " << ind << std::endl << std::endl;
-            }*/
-        if (m_networkConf.getNeuron1Synapses() == 1) {
+    if (m_networkConf.getNeuron1Synapses() == 1) {
+        for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
+                                       static_cast<uint32_t>(event.y())]) {
+            auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
+                                    event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
             bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
             double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y());
             neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
@@ -66,14 +51,19 @@ void SpikingNetwork::addEvent(const Event &event) {
                 lateralStaticInhibition(m_neurons[0][ind].get());
                 lateralDynamicInhibition(m_neurons[0][ind].get());
                 if (m_neurons.size() > 1) {
-                    addNeuronEvent(m_neurons[0][ind].get());
+                  addNeuronEvent(m_neurons[0][ind].get());
                 }
             }
-        } else if (m_networkConf.getNeuron1Synapses() > 1) {
-            m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
-            updateNeurons(event.timestamp());
-        }
+        } 
+    }
 
+    if (m_networkConf.getNeuron1Synapses() > 1) {
+        m_lastEventTs = event.timestamp();
+        for(size_t synapse = 0; synapse < m_networkConf.getNeuron1Synapses(); synapse++) { 
+            Event ev(event.timestamp() + synapse * m_simpleNeuronConf.SYNAPSE_DELAY, event.x(), event.y(), event.polarity(), event.camera(), synapse, event.over());
+            m_eventsList.emplace(ev);
+        }
+        processSynapticEvent();
     }
 }
 
@@ -122,10 +112,36 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 //            }
             forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
-        //    topDownDynamicInhibition(forwardNeuron.get());
+            topDownDynamicInhibition(forwardNeuron.get());
 
             addNeuronEvent(forwardNeuron.get());
         }
+    }
+}
+
+/**
+ * Processes events in the case where there are synaptic delays.
+ */
+void SpikingNetwork::processSynapticEvent() {
+    while(!m_eventsList.empty() && (m_eventsList.top().timestamp() <= m_lastEventTs || m_eventsList.top().over()) ) {
+        Event event = m_eventsList.top();
+        for (size_t ind: m_pixelMapping[static_cast<uint32_t>(event.x()) * Conf::HEIGHT +
+                                        static_cast<uint32_t>(event.y())]) {
+            auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
+                                     event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
+            bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
+            double wi = m_neurons[0][ind].get().getWeights(event.polarity(), event.camera(), event.synapse(), event.x(), event.y());
+            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
+            if (spiked) {
+                m_neurons[0][ind].get().weightUpdate();
+                lateralStaticInhibition(m_neurons[0][ind].get());
+                lateralDynamicInhibition(m_neurons[0][ind].get());
+                if (m_neurons.size() > 1) {
+                    addNeuronEvent(m_neurons[0][ind].get());
+                }
+            }
+        }
+        m_eventsList.pop();
     }
 }
 
@@ -147,31 +163,10 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
  * @param neuron - Neuron that triggered the event.
  */
 void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
-    for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
-        Position pos = neuron.getPos();
-
-        //angle = 135° network = network6test
-    /*    if(!(pos.z()==9 || pos.z()==10 || pos.z() == 17 || pos.z()==22 || pos.z()==24 || pos.z() == 25 || pos.z()==28 || pos.z() == 37 || pos.z() ==43 || pos.z() == 45 || pos.z() == 51 || pos.z() == 52
-                                || pos.z() == 56 || pos.z() == 59 || pos.z() == 80 || pos.z() == 86 || pos.z() == 87 || pos.z() == 88 || pos.z() == 97 || pos.z() == 98 || pos.z() == 106 
-                                || pos.z() == 112 || pos.z() == 120 || pos.z() == 124 || pos.z() == 133 || pos.z() == 139 || pos.z() == 144 || pos.z() == 146 || pos.z() == 148 || pos.z() == 151 || pos.z() == 152 || pos.z() == 157 || pos.z() == 158 || pos.z() == 162 || pos.z() == 171 || pos.z() == 176 || pos.z() == 181 || pos.z() == 182 || pos.z() == 178 || pos.z() == 183
-                                || pos.z() == 184 || pos.z() == 194 || pos.z() == 196 || pos.z() == 200 || pos.z() == 201 || pos.z() == 202 || pos.z() == 205 || pos.z() == 208 || pos.z() == 212 || pos.z() == 220 || pos.z() == 235 || pos.z() == 223 || pos.z() == 228 || pos.z() == 231 || pos.z() == 245 || pos.z() == 246 || pos.z() == 248)) {*/
-
-    //angle = 0° network = network6test        
-    /*    if(!(pos.z()==7 || pos.z()==8 || pos.z() == 16 || pos.z() == 23 || pos.z() == 26 || pos.z() == 50 || pos.z() == 57 || pos.z() == 61 || pos.z() == 64 || pos.z() == 70 || pos.z() == 85 || pos.z() == 90 
-             || pos.z() == 92 || pos.z() == 101 || pos.z() == 105 || pos.z() == 123 || pos.z() == 129 || pos.z()== 132 || pos.z() == 141 || pos.z() == 142 || pos.z() == 147 || pos.z() == 153 || pos.z() == 160 
-             || pos.z() == 165 || pos.z() == 187 || pos.z() == 195 || pos.z() == 202 || pos.z() == 224 || pos.z() == 225)) {*/
-            
-    //angle = 90° network = network6test
-    /*    if( !(pos.z()==25 || pos.z()==34 || pos.z() == 44 || pos.z() == 46 || pos.z() == 54 || pos.z() == 55 || pos.z() == 58 || pos.z() == 71 || pos.z() == 79 || pos.z() == 80 || pos.z() == 83 || pos.z() == 99
-            || pos.z() == 108 || pos.z() == 111 || pos.z() == 120 || pos.z() == 137 || pos.z() == 146 || pos.z() == 150 || pos.z() == 163 || pos.z() == 181 || pos.z() == 185 || pos.z() == 188 || pos.z() == 189 
-            || pos.z() == 206 || pos.z() == 215 || pos.z() == 217 || pos.z() == 218 || pos.z() == 240)) {*/       
-            
-            auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
-            lateralNeuron.get().newLateralInhibitoryEvent(event);
-            neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
-                                
-    //    }
-        
+    for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {        
+        auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex());
+        lateralNeuron.get().newLateralInhibitoryEvent(event);
+        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));    
     }
 }
 

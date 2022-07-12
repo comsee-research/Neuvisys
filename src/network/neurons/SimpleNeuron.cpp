@@ -35,16 +35,16 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
  * @return
  */
 inline bool SimpleNeuron::newEvent(Event event) {
-    if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
+//    if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         m_events.push_back(event);
         return membraneUpdate(event);
-    } else {
+/*    } else {
         size_t synapse = 0;
         for (auto delay: m_delays) {
             m_waitingList.emplace(event.timestamp() + delay, event.x(), event.y(), event.polarity(), event.camera(), synapse++);
         }
         return false;
-    }
+    }*/
 }
 
 /**

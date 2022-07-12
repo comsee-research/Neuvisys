@@ -27,7 +27,9 @@ class SpikingNetwork {
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsComplex;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsCritic;
     std::vector<Eigen::Tensor<double, COMPLEXDIM>> m_sharedWeightsActor;
-    std::vector<std::vector<std::vector<double>>> m_gaborParameters;
+
+    std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_eventsList;
+    long m_lastEventTs;
 
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<size_t> m_structure;
@@ -95,6 +97,8 @@ public:
     void saveOrientations();
 
     void resetSTrain();
+
+    void processSynapticEvent();
 
 
 private:

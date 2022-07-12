@@ -115,12 +115,17 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     m_nbEvents = events.size();
+    int counter = 0;
     for (const auto &event: events) {
+        ++counter;
         ++m_iteration;
-        transmitEvent(event);
-    /*    if(event.timestamp()>2.5e6) {
-            break;
-        }*/
+        if(counter == m_nbEvents) {
+            Event ev(event.x(), event.y(), event.timestamp(), event.polarity(), event.camera(), event.synapse(), true);
+            transmitEvent(ev);
+        }
+        else {
+            transmitEvent(event);
+        }
         if (static_cast<double>(event.timestamp()) - m_saveTime.update > UPDATE_INTERVAL) {
             m_saveTime.update = static_cast<double>(event.timestamp());
             m_spinet.updateNeuronsStates(UPDATE_INTERVAL, m_countEvents);
