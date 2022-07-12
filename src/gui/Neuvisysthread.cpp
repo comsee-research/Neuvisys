@@ -127,7 +127,7 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     }
 
     network.save(m_events.toStdString(), m_nbPass);*/
-        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars7/events/";
+        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars8/events/";
         std::vector<std::string> vectorOfPaths;
         for (const auto & frame : std::filesystem::directory_iterator{path_Events}) 
         {

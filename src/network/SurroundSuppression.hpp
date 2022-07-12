@@ -19,12 +19,12 @@
 #include "NetworkHandle.hpp"
 #include "Config.hpp"
 
-typedef struct {int x_minus; int x_plus; int y_minus; int y_plus;} receptivefield;
-typedef std::vector<std::vector<receptivefield>> rfs_container;
-typedef std::vector<std::string> paths_container;
-typedef cv::Mat image_matrix;
-typedef std::vector<Event> events_list;
-typedef std::vector<events_list> events_sequences;
+using receptivefield = struct {int x_minus; int x_plus; int y_minus; int y_plus;};
+using rfs_container = std::vector<std::vector<receptivefield>>;
+using paths_container = std::vector<std::string>;
+using image_matrix = cv::Mat;
+using events_list = std::vector<Event>;
+using events_sequences = std::vector<events_list>;
 const int width_ = 346;
 const int height_ = 260;
 

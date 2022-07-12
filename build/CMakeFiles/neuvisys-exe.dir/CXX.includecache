@@ -3498,10 +3498,6 @@ filesystem
 cstdint
 -
 
-/home/comsee/neuvisys-cpp/src/network/NetworkHandle.cpp
-NetworkHandle.hpp
-/home/comsee/neuvisys-cpp/src/network/NetworkHandle.hpp
-
 /home/comsee/neuvisys-cpp/src/network/NetworkHandle.hpp
 SpikingNetwork.hpp
 /home/comsee/neuvisys-cpp/src/network/SpikingNetwork.hpp
@@ -3511,10 +3507,6 @@ hdf5.h
 /home/comsee/neuvisys-cpp/src/network/hdf5.h
 utility
 -
-
-/home/comsee/neuvisys-cpp/src/network/SpikingNetwork.cpp
-SpikingNetwork.hpp
-/home/comsee/neuvisys-cpp/src/network/SpikingNetwork.hpp
 
 /home/comsee/neuvisys-cpp/src/network/SpikingNetwork.hpp
 utility
