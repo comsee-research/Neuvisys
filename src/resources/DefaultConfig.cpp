@@ -270,7 +270,7 @@ namespace PredefinedConfigurations {
                         {"TRACKING",    "partial"},
                         {"POTENTIAL_TRACK", {4,            10}},
                         {"TAU_SRA",           100},
-                        {"TAU_RP",                30},
+                        {"TAU_RP",                20},
                         {"TAU_M",         18},
                         {"TAU_LTP",       7},
                         {"TAU_LTD",     14},
@@ -289,7 +289,7 @@ namespace PredefinedConfigurations {
                         {"ETA_SRA", 0.6},
                         {"ETA_TA", 0},
                         {"ETA_RP", 1},
-                        {"ETA_INH", 20},
+                        {"ETA_INH", 15},
                 },
                 {
                         {"VTHRESH",    3},
@@ -317,15 +317,15 @@ namespace PredefinedConfigurations {
                         {"TAU_LTD",       14},
                         {"ETA_LTP",       0.077},
                         {"ETA_LTD",     -0.021},
-                        {"NORM_FACTOR",       10},
+                        {"NORM_FACTOR",       4},
                         {"DECAY_RATE",            0},
                         {"STDP_LEARNING", "excitatory"},
-                        {"NU_K",        200},
+                        {"NU_K",        100},
                         {"MIN_NU_K",            100},
-                        {"TAU_K",               50},
+                        {"TAU_K",               25},
                         {"MIN_TAU_K",  25},
-                        {"TAU_E",      500},
-                        {"ETA",     0.2}
+                        {"TAU_E",      250},
+                        {"ETA",     0.5}
                 },
                 {
                         {"VTHRESH",    2},
@@ -337,11 +337,11 @@ namespace PredefinedConfigurations {
                         {"TAU_LTD",       14},
                         {"ETA_LTP",       0.077},
                         {"ETA_LTD",     -0.021},
-                        {"NORM_FACTOR",       10},
+                        {"NORM_FACTOR",       4},
                         {"DECAY_RATE",            0},
                         {"STDP_LEARNING", "excitatory"},
                         {"TAU_E",       250},
-                        {"ETA",                 0.2}
+                        {"ETA",                 0.1}
                 }
         };
         return conf;

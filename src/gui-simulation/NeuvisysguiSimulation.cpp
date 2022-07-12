@@ -235,7 +235,7 @@ void NeuvisysGUISimulation::on_button_network_directory_clicked() {
 
 void NeuvisysGUISimulation::on_button_create_network_clicked() {
     QString dir = QFileDialog::getSaveFileName(this, "Open Directory", "/home");
-    NetworkConfig::createNetwork(dir.toStdString());
+    NetworkConfig::createNetwork(dir.toStdString(), PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
     ui->text_network_directory->setText(dir);
     openConfigFiles();
 }

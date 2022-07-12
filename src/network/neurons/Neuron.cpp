@@ -409,14 +409,6 @@ void Neuron::addTopDownDynamicInhibitionConnection(Neuron &neuron) {
  *
  * @param neuron
  */
-void Neuron::initializeTopDownDynamicInhibitionWeights() {
-    m_topDownInhibitionWeights.addNewWeight();
-}
-
-/**
- *
- * @param neuron
- */
 void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
     m_lateralStaticInhibitionConnections.emplace_back(neuron);
 }
@@ -427,9 +419,31 @@ void Neuron::addLateralStaticInhibitionConnections(Neuron &neuron) {
  */
 void Neuron::addLateralDynamicInhibitionConnections(Neuron &neuron) {
     m_lateralDynamicInhibitionConnections.emplace_back(neuron);
-    m_lateralInhibitionWeights.addNewWeight();
 }
 
+void Neuron::initWeights() {
+    std::vector<size_t> indices;
+    for (const auto &neuron : m_inConnections) {
+        indices.push_back(neuron.get().getIndex());
+    }
+    m_weights.initWeights(indices, true, m_conf.NORM_FACTOR);
+
+    indices.clear();
+    for (const auto &neuron : m_topDownDynamicInhibitionConnections) {
+        indices.push_back(neuron.get().getIndex());
+    }
+
+
+    indices.clear();
+    for (const auto &neuron : m_lateralDynamicInhibitionConnections) {
+        indices.push_back(neuron.get().getIndex());
+    }
+    m_lateralInhibitionWeights.initWeights(indices, false, 0);
+}
+
+/**
+ *
+ */
 void Neuron::resetNeuron() {
     m_potential = 0;
     m_timestampLastEvent = 0;
@@ -448,12 +462,12 @@ void Neuron::resetNeuron() {
     m_trackingPotentialTrain.clear();
     m_potentialThreshold.clear();
     m_amount_of_events.clear();
-    for (int i = 0; i < m_sumOfInhibWeights.size(); i++) {
-        m_sumOfInhibWeights[i].clear();
+    for (auto &m_sumOfInhibWeight : m_sumOfInhibWeights) {
+        m_sumOfInhibWeight.clear();
     }
     m_sumOfInhibWeights.clear();
-    for (int j = 0; j < m_timingOfInhibition.size(); j++) {
-        m_timingOfInhibition[j].clear();
+    for (auto &j : m_timingOfInhibition) {
+        j.clear();
     }
     m_timingOfInhibition.clear();
 }

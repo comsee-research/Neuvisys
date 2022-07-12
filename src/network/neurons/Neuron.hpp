@@ -180,8 +180,6 @@ public:
 
     virtual void addTopDownDynamicInhibitionConnection(Neuron &neuron);
 
-    virtual void initializeTopDownDynamicInhibitionWeights();
-
     virtual void addLateralStaticInhibitionConnections(Neuron &neuron);
 
     virtual void addLateralDynamicInhibitionConnections(Neuron &neuron);
@@ -212,6 +210,7 @@ public:
 
     virtual void resetNeuron();
 
+    virtual void initWeights();
 };
 
 #endif //NEUVISYS_DV_NEURON_HPP

@@ -37,9 +37,9 @@ void NeuvisysThreadSimulation::run() {
         m_rightEventDisplay = cv::Mat::zeros(network.getNetworkConfig().getVfHeight(), network.getNetworkConfig().getVfWidth(), CV_8UC3);
 
         emit networkConfiguration(network.getNetworkConfig().getSharingType(),
-                                  network.getNetworkConfig().getLayerPatches()[0],
-                                  network.getNetworkConfig().getLayerSizes()[0],
-                                  network.getNetworkConfig().getNeuronSizes()[0]);
+                                  network.getNetworkConfig().getLayerConnectivity()[0].patches,
+                                  network.getNetworkConfig().getLayerConnectivity()[0].sizes,
+                                  network.getNetworkConfig().getLayerConnectivity()[0].neuronSizes[0]);
         emit networkCreation(network.getNetworkConfig().getNbCameras(), network.getNetworkConfig().getNeuron1Synapses(),
                              network.getNetworkStructure(), network.getNetworkConfig().getVfWidth(), network.getNetworkConfig().getVfHeight());
         m_motorDisplay = std::vector<bool>(2, false);
@@ -266,9 +266,9 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
         if (m_layer == 0) {
             sharing = "patch";
         }
-        emit networkConfiguration(sharing, network.getNetworkConfig().getLayerPatches()[m_layer],
-                                  network.getNetworkConfig().getLayerSizes()[m_layer],
-                                  network.getNetworkConfig().getNeuronSizes()[m_layer]);
+        emit networkConfiguration(sharing, network.getNetworkConfig().getLayerConnectivity()[m_layer].patches,
+                                  network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes,
+                                  network.getNetworkConfig().getLayerConnectivity()[m_layer].neuronSizes[0]);
     }
 
     auto on_off_ratio = static_cast<double>(m_on_count) / static_cast<double>(m_on_count + m_off_count);
@@ -314,19 +314,19 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
 }
 
 inline void NeuvisysThreadSimulation::sensingZone(NetworkHandle &network) {
-    for (size_t i = 0; i < network.getNetworkConfig().getLayerPatches()[0][0].sizes(); ++i) {
-        for (size_t j = 0; j < network.getNetworkConfig().getLayerPatches()[0][1].sizes(); ++j) {
-            auto offsetXPatch = static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i] +
-                                                 network.getNetworkConfig().getLayerSizes()[0][0] *
-                                                 network.getNetworkConfig().getNeuronSizes()[0][0]);
-            auto offsetYPatch = static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j] +
-                                                 network.getNetworkConfig().getLayerSizes()[0][1] *
-                                                 network.getNetworkConfig().getNeuronSizes()[0][1]);
-            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
-                                                        static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
+    for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[0].patches[0].size(); ++i) {
+        for (size_t j = 0; j < network.getNetworkConfig().getLayerConnectivity()[0].patches[1].size(); ++j) {
+            auto offsetXPatch = static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[0][i] +
+                                                 network.getNetworkConfig().getLayerConnectivity()[0].sizes[0] *
+                                                 network.getNetworkConfig().getLayerConnectivity()[0].neuronSizes[0][0]);
+            auto offsetYPatch = static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[1][j] +
+                                                 network.getNetworkConfig().getLayerConnectivity()[0].sizes[1] *
+                                                 network.getNetworkConfig().getLayerConnectivity()[0].neuronSizes[0][1]);
+            cv::rectangle(m_leftEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[0][i]),
+                                                        static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[1][j])),
                           cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
-            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][0][i]),
-                                                         static_cast<int>(network.getNetworkConfig().getLayerPatches()[0][1][j])),
+            cv::rectangle(m_rightEventDisplay, cv::Point(static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[0][i]),
+                                                         static_cast<int>(network.getNetworkConfig().getLayerConnectivity()[0].patches[1][j])),
                           cv::Point(offsetXPatch, offsetYPatch), cv::Scalar(255, 0, 0));
         }
     }
@@ -343,10 +343,10 @@ inline void NeuvisysThreadSimulation::prepareWeights(NetworkHandle &network) {
     m_weightDisplay.clear();
     size_t count = 0;
     if (m_layer == 0) {
-        for (size_t i = 0; i < network.getNetworkConfig().getLayerPatches()[m_layer][0].sizes() *
-                               network.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
-            for (size_t j = 0; j < network.getNetworkConfig().getLayerPatches()[m_layer][1].sizes() *
-                                   network.getNetworkConfig().getLayerSizes()[m_layer][1]; ++j) {
+        for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[m_layer].patches[0].size() *
+                               network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[0]; ++i) {
+            for (size_t j = 0; j < network.getNetworkConfig().getLayerConnectivity()[m_layer].patches[1].size() *
+                                   network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[1]; ++j) {
                 if (network.getNetworkConfig().getSharingType() == "none") {
                     m_weightDisplay[count] = network.neuronWeightMatrix(network.getLayout(0, Position(i, j, m_zcell)),
                                                                         m_layer, m_camera, m_synapse, m_zcell);
@@ -356,12 +356,12 @@ inline void NeuvisysThreadSimulation::prepareWeights(NetworkHandle &network) {
         }
         if (network.getNetworkConfig().getSharingType() == "patch") {
             count = 0;
-            for (size_t wp = 0; wp < network.getNetworkConfig().getLayerPatches()[m_layer][0].sizes(); ++wp) {
-                for (size_t hp = 0; hp < network.getNetworkConfig().getLayerPatches()[m_layer][1].sizes(); ++hp) {
-                    for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
+            for (size_t wp = 0; wp < network.getNetworkConfig().getLayerConnectivity()[m_layer].patches[0].size(); ++wp) {
+                for (size_t hp = 0; hp < network.getNetworkConfig().getLayerConnectivity()[m_layer].patches[1].size(); ++hp) {
+                    for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[2]; ++i) {
                         m_weightDisplay[count] = network.neuronWeightMatrix(
-                                network.getLayout(0, Position(wp * network.getNetworkConfig().getLayerSizes()[m_layer][0],
-                                                              hp * network.getNetworkConfig().getLayerSizes()[m_layer][1],
+                                network.getLayout(0, Position(wp * network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[0],
+                                                              hp * network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[1],
                                                               i)), m_layer, m_camera, m_synapse, m_zcell);
                         ++count;
                     }
@@ -369,14 +369,14 @@ inline void NeuvisysThreadSimulation::prepareWeights(NetworkHandle &network) {
             }
         } else if (network.getNetworkConfig().getSharingType() == "full") {
             count = 0;
-            for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][2]; ++i) {
+            for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[2]; ++i) {
                 m_weightDisplay[count] = network.neuronWeightMatrix(
                         network.getLayout(0, Position(0, 0, i)), m_layer, m_camera, m_synapse, m_zcell);
                 ++count;
             }
         }
     } else {
-        for (size_t i = 0; i < network.getNetworkConfig().getLayerSizes()[m_layer][0]; ++i) {
+        for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[0]; ++i) {
             m_weightDisplay[count] = network.getSummedWeightNeuron(network.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer);
             ++count;
         }

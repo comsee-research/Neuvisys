@@ -15,6 +15,7 @@ set(CAMERA_SOURCES
 
 set(PROJECT_SOURCES
         ../network/SpikingNetwork.cpp
+        ../resources/DefaultConfig.cpp
         ../utils/Util.cpp
         ../utils/WeightMatrix.cpp
         ../network/Config.cpp

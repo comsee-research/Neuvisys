@@ -75,16 +75,16 @@ int main(int argc, char **argv) {
     std::string type = "none";//argv[1];
     std::string m_networkPath;
 
-    launchSimulation(10);
+//    launchSimulation(10);
 
-//    if (type == "multi") {
-//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-//            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-//            std::cout << m_networkPath << std::endl;
-//            launchLearningSimulation(m_networkPath, 10);
-//        }
-//    } else {
-//        m_networkPath = "/home/thomas/Networks/validation/";
-//        launchLearningSimulation(m_networkPath, 1.5);
-//    }
+    if (type == "multi") {
+        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+            std::cout << m_networkPath << std::endl;
+            launchLearningSimulation(m_networkPath, 10);
+        }
+    } else {
+        m_networkPath = "/home/thomas/Networks/simulation/rl/orientation_task/skip_connections/network_learning/";
+        launchLearningSimulation(m_networkPath, 10);
+    }
 }

@@ -8,7 +8,7 @@ MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Positio
         Neuron(index, layer, conf, pos, Position()),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
     for (const auto &dimension : dimensions) {
-        m_weights.emplace_back(dimension, true, m_conf.NORM_FACTOR);
+        m_multiWeights.emplace_back(dimension, true, m_conf.NORM_FACTOR); // TODO: only working for all to all connections
         m_eligibilityTrace.emplace_back(dimension, false, 0);
         m_eligibilityTiming.emplace_back(dimension, false, 0);
     }
@@ -21,7 +21,7 @@ inline bool MotorNeuron::newEvent(NeuronEvent event) {
 
 inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
     potentialDecay(event.timestamp());
-    m_potential += m_weights[event.layer()].at(event.id());
+    m_potential += m_multiWeights[event.layer()].at(event.id());
     m_timestampLastEvent = event.timestamp();
 
     if (m_potential > m_threshold) {
@@ -83,25 +83,30 @@ inline double MotorNeuron::kernel(double time) {
 //}
 
 inline cv::Mat MotorNeuron::summedWeightMatrix() {
-//    Eigen::Tensor<double, 2> sum = m_weights.sum(Eigen::array<double, 1>{2});
-//    const Eigen::Tensor<long, 2>::Dims &dim = sum.dimensions();
-//    Eigen::Tensor<double, 0> max = sum.maximum();
-//    Eigen::Tensor<double, 2> result = sum * 255. / max(0);
-//
-//    cv::Mat mat = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
-//    for (int i = 0; i < dim[0]; ++i) {
-//        for (int j = 0; j < dim[1]; ++j) {
-//            auto &color = mat.at<cv::Vec3b>(j, i);
-//            color[0] = static_cast<unsigned char>(result(i, j));
-//        }
-//    }
-//    return mat;
-    return cv::Mat();
+    auto dim = m_multiWeights[0].getDimensions(); // TODO: displaying more than first connections
+
+    cv::Mat mat = cv::Mat::zeros(static_cast<int>(dim[1]), static_cast<int>(dim[0]), CV_8UC3);
+    double sum = 0, max = 0;
+    for (int i = 0; i < dim[0]; ++i) {
+        for (int j = 0; j < dim[1]; ++j) {
+            for (int k = 0; k < dim[2]; ++k) {
+                sum += m_multiWeights[0].get(i, j, k);
+            }
+            if (sum > max) {
+                max = sum;
+            }
+            auto &color = mat.at<cv::Vec3b>(j, i);
+            color[0] = static_cast<unsigned char>(sum);
+            sum = 0;
+        }
+    }
+    mat = mat * 255.0 / max;
+    return mat;
 }
 
 void MotorNeuron::saveWeights(const std::string &filePath) {
     size_t count = 0;
-    for (auto &weights : m_weights) {
+    for (auto &weights : m_multiWeights) {
         auto weightsFile = filePath + std::to_string(m_index) + "_" + std::to_string(count);
         weights.saveWeightsToNumpyFile(weightsFile);
         ++count;
@@ -110,7 +115,7 @@ void MotorNeuron::saveWeights(const std::string &filePath) {
 
 void MotorNeuron::loadWeights(std::string &filePath) {
     size_t count = 0;
-    for (auto &weights : m_weights) {
+    for (auto &weights : m_multiWeights) {
         auto numpyFile = filePath + std::to_string(m_index) + "_" + std::to_string(count) + ".npy";
         weights.saveWeightsToNumpyFile(numpyFile);
         ++count;
@@ -119,7 +124,7 @@ void MotorNeuron::loadWeights(std::string &filePath) {
 
 void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     size_t count = 0;
-    for (auto &weights : m_weights) {
+    for (auto &weights : m_multiWeights) {
         auto arrayName = std::to_string(m_index) + "_" + std::to_string(count);
         weights.loadNumpyFile(arrayNPZ, arrayName);
         ++count;
@@ -127,12 +132,12 @@ void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
 }
 
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
-    for (size_t i = 0; i < m_weights.size(); ++i) {
-        for (size_t j = 0; j < m_weights[i].getSize(); ++i) {
-            m_weights[i].at(j) += m_conf.ETA * neuromodulator * m_eligibilityTrace[i].at(j);
+    for (size_t i = 0; i < m_multiWeights.size(); ++i) {
+        for (size_t j = 0; j < m_multiWeights[i].getSize(); ++j) {
+            m_multiWeights[i].at(j) += m_conf.ETA * neuromodulator * m_eligibilityTrace[i].at(j);
             m_eligibilityTrace[i].at(j) = 0;
-            if (m_weights[i].at(j) < 0) {
-                m_weights[i].at(j) = 0;
+            if (m_multiWeights[i].at(j) < 0) {
+                m_multiWeights[i].at(j) = 0;
             }
         }
     }
@@ -147,8 +152,4 @@ void MotorNeuron::learningDecay(double decay) {
     if (m_conf.NU_K > m_conf.MIN_NU_K) {
         m_conf.NU_K *= decay;
     }
-}
-
-void MotorNeuron::rescaleWeights(double scale) {
-
 }

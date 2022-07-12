@@ -10,7 +10,7 @@
 class MotorNeuron : public Neuron {
     double m_neuromodulator{};
     boost::circular_buffer<NeuronEvent> m_events;
-    std::vector<WeightMatrix> m_weights;
+    std::vector<WeightMatrix> m_multiWeights;
     std::vector<WeightMatrix> m_eligibilityTrace;
     std::vector<WeightMatrix> m_eligibilityTiming;
 
@@ -34,8 +34,6 @@ public:
     cv::Mat summedWeightMatrix() override;
 
     double updateKernelSpikingRate(long time) override;
-
-    void rescaleWeights(double scale) override;
 
     void learningDecay(double decay) override;
 

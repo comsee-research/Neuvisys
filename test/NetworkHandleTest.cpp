@@ -21,6 +21,7 @@ void NetworkHandleTest::SetUpTestSuite() {
     NetworkConfig::createNetwork("../../src/resources/network_rl_test", PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
     NetworkConfig::createNetwork("../../src/resources/network_nws_test", PredefinedConfigurations::oneLayerOnePatchNoWeightSharingConfig);
     if (network == nullptr) {
+        WeightMatrix::setSeed(1486546);
         network = new NetworkHandle(networkPath, eventsPath);
     }
 }

@@ -57,26 +57,15 @@ public:
 
 class NeuronEvent {
     uint64_t m_timestamp{};
-    uint32_t m_x{};
-    uint32_t m_y{};
-    uint32_t m_z{};
     uint32_t m_id{};
     uint32_t m_layer{};
 
 public:
     NeuronEvent() = default;
 
-    NeuronEvent(uint64_t timestamp, uint32_t id) : m_timestamp(timestamp), m_id(id) {}
-
-    NeuronEvent(uint64_t timestamp, uint32_t x, uint32_t y, uint32_t z, uint32_t layer=0) : m_timestamp(timestamp), m_x(x), m_y(y), m_z(z), m_layer(layer) {}
+    NeuronEvent(uint64_t timestamp, uint32_t id, uint32_t layer) : m_timestamp(timestamp), m_id(id), m_layer(layer) {}
 
     [[nodiscard]] uint64_t timestamp() const { return m_timestamp; }
-
-    [[nodiscard]] uint32_t x() const { return m_x; }
-
-    [[nodiscard]] uint32_t y() const { return m_y; }
-
-    [[nodiscard]] uint32_t z() const { return m_z; }
 
     [[nodiscard]] uint32_t id() const { return m_id; }
 

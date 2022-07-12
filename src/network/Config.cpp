@@ -32,7 +32,7 @@ void NetworkConfig::loadNetworkLayout() {
                 connections.emplace_back();
                 connections[i].neuronType = static_cast<std::string>(conf["neuronType"][i]);
                 connections[i].inhibitions = static_cast<std::vector<std::string>>(conf["layerInhibitions"][i]);
-                connections[i].interConnections = static_cast<std::vector<int>>(conf["interConnections"][i]);
+                connections[i].interConnections = static_cast<std::vector<int>>(conf["interLayerConnections"][i]);
                 connections[i].patches = static_cast<std::vector<std::vector<size_t>>>(conf["layerPatches"][i]);
                 connections[i].sizes = static_cast<std::vector<size_t>>(conf["layerSizes"][i]);
                 connections[i].neuronSizes = static_cast<std::vector<std::vector<size_t>>>(conf["neuronSizes"][i]);

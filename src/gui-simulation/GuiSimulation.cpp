@@ -8,7 +8,7 @@ int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     NeuvisysGUISimulation w(argc, argv,
                   "",
-                  "/home/thomas/Networks/simulation/rl/orientation_task/3actions/network_learning/");
+                  "/home/thomas/Networks/simulation/rl/orientation_task/skip_connections/network_learning/");
     w.setFixedSize(0.9 * QDesktopWidget().availableGeometry().size());
     w.show();
     return app.exec();

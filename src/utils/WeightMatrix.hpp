@@ -10,22 +10,25 @@
 #include "cnpy.h"
 
 class WeightMatrix {
-    std::vector<double> m_data;
+    std::unordered_map<size_t, double> m_data;
     std::vector<size_t> m_dimensions;
 
     static std::random_device m_rd;
     static std::mt19937 m_generator;
+    static std::uniform_real_distribution<double> m_uniformRealDistr;
 
 public:
     WeightMatrix();
 
+    WeightMatrix(std::vector<size_t> dimensions);
+
     WeightMatrix(std::vector<size_t> dimensions, bool uniform, double normFactor);
+
+    void initWeights(const std::vector<size_t> &indices, bool uniform, double normFactor);
 
     static void setSeed(size_t seed);
 
     void normalize(double normFactor);
-
-    void addNewWeight();
 
     std::vector<size_t> getDimensions() const { return m_dimensions; }
 
@@ -54,9 +57,9 @@ public:
 private:
     double getNorm();
 
-    static void mapToWeights(const std::vector<double> &map, std::vector<double> &data);
+    static void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data);
 
-    static void weightsToMap(std::vector<double> &map, const double *weights);
+    static void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights);
 
 };
 
