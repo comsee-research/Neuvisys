@@ -24,7 +24,7 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1]);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_grey1/";
+        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_grey_inhib2/";
         std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars/events/";
         std::vector<std::string> vectorOfPaths;
         for (const auto & frame : std::filesystem::directory_iterator{path_Events}) {
