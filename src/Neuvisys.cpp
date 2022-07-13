@@ -25,10 +25,10 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_nws_test/";
+        std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_test/";
         std::string eventsPath = "/home/thomas/neuvisys-dv/src/resources/shapes.h5";
 
-        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::oneLayerOnePatchNoWeightSharingConfig);
+        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
 
         WeightMatrix::setSeed(15);
         NetworkHandle network(networkPath, eventsPath);
@@ -42,17 +42,17 @@ int main(int argc, char *argv[]) {
 
         network.save(eventsPath, nbPass);
 
+//        std::string networkPath = "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/rotated/new_rot/new_dataset/rotated_grey_inhib2/";
+//        std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars/events/";
 //        std::vector<std::string> vectorOfPaths;
-//        for (const auto & frame : std::filesystem::directory_iterator{path_Events})
-//        {
+//        for (const auto & frame : std::filesystem::directory_iterator{path_Events}) {
 //            vectorOfPaths.emplace_back(frame.path().string());
-//        //    std::cout << frame.path().string() << std::endl;
 //        }
-//
 //        NetworkHandle network(networkPath, vectorOfPaths[0]);
 //        SurroundSuppression surround(networkPath,vectorOfPaths,network);
-//        std::string typeOfTraining = "all";
-    //    surround.Training(typeOfTraining,2,3);
-//        surround.launchTrainingNeurons();
+//        std::string typeOfTraining = "inhibitory";
+//    //    surround.train(typeOfTraining,1,3);
+//    //    surround.shuffleInhibition(1);
+//        surround.evaluateResponsesOnStimuli();
     }
 }

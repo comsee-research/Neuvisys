@@ -16,6 +16,7 @@
 #include "../dependencies/json.hpp"
 #include "../camera/Ynoise.hpp"
 #include "../camera/EventCamera.hpp"
+#include "../network/SurroundSuppression.hpp"
 
 class NeuvisysThread : public QThread {
 Q_OBJECT
@@ -76,6 +77,8 @@ public:
     void run() override;
 
 private:
+
+    void readEventsFile();
 
     void readEventsRealTime();
 

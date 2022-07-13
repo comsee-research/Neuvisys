@@ -14,21 +14,28 @@ class Event {
     bool m_polarity;
     uint16_t m_camera;
     uint16_t m_synapse;
+    bool m_over;
 
 public:
     Event() = default;
 
     inline Event(uint64_t timestamp, uint16_t x, uint16_t y, bool polarity) : m_timestamp(timestamp), m_x(x), m_y(y), m_polarity(polarity),
-                                                                              m_camera(0) { m_synapse = 0; }
+                                                                              m_camera(0) { m_synapse = 0; m_over = false; }
 
     inline Event(uint64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera) : m_timestamp(timestamp), m_x(x), m_y(y),
                                                                                                m_polarity(polarity),
-                                                                                               m_camera(camera) { m_synapse = 0; }
+                                                                                               m_camera(camera) { m_synapse = 0; m_over = false; }
 
     inline Event(uint64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera, uint16_t synapse) : m_timestamp(timestamp), m_x(x),
                                                                                                                  m_y(y), m_polarity(polarity),
                                                                                                                  m_camera(camera),
-                                                                                                                 m_synapse(synapse) {}
+                                                                                                                 m_synapse(synapse) { m_over = false; }
+
+    inline Event(uint64_t timestamp, uint16_t x, uint16_t y, bool polarity, uint16_t camera, uint16_t synapse, bool over) : m_timestamp(timestamp), m_x(x),
+                                                                                                                 m_y(y), m_polarity(polarity),
+                                                                                                                 m_camera(camera),
+                                                                                                                 m_synapse(synapse),
+                                                                                                                 m_over(over) {}
 
     [[nodiscard]] inline uint64_t timestamp() const { return m_timestamp; }
 
@@ -42,6 +49,8 @@ public:
 
     [[nodiscard]] inline uint16_t camera() const { return m_camera; }
 
+    [[nodiscard]] inline uint16_t over() const { return m_over; }
+
     bool operator<(const Event &event) const {
         return m_timestamp < event.m_timestamp;
     }
@@ -52,6 +61,8 @@ public:
         m_polarity = event.polarity();
         m_timestamp = event.timestamp();
         m_camera = event.camera();
+        m_synapse = event.synapse();
+        m_over = event.over();
     }
 };
 
@@ -70,6 +81,10 @@ public:
     [[nodiscard]] uint32_t id() const { return m_id; }
 
     [[nodiscard]] uint32_t layer() const { return m_layer; }
+
+    bool operator<(const NeuronEvent &event) const {
+        return m_timestamp < event.m_timestamp;
+    }
 };
 
 #endif //NEUVISYS_DV_EVENT_HPP

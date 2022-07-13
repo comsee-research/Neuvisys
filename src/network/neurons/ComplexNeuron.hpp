@@ -30,7 +30,6 @@ private:
     bool membraneUpdate(NeuronEvent event);
 
     void spike(size_t time) override;
-
 };
 
 #endif //NEUVISYS_DV_COMPLEXNEURON_HPP

@@ -37,8 +37,7 @@ class NetworkConfig {
     size_t vfWidth{};
     size_t vfHeight{};
     double measurementInterval{};
-    std::vector<int> neuronInhibitionRange;
-
+    std::vector<size_t> neuronInhibitionRange;
     std::vector<LayerConnectivity> connections;
 
 public:
@@ -66,10 +65,13 @@ public:
 
     std::vector<LayerConnectivity> &getLayerConnectivity() { return connections; }
 
+    std::vector<size_t> getNeuronInhibitionRange() { return neuronInhibitionRange; }
+
     static void createNetwork(const std::string &directory, const std::function<NetConf()> &config);
 
 private:
     static void createNetworkDirectory(const std::string &directory);
+
 };
 
 class NeuronConfig {
@@ -115,7 +117,7 @@ public:
 
     std::string STDP_LEARNING{};
     std::string TRACKING{};
-    std::vector<double> POTENTIAL_TRACK;
+    std::vector<int> POTENTIAL_TRACK;
 
 private:
     void loadSimpleNeuronsParameters(const std::string &fileName);
@@ -139,6 +141,7 @@ public:
     double decayRate{};
     double scoreInterval{};
     bool intrinsicReward{};
+
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
     ReinforcementLearningConfig();

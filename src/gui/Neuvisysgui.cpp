@@ -307,7 +307,6 @@ void NeuvisysGUI::onNetworkCreation(const size_t nbCameras, const size_t nbSynap
     }
     message.append(QString("\n"));
     ui->console->insertPlainText(message);
-
     m_vfWidth = vfWidth;
     m_vfHeight = vfHeight;
 }
@@ -444,7 +443,12 @@ void NeuvisysGUI::onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat
 }
 
 void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
+    static int number = 0;
     int count = 0;
+/*    int n_cols = 8;
+    int n_rows = (64 / n_cols) + ((64 % n_cols) ? 1 : 0);
+    cv::Size sz(10,10);
+    cv::Mat3b grid(n_rows * sz.height, n_cols * sz.width, cv::Vec3b(0,0,0));*/
     for (auto &weight: weightDisplay) {
         QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows,
                            static_cast<int>(weight.second.step), QImage::Format_RGB888);
@@ -452,14 +456,27 @@ void NeuvisysGUI::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDispla
             auto label = dynamic_cast<QLabel *>(ui->weightLayout->itemAt(count)->widget());
             if (m_layer == 0) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(40, 40, Qt::KeepAspectRatio));
+
+            /*    int x = (count % n_cols) * sz.width;
+                int y = (count / n_cols) * sz.height;
+                cv::Rect roi(x,y,sz.width,sz.height);
+                QImage swapped = weightImage.rgbSwapped();*/
+            //    cv::Mat mat(swapped.height(), swapped.width(), CV_8UC3, const_cast<uchar*>(swapped.bits()),static_cast<size_t>(swapped.bytesPerLine()));
+            //    cv::Mat3b mat3b = mat;
+            //    (mat3b).copyTo(grid(roi));
             } else if (m_layer == 1) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             } else if (m_layer > 1) {
                 label->setPixmap(QPixmap::fromImage(weightImage.rgbSwapped()).scaled(400, 400, Qt::KeepAspectRatio));
             }
         }
+    //    std::cout << "count = " << count << std::endl;
         ++count;
     }
+//    std::string filename = "/home/comsee/Internship_Antony/neuvisys/training_vid/save_pics/"+std::to_string(number)+".png";
+//    cv::cvtColor(grid,grid,cv::COLOR_BGR2RGB);
+//    cv::imwrite(filename, grid);
+    number++;
 }
 
 void NeuvisysGUI::onDisplayPotential(double spikeRate, double vreset, double threshold,

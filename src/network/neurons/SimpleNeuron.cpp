@@ -34,16 +34,16 @@ SimpleNeuron::SimpleNeuron(size_t index, size_t layer, NeuronConfig &conf, Posit
  * @return
  */
 inline bool SimpleNeuron::newEvent(Event event) {
-    if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
+//    if ((m_delays.size() == 1) && (m_delays[0] == 0)) {
         m_events.push_back(event);
         return membraneUpdate(event);
-    } else {
+/*    } else {
         size_t synapse = 0;
         for (auto delay: m_delays) {
             m_waitingList.emplace(event.timestamp() + delay, event.x(), event.y(), event.polarity(), event.camera(), synapse++);
         }
         return false;
-    }
+    }*/
 }
 
 /**
@@ -54,8 +54,10 @@ void SimpleNeuron::newTopDownInhibitoryEvent(NeuronEvent event) {
     m_topDownInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
+    setLastBeforeInhibitionPotential();
     m_potential -= m_topDownInhibitionWeights.at(event.id());
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
 }
 
 /**
@@ -66,8 +68,10 @@ void SimpleNeuron::newLateralInhibitoryEvent(NeuronEvent event) {
     m_lateralInhibitionEvents.push_back(event);
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
+    setLastBeforeInhibitionPotential();
     m_potential -= m_lateralInhibitionWeights.at(event.id());
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
 }
 
 /**
@@ -95,7 +99,7 @@ inline bool SimpleNeuron::membraneUpdate(Event event) {
                    - refractoryPotential(event.timestamp())
                    - m_adaptationPotential;
     m_timestampLastEvent = event.timestamp();
-
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -114,6 +118,7 @@ inline void SimpleNeuron::spike(const size_t time) {
     m_spike = true;
     ++m_spikeRateCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
 
     spikeRateAdaptation();
@@ -147,6 +152,12 @@ inline void SimpleNeuron::weightUpdate() {
                     m_conf.ETA_ILTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_topDownInhibitionWeights.at(event.id()) +=
                     m_conf.ETA_ILTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
+        /*    if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
+                m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP;
+            }
+            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
+                m_topDownInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD;
+            }*/
             if (m_topDownInhibitionWeights.at(event.id()) < 0) {
                 m_topDownInhibitionWeights.at(event.id()) = 0;
             }
@@ -158,6 +169,12 @@ inline void SimpleNeuron::weightUpdate() {
                     m_conf.ETA_ILTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_lateralInhibitionWeights.at(event.id()) +=
                     m_conf.ETA_ILTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
+        /*    if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
+                m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP;
+            }
+            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
+                m_lateralInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD;
+            }*/
             if (m_lateralInhibitionWeights.at(event.id()) < 0) {
                 m_lateralInhibitionWeights.at(event.id()) = 0;
             }
@@ -187,6 +204,10 @@ void SimpleNeuron::saveLateralInhibitionWeights(std::string &filePath) {
     m_lateralInhibitionWeights.saveWeightsToNumpyFile(weightsFile);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void SimpleNeuron::saveTopDownInhibitionWeights(std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index) + "tdi";
     m_topDownInhibitionWeights.saveWeightsToNumpyFile(weightsFile);

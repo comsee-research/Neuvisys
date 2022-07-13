@@ -26,7 +26,7 @@ void NetworkConfig::loadNetworkLayout() {
             vfWidth = conf["vfWidth"];
             vfHeight = conf["vfHeight"];
             measurementInterval = E3 * static_cast<double>(conf["measurementInterval"]);
-            neuronInhibitionRange = static_cast<std::vector<int>>(conf["neuronInhibitionRange"]);
+            neuronInhibitionRange = static_cast<std::vector<size_t>>(conf["neuronInhibitionRange"]);
 
             for (size_t i = 0; i < conf["neuronType"].size(); ++i) {
                 connections.emplace_back();
@@ -127,7 +127,7 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
-            POTENTIAL_TRACK = static_cast<std::vector<double>>(conf["POTENTIAL_TRACK"]);
+            POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In simple cell config file" << std::endl;
             throw;
@@ -161,6 +161,7 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             DELTA_RP = conf["ETA_RP"];
 //            DELTA_SRA = conf["ETA_SRA"];
+            POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In complex cell config file" << std::endl;
             throw;
@@ -196,6 +197,7 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
+            POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;
@@ -227,6 +229,7 @@ void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
             DECAY_RATE = conf["DECAY_RATE"];
+            POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;
             throw;
@@ -272,7 +275,6 @@ void NetworkConfig::createNetworkDirectory(const std::string &directory) {
 void NetworkConfig::createNetwork(const std::string &directory, const std::function<NetConf()> &config) {
     createNetworkDirectory(directory);
     auto conf = config();
-
     size_t count = 0;
     for (auto file: {"configs/network_config.json", "configs/rl_config.json", "configs/simple_cell_config.json", "configs/complex_cell_config.json",
                      "configs/critic_cell_config.json", "configs/actor_cell_config.json"}) {

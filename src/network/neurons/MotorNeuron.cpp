@@ -4,6 +4,14 @@
 
 #include "MotorNeuron.hpp"
 
+/**
+ *
+ * @param index
+ * @param layer
+ * @param conf
+ * @param pos
+ * @param dimensions
+ */
 MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, const std::vector<std::vector<size_t>> &dimensions) :
         Neuron(index, layer, conf, pos, Position()),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
@@ -27,16 +35,26 @@ MotorNeuron::MotorNeuron(size_t index, size_t layer, NeuronConfig &conf, Positio
     }
 }
 
+/**
+ *
+ * @param event
+ * @return
+ */
 inline bool MotorNeuron::newEvent(NeuronEvent event) {
     m_events.push_back(event);
     return membraneUpdate(event);
 }
 
+/**
+ *
+ * @param event
+ * @return
+ */
 inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
     potentialDecay(event.timestamp());
     m_potential += m_multiWeights[event.layer()].at(event.id());
     m_timestampLastEvent = event.timestamp();
-
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -44,6 +62,10 @@ inline bool MotorNeuron::membraneUpdate(NeuronEvent event) {
     return false;
 }
 
+/**
+ *
+ * @param time
+ */
 inline void MotorNeuron::spike(size_t time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
@@ -51,10 +73,14 @@ inline void MotorNeuron::spike(size_t time) {
     ++m_spikeRateCounter;
     ++m_activityCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
     m_trackingSpikeTrain.push_back(time);
 }
 
+/**
+ *
+ */
 inline void MotorNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event: m_events) {
@@ -73,6 +99,11 @@ inline void MotorNeuron::weightUpdate() {
     m_events.clear();
 }
 
+/**
+ *
+ * @param time
+ * @return
+ */
 double MotorNeuron::updateKernelSpikingRate(long time) {
     double kernelSpikingRate = 0;
     size_t count = 0;
@@ -87,6 +118,11 @@ double MotorNeuron::updateKernelSpikingRate(long time) {
     return kernelSpikingRate;
 }
 
+/**
+ *
+ * @param time
+ * @return
+ */
 inline double MotorNeuron::kernel(double time) {
     return (exp(-time / m_conf.TAU_K) - exp(-time / m_conf.NU_K)) / (m_conf.TAU_K - m_conf.NU_K);
 }
@@ -95,6 +131,10 @@ inline double MotorNeuron::kernel(double time) {
 //    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
 //}
 
+/**
+ *
+ * @return
+ */
 inline cv::Mat MotorNeuron::summedWeightMatrix() {
     auto dim = m_multiWeights[0].getDimensions(); // TODO: displaying more than first connections
 
@@ -117,6 +157,10 @@ inline cv::Mat MotorNeuron::summedWeightMatrix() {
     return mat;
 }
 
+/**
+ *
+ * @param filePath
+ */
 void MotorNeuron::saveWeights(const std::string &filePath) {
     size_t count = 0;
     for (auto &weights : m_multiWeights) {
@@ -126,6 +170,10 @@ void MotorNeuron::saveWeights(const std::string &filePath) {
     }
 }
 
+/**
+ *
+ * @param filePath
+ */
 void MotorNeuron::loadWeights(std::string &filePath) {
     size_t count = 0;
     for (auto &weights : m_multiWeights) {
@@ -135,6 +183,10 @@ void MotorNeuron::loadWeights(std::string &filePath) {
     }
 }
 
+/**
+ *
+ * @param arrayNPZ
+ */
 void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     size_t count = 0;
     for (auto &weights : m_multiWeights) {
@@ -144,6 +196,10 @@ void MotorNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     }
 }
 
+/**
+ *
+ * @param neuromodulator
+ */
 inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
     for (size_t i = 0; i < m_multiWeights.size(); ++i) {
         for (size_t j = 0; j < m_multiWeights[i].getSize(); ++j) {
@@ -156,6 +212,10 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
     }
 }
 
+/**
+ *
+ * @param decay
+ */
 void MotorNeuron::learningDecay(double decay) {
     m_conf.ETA *= decay;
 

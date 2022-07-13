@@ -21,6 +21,9 @@ class SpikingNetwork {
 
     std::vector<WeightMatrix> m_sharedWeightsSimple;
 
+    std::priority_queue<Event, std::vector<Event>, CompareEventsTimestamp> m_eventsList;
+    long m_lastEventTs;
+
     std::vector<std::map<std::tuple<uint64_t, uint64_t, uint64_t>, uint64_t>> m_layout;
     std::vector<size_t> m_structure;
     std::vector<std::vector<std::reference_wrapper<Neuron>>> m_neurons;
@@ -32,6 +35,8 @@ class SpikingNetwork {
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
     double m_neuromodulator{};
+    std::vector<std::vector<int>> m_simpleWeightsOrientations;
+    std::vector<std::vector<int>> m_complexCellsOrientations;
     double m_averageActivity{};
 
 public:
@@ -63,14 +68,31 @@ public:
 
     void intermediateSave(size_t saveCount);
 
-    void saveStatistics(int sequence);
+    void saveStatistics(int simulation, int sequence);
+
+    void changeTrack(int n_x, int n_y);
+
+    void randomLateralInhibition();
+
+    void shuffleInhibition(int cases);
+
+    void assignOrientations(int index_z, int orientation);
+
+    void assignComplexOrientations(int id, int orientation);
+
+    void saveOrientations();
+
+    void resetSTrain();
+
+    void processSynapticEvent();
+
 
 private:
     void updateMultiSynapticNeurons(long time);
 
     void saveNeuronsStates();
 
-    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi);
+    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike=false);
 
     static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
 

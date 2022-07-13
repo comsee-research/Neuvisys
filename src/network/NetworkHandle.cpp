@@ -113,10 +113,19 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     m_nbEvents = events.size();
+    int counter = 0;
     for (const auto &event: events) {
+        ++counter;
         ++m_iteration;
-        transmitEvent(event);
-        updateNeurons(event.timestamp());
+
+        if(counter == m_nbEvents) {
+            const auto ev = Event(event.timestamp(), event.x(), event.y(), event.polarity(), event.camera(), event.synapse(), true);
+            transmitEvent(ev);
+            updateNeurons(ev.timestamp());
+        } else {
+            transmitEvent(event);
+            updateNeurons(event.timestamp());
+        }
 
         if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(5 * E6)) {
             m_saveTime.display = static_cast<double>(event.timestamp());
@@ -129,6 +138,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 
 /**
  *
+<<<<<<< HEAD
  * @param time
  */
 void NetworkHandle::updateNeurons(size_t time) {
@@ -190,6 +200,7 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
     std::string fileName;
     fileName = m_networkConf.getNetworkPath() + "networkState.json";
     m_iteration = 0;
+
     nlohmann::json state;
     std::ifstream ifs(fileName);
 //    resetAllNeurons();
@@ -236,10 +247,14 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
  *
  * @param sequence
  */
-void NetworkHandle::saveStatistics(size_t sequence) {
+void NetworkHandle::saveStatistics(size_t simulation, size_t sequence, bool reset) {
     std::cout << "Starting saving the statistics..." << std::endl;
-    m_spinet.saveStatistics(sequence);
+    m_spinet.saveStatistics(simulation, sequence);
+//    m_spinet.saveOrientations();
     resetAllNeurons();
+    if(reset) {
+        m_spinet.resetSTrain();
+    }
     std::cout << "Finished." << std::endl;
 }
 
@@ -472,6 +487,9 @@ void NetworkHandle::transmitReward(const double reward) {
  */
 void NetworkHandle::transmitEvent(const Event &event) {
     ++m_countEvents;
+/*    if(event.x() < 150) {
+        std::cout << "event x, y, ts, p = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; " << event.polarity() << std::endl;
+    }*/
     m_spinet.addEvent(event);
 }
 
@@ -503,6 +521,10 @@ void NetworkHandle::trackNeuron(const long time, const size_t id, const size_t l
             m_spinet.getNeuron(id, layer).get().trackPotential(time);
         }
     }
+}
+
+void NetworkHandle::changeNeuronToTrack(int n_x, int n_y) {
+    m_spinet.changeTrack(n_x, n_y);
 }
 
 /**
@@ -674,4 +696,20 @@ void NetworkHandle::readFirstAndLastTimestamp() {
 
     m_eventFile.firstTimestamp = first[0];
     m_eventFile.lastTimestamp = last[0];
+}
+
+void NetworkHandle::lateralRandom() {
+    m_spinet.randomLateralInhibition();
+}
+
+void NetworkHandle::inhibitionShuffle(int case_) {
+    m_spinet.shuffleInhibition(case_);
+}
+
+void NetworkHandle::assignOrientation(int z, int ori) {
+    m_spinet.assignOrientations(z, ori);
+}
+
+void NetworkHandle::assignComplexOrientation(int neur, int ori) {
+    m_spinet.assignComplexOrientations(neur, ori);
 }

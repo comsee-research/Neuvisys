@@ -4,22 +4,42 @@
 
 #include "ComplexNeuron.hpp"
 
+/**
+ *
+ * @param index
+ * @param layer
+ * @param conf
+ * @param pos
+ * @param offset
+ * @param dimensions
+ */
 ComplexNeuron::ComplexNeuron(size_t index, size_t layer, NeuronConfig &conf, Position pos, Position offset, const std::vector<size_t> &dimensions) :
         Neuron(index, layer, conf, pos, offset),
         m_events(boost::circular_buffer<NeuronEvent>(1000)) {
     m_weights = WeightMap(dimensions);
 }
 
+/**
+ *
+ * @param event
+ * @return
+ */
 inline bool ComplexNeuron::newEvent(NeuronEvent event) {
     m_events.push_back(event);
     return membraneUpdate(event);
 }
 
+/**
+ *
+ * @param event
+ * @return
+ */
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     potentialDecay(event.timestamp());
     m_potential += m_weights.at(event.id())
                    - refractoryPotential(event.timestamp());
     m_timestampLastEvent = event.timestamp();
+    checkNegativeLimits();
     if (m_potential > m_threshold) {
         spike(event.timestamp());
         return true;
@@ -27,12 +47,17 @@ inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
     return false;
 }
 
+/**
+ *
+ * @param time
+ */
 inline void ComplexNeuron::spike(const size_t time) {
     m_lastSpikingTime = m_spikingTime;
     m_spikingTime = time;
     m_spike = true;
     ++m_spikeRateCounter;
     ++m_totalSpike;
+    m_spikingPotential = m_potential;
     m_potential = m_conf.VRESET;
 
     spikeRateAdaptation();
@@ -41,6 +66,9 @@ inline void ComplexNeuron::spike(const size_t time) {
     }
 }
 
+/**
+ *
+ */
 inline void ComplexNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event: m_events) {
@@ -61,6 +89,10 @@ inline void ComplexNeuron::weightUpdate() {
     m_events.clear();
 }
 
+/**
+ *
+ * @return
+ */
 inline cv::Mat ComplexNeuron::summedWeightMatrix() {
     auto dim = m_weights.getDimensions();
 
@@ -83,16 +115,28 @@ inline cv::Mat ComplexNeuron::summedWeightMatrix() {
     return mat;
 }
 
+/**
+ *
+ * @param filePath
+ */
 void ComplexNeuron::saveWeights(const std::string &filePath) {
     auto weightsFile = filePath + std::to_string(m_index);
     m_weights.saveWeightsToNumpyFile(weightsFile);
 }
 
+/**
+ *
+ * @param filePath
+ */
 void ComplexNeuron::loadWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + ".npy";
     m_weights.loadNumpyFile(numpyFile);
 }
 
+/**
+ *
+ * @param arrayNPZ
+ */
 void ComplexNeuron::loadWeights(cnpy::npz_t &arrayNPZ) {
     auto arrayName = std::to_string(m_index);
     m_weights.loadNumpyFile(arrayNPZ, arrayName);

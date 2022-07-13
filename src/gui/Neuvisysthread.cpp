@@ -52,7 +52,7 @@ void NeuvisysThread::run() {
         } else if (m_mode == 1) {
             launchReal(network);
         } else if (m_mode == 2) {
-            std::cout << "lel" << std::endl;
+            std::cout << "Mode not available, use gui-simulation target" << std::endl;
         }
     }
     emit networkDestruction();
@@ -126,6 +126,46 @@ void NeuvisysThread::launchNetwork(NetworkHandle &network) {
     }
 
     network.save(m_events.toStdString(), m_nbPass);
+
+//    std::string path_Events = "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars8/events/";
+//    std::vector<std::string> vectorOfPaths;
+//    for (const auto & frame : std::filesystem::directory_iterator{path_Events})
+//    {
+//        vectorOfPaths.emplace_back(frame.path().string());
+//    }
+//
+//    network.setEventPath(vectorOfPaths[0]);
+//    int epochs=10;
+//    int numberOfTimes = 1;
+//    std::string typeOfTraining = "all";
+//    if(typeOfTraining==network.getSimpleNeuronConfig().STDP_LEARNING) {
+//        std::cout << "Training is about to start..." << std::endl;
+//        std::vector<Event> events;
+//        auto rng = std::default_random_engine{};
+//        for (int j = 0; j < epochs; j++) {
+//            std::shuffle(std::begin(vectorOfPaths), std::end(vectorOfPaths), rng);
+//            std::cout << "It's epoch number : " << j << " !" << std::endl;
+//            for (int i = 0; i < vectorOfPaths.size(); i++) {
+//                std::cout << "Training of event folder number : " << i + 1 << " !" << std::endl;
+//                double time = i + 1;
+//                while (network.loadEvents(events, numberOfTimes)) {
+//                    eventLoop(network, events, time);
+//                    break;
+//                }
+//                network.save(vectorOfPaths[i], numberOfTimes);
+//                events.clear();
+//                if (i != vectorOfPaths.size() - 1) {
+//                    network.setEventPath(vectorOfPaths[i + 1]);
+//                }
+//            }
+//            network.setEventPath(vectorOfPaths[0]);
+//        }
+//    } else{
+//
+//        std::cout << "Please, verify that the type of learning is correct." << std::endl;
+//    }
+
+    emit networkDestruction();
 }
 
 int NeuvisysThread::launchReal(NetworkHandle &network) {
