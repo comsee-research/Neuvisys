@@ -11,17 +11,18 @@ std::string NetworkHandleTest::networkPath2;
 std::string NetworkHandleTest::networkPath3;
 
 void NetworkHandleTest::SetUpTestSuite() {
-    eventsPath = "../../src/resources/shapes.h5";
-    EXPECT_EQ(std::filesystem::exists("../../src/resources/shapes.h5"), true);
-    networkPath = "../../src/resources/network_test/";
-    networkPath2 = "../../src/resources/network_rl_test/";
-    networkPath3 = "../../src/resources/network_nws_test/";
+    eventsPath = "../../data/events/shapes.h5";
+    EXPECT_EQ(std::filesystem::exists("../../data/events/shapes.h5"), true);
+    networkPath = "../../data/networks/network_test/";
+    networkPath2 = "../../data/networks/network_rl_test/";
+    networkPath3 = "../../data/networks/network_nws_test/";
 
-    NetworkConfig::createNetwork("../../src/resources/network_test", PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
-    NetworkConfig::createNetwork("../../src/resources/network_rl_test", PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
-    NetworkConfig::createNetwork("../../src/resources/network_nws_test", PredefinedConfigurations::oneLayerOnePatchNoWeightSharingConfig);
+    NetworkConfig::createNetwork("../../data/networks/network_test", PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
+    NetworkConfig::createNetwork("../../data/networks/network_rl_test", PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
+    NetworkConfig::createNetwork("../../data/networks/network_nws_test", PredefinedConfigurations::oneLayerOnePatchNoWeightSharingConfig);
     if (network == nullptr) {
         WeightMatrix::setSeed(1486546);
+        WeightMap::setSeed(461846);
         network = new NetworkHandle(networkPath, eventsPath);
     }
 }

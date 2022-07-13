@@ -6,7 +6,8 @@
 #define NEUVISYS_SPIKINGNETWORKTEST_HPP
 
 #include "gtest/gtest.h"
-#include "../src/network/SpikingNetwork.hpp"
+
+#include "network/SpikingNetwork.hpp"
 
 class SpikingNetworkTest : public ::testing::Test {
 protected:

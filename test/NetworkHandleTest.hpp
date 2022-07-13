@@ -6,7 +6,8 @@
 #define NEUVISYS_NETWORKHANDLETEST_HPP
 
 #include "gtest/gtest.h"
-#include "../src/network/NetworkHandle.hpp"
+
+#include "network/NetworkHandle.hpp"
 
 class NetworkHandleTest : public ::testing::Test {
 protected:

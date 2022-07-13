@@ -33,6 +33,8 @@ The format should be as follows:
 
 To connect to event based cameras, and use the SNN live, you need to install caer: https://github.com/breznak/caer
 
+The libcaer can be downloaded from <https://gitlab.com/inivation/dv/libcaer>
+
 ### Qt
 install QT 5 with the **Qt Charts** module:
 
