@@ -21,12 +21,13 @@ WeightMatrix::WeightMatrix(std::vector<size_t> dimensions, bool uniform, double 
     for (const auto d : m_dimensions) {
         nbWeights *= d;
     }
+    m_data.reserve(nbWeights);
 
     for (size_t i = 0; i < nbWeights; ++i) {
         if (uniform) {
-            m_data.push_back(m_uniformRealDistr(m_generator));
+            m_data.emplace_back(m_uniformRealDistr(m_generator));
         } else {
-            m_data.push_back(0);
+            m_data.emplace_back(0);
         }
     }
     normalize(normFactor);
