@@ -12,6 +12,8 @@
 
 #include "Types.hpp"
 
+#define UNUSED(expr) (void)(expr)
+
 static constexpr std::size_t NBPOLARITY = 2;
 
 namespace Util {
