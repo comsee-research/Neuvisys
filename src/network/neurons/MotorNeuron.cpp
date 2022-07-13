@@ -226,3 +226,7 @@ void MotorNeuron::learningDecay(double decay) {
         m_conf.NU_K *= decay;
     }
 }
+
+WeightMap &MotorNeuron::getWeightsMap() { // TODO: take into account multiple weight matrices
+    return m_multiWeights[0];
+}

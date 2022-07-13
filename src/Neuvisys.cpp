@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
         std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_test/";
         std::string eventsPath = "/home/thomas/neuvisys-dv/src/resources/shapes.h5";
 
-        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
+        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
 
         WeightMatrix::setSeed(15);
         NetworkHandle network(networkPath, eventsPath);

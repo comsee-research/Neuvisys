@@ -35,6 +35,8 @@ public:
 
     double updateKernelSpikingRate(long time) override;
 
+    WeightMap &getWeightsMap() override;
+
     void learningDecay(double decay) override;
 
 private:
