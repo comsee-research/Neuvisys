@@ -94,31 +94,13 @@ bool SimulationInterface::poissonProcess() {
 }
 
 void SimulationInterface::motorsJitter(double dt) {
-//    m_leftMotorPhiPub.jitter(dt);
-    m_leftMotorThetaPub.jitter(dt, m_leftMotorPhiPub.getJitterPos());
-
-//    m_rightMotorPhiPub.jitter(dt);
-//    m_rightMotorThetaPub.jitter(dt, m_leftMotorThetaPub.getJitterPos());
+    m_leftMotorLeftRightPub.jitter(dt);
+    m_leftMotorUpDownPub.jitter(dt);
 }
 
 void SimulationInterface::activateMotors(uint64_t action) {
     auto pair = m_actionMapping[action];
-    switch (pair.first) {
-        case 0:
-            m_leftMotorPhiPub.changeSpeed(pair.second);
-            break;
-        case 1:
-            m_leftMotorThetaPub.changeSpeed(pair.second);
-            break;
-        case 2:
-            m_rightMotorPhiPub.changeSpeed(pair.second);
-            break;
-        case 3:
-            m_rightMotorThetaPub.changeSpeed(pair.second);
-            break;
-        default:
-            break;
-    }
+    m_leftMotorRotationPub.changeSpeed(pair.second);
 }
 
 void SimulationInterface::startSimulation() {

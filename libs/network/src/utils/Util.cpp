@@ -6,7 +6,6 @@
 
 static std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
 static std::normal_distribution<double> normalDistr(0.0, 1.0);
-static std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
 namespace Util {
     bool fileExist(std::string &filePath) {
@@ -83,8 +82,8 @@ namespace Util {
         }
     }
 
-    void ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma) {
+    double ornsteinUhlenbeckProcess(double pos, double dt, double theta, double mu, double sigma) {
         double noise = normalDistr(generator) * std::sqrt(dt);
-        pos = theta * (mu - pos) * dt + sigma * noise;
+        return theta * (mu - pos) * dt + sigma * noise;
     }
 }

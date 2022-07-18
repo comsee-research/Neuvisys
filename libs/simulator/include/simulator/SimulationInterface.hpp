@@ -27,10 +27,9 @@ class SimulationInterface {
     ros::Publisher m_stopSimulation;
     ros::Publisher m_enableSyncMode;
     ros::Publisher m_triggerNextStep;
-    Motor m_leftMotorPhiPub = Motor(nh, "leftmotor1");
-    Motor m_leftMotorThetaPub = Motor(nh, "leftmotor2");
-    Motor m_rightMotorPhiPub = Motor(nh, "rightmotor1");
-    Motor m_rightMotorThetaPub = Motor(nh, "rightmotor2");
+    Motor m_leftMotorLeftRightPub = Motor(nh, "leftmotorleftright");
+    Motor m_leftMotorUpDownPub = Motor(nh, "leftmotorupdown");
+    Motor m_leftMotorRotationPub = Motor(nh, "leftmotorrotation");
     ros::Time m_lastImageTime, m_imageTime;
     double m_elapsedTime{};
     double m_lambda{};

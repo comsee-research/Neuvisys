@@ -95,8 +95,8 @@ inline void SpikingNetwork::addNeuronEvent(const Neuron &neuron) {
 
     for (auto &forwardNeuron: neuron.getOutConnections()) {
         bool spiked = forwardNeuron.get().newEvent(NeuronEvent(neuron.getSpikingTime(), neuron.getIndex(), neuron.getLayer()));
-        double wi = forwardNeuron.get().getWeightsMap().at(neuron.getIndex());
-        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi, spiked);
+//        double wi = forwardNeuron.get().getWeightsMap().at(neuron.getIndex());
+//        neuronsStatistics(neuron.getSpikingTime(), 0, forwardNeuron.get().getPos(), forwardNeuron.get(), wi, spiked);
         if (spiked) {
             forwardNeuron.get().weightUpdate();
             lateralStaticInhibition(forwardNeuron.get());
@@ -119,8 +119,8 @@ void SpikingNetwork::processSynapticEvent() {
             auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                      event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
             bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera(), event.synapse()));
-            double wi = m_neurons[0][ind].get().getWeightsMatrix().get(event.polarity(), event.camera(), event.synapse(), eventPos.x(), eventPos.y());
-            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
+//            double wi = m_neurons[0][ind].get().getWeightsMatrix().get(event.polarity(), event.camera(), event.synapse(), eventPos.x(), eventPos.y());
+//            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
             if (spiked) {
                 m_neurons[0][ind].get().weightUpdate();
                 lateralStaticInhibition(m_neurons[0][ind].get());
@@ -435,32 +435,6 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     auto alpha = 0.6;
     m_averageActivity = (alpha * averageActivity) + (1.0 - alpha) * m_averageActivity;
 }
-
-/**
- *
- */
-//void SpikingNetwork::normalizeActions() {
-//    auto layer = m_neurons.sizes() - 1;
-//    auto norms = std::vector<double>(getNetworkStructure().back(), 0);
-//
-//    double normMax = 0;
-//    size_t count = 0;
-//    for (auto &neuron: m_neurons[layer]) {
-//        norms[count] = neuron.get().computeNormWeights();
-//        if (norms[count] > normMax) {
-//            normMax = norms[count];
-//        }
-//        ++count;
-//    }
-//
-//    count = 0;
-//    for (auto &neuron: m_neurons[layer]) {
-//        if (normMax != norms[count]) {
-//            neuron.get().rescaleWeights(normMax / norms[count]);
-//        }
-//        ++count;
-//    }
-//}
 
 /**
  *

@@ -26,7 +26,7 @@ namespace Util {
 
     bool endsWith(std::string const &value, std::string const &ending);
 
-    void ornsteinUhlenbeckProcess(double &pos, double dt, double theta, double mu, double sigma);
+    double ornsteinUhlenbeckProcess(double pos, double dt, double theta, double mu, double sigma);
 
     void saveEventFile(std::vector<Event> &events, std::string &filePath);
 }
