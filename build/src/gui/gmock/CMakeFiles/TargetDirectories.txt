@@ -1,8 +1,0 @@
-/home/comsee/neuvisys-cpp/build/src/gui/gmock/CMakeFiles/rebuild_cache.dir
-/home/comsee/neuvisys-cpp/build/src/gui/gmock/CMakeFiles/edit_cache.dir
-/home/comsee/neuvisys-cpp/build/src/gui/gmock/CMakeFiles/gmock_main.dir
-/home/comsee/neuvisys-cpp/build/src/gui/gmock/CMakeFiles/gmock.dir
-/home/comsee/neuvisys-cpp/build/src/gui/googletest/CMakeFiles/rebuild_cache.dir
-/home/comsee/neuvisys-cpp/build/src/gui/googletest/CMakeFiles/edit_cache.dir
-/home/comsee/neuvisys-cpp/build/src/gui/googletest/CMakeFiles/gtest_main.dir
-/home/comsee/neuvisys-cpp/build/src/gui/googletest/CMakeFiles/gtest.dir

@@ -1,1 +1,0 @@
-cmd='/usr/bin/cmake;-DCMAKE_CXX_FLAGS= -O0 -g -Wno-old-style-cast -Wno-missing-field-initializers -Wno-ctor-dtor-privacy -Wno-switch-default;-GUnix Makefiles;<SOURCE_DIR><SOURCE_SUBDIR>'
