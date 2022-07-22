@@ -554,7 +554,6 @@ void Neuron::resetNeuron() {
  */
 void Neuron::randomInhibition() {
     std::mt19937 generator(static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count()));
-    std::normal_distribution<double> normalDistr(0.0, 1.0);
     std::uniform_real_distribution<double> uniformRealDistr(0.0, 1.0);
 
     for (auto neuron: m_lateralDynamicInhibitionConnections) {

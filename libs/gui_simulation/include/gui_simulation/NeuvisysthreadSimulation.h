@@ -72,7 +72,7 @@ protected:
 
     void readEventsRealTime();
 
-    void readEventsSimulation();
+    void readEventsSimulation() const;
 
     int launchReal(NetworkHandle &network);
 

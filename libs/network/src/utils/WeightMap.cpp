@@ -86,3 +86,11 @@ void WeightMap::addWeight(size_t id, bool uniform) {
         m_data[id] = 0;
     }
 }
+
+std::vector<size_t> WeightMap::getKeys() {
+    std::vector<size_t> keys;
+    for (auto &kv : m_data) {
+        keys.push_back(kv.first);
+    }
+    return keys;
+}

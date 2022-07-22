@@ -171,8 +171,6 @@ public:
 
     virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void saveWeights(std::string &filePath) {};
-
     virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
     virtual void saveLateralInhibitionWeights(std::string &filePath) {};

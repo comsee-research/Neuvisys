@@ -45,13 +45,14 @@ public:
 
     void saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName);
 
+    std::vector<size_t> getKeys();
+
 private:
     double getNorm();
 
     static void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data);
 
     static void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights);
-
 };
 
 

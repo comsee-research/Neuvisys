@@ -487,9 +487,6 @@ void NetworkHandle::transmitReward(const double reward) {
  */
 void NetworkHandle::transmitEvent(const Event &event) {
     ++m_countEvents;
-/*    if(event.x() < 150) {
-        std::cout << "event x, y, ts, p = " << event.x() << " ; " << event.y() << " ; " << event.timestamp() << " ; " << event.polarity() << std::endl;
-    }*/
     m_spinet.addEvent(event);
 }
 
@@ -499,14 +496,15 @@ void NetworkHandle::transmitEvent(const Event &event) {
  */
 void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
+    auto nbLayer = m_spinet.getNetworkStructure().size();
 
-//    m_spinet.getNeuron(0, 2).get().learningDecay(1 - decay); // changing m_conf instance reference
-//    m_spinet.getNeuron(0, 3).get().learningDecay(1 - decay);
+    m_spinet.getNeuron(0, nbLayer-2).get().learningDecay(1 - decay);
+    m_spinet.getNeuron(0, nbLayer-1).get().learningDecay(1 - decay);
 
     m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
-//    if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {
-//        getRLConfig().setActionRate(static_cast<long>(getRLConfig().getActionRate() * (1 - decay)));
-//    }
+    if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {
+        m_rlConf.setActionRate(static_cast<long>(getRLConfig().getActionRate() * (1 - decay)));
+    }
 }
 
 /**

@@ -100,8 +100,6 @@ public:
     double TAU_E{}; // μs
     double TAU_K{}; // μs
     double NU_K{}; // μs
-    double MIN_NU_K{}; // μs
-    double MIN_TAU_K{}; // μs
 
     double ETA_LTP{}; // mV
     double ETA_LTD{}; // mV

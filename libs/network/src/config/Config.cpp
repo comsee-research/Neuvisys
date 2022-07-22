@@ -187,8 +187,6 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             TAU_LTD = E3 * static_cast<double>(conf["TAU_LTD"]);
             TAU_K = static_cast<double>(conf["TAU_K"]) / E3;
             NU_K = static_cast<double>(conf["NU_K"]) / E3;
-            MIN_TAU_K = static_cast<double>(conf["MIN_TAU_K"]) / E3;
-            MIN_NU_K = static_cast<double>(conf["MIN_NU_K"]) / E3;
             ETA = conf["ETA"];
             VTHRESH = conf["VTHRESH"];
             ETA_INH = conf["ETA_INH"];

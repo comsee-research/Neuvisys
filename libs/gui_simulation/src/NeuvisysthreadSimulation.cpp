@@ -58,7 +58,7 @@ void NeuvisysThreadSimulation::run() {
     quit();
 }
 
-void NeuvisysThreadSimulation::readEventsSimulation() {
+void NeuvisysThreadSimulation::readEventsSimulation() const {
     SimulationInterface sim(vector<pair<uint64_t, float>>{}, true, true);
     sim.enableSyncMode(true);
     sim.startSimulation();
@@ -95,7 +95,7 @@ void NeuvisysThreadSimulation::launchSimulation(NetworkHandle &network) {
             m_motorDisplay[m_action] = true;
         }
 
-        if (sim.getSimulationTime() > 300) {
+        if (sim.getSimulationTime() > 100) {
             m_stop = true;
         }
     }

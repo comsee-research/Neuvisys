@@ -525,6 +525,7 @@ void SpikingNetwork::saveNeuronsStates() {
                 neurons[i].get().saveWeights(fileName);
             }
         }
+
         for (auto &neuron: neurons) {
             fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
             neuron.get().saveState(fileName);
@@ -553,6 +554,7 @@ void SpikingNetwork::loadWeights() {
 
     for (auto &neurons: m_neurons) {
         std::string path(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0.npy");
+        std::string path2(m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0_0.npy");
         liFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0li.npy";
         tdiFilePath = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/0tdi.npy";
         if (std::find(m_networkConf.getLayerConnectivity()[layer].inhibitions.begin(), m_networkConf.getLayerConnectivity()[layer].inhibitions.end(), "lateral") !=
@@ -567,7 +569,7 @@ void SpikingNetwork::loadWeights() {
         } else {
             tdi = false;
         }
-        if (Util::fileExist(path)) {
+        if (Util::fileExist(path) || Util::fileExist(path2)) {
             if (layer == 0 && m_networkConf.getSharingType() == "patch") {
                 size_t step = m_networkConf.getLayerConnectivity()[layer].sizes[0] * m_networkConf.getLayerConnectivity()[layer].sizes[1] * m_networkConf.getLayerConnectivity()[layer].sizes[2];
                 size_t patch_size = m_networkConf.getLayerConnectivity()[layer].patches[0].size() * m_networkConf.getLayerConnectivity()[layer].patches[1].size();
@@ -707,6 +709,11 @@ void SpikingNetwork::writeJsonNeuronsStatistics(nlohmann::json &state, Neuron &n
     state["excitatory_ev"] = neuron.getExcitatoryEvents();
 }
 
+/**
+ *
+ * @param fileName
+ * @param neuron
+ */
 void SpikingNetwork::saveStatesStatistics(std::string &fileName, Neuron &neuron) {
     nlohmann::json state;
     writeJsonNeuronsStatistics(state, neuron);

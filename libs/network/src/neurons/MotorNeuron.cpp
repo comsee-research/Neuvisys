@@ -178,7 +178,7 @@ void MotorNeuron::loadWeights(std::string &filePath) {
     size_t count = 0;
     for (auto &weights : m_multiWeights) {
         auto numpyFile = filePath + std::to_string(m_index) + "_" + std::to_string(count) + ".npy";
-        weights.saveWeightsToNumpyFile(numpyFile);
+        weights.loadNumpyFile(numpyFile);
         ++count;
     }
 }
@@ -218,13 +218,6 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
  */
 void MotorNeuron::learningDecay(double decay) {
     m_conf.ETA *= decay;
-
-    if (m_conf.TAU_K > m_conf.MIN_TAU_K) {
-        m_conf.TAU_K *= decay;
-    }
-    if (m_conf.NU_K > m_conf.MIN_NU_K) {
-        m_conf.NU_K *= decay;
-    }
 }
 
 WeightMap &MotorNeuron::getWeightsMap() { // TODO: take into account multiple weight matrices

@@ -130,7 +130,13 @@ void ComplexNeuron::saveWeights(const std::string &filePath) {
  */
 void ComplexNeuron::loadWeights(std::string &filePath) {
     auto numpyFile = filePath + std::to_string(m_index) + ".npy";
-    m_weights.loadNumpyFile(numpyFile);
+
+    auto keys = m_weights.getKeys();
+    WeightMap temp;
+    temp.loadNumpyFile(numpyFile);
+    for (size_t i = 0; i < temp.getSize(); ++i) {
+        m_weights.at(keys[i]) = temp.at(i);
+    }
 }
 
 /**
