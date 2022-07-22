@@ -153,8 +153,6 @@ public:
 
     virtual double getBeforeInhibitionPotential() { return m_beforeInhibitionPotential; }
 
-    virtual void saveWeights(const std::string &filePath) {};
-
     virtual void saveState(std::string &filePath);
 
     virtual void loadState(std::string &filePath);
