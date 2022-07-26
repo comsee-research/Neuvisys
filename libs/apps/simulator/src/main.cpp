@@ -52,7 +52,7 @@ int launchSimulation(double simTime) {
     std::uniform_int_distribution<int> distr(0, 2);
     std::vector<std::pair<uint64_t, float>> actionMapping({{1, 5}, {1, 0}, {1, -5}});
 
-    SimulationInterface sim(actionMapping, false, false);
+    SimulationInterface sim(actionMapping, true, false);
     sim.enableSyncMode(true);
     sim.startSimulation();
 
@@ -78,17 +78,17 @@ int main(int argc, char **argv) {
     std::string type = "none";//argv[1];
     std::string m_networkPath;
 
-//    launchSimulation(10);
+    launchSimulation(10);
 
-    if (type == "multi") {
-        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
-            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
-            std::cout << m_networkPath << std::endl;
-            launchLearningSimulation(m_networkPath, 10);
-        }
-    } else {
-        m_networkPath = "/home/thomas/Networks/simulation/rl/orientation_task/skip_connections/network_learning/";
-        launchLearningSimulation(m_networkPath, 10);
-    }
+//    if (type == "multi") {
+//        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {
+//            m_networkPath = static_cast<std::string>(entry.path()) + "/configs/network_config.json";
+//            std::cout << m_networkPath << std::endl;
+//            launchLearningSimulation(m_networkPath, 10);
+//        }
+//    } else {
+//        m_networkPath = "/home/thomas/Networks/simulation/rl/orientation_task/skip_connections/network_learning/";
+//        launchLearningSimulation(m_networkPath, 10);
+//    }
     return 0;
 }

@@ -420,7 +420,7 @@ void SpikingNetwork::lateralStaticInhibitionConnection(Neuron &neuron, const siz
  * @param timeInterval
  */
 void SpikingNetwork::updateNeuronsStates(long timeInterval) {
-    size_t layer;
+    size_t layer = 0;
     double averageActivity = 0;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
@@ -430,6 +430,7 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
                 averageActivity += neuron.get().getSpikingRate();
             }
         }
+        ++layer;
     }
     averageActivity /= static_cast<double>(m_neurons[0].size());
     auto alpha = 0.6;

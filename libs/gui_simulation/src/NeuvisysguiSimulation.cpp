@@ -106,12 +106,8 @@ NeuvisysGUISimulation::NeuvisysGUISimulation(int argc, char **argv, const std::s
     ui->rewardView->setChart(rewardChart);
     ui->rewardView->setRenderHint(QPainter::Antialiasing);
 
-    actionSeries1 = new QLineSeries();
-    actionSeries2 = new QLineSeries();
     actionChart = new QChart();
     actionChart->legend()->hide();
-    actionChart->addSeries(actionSeries1);
-    actionChart->addSeries(actionSeries2);
     actionChart->createDefaultAxes();
     actionChart->setTitle("Action plot");
     ui->actionView->setChart(actionChart);
@@ -141,6 +137,7 @@ void NeuvisysGUISimulation::on_button_launch_network_clicked() {
             "std::vector<std::reference_wrapper<const std::vector<size_t>>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
     qRegisterMetaType<std::vector<std::vector<size_t>>>("std::vector<std::vector<size_t>>");
+    qRegisterMetaType<std::vector<std::vector<double>>>("std::vector<std::vector<double>>");
     qRegisterMetaType<std::vector<std::pair<double, size_t>>>("std::vector<std::pair<double, size_t>>");
 
     connect(&neuvisysThread, &NeuvisysThreadSimulation::displayProgress, this, &NeuvisysGUISimulation::onDisplayProgress);
@@ -293,7 +290,8 @@ void NeuvisysGUISimulation::modifyConfFile(QString &directory, QString &text) {
 
 void NeuvisysGUISimulation::onNetworkCreation(const size_t nbCameras, const size_t nbSynapses,
                                               const std::vector<size_t> &networkStructure,
-                                              const size_t vfWidth, const size_t vfHeight) {
+                                              const size_t vfWidth, const size_t vfHeight,
+                                              const size_t nbActions) {
     ui->console->clear();
     ui->spin_camera_selection->setMaximum(static_cast<int>(nbCameras - 1));
     ui->spin_synapse_selection->setMaximum(static_cast<int>(nbSynapses - 1));
@@ -310,6 +308,17 @@ void NeuvisysGUISimulation::onNetworkCreation(const size_t nbCameras, const size
 
     m_vfWidth = vfWidth;
     m_vfHeight = vfHeight;
+
+    for (int i = 0; i < nbActions; ++i) {
+        actionSeries.push_back(new QLineSeries());
+        actionSeries[i]->setName(QString::fromStdString("Action " + std::to_string(i)));
+        actionChart->addSeries(actionSeries[i]);
+    }
+    actionChart->legend()->hide();
+    actionChart->createDefaultAxes();
+    actionChart->setTitle("Action plot");
+    ui->actionView->setChart(actionChart);
+    ui->actionView->setRenderHint(QPainter::Antialiasing);
 }
 
 void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingType,
@@ -553,23 +562,24 @@ void NeuvisysGUISimulation::onDisplayReward(const std::vector<double> &rewardTra
     ui->rewardView->update();
 }
 
-void NeuvisysGUISimulation::onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train) {
-    actionChart->removeSeries(actionSeries1);
-    actionChart->removeSeries(actionSeries2);
-    actionSeries1 = new QLineSeries();
-    actionSeries1->setName("Action1");
-    actionSeries2 = new QLineSeries();
-    actionSeries2->setName("Action2");
+void NeuvisysGUISimulation::onDisplayAction(const std::vector<std::vector<double>> &actionTrain) {
+    auto nbActions = actionSeries.size();
+    actionSeries.clear();
+    actionChart->removeAllSeries();
 
-    auto end = action1Train.size();
-    for (auto i = 1; i < 1000; ++i) {
-        if (i >= end) { break; }
-        actionSeries1->append(static_cast<qreal>(end - i), action1Train[end - i]);
-        actionSeries2->append(static_cast<qreal>(end - i), action2Train[end - i]);
+    auto end = actionTrain[0].size();
+    for (auto i = 0; i < nbActions; ++i) {
+        actionSeries.push_back(new QLineSeries());
+        actionSeries[i]->setName(QString::fromStdString("Action " + std::to_string(i)));
+
+        for (auto j = 1; j < 1000; ++j) {
+            if (j >= end) { break; }
+            actionSeries[i]->append(static_cast<qreal>(end - j), actionTrain[i][end - j]);
+        }
+
+        actionChart->addSeries(actionSeries[i]);
     }
 
-    actionChart->addSeries(actionSeries1);
-    actionChart->addSeries(actionSeries2);
     actionChart->createDefaultAxes();
     actionChart->legend()->setVisible(true);
     actionChart->legend()->setAlignment(Qt::AlignBottom);

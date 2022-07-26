@@ -150,6 +150,8 @@ public:
     double decayRate{};
     double scoreInterval{};
     bool intrinsicReward{};
+    double etaVDot{};
+    size_t nbPreviousTD{};
 
     std::vector<std::pair<uint64_t, float>> actionMapping{};
 
@@ -178,6 +180,10 @@ public:
     [[nodiscard]] double getDecayRate() const { return decayRate; }
 
     [[nodiscard]] bool getIntrinsicReward() const { return intrinsicReward; }
+
+    [[nodiscard]] bool getEtaVDot() const { return etaVDot; }
+
+    [[nodiscard]] bool getNbPreviousTD() const { return nbPreviousTD; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 

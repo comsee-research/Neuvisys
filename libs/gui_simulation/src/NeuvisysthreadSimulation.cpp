@@ -41,7 +41,8 @@ void NeuvisysThreadSimulation::run() {
                                   network.getNetworkConfig().getLayerConnectivity()[0].sizes,
                                   network.getNetworkConfig().getLayerConnectivity()[0].neuronSizes[0]);
         emit networkCreation(network.getNetworkConfig().getNbCameras(), network.getNetworkConfig().getNeuron1Synapses(),
-                             network.getNetworkStructure(), network.getNetworkConfig().getVfWidth(), network.getNetworkConfig().getVfHeight());
+                             network.getNetworkStructure(), network.getNetworkConfig().getVfWidth(), network.getNetworkConfig().getVfHeight(),
+                             network.getRLConfig().getActionMapping().size());
         m_motorDisplay = std::vector<bool>(2, false);
 
         if (m_mode == 0) {
@@ -275,6 +276,7 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
     if (m_endTime != 0) {
         emit displayProgress(static_cast<int>(100 * time / m_endTime), time);
     }
+    std::vector<std::vector<double>> actions;
     switch (m_currentTab) {
         case 0: // event viz
             sensingZone(network);
@@ -302,7 +304,11 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
                                network.getSaveData()["tdError"]);
             break;
         case 6: // action
-            emit displayAction(network.getSaveData()["action_0"], network.getSaveData()["action_1"]);
+            for (int i = 0; i < network.getRLConfig().getActionMapping().size(); ++i) {
+                actions.push_back(network.getSaveData()["action_" + std::to_string(i)]);
+            }
+            emit displayAction(actions);
+            break;
         default:
             break;
     }

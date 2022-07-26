@@ -26,9 +26,9 @@ void FrameToEvents::frameConversion(const std::string &topic, const ros::Message
         input.convertTo(input, CV_32F);
         if (m_saveFrames) {
             if (camera) {
-                cv::imwrite("/home/thomas/Desktop/frames/" + std::to_string(m_iterations) + "_0.png", input);
+                cv::imwrite("/home/thomas/frames/" + std::to_string(m_iterations) + "_0.png", input);
             } else {
-                cv::imwrite("/home/thomas/Desktop/frames/" + std::to_string(m_iterations) + "_1.png", input);
+                cv::imwrite("/home/thomas/frames/" + std::to_string(m_iterations) + "_1.png", input);
             }
         }
 

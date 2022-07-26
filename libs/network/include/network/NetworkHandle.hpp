@@ -55,7 +55,8 @@ class NetworkHandle {
     double m_neuromodulator{};
     std::string m_eventsPath;
     size_t m_nbEvents{};
-    int m_action{};
+    int m_action = 0;
+    bool m_exploration{};
     size_t m_iteration{};
     size_t m_packetCount{};
     size_t m_actionCount{};
@@ -85,7 +86,7 @@ public:
 
     void saveValueMetrics(long time, size_t nbEvents);
 
-    void saveActionMetrics(size_t action, bool exploration);
+    void saveActionMetrics();
 
     void transmitReward(double reward);
 
@@ -105,7 +106,7 @@ public:
 
     double valueDerivative(const std::vector<double> &value);
 
-    std::pair<int, bool> actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
+    void actionSelection(const std::vector<uint64_t> &actionsActivations, double explorationFactor);
 
     void updateNeurons(size_t time);
 

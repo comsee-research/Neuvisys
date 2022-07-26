@@ -144,13 +144,13 @@ signals:
     void displayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain,
                        const std::vector<double> &valueDotTrain, const std::vector<double> &tdTrain);
 
-    void displayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train);
+    void displayAction(const std::vector<std::vector<double>> &actionTrain);
 
     void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
                               const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
 
-    void
-    networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, const size_t vfWidth, const size_t vfHeight);
+    void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, const size_t vfWidth, const size_t vfHeight,
+                    const size_t nbActions);
 
     void networkDestruction();
 

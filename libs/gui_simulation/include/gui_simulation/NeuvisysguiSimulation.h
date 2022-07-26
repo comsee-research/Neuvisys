@@ -44,8 +44,7 @@ protected:
     QLineSeries *valueDotSeries;
     QLineSeries *tdSeries;
     QChart *rewardChart;
-    QLineSeries *actionSeries1;
-    QLineSeries *actionSeries2;
+    std::vector<QLineSeries*> actionSeries;
     QChart *actionChart;
     QButtonGroup *buttonSelectionGroup;
 
@@ -88,13 +87,14 @@ public slots:
     void onDisplayReward(const std::vector<double> &rewardTrain, const std::vector<double> &valueTrain, const std::vector<double> &valueDotTrain,
                          const std::vector<double> &tdTrain);
 
-    void onDisplayAction(const std::vector<double> &action1Train, const std::vector<double> &action2Train);
+    void onDisplayAction(const std::vector<std::vector<double>> &actionTrain);
 
     void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
                                 const std::vector<size_t> &layerSizes, const
                                 std::vector<size_t> &neuronSizes);
 
-    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, size_t vfWidth, size_t vfHeight);
+    void onNetworkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, size_t vfWidth, size_t vfHeight,
+                           const size_t nbActions);
 
     void onNetworkDestruction();
 

@@ -138,7 +138,6 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
 
 /**
  *
-<<<<<<< HEAD
  * @param time
  */
 void NetworkHandle::updateNeurons(size_t time) {
@@ -276,9 +275,13 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         m_saveTime.console = time;
         learningDecay(m_rlConf.getScoreInterval() / E6);
 
+        auto nbLayer = m_spinet.getNetworkStructure().size();
         msg = "\n\nAverage reward: " + std::to_string(getScore(static_cast<long>(m_scoreCount))) +
               "\nExploration factor: " + std::to_string(getRLConfig().getExplorationFactor()) +
-              "\nAction rate: " + std::to_string(getRLConfig().getActionRate());
+              "\nAction rate: " + std::to_string(getRLConfig().getActionRate()) +
+              "\nCritic and Actor learning rate: " + std::to_string(m_spinet.getNeuron(0, nbLayer-2).get().getDecay())
+              + " / " + std::to_string(m_spinet.getNeuron(0, nbLayer-1).get().getDecay());
+
         m_scoreCount = 0;
     }
 
@@ -290,11 +293,10 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         if (m_action != -1) {
             updateActor();
         }
-        auto choice = actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
-        m_action = choice.first;
+        actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
         m_actionCount = 0;
         if (m_action != -1) {
-            saveActionMetrics(m_action, choice.second);
+            saveActionMetrics();
             return m_action;
         }
     }
@@ -305,12 +307,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
  *
  * @param actionsActivations
  * @param explorationFactor
- * @return
  */
-std::pair<int, bool>
-NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
-    bool exploration = false;
-    int selectedAction = 0;
+void NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, const double explorationFactor) {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<double> distReal(0.0, 1.0);
@@ -318,13 +316,13 @@ NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivations, 
 
     auto real = 100 * distReal(gen);
     if (real >= explorationFactor) {
-        selectedAction = Util::winnerTakeAll(actionsActivations);
+        m_action = Util::winnerTakeAll(actionsActivations);
+        m_exploration = false;
     } else {
-        selectedAction = distInt(gen);
-        exploration = true;
+        m_action = distInt(gen);
+        m_exploration = true;
     }
-
-    return std::make_pair(selectedAction, exploration);
+    std::cout << "Select new action: " << m_action << " exploration: " << m_exploration << std::endl;
 }
 
 /**
@@ -356,6 +354,7 @@ void NetworkHandle::updateCritic() {
 void NetworkHandle::updateActor() {
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
+    std::cout << "Update previous action: " << m_action << " exploration: " << m_exploration << " modulo: " << m_neuromodulator << std::endl;
     for (auto i = start; i < start + neuronPerAction; ++i) {
         m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
     }
@@ -437,12 +436,10 @@ double NetworkHandle::getScore(long nbPreviousReward) {
 
 /**
  *
- * @param action
- * @param exploration
  */
-void NetworkHandle::saveActionMetrics(size_t action, bool exploration) {
-    m_saveData["action"].push_back(static_cast<double>(action));
-    m_saveData["exploration"].push_back(exploration);
+void NetworkHandle::saveActionMetrics() {
+    m_saveData["action"].push_back(static_cast<double>(m_action));
+    m_saveData["exploration"].push_back(m_exploration);
 }
 
 /**
@@ -465,9 +462,9 @@ double NetworkHandle::valueFunction(long time) {
  * @return
  */
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = 100; // TODO : set a parameter
+    int nbPreviousTD = getRLConfig().getNbPreviousTD();
     if (value.size() > nbPreviousTD + 1) {
-        return 100 * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
+        return getRLConfig().getEtaVDot() * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
     } else {
         return 0;
     }
@@ -498,8 +495,8 @@ void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
     auto nbLayer = m_spinet.getNetworkStructure().size();
 
-    m_spinet.getNeuron(0, nbLayer-2).get().learningDecay(1 - decay);
-    m_spinet.getNeuron(0, nbLayer-1).get().learningDecay(1 - decay);
+//    m_spinet.getNeuron(0, nbLayer-2).get().learningDecay(1 - decay);
+//    m_spinet.getNeuron(0, nbLayer-1).get().learningDecay(1 - decay);
 
     m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
     if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {

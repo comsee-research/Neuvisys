@@ -72,6 +72,8 @@ void ReinforcementLearningConfig::loadRLConfig(const std::string &fileName) {
             minActionRate = static_cast<long>(E3) * static_cast<long>(conf["minActionRate"]);
             scoreInterval = E3 * static_cast<double>(conf["scoreInterval"]);
             intrinsicReward = conf["intrinsicReward"];
+            etaVDot = conf["etaVDot"];
+            nbPreviousTD = conf["nbPreviousTD"];
         } catch (const std::exception &e) {
             std::cerr << "In reinforcement learning config file:" << e.what() << std::endl;
             throw;
