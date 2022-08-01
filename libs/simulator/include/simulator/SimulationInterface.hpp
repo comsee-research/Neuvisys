@@ -49,7 +49,7 @@ class SimulationInterface {
     std::vector<std::pair<uint64_t, float>> m_actionMapping;
 
 public:
-    explicit SimulationInterface(std::vector<std::pair<uint64_t, float>> actions, bool saveFrames=false, bool saveEvents=false);
+    explicit SimulationInterface(const std::vector<std::pair<uint64_t, float>>& actions, bool saveFrames=false, bool saveEvents=false);
     void update();
     const std::vector<Event> &getLeftEvents() { return leftEvents; }
     const std::vector<Event> &getRightEvents() { return rightEvents; }

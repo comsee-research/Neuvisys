@@ -152,12 +152,6 @@ inline void SimpleNeuron::weightUpdate() {
                     m_conf.ETA_ILTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_topDownInhibitionWeights.at(event.id()) +=
                     m_conf.ETA_ILTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-        /*    if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
-                m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP;
-            }
-            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
-                m_topDownInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD;
-            }*/
             if (m_topDownInhibitionWeights.at(event.id()) < 0) {
                 m_topDownInhibitionWeights.at(event.id()) = 0;
             }
@@ -169,12 +163,6 @@ inline void SimpleNeuron::weightUpdate() {
                     m_conf.ETA_ILTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_lateralInhibitionWeights.at(event.id()) +=
                     m_conf.ETA_ILTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
-        /*    if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
-                m_lateralInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP;
-            }
-            if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
-                m_lateralInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD;
-            }*/
             if (m_lateralInhibitionWeights.at(event.id()) < 0) {
                 m_lateralInhibitionWeights.at(event.id()) = 0;
             }

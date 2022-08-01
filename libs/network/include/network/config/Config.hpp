@@ -181,9 +181,9 @@ public:
 
     [[nodiscard]] bool getIntrinsicReward() const { return intrinsicReward; }
 
-    [[nodiscard]] bool getEtaVDot() const { return etaVDot; }
+    [[nodiscard]] double getEtaVDot() const { return etaVDot; }
 
-    [[nodiscard]] bool getNbPreviousTD() const { return nbPreviousTD; }
+    [[nodiscard]] size_t getNbPreviousTD() const { return nbPreviousTD; }
 
     void setExplorationFactor(double factor) { explorationFactor = factor; }
 

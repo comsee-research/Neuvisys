@@ -39,7 +39,7 @@ class SpikingNetwork {
     double m_neuromodulator{};
     std::vector<std::vector<int>> m_simpleWeightsOrientations;
     std::vector<std::vector<int>> m_complexCellsOrientations;
-    double m_averageActivity{};
+    std::vector<double> m_averageActivity{};
 
 public:
     SpikingNetwork();
@@ -58,9 +58,7 @@ public:
 
     void transmitNeuromodulator(double neuromodulator);
 
-    void normalizeActions();
-
-    [[nodiscard]] double getAverageActivity() const { return m_averageActivity; }
+    [[nodiscard]] double getAverageActivity(size_t layer) const { return m_averageActivity[layer]; }
 
     std::reference_wrapper<Neuron> &getNeuron(size_t index, size_t layer);
 

@@ -34,7 +34,9 @@ namespace PredefinedConfigurations {
                         {"minActionRate", 100},
                         {"decayRate",   0.01},
                         {"intrinsicReward",   false},
-                        {"scoreInterval",         2000}
+                        {"scoreInterval",         2000},
+                        {"etaVDot", 100},
+                        {"nbPreviousTD", 100}
                 },
                 {
                         {"VTHRESH",    30},
@@ -151,7 +153,9 @@ namespace PredefinedConfigurations {
                         {"minActionRate", 100},
                         {"decayRate",   0.01},
                         {"intrinsicReward",   false},
-                        {"scoreInterval",         2000}
+                        {"scoreInterval",         2000},
+                        {"etaVDot", 100},
+                        {"nbPreviousTD", 100}
                 },
                 {
                         {"VTHRESH",    30},
@@ -268,7 +272,9 @@ namespace PredefinedConfigurations {
                         {"minActionRate", 10},
                         {"decayRate",   5},
                         {"intrinsicReward",   false},
-                        {"scoreInterval",         2000}
+                        {"scoreInterval",         2000},
+                        {"etaVDot", 100},
+                        {"nbPreviousTD", 100}
                 },
                 {
                         {"VTHRESH",    30},
@@ -383,7 +389,9 @@ namespace PredefinedConfigurations {
                         {"minActionRate", 10},
                         {"decayRate",   5},
                         {"intrinsicReward",   false},
-                        {"scoreInterval",         2000}
+                        {"scoreInterval",         2000},
+                        {"etaVDot", 100},
+                        {"nbPreviousTD", 100}
                 },
                 {
                         {"VTHRESH",    30},

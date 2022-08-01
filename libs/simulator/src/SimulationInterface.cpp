@@ -4,7 +4,7 @@
 
 #include "SimulationInterface.hpp"
 
-SimulationInterface::SimulationInterface(std::vector<std::pair<uint64_t, float>> actions, bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
+SimulationInterface::SimulationInterface(const std::vector<std::pair<uint64_t, float>> &actions, bool saveFrames, bool saveEvents) : m_saveEvents(saveEvents) {
     frameConverter = FrameToEvents(5, 1, 0, 0.4, 0, 1, saveFrames, m_saveEvents);
     m_leftSensorSub = nh.subscribe<sensor_msgs::Image>("leftimage", 1000,
                                                       [this](auto && PH1) { visionCallBack(std::forward<decltype(PH1)>(PH1), "left"); });

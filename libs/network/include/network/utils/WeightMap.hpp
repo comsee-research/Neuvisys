@@ -14,6 +14,7 @@
 
 class WeightMap {
     std::unordered_map<size_t, double> m_data;
+    size_t m_size;
     std::vector<size_t> m_dimensions;
 
     static std::random_device m_rd;
@@ -31,9 +32,9 @@ public:
 
     void normalize(double normFactor);
 
-    std::vector<size_t> getDimensions() const { return m_dimensions; }
+    std::vector<size_t> getDimensions() { return m_dimensions; }
 
-    size_t getSize() const { return m_data.size(); }
+    size_t getSize() const { return m_size; }
 
     double &at(size_t id);
 

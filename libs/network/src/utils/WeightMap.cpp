@@ -4,16 +4,18 @@
 
 #include "utils/WeightMap.hpp"
 
+#include <utility>
+
 std::random_device WeightMap::m_rd;
 std::mt19937 WeightMap::m_generator(WeightMap::m_rd());
 std::uniform_real_distribution<double> WeightMap::m_uniformRealDistr(0.0, 1.0);
 
-WeightMap::WeightMap() : m_data() {
-    m_dimensions.push_back(0);
+WeightMap::WeightMap() : m_data(), m_dimensions() {
+    m_size = 0;
 }
 
 WeightMap::WeightMap(std::vector<size_t> dimensions) : m_data(), m_dimensions(std::move(dimensions)) {
-
+    m_size = 0;
 }
 
 double WeightMap::getNorm() {
@@ -46,13 +48,21 @@ void WeightMap::loadNumpyFile(cnpy::npz_t &arrayNPZ, const std::string &arrayNam
 void WeightMap::saveWeightsToNumpyFile(const std::string &filePath) {
     std::vector<double> data(static_cast<size_t>(m_data.size()));
     mapToWeights(m_data, data);
-    cnpy::npy_save(filePath + ".npy", &data[0], m_dimensions, "w");
+    auto shape = std::vector<size_t>(1, m_size);
+    if (!m_dimensions.empty()) {
+        shape = m_dimensions;
+    }
+    cnpy::npy_save(filePath + ".npy", &data[0], shape, "w");
 }
 
 void WeightMap::saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName) {
     std::vector<double> data(static_cast<size_t>(m_data.size()));
     mapToWeights(m_data, data);
-    cnpy::npz_save(filePath, arrayName, &data[0], m_dimensions, "a");
+    auto shape = std::vector<size_t>(1, m_size);
+    if (!m_dimensions.empty()) {
+        shape = m_dimensions;
+    }
+    cnpy::npz_save(filePath, arrayName, &data[0], shape, "a");
 }
 
 void WeightMap::mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data) {
@@ -85,6 +95,7 @@ void WeightMap::addWeight(size_t id, bool uniform) {
     } else {
         m_data[id] = 0;
     }
+    ++m_size;
 }
 
 std::vector<size_t> WeightMap::getKeys() {

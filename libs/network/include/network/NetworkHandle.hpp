@@ -58,7 +58,6 @@ class NetworkHandle {
     int m_action = 0;
     bool m_exploration{};
     size_t m_iteration{};
-    size_t m_packetCount{};
     size_t m_actionCount{};
     size_t m_scoreCount{};
     size_t m_countEvents{};
@@ -81,6 +80,8 @@ public:
     bool loadEvents(std::vector<Event> &events, size_t nbPass);
 
     void feedEvents(const std::vector<Event> &events);
+
+    void computeNeuromodulator();
 
     void updateActor();
 

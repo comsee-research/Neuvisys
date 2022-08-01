@@ -283,7 +283,7 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
             emit displayEvents(m_leftEventDisplay, m_rightEventDisplay);
             break;
         case 1: // statistics
-            emit displayStatistics(network.getSaveData()["eventRate"], network.getSaveData()["networkRate"]);
+            emit displayStatistics(network.getSaveData()["eventRate"], network.getSaveData()["networkRate_" + std::to_string(m_layer)]);
             break;
         case 2: // weights
             prepareWeights(network);

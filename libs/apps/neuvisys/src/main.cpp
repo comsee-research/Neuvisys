@@ -25,10 +25,10 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/neuvisys-dv/src/resources/network_test/";
-        std::string eventsPath = "/home/thomas/neuvisys-dv/src/resources/shapes.h5";
+        std::string networkPath = "/home/thomas/Networks/handcraft/disparity/inhibition_learning/0/validation_strong/";
+        std::string eventsPath = "/home/thomas/Videos/handcraft/disparity/forward/full.h5";
 
-        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
+//        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
 
         WeightMatrix::setSeed(15);
         NetworkHandle network(networkPath, eventsPath);

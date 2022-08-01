@@ -23,6 +23,7 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
     for (size_t i = 0; i < m_networkConf.getLayerConnectivity().size(); ++i) {
         addLayer(m_networkConf.getSharingType(), m_networkConf.getLayerConnectivity()[i]);
     }
+    m_averageActivity = std::vector<double>(m_networkConf.getLayerConnectivity().size(), 0);
 }
 
 /**
@@ -40,8 +41,8 @@ void SpikingNetwork::addEvent(const Event &event) {
             auto eventPos = Position(event.x() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().x()),
                                     event.y() - static_cast<int16_t>(m_neurons[0][ind].get().getOffset().y()));
             bool spiked = m_neurons[0][ind].get().newEvent(Event(event.timestamp(), eventPos.x(), eventPos.y(), event.polarity(), event.camera()));
-            double wi = m_neurons[0][ind].get().getWeightsMatrix().get(event.polarity(), event.camera(), event.synapse(), eventPos.x(), eventPos.y());
-            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
+//            double wi = m_neurons[0][ind].get().getWeightsMatrix().get(event.polarity(), event.camera(), event.synapse(), eventPos.x(), eventPos.y());
+//            neuronsStatistics(event.timestamp(), 0, m_neurons[0][ind].get().getPos(), m_neurons[0][ind].get(), wi, spiked);
             if (spiked) {
                 m_neurons[0][ind].get().weightUpdate();
                 lateralStaticInhibition(m_neurons[0][ind].get());
@@ -142,7 +143,7 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &previousNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex(), neuron.getLayer());
         previousNeuron.get().newTopDownInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
+//        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
     }
 }
 
@@ -154,7 +155,7 @@ void SpikingNetwork::lateralDynamicInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex(), neuron.getLayer());
         lateralNeuron.get().newLateralInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
+//        neuronsStatistics(event.timestamp(), 2, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getlateralInhibitionWeights(event.id()));
     }
 }
 
@@ -167,7 +168,7 @@ void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     for (auto &lateralNeuron: neuron.getLateralStaticInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex(), neuron.getLayer());
         lateralNeuron.get().newStaticInhibitoryEvent(event);
-        neuronsStatistics(neuron.getSpikingTime(), 1, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getConf().ETA_INH);
+//        neuronsStatistics(neuron.getSpikingTime(), 1, neuron.getPos(), lateralNeuron.get(), lateralNeuron.get().getConf().ETA_INH);
     }
 }
 
@@ -422,19 +423,20 @@ void SpikingNetwork::lateralStaticInhibitionConnection(Neuron &neuron, const siz
 void SpikingNetwork::updateNeuronsStates(long timeInterval) {
     size_t layer = 0;
     double averageActivity = 0;
+    auto alpha = 0.6;
     for (auto &neurons: m_neurons) {
         for (auto &neuron: neurons) {
             neuron.get().updateState(timeInterval);
+            averageActivity += neuron.get().getSpikingRate();
             if (layer == 0) {
                 neuron.get().thresholdAdaptation();
-                averageActivity += neuron.get().getSpikingRate();
             }
         }
+        averageActivity /= static_cast<double>(m_neurons[0].size());
+        m_averageActivity[layer] = (alpha * averageActivity) + (1.0 - alpha) * m_averageActivity[layer];
+        averageActivity = 0;
         ++layer;
     }
-    averageActivity /= static_cast<double>(m_neurons[0].size());
-    auto alpha = 0.6;
-    m_averageActivity = (alpha * averageActivity) + (1.0 - alpha) * m_averageActivity;
 }
 
 /**

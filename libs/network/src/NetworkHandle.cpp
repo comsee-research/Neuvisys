@@ -148,10 +148,12 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
-            m_reward = 100 * (2 - m_spinet.getAverageActivity()) / m_averageEventRate;
+            m_reward = 100 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate;
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
-        m_saveData["networkRate"].push_back(m_spinet.getAverageActivity());
+        for (size_t i = 0; i < m_spinet.getNetworkStructure().size(); ++i) {
+            m_saveData["networkRate_" + std::to_string(i)].push_back(m_spinet.getAverageActivity(i));
+        }
         m_saveTime.update = static_cast<double>(time);
     }
 }
@@ -266,9 +268,7 @@ void NetworkHandle::saveStatistics(size_t simulation, size_t sequence, bool rese
  * @return
  */
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
-    ++m_packetCount;
     saveValueMetrics(lastTimestamp, nbEvents);
-//    m_spinet.transmitNeuromodulator(m_saveData["tdError"].back());
 
     ++m_scoreCount;
     if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
@@ -281,7 +281,6 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate()) +
               "\nCritic and Actor learning rate: " + std::to_string(m_spinet.getNeuron(0, nbLayer-2).get().getDecay())
               + " / " + std::to_string(m_spinet.getNeuron(0, nbLayer-1).get().getDecay());
-
         m_scoreCount = 0;
     }
 
@@ -289,12 +288,12 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
+        computeNeuromodulator();
         updateCritic();
         if (m_action != -1) {
             updateActor();
         }
         actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
-        m_actionCount = 0;
         if (m_action != -1) {
             saveActionMetrics();
             return m_action;
@@ -328,20 +327,27 @@ void NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivati
 /**
  *
  */
-void NetworkHandle::updateCritic() {
+void NetworkHandle::computeNeuromodulator() {
     double meanTDError = 0;
     auto count = 0;
-    if (m_saveData["tdError"].size() > 10) {
+    if (m_saveData["tdError"].size() > m_actionCount) {
         for (auto itTDError = m_saveData["tdError"].rbegin(); itTDError != m_saveData["tdError"].rend(); ++itTDError) {
-            if (count > 10) {
+            if (count > m_actionCount) {
                 break;
             } else {
                 meanTDError += *itTDError;
                 ++count;
             }
         }
-        m_neuromodulator = meanTDError / static_cast<double>(10);
+        m_neuromodulator = meanTDError / static_cast<double>(m_actionCount);
     }
+    m_actionCount = 0;
+}
+
+/**
+ *
+ */
+void NetworkHandle::updateCritic() {
     size_t layer = m_spinet.getNetworkStructure().size() - 2;
     for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
         m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
@@ -358,7 +364,6 @@ void NetworkHandle::updateActor() {
     for (auto i = start; i < start + neuronPerAction; ++i) {
         m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
     }
-//    m_spinet.normalizeActions();
 }
 
 /**
@@ -462,9 +467,9 @@ double NetworkHandle::valueFunction(long time) {
  * @return
  */
 double NetworkHandle::valueDerivative(const std::vector<double> &value) {
-    int nbPreviousTD = getRLConfig().getNbPreviousTD();
+    size_t nbPreviousTD = getRLConfig().getNbPreviousTD();
     if (value.size() > nbPreviousTD + 1) {
-        return getRLConfig().getEtaVDot() * Util::secondOrderNumericalDifferentiationMean(value, nbPreviousTD);
+        return getRLConfig().getEtaVDot() * Util::secondOrderNumericalDifferentiationMean(value, static_cast<int>(nbPreviousTD));
     } else {
         return 0;
     }
