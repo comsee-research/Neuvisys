@@ -58,6 +58,7 @@ class NetworkHandle {
     int m_action = 0;
     bool m_exploration{};
     size_t m_iteration{};
+    size_t m_criticCount{};
     size_t m_actionCount{};
     size_t m_scoreCount{};
     size_t m_countEvents{};
@@ -65,6 +66,8 @@ class NetworkHandle {
     size_t m_saveCount{};
     double m_endTime{};
     double m_averageEventRate{};
+    double m_decayCritic = 1.0;
+    double m_decayActor = 1.0;
 
 public:
     NetworkHandle();
@@ -81,7 +84,9 @@ public:
 
     void feedEvents(const std::vector<Event> &events);
 
-    void computeNeuromodulator();
+    void computeCriticNeuromodulator();
+
+    void computeActorNeuromodulator();
 
     void updateActor();
 

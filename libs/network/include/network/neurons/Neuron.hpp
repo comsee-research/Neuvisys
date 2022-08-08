@@ -40,7 +40,6 @@ protected:
     size_t m_totalSpike{};
     size_t m_spikeRateCounter{};
     size_t m_activityCounter{};
-    double m_decay;
     double m_potential{};
     double m_adaptationPotential{};
     double m_threshold;
@@ -97,8 +96,6 @@ public:
     [[nodiscard]] virtual size_t getSpikingTime() const { return m_spikingTime; }
 
     [[nodiscard]] virtual double getSpikingPotential() const { return m_spikingPotential; }
-
-    [[nodiscard]] virtual double getDecay() const { return m_decay; }
 
     [[nodiscard]] virtual double getAdaptationPotential() const { return m_adaptationPotential; }
 
@@ -242,8 +239,6 @@ public:
     virtual void updateState(size_t timeInterval);
 
     virtual double updateKernelSpikingRate(long /* time */) { return 1.; };
-
-    virtual void learningDecay(double count);
 
     virtual void resetNeuron();
 

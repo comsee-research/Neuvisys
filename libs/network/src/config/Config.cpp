@@ -124,7 +124,6 @@ void NeuronConfig::loadSimpleNeuronsParameters(const std::string &fileName) {
             NORM_FACTOR = conf["NORM_FACTOR"];
             LATERAL_NORM_FACTOR = conf["LATERAL_NORM_FACTOR"];
             TOPDOWN_NORM_FACTOR = conf["TOPDOWN_NORM_FACTOR"];
-            DECAY_RATE = conf["DECAY_RATE"];
             TARGET_SPIKE_RATE = conf["TARGET_SPIKE_RATE"];
             MIN_THRESH = conf["MIN_THRESH"];
             STDP_LEARNING = conf["STDP_LEARNING"];
@@ -158,7 +157,6 @@ void NeuronConfig::loadComplexNeuronsParameters(const std::string &fileName) {
             ETA_INH = conf["ETA_INH"];
             VRESET = conf["VRESET"];
             NORM_FACTOR = conf["NORM_FACTOR"];
-            DECAY_RATE = conf["DECAY_RATE"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             TRACKING = conf["TRACKING"];
             DELTA_RP = conf["ETA_RP"];
@@ -196,7 +194,6 @@ void NeuronConfig::loadCriticNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
-            DECAY_RATE = conf["DECAY_RATE"];
             POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;
@@ -228,7 +225,6 @@ void NeuronConfig::loadActorNeuronsParameters(const std::string &fileName) {
             TRACKING = conf["TRACKING"];
             STDP_LEARNING = conf["STDP_LEARNING"];
             NORM_FACTOR = conf["NORM_FACTOR"];
-            DECAY_RATE = conf["DECAY_RATE"];
             POTENTIAL_TRACK = static_cast<std::vector<int>>(conf["POTENTIAL_TRACK"]);
         } catch (const std::exception &e) {
             std::cerr << "In motor cell config file" << std::endl;

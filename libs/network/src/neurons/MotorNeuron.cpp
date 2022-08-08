@@ -127,10 +127,6 @@ inline double MotorNeuron::kernel(double time) {
     return (exp(-time / m_conf.TAU_K) - exp(-time / m_conf.NU_K)) / (m_conf.TAU_K - m_conf.NU_K);
 }
 
-//inline double MotorNeuron::kernelDerivative(double time) {
-//    return (exp(-time / m_conf.NU_K) / m_conf.NU_K - exp(-time / m_conf.TAU_K) / m_conf.TAU_K) / (m_conf.TAU_K - m_conf.NU_K);
-//}
-
 /**
  *
  * @return
@@ -210,14 +206,6 @@ inline void MotorNeuron::setNeuromodulator(double neuromodulator) {
             }
         }
     }
-}
-
-/**
- *
- * @param decay
- */
-void MotorNeuron::learningDecay(double decay) {
-    m_conf.ETA *= decay;
 }
 
 WeightMap &MotorNeuron::getWeightsMap() { // TODO: take into account multiple weight matrices

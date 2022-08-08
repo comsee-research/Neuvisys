@@ -137,9 +137,9 @@ inline void SimpleNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "excitatory" || m_conf.STDP_LEARNING == "all") {
         for (Event &event: m_events) {
             m_sharedWeights.get(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
-                    m_decay * m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
+                    m_conf.ETA_LTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_sharedWeights.get(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) +=
-                    m_decay * m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
+                    m_conf.ETA_LTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
             if (m_sharedWeights.get(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) < 0) {
                 m_sharedWeights.get(event.polarity(), event.camera(), event.synapse(), event.x(), event.y()) = 0;
             }

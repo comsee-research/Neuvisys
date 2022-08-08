@@ -37,14 +37,11 @@ public:
 
     WeightMap &getWeightsMap() override;
 
-    void learningDecay(double decay) override;
-
 private:
     bool membraneUpdate(NeuronEvent event);
 
     double kernel(double time);
 
-    double kernelDerivative(double time);
 };
 
 

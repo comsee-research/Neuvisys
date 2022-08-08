@@ -118,7 +118,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
         ++counter;
         ++m_iteration;
 
-        if(counter == m_nbEvents) {
+        if (counter == m_nbEvents) {
             const auto ev = Event(event.timestamp(), event.x(), event.y(), event.polarity(), event.camera(), event.synapse(), true);
             transmitEvent(ev);
             updateNeurons(ev.timestamp());
@@ -144,7 +144,7 @@ void NetworkHandle::updateNeurons(size_t time) {
     if (static_cast<double>(time) - m_saveTime.update > m_networkConf.getMeasurementInterval()) {
         m_totalNbEvents += m_countEvents;
         m_spinet.updateNeuronsStates(static_cast<long>(static_cast<double>(time) - m_saveTime.update));
-        auto alpha = 0.6;
+        auto alpha = 0.1;
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
@@ -270,6 +270,25 @@ void NetworkHandle::saveStatistics(size_t simulation, size_t sequence, bool rese
 int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents, std::string &msg) {
     saveValueMetrics(lastTimestamp, nbEvents);
 
+    ++m_criticCount;
+    if (m_criticCount > 10) {
+        updateCritic();
+    }
+
+    ++m_actionCount;
+    if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
+        m_saveTime.action = time;
+
+        if (m_action != -1 && m_decayCritic < 0.5) {
+            updateActor();
+        }
+        actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
+        if (m_action != -1) {
+            saveActionMetrics();
+            return m_action;
+        }
+    }
+
     ++m_scoreCount;
     if (time - m_saveTime.console > m_rlConf.getScoreInterval()) {
         m_saveTime.console = time;
@@ -279,26 +298,10 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
         msg = "\n\nAverage reward: " + std::to_string(getScore(static_cast<long>(m_scoreCount))) +
               "\nExploration factor: " + std::to_string(getRLConfig().getExplorationFactor()) +
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate()) +
-              "\nCritic and Actor learning rate: " + std::to_string(m_spinet.getNeuron(0, nbLayer-2).get().getDecay())
-              + " / " + std::to_string(m_spinet.getNeuron(0, nbLayer-1).get().getDecay());
+              "\nCritic and Actor learning rate: " + std::to_string(m_decayCritic) + " / " + std::to_string(m_decayActor);
         m_scoreCount = 0;
     }
 
-    ++m_actionCount;
-    if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
-        m_saveTime.action = time;
-
-        computeNeuromodulator();
-        updateCritic();
-        if (m_action != -1) {
-            updateActor();
-        }
-        actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
-        if (m_action != -1) {
-            saveActionMetrics();
-            return m_action;
-        }
-    }
     return -1;
 }
 
@@ -327,19 +330,39 @@ void NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivati
 /**
  *
  */
-void NetworkHandle::computeNeuromodulator() {
+void NetworkHandle::computeCriticNeuromodulator() {
     double meanTDError = 0;
     auto count = 0;
-    if (m_saveData["tdError"].size() > m_actionCount) {
-        for (auto itTDError = m_saveData["tdError"].rbegin(); itTDError != m_saveData["tdError"].rend(); ++itTDError) {
-            if (count > m_actionCount) {
+    if (m_saveData["criticError"].size() > m_criticCount) {
+        for (auto itTDError = m_saveData["criticError"].rbegin(); itTDError != m_saveData["criticError"].rend(); ++itTDError) {
+            if (count > m_criticCount) {
                 break;
             } else {
                 meanTDError += *itTDError;
                 ++count;
             }
         }
-        m_neuromodulator = meanTDError / static_cast<double>(m_actionCount);
+        m_neuromodulator = meanTDError / static_cast<double>(m_criticCount);
+    }
+    m_criticCount = 0;
+}
+
+/**
+ *
+ */
+void NetworkHandle::computeActorNeuromodulator() {
+    double meanTDError = 0;
+    auto count = 0;
+    if (m_saveData["tdError"].size() > 10) {
+        for (auto itTDError = m_saveData["tdError"].rbegin(); itTDError != m_saveData["tdError"].rend(); ++itTDError) {
+            if (count > 10) {
+                break;
+            } else {
+                meanTDError += *itTDError;
+                ++count;
+            }
+        }
+        m_neuromodulator = meanTDError / static_cast<double>(10);
     }
     m_actionCount = 0;
 }
@@ -348,9 +371,10 @@ void NetworkHandle::computeNeuromodulator() {
  *
  */
 void NetworkHandle::updateCritic() {
+    computeCriticNeuromodulator();
     size_t layer = m_spinet.getNetworkStructure().size() - 2;
     for (auto i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
-        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_neuromodulator);
+        m_spinet.getNeuron(i, layer).get().setNeuromodulator(m_decayCritic * m_neuromodulator);
     }
 }
 
@@ -358,11 +382,12 @@ void NetworkHandle::updateCritic() {
  *
  */
 void NetworkHandle::updateActor() {
+    computeActorNeuromodulator();
     auto neuronPerAction = m_spinet.getNetworkStructure().back() / getRLConfig().getActionMapping().size();
     auto start = m_action * neuronPerAction;
     std::cout << "Update previous action: " << m_action << " exploration: " << m_exploration << " modulo: " << m_neuromodulator << std::endl;
     for (auto i = start; i < start + neuronPerAction; ++i) {
-        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_neuromodulator);
+        m_spinet.getNeuron(i, m_spinet.getNetworkStructure().size() - 1).get().setNeuromodulator(m_decayActor * m_neuromodulator);
     }
 }
 
@@ -401,6 +426,8 @@ void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["value"].push_back(V);
     double VDot = valueDerivative(m_saveData["value"]);
     m_saveData["valueDot"].push_back(VDot);
+    auto criticError = -V / getRLConfig().getTauR() + m_reward;
+    m_saveData["criticError"].push_back(criticError);
     auto tdError = VDot - V / getRLConfig().getTauR() + m_reward;
     m_saveData["tdError"].push_back(tdError);
 
@@ -458,7 +485,7 @@ double NetworkHandle::valueFunction(long time) {
     for (size_t i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
         value += m_spinet.getNeuron(i, layer).get().updateKernelSpikingRate(time);
     }
-    return getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[layer]) + getRLConfig().getV0();
+    return (getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[layer])) / m_averageEventRate + getRLConfig().getV0();
 }
 
 /**
@@ -498,10 +525,11 @@ void NetworkHandle::transmitEvent(const Event &event) {
  */
 void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
-    auto nbLayer = m_spinet.getNetworkStructure().size();
 
-//    m_spinet.getNeuron(0, nbLayer-2).get().learningDecay(1 - decay);
-//    m_spinet.getNeuron(0, nbLayer-1).get().learningDecay(1 - decay);
+    m_decayCritic *= 1 - decay;
+    if (m_decayCritic < 0.5) {
+        m_decayActor *= 1 - decay;
+    }
 
     m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
     if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {
