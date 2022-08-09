@@ -480,12 +480,16 @@ void SpikingNetwork::intermediateSave(size_t saveCount) {
     fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/");
     fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/0/");
     fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/1/");
+    fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/2/");
+    fs::create_directory(m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/3/");
 
     size_t layer = 0;
     for (auto &neurons: m_neurons) {
-        for (size_t i = 0; i < m_networkConf.getLayerConnectivity()[layer].sizes[2]; ++i) {
-            fileName = m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/" + std::to_string(layer) + "/";
-            neurons[i].get().saveWeights(fileName);
+        if (layer > 1) {
+            for (auto &neuron: neurons) {
+                fileName = m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/" + std::to_string(layer) + "/";
+                neuron.get().saveWeights(fileName);
+            }
         }
         ++layer;
     }

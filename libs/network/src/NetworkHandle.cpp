@@ -300,6 +300,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate()) +
               "\nCritic and Actor learning rate: " + std::to_string(m_decayCritic) + " / " + std::to_string(m_decayActor);
         m_scoreCount = 0;
+        m_spinet.intermediateSave(m_saveCount);
+        ++m_saveCount;
     }
 
     return -1;
@@ -324,7 +326,7 @@ void NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivati
         m_action = distInt(gen);
         m_exploration = true;
     }
-    std::cout << "Select new action: " << m_action << " exploration: " << m_exploration << std::endl;
+//    std::cout << "Select new action: " << m_action << " exploration: " << m_exploration << std::endl;
 }
 
 /**
@@ -482,7 +484,7 @@ void NetworkHandle::saveActionMetrics() {
 double NetworkHandle::valueFunction(long time) {
     double value = 0;
     size_t layer = m_spinet.getNetworkStructure().size() - 2;
-    for (size_t i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) { // critic cells
+    for (size_t i = 0; i < m_spinet.getNetworkStructure()[layer]; ++i) {
         value += m_spinet.getNeuron(i, layer).get().updateKernelSpikingRate(time);
     }
     return (getRLConfig().getNu() * value / static_cast<double>(m_spinet.getNetworkStructure()[layer])) / m_averageEventRate + getRLConfig().getV0();
