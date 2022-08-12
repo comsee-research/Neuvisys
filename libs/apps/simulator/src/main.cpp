@@ -96,7 +96,7 @@ void simulationValidation() {
             dst = std::ofstream(destPath + "3/" + std::to_string(j) + "_1.npy", std::ios::binary);
             dst << src.rdbuf();
         }
-        launchLearningSimulation(networkPath, 2.6);
+        launchLearningSimulation(networkPath, 2.6); // tracking: 2.6, orientation: 1.3
         const auto copyOptions = fs::copy_options::recursive;
         std::filesystem::copy(networkPath, "/home/thomas/Networks/simulation/rl/tracking_task/article/save/" + std::to_string(i), copyOptions);
     }
