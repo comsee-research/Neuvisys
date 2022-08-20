@@ -53,6 +53,8 @@ public:
 
     void saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName);
 
+    bool operator==(const WeightMatrix &matrix);
+
 private:
     double getNorm();
 

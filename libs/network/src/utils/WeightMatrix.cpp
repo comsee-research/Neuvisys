@@ -112,3 +112,7 @@ double &WeightMatrix::get(size_t a, size_t b, size_t c, size_t d, size_t e) {
 void WeightMatrix::setSeed(size_t seed) {
     m_generator.seed(seed);
 }
+
+bool WeightMatrix::operator==(const WeightMatrix &matrix) {
+    return m_data == matrix.m_data;
+}

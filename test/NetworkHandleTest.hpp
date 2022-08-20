@@ -22,9 +22,12 @@ protected:
     static NetworkHandle *network;
     static std::string eventsPath;
     static std::string networkPath;
+    static std::string networkPathComparison;
     static std::string networkPath2;
     static std::string networkPath3;
     Events events;
+
+    static bool compareWeights();
 };
 
 
