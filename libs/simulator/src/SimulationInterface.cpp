@@ -101,7 +101,11 @@ void SimulationInterface::motorsJitter(double dt) {
 
 void SimulationInterface::activateMotors(uint64_t action) {
     auto pair = m_actionMapping[action];
-    m_leftMotorRotationPub.changeSpeed(pair.second);
+    if (pair.first == 1) {
+        m_leftMotorPhiPub.changeSpeed(pair.second);
+    } else if (pair.first == 2) {
+        m_leftMotorThetaPub.changeSpeed(pair.second);
+    }
 }
 
 void SimulationInterface::startSimulation() {

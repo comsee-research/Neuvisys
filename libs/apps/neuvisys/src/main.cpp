@@ -25,8 +25,8 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/Networks/natural/activity_pavin/random_basis/";
-        std::string eventsPath = "/home/thomas/Videos/natural/pavin_aquisitions/pavin.h5";
+        std::string networkPath = "/home/thomas/Networks/simulation/rl/tracking_task/tracking_2D/network/";
+        std::string eventsPath = "/home/thomas/Videos/natural/shapes/shapes.h5";
 
 //        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
 

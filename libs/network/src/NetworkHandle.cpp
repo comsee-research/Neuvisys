@@ -300,8 +300,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
               "\nAction rate: " + std::to_string(getRLConfig().getActionRate()) +
               "\nCritic and Actor learning rate: " + std::to_string(m_decayCritic) + " / " + std::to_string(m_decayActor);
         m_scoreCount = 0;
-        m_spinet.intermediateSave(m_saveCount);
-        ++m_saveCount;
+//        m_spinet.intermediateSave(m_saveCount);
+//        ++m_saveCount;
     }
 
     return -1;
