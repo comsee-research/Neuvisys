@@ -321,10 +321,8 @@ void NeuvisysGUISimulation::onNetworkCreation(const size_t nbCameras, const size
     ui->actionView->setRenderHint(QPainter::Antialiasing);
 }
 
-void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingType,
-                                                   const std::vector<std::vector<size_t>> &layerPatches,
-                                                   const std::vector<size_t> &layerSizes, const
-                                                   std::vector<size_t> &neuronSizes) {
+void NeuvisysGUISimulation::onNetworkConfiguration(const std::vector<std::vector<size_t>> &layerPatches,
+                                                   const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes) {
     ui->spin_zcell_selection->setMaximum(static_cast<int>(layerSizes[2] - 1));
     ui->spin_zcell_selection->setValue(0);
     buttonSelectionGroup = new QButtonGroup;
@@ -337,6 +335,8 @@ void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingTyp
         delete item->widget();
         delete item;
     }
+
+    weightLayoutPreparation(layerPatches, layerSizes);
 
     int count = 0;
     for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
@@ -354,16 +354,15 @@ void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingTyp
             ui->gridSelection->addWidget(button, static_cast<int>(j), static_cast<int>(i));
             button->show();
             ++count;
-
-            if (sharingType == "none") {
-                auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, static_cast<int>(j), static_cast<int>(i));
-                label->show();
-            }
         }
     }
     connect(buttonSelectionGroup, SIGNAL(buttonClicked(int)), this, SLOT(on_button_selection_clicked(int)));
-    if (sharingType == "patch") {
+
+}
+
+void NeuvisysGUISimulation::weightLayoutPreparation(const std::vector<std::vector<size_t>> &layerPatches,
+                                                    const std::vector<size_t> &layerSizes) {
+    if (m_layer == 0) {
         for (size_t wp = 0; wp < layerPatches[0].size(); ++wp) {
             for (size_t hp = 0; hp < layerPatches[1].size(); ++hp) {
                 for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
@@ -376,13 +375,23 @@ void NeuvisysGUISimulation::onNetworkConfiguration(const std::string &sharingTyp
                 }
             }
         }
-    } else if (sharingType == "full") {
-        for (size_t i = 0; i < static_cast<size_t>(std::sqrt(layerSizes[2])); ++i) {
-            for (size_t j = 0; j < static_cast<size_t>(std::sqrt(layerSizes[2])); ++j) {
+    } else if (m_layer == 1) {
+        for (size_t i = 0; i < layerPatches[0].size() * layerSizes[0]; ++i) {
+            for (size_t j = 0; j < layerPatches[1].size() * layerSizes[1]; ++j) {
                 auto *label = new QLabel(this);
-                ui->weightLayout->addWidget(label, static_cast<int>(layerSizes[2] + i), static_cast<int>(layerSizes[2] + j));
+                ui->weightLayout->addWidget(label, static_cast<int>(j), static_cast<int>(i));
                 label->show();
             }
+        }
+    } else if (m_layer == 2) {
+        auto *label = new QLabel(this);
+        ui->weightLayout->addWidget(label, 0, 0);
+        label->show();
+    } else if (m_layer == 3) {
+        for (size_t i = 0; i < actionSeries.size(); ++i) {
+            auto *label = new QLabel(this);
+            ui->weightLayout->addWidget(label, static_cast<int>(i), 0);
+            label->show();
         }
     }
 }
@@ -452,7 +461,7 @@ void NeuvisysGUISimulation::onDisplayEvents(const cv::Mat &leftEventDisplay, con
     ui->opengl_right_events->update();
 }
 
-void NeuvisysGUISimulation::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, const size_t layerViz) {
+void NeuvisysGUISimulation::onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay) {
     int count = 0;
     for (auto &weight: weightDisplay) {
         QImage weightImage(static_cast<const uchar *>(weight.second.data), weight.second.cols, weight.second.rows,

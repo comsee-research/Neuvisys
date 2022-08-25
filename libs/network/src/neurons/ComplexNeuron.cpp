@@ -101,7 +101,7 @@ inline cv::Mat ComplexNeuron::summedWeightMatrix() {
     for (int i = 0; i < dim[0]; ++i) {
         for (int j = 0; j < dim[1]; ++j) {
             for (int k = 0; k < dim[2]; ++k) {
-                sum += m_weights.at(k + j * dim[2] + i * dim[2] * dim[1]);
+//                sum += m_weights.at(k + j * dim[2] + i * dim[2] * dim[1]);
             }
             if (sum > max) {
                 max = sum;

@@ -36,8 +36,7 @@ void NeuvisysThreadSimulation::run() {
         m_leftEventDisplay = cv::Mat::zeros(network.getNetworkConfig().getVfHeight(), network.getNetworkConfig().getVfWidth(), CV_8UC3);
         m_rightEventDisplay = cv::Mat::zeros(network.getNetworkConfig().getVfHeight(), network.getNetworkConfig().getVfWidth(), CV_8UC3);
 
-        emit networkConfiguration(network.getNetworkConfig().getSharingType(),
-                                  network.getNetworkConfig().getLayerConnectivity()[0].patches,
+        emit networkConfiguration(network.getNetworkConfig().getLayerConnectivity()[0].patches,
                                   network.getNetworkConfig().getLayerConnectivity()[0].sizes,
                                   network.getNetworkConfig().getLayerConnectivity()[0].neuronSizes[0]);
         emit networkCreation(network.getNetworkConfig().getNbCameras(), network.getNetworkConfig().getNeuron1Synapses(),
@@ -263,11 +262,7 @@ inline void NeuvisysThreadSimulation::addEventToDisplay(const Event &event) {
 inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double time) {
     if (m_change) {
         m_change = false;
-        auto sharing = "none";
-        if (m_layer == 0) {
-            sharing = "patch";
-        }
-        emit networkConfiguration(sharing, network.getNetworkConfig().getLayerConnectivity()[m_layer].patches,
+        emit networkConfiguration(network.getNetworkConfig().getLayerConnectivity()[m_layer].patches,
                                   network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes,
                                   network.getNetworkConfig().getLayerConnectivity()[m_layer].neuronSizes[0]);
     }
@@ -287,7 +282,7 @@ inline void NeuvisysThreadSimulation::display(NetworkHandle &network, double tim
             break;
         case 2: // weights
             prepareWeights(network);
-            emit displayWeights(m_weightDisplay, m_layer);
+            emit displayWeights(m_weightDisplay);
             break;
         case 3: // potential
             emit displayPotential(network.getNeuron(m_id, m_layer).get().getSpikingRate(),
@@ -381,10 +376,38 @@ inline void NeuvisysThreadSimulation::prepareWeights(NetworkHandle &network) {
                 ++count;
             }
         }
-    } else {
+    } else if (m_layer == 1) {
         for (size_t i = 0; i < network.getNetworkConfig().getLayerConnectivity()[m_layer].sizes[0]; ++i) {
             m_weightDisplay[count] = network.getSummedWeightNeuron(network.getLayout(m_layer, Position(i, 0, m_zcell)), m_layer);
             ++count;
+        }
+    } else if (m_layer == network.getNetworkStructure().size() - 2) {
+        auto mat = network.getSummedWeightNeuron(0, m_layer);
+        cv::Mat acc(mat.rows, mat.cols, CV_32FC3, cv::Scalar::all(0));
+
+        for (size_t i = 0; i < network.getNetworkStructure()[m_layer]; ++i) {
+            mat = network.getSummedWeightNeuron(i, m_layer);
+            cv::accumulate(mat, acc);
+        }
+        acc /= static_cast<double>(network.getNetworkStructure()[m_layer]);
+        cv::Mat mean;
+        acc.convertTo(mean, CV_8UC3);
+        m_weightDisplay[0] = mean;
+    } else if (m_layer == network.getNetworkStructure().size() - 1) {
+        auto nbActions = network.getRLConfig().getActionMapping().size();
+        auto nbNeuronsPerAction = network.getNetworkStructure()[m_layer] / nbActions;
+        for (size_t i = 0; i < nbActions; ++i) {
+            auto mat = network.getSummedWeightNeuron(0, m_layer);
+            cv::Mat acc(mat.rows, mat.cols, CV_32FC3, cv::Scalar::all(0));
+
+            for (size_t j = i * nbNeuronsPerAction; j < (i + 1) * nbNeuronsPerAction; ++j) {
+                mat = network.getSummedWeightNeuron(j, m_layer);
+                cv::accumulate(mat, acc);
+            }
+            acc /= static_cast<double>(nbNeuronsPerAction);
+            cv::Mat mean;
+            acc.convertTo(mean, CV_8UC3);
+            m_weightDisplay[i] = mean;
         }
     }
 }

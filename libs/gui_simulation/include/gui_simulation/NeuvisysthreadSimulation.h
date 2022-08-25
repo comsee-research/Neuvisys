@@ -135,7 +135,7 @@ signals:
 
     void displayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 
-    void displayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layer);
+    void displayWeights(const std::map<size_t, cv::Mat> &weightDisplay);
 
     void displayPotential(double spikeRate, double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
 
@@ -146,7 +146,7 @@ signals:
 
     void displayAction(const std::vector<std::vector<double>> &actionTrain);
 
-    void networkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
+    void networkConfiguration(const std::vector<std::vector<size_t>> &layerPatches,
                               const std::vector<size_t> &layerSizes, const std::vector<size_t> &neuronSizes);
 
     void networkCreation(size_t nbCameras, size_t nbSynapses, const std::vector<size_t> &networkStructure, const size_t vfWidth, const size_t vfHeight,

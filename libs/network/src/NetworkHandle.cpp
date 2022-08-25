@@ -600,10 +600,7 @@ cv::Mat NetworkHandle::neuronWeightMatrix(size_t idNeuron, size_t layer, size_t 
  * @return
  */
 cv::Mat NetworkHandle::getSummedWeightNeuron(size_t idNeuron, size_t layer) {
-    if (m_spinet.getNetworkStructure()[layer] > 0) {
-        return m_spinet.getNeuron(idNeuron, layer).get().summedWeightMatrix();
-    }
-    return cv::Mat::zeros(0, 0, CV_8UC3);
+    return m_spinet.getNeuron(idNeuron, layer).get().summedWeightMatrix();
 }
 
 /**

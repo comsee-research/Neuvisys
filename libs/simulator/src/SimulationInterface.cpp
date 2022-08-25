@@ -103,8 +103,10 @@ void SimulationInterface::activateMotors(uint64_t action) {
     auto pair = m_actionMapping[action];
     if (pair.first == 1) {
         m_leftMotorPhiPub.changeSpeed(pair.second);
+        m_leftMotorThetaPub.changeSpeed(0);
     } else if (pair.first == 2) {
         m_leftMotorThetaPub.changeSpeed(pair.second);
+        m_leftMotorPhiPub.changeSpeed(0);
     }
 }
 

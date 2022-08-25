@@ -105,7 +105,7 @@ public:
 
     [[nodiscard]] virtual NeuronConfig getConf() const { return m_conf; }
 
-    virtual void setPotentialTrack(std::vector<int> val) { m_conf.POTENTIAL_TRACK = std::move(val);}
+    virtual void setPotentialTrack(std::vector<int> val) { m_conf.POTENTIAL_TRACK = std::move(val); }
 
     virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights.at(neuronId); }
 
@@ -119,7 +119,7 @@ public:
 
     virtual void weightUpdate() {};
 
-    virtual cv::Mat summedWeightMatrix() { return {}; };
+    virtual cv::Mat summedWeightMatrix() {};
 
     virtual void resetSpike() { m_spike = false; }
 

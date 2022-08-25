@@ -70,6 +70,8 @@ private:
 
     static void modifyConfFile(QString &directory, QString &text);
 
+    void weightLayoutPreparation(const vector<std::vector<size_t>> &layerPatches, const vector<size_t> &layerSizes);
+
 public slots:
 
     void onDisplayProgress(int progress, double time);
@@ -78,7 +80,7 @@ public slots:
 
     void onDisplayEvents(const cv::Mat &leftEventDisplay, const cv::Mat &rightEventDisplay);
 
-    void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay, size_t layerViz);
+    void onDisplayWeights(const std::map<size_t, cv::Mat> &weightDisplay);
 
     void onDisplayPotential(double spikeRate, double vreset, double threshold, const std::vector<std::pair<double, size_t>> &potentialTrain);
 
@@ -89,7 +91,7 @@ public slots:
 
     void onDisplayAction(const std::vector<std::vector<double>> &actionTrain);
 
-    void onNetworkConfiguration(const std::string &sharingType, const std::vector<std::vector<size_t>> &layerPatches,
+    void onNetworkConfiguration(const std::vector<std::vector<size_t>> &layerPatches,
                                 const std::vector<size_t> &layerSizes, const
                                 std::vector<size_t> &neuronSizes);
 
