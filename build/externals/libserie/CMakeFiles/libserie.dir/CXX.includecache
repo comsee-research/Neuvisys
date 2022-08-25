@@ -1,0 +1,42 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/Faulhaber.cpp
+Faulhaber.hpp
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/Faulhaber.hpp
+iostream
+-
+string
+-
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/Faulhaber.hpp
+comserie.hpp
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/comserie.hpp
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/comserie.cpp
+comserie.hpp
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/comserie.hpp
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals/libserie/comserie.hpp
+iostream
+-
+stdint.h
+-
+termios.h
+-
+memory.h
+-
+fcntl.h
+-
+unistd.h
+-
+stdio.h
+-
+string
+-
+

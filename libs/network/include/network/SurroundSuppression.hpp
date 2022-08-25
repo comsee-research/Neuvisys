@@ -55,6 +55,8 @@ public:
 
     void evaluateResponsesOnStimuli();
 
+    void evaluateResponsesOnStimuli(const std::string &eventsPath);
+
     void randomLateralInit();
 
     void shuffleInhibition(int c);
@@ -70,19 +72,21 @@ private:
     void getReceptiveField(int layer, const int neuron_id, receptivefield &to_return);
 
     void generateBars(events_sequences &ev, int numberOfTypesOfBars, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart,
-                      int angle, int speed, int nbPass);
+                      int angle, int speed, int nbPass, int thickness = 1, std::string mode = "not_eval");
 
     void multiBars1Length(events_sequences &ev, const std::vector<int> &yPositionStart, const std::vector<int> &lengthsOfBars, int speed,
                           int num_disparities, int nbPass, const std::string &pathToImgs, int thickness, int angle);
 
     void oneBarMultiLengths(events_sequences &ev, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed,
-                            int nbPass, const std::string &pathToImgs, int thickness);
+                            int nbPass, const std::string &pathToImgs, int thickness, std::string mode = "not_eval");
 
     void findCenteredBarsPosition(int middle, int value, std::vector<int> &positionStart, std::vector<int> &listOfLengths, int numberOfBars);
 
     void findMiddlePointOrdinate(int &middle, int angle);
 
     bool verifyIfSafe();
+
+    bool verifyIfSafe(const std::string &path, int n_thickness, int n_angles, int n_directions, int n_bars, int n_simulations, bool separate_speed, int n_speeds = 3);
 
     void simulationChoices(std::string &choice, int &simulation, int &n_);
 

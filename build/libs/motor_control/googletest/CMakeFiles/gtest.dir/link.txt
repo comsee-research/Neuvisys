@@ -1,0 +1,2 @@
+/usr/bin/ar qc /home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/gmock/lib/libgtest.a  CMakeFiles/gtest.dir/src/gtest-all.cc.o
+/usr/bin/ranlib /home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/gmock/lib/libgtest.a

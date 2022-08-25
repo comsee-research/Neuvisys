@@ -1,0 +1,119 @@
+{
+	"BUILD_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/gui_autogen",
+	"CMAKE_BINARY_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build",
+	"CMAKE_CURRENT_BINARY_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui",
+	"CMAKE_CURRENT_SOURCE_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui",
+	"CMAKE_EXECUTABLE" : "/usr/bin/cmake",
+	"CMAKE_SOURCE_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp",
+	"HEADERS" : 
+	[
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/include/gui/GLWidget.h",
+			"MU",
+			"BMPI5EA7AM/moc_GLWidget.cpp"
+		],
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/include/gui/Neuvisysgui.h",
+			"MU",
+			"BMPI5EA7AM/moc_Neuvisysgui.cpp"
+		],
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/include/gui/Neuvisysthread.h",
+			"MU",
+			"BMPI5EA7AM/moc_Neuvisysthread.cpp"
+		]
+	],
+	"HEADER_EXTENSIONS" : [ "h", "hh", "h++", "hm", "hpp", "hxx", "in", "txx" ],
+	"INCLUDE_DIR" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/gui_autogen/include",
+	"MOC_COMPILATION_FILE" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/gui_autogen/mocs_compilation.cpp",
+	"MOC_DEFINITIONS" : 
+	[
+		"QT_CHARTS_LIB",
+		"QT_CORE_LIB",
+		"QT_GUI_LIB",
+		"QT_NO_DEBUG",
+		"QT_WIDGETS_LIB"
+	],
+	"MOC_DEPEND_FILTERS" : 
+	[
+		[
+			"Q_PLUGIN_METADATA",
+			"[\n][ \t]*Q_PLUGIN_METADATA[ \t]*\\([^\\)]*FILE[ \t]*\"([^\"]+)\""
+		]
+	],
+	"MOC_INCLUDES" : 
+	[
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/PUBLIC",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/externals",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/include",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/PROTECTED",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/include/gui",
+		"/usr/include/hdf5/serial",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/network/include",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/network/PROTECTED",
+		"/usr/include/python3.8",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/motor_control/include",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/motor_control/PROTECTED",
+		"/opt/ros/noetic/include",
+		"/opt/ros/noetic/include/xmlrpcpp",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/camera/include",
+		"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/camera/PROTECTED",
+		"/usr/include/x86_64-linux-gnu/qt5",
+		"/usr/include/x86_64-linux-gnu/qt5/QtWidgets",
+		"/usr/include/x86_64-linux-gnu/qt5/QtGui",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCore",
+		"/usr/lib/x86_64-linux-gnu/qt5/mkspecs/linux-g++",
+		"/usr/include/x86_64-linux-gnu/qt5/QtCharts",
+		"/usr/local/include/opencv4",
+		"/usr/include",
+		"/usr/include/c++/9",
+		"/usr/include/x86_64-linux-gnu/c++/9",
+		"/usr/include/c++/9/backward",
+		"/usr/lib/gcc/x86_64-linux-gnu/9/include",
+		"/usr/local/include",
+		"/usr/include/x86_64-linux-gnu"
+	],
+	"MOC_MACRO_NAMES" : [ "Q_OBJECT", "Q_GADGET", "Q_NAMESPACE" ],
+	"MOC_OPTIONS" : [],
+	"MOC_PATH_PREFIX" : true,
+	"MOC_PREDEFS_CMD" : 
+	[
+		"/usr/bin/c++",
+		"-dM",
+		"-E",
+		"-c",
+		"/usr/share/cmake-3.16/Modules/CMakeCXXCompilerABI.cpp"
+	],
+	"MOC_PREDEFS_FILE" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/gui_autogen/moc_predefs.h",
+	"MOC_RELAXED_MODE" : false,
+	"MOC_SKIP" : [],
+	"MULTI_CONFIG" : false,
+	"PARALLEL" : 8,
+	"PARSE_CACHE_FILE" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/CMakeFiles/gui_autogen.dir/ParseCache.txt",
+	"QT_MOC_EXECUTABLE" : "/usr/lib/qt5/bin/moc",
+	"QT_UIC_EXECUTABLE" : "/usr/lib/qt5/bin/uic",
+	"QT_VERSION_MAJOR" : 5,
+	"SETTINGS_FILE" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/gui/CMakeFiles/gui_autogen.dir/AutogenUsed.txt",
+	"SOURCES" : 
+	[
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/src/GLWidget.cpp",
+			"MU"
+		],
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/src/Neuvisysgui.cpp",
+			"MU"
+		],
+		[
+			"/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/gui/src/Neuvisysthread.cpp",
+			"MU"
+		]
+	],
+	"UIC_OPTIONS" : [],
+	"UIC_SEARCH_PATHS" : [],
+	"UIC_SKIP" : [],
+	"UIC_UI_FILES" : [],
+	"VERBOSITY" : 0
+}

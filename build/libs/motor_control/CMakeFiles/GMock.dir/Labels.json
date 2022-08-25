@@ -1,0 +1,43 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/CMakeFiles/GMock"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/CMakeFiles/GMock.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/CMakeFiles/GMock-complete.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-install.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-mkdir.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-download.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-update.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-patch.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-configure.rule"
+		},
+		{
+			"file" : "/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/build/libs/motor_control/GMock-prefix/src/GMock-stamp/GMock-build.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"GMock"
+		],
+		"name" : "GMock"
+	}
+}

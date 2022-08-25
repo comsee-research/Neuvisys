@@ -37,8 +37,10 @@ class SpikingNetwork {
     std::vector<std::vector<uint64_t>> m_pixelMapping;
 
     double m_neuromodulator{};
-    std::vector<std::vector<int>> m_simpleWeightsOrientations;
-    std::vector<std::vector<int>> m_complexCellsOrientations;
+    std::vector<std::vector<std::vector<int>>> m_simpleWeightsOrientations;
+    std::vector<std::vector<std::vector<int>>> m_complexCellsOrientations;
+    std::vector<std::vector<double>> m_trainingWeightsChanges;
+    std::vector<double> m_previousNorms;
     double m_averageActivity{};
 
 public:
@@ -70,7 +72,7 @@ public:
 
     void intermediateSave(size_t saveCount);
 
-    void saveStatistics(int simulation, int sequence);
+    void saveStatistics(int simulation, int sequence, const std::string& folderName, bool sep_speed = false, int max_speed = 3);
 
     void changeTrack(int n_x, int n_y);
 
@@ -78,9 +80,9 @@ public:
 
     void shuffleInhibition(int cases);
 
-    void assignOrientations(int index_z, int orientation);
+    void assignOrientations(int index_z, int orientation, int thickness);
 
-    void assignComplexOrientations(int id, int orientation);
+    void assignComplexOrientations(int id, int orientation, int thickness);
 
     void saveOrientations();
 
@@ -94,7 +96,7 @@ private:
 
     void saveNeuronsStates();
 
-    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike=false);
+    static void neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike=false, bool recordAllPotentials = false);
 
     static void saveStatesStatistics(std::string &fileName, Neuron &neuron);
 
@@ -124,6 +126,14 @@ private:
                                             const std::vector<size_t> &layerSizes);
 
     void saveNetworkLayout();
+
+    double layerWeightNorm(int layer, int type);
+
+    void assignLayerNorm();
+
+    void updateWeightsChanges();
+
+    void saveWeightsChanges();
 };
 
 #endif //NEUVISYS_DV_SPIKING_NETWORK_HPP

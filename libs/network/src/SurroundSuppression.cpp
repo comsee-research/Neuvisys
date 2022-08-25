@@ -3,6 +3,8 @@
 //
 
 #include "SurroundSuppression.hpp"
+const int width_ = 346;
+const int height_ = 260;
 
 /**
  * Creates an object of the class Surround Suppression. 
@@ -54,9 +56,9 @@ void SurroundSuppression::train(const std::string &typeOfTraining, int numberOfT
         for(int j=0; j<epochs; j++){
             std::shuffle(std::begin(m_path), std::end(m_path), rng);
             std::cout << "It's epoch number : " << j << " !" << std::endl;
-            for(int i=0; i<m_path.size();i++){
-                    std::cout << "Training of event folder number : " << i+1 << " !" << std::endl;
-                    while (m_network.loadEvents(events, numberOfTimes)) {
+            for(int i=0; i<m_path.size();i++) {
+                std::cout << "Training of event folder number : " << i+1 << " !" << std::endl;
+                while (m_network.loadEvents(events, numberOfTimes)) {
                     m_network.feedEvents(events);
                 }
                 m_network.save(m_path[i], numberOfTimes);
@@ -179,7 +181,7 @@ void SurroundSuppression::multiBars1Length(events_sequences &ev, const std::vect
                     once+=1;
                 }
 
-                image_matrix img(m_network.getNetworkConfig().getVfHeight(), m_network.getNetworkConfig().getVfWidth(), CV_8UC3,cv::Scalar(128, 128, 128));
+                image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
                 shift = int(frame * float(float(speed)/framerate));
                 for(int j=0; j<disparities.size(); j++) {
                     cv::Point p1(disparities.at(j)+shift, yPositionStart.at(0));
@@ -187,7 +189,7 @@ void SurroundSuppression::multiBars1Length(events_sequences &ev, const std::vect
                     cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
                 }
                 if(once-1==i) {
-                    if(shift + disparities.at(i) > m_network.getNetworkConfig().getVfWidth() + 5 ) {
+                    if(shift + disparities.at(i) > width_ + 5 ) {
                         ok=false;
                     }
                 }
@@ -221,51 +223,172 @@ void SurroundSuppression::multiBars1Length(events_sequences &ev, const std::vect
  * @param pathToImgs 
  * @param thickness 
  */
-void SurroundSuppression::oneBarMultiLengths(events_sequences &ev, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass, const std::string &pathToImgs, int thickness) {
+void SurroundSuppression::oneBarMultiLengths(events_sequences &ev, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass, const std::string &pathToImgs, int thickness, std::string mode) {
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::uniform_int_distribution<int> distribution_color(0,2);
+    int color_counter_white = 0;
+    int color_counter_black = 0;
+    int sign = speed/abs(speed);
+    int frame_ref = 0;
     for(int i=0; i<lengthsOfBars.size(); i++)
     {
         fs::create_directory(pathToImgs + std::to_string(i));
         int frame = 0;
         int framerate = 1000;
         int shift = 0;
-        if(speed >0 )
+        cv::Scalar color(255, 255, 255);
+        cv::Scalar black(0, 0, 0);
+        cv::Scalar white(255, 255, 255);
+        if(sign > 0 )
         {
-            int x = 0;
-            while(shift < m_network.getNetworkConfig().getVfWidth() + 5 )
-            {
-                image_matrix img(m_network.getNetworkConfig().getVfHeight(), m_network.getNetworkConfig().getVfWidth(), CV_8UC3,cv::Scalar(128, 128, 128));
-                shift = int(frame * float(float(speed)/framerate));
-                cv::Point p1(x+shift, yPositionStart.at(i));
-                cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
-                cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
-                cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
-                image_matrix rot = getRotationMatrix2D(center, angle, 1.0);
-                image_matrix newimg;
-                cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
-                std::ostringstream path;
-                path << pathToImgs << i << "/img_" << frame << ".png";
-                cv::imwrite(path.str(), newimg);
-                frame+=1;
+            if (mode == "eval") { 
+                color_counter_white = 0;
+                color_counter_black = 0;
+                for(int trial = 0; trial < 3; trial++) {
+                    shift = 0;
+                    frame_ref = 0;
+                    if(trial == 0) {
+                        speed = sign * 100;
+                    }
+                    else if(trial == 1) {
+                        speed = sign * 299;
+                    }
+                    else {
+                        speed = sign * 499;
+                    }
+                
+                    if(distribution_color(generator)==0) {
+                        if(color_counter_black!=2) {
+                            color = black;
+                            color_counter_black+=1;
+                        }
+                        else {
+                            color = white;
+                        }
+                    }
+                    else {
+                        if(color_counter_white !=2) {
+                            color = white;
+                            color_counter_white+=1;
+                        }
+                        else {
+                            color = black;
+                        }
+                    }
+                    int x = 0;
+                    while(shift < width_ + 5 ) {
+                        image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                        shift = int(frame_ref * float(float(speed)/framerate));
+                        cv::Point p1(x+shift, yPositionStart.at(i));
+                        cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                        cv::line(img, p1, p2, color, thickness, cv::LINE_8);
+                        cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                        image_matrix rot = getRotationMatrix2D(center, angle, 1.0);
+                        image_matrix newimg;
+                        cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, 
+                        cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                        std::ostringstream path;
+                        path << pathToImgs << i << "/img_" << frame << ".png";
+                        cv::imwrite(path.str(), newimg);
+                        frame+=1;
+                        frame_ref+=1;
+                    }
+                }
+            }
+            else {
+                int x = 0;
+                while(shift < width_ + 5 ) {
+                    image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                    shift = int(frame * float(float(speed)/framerate));
+                    cv::Point p1(x+shift, yPositionStart.at(i));
+                    cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                    cv::line(img, p1, p2, color, thickness, cv::LINE_8);
+                    cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                    image_matrix rot = getRotationMatrix2D(center, angle, 1.0);
+                    image_matrix newimg;
+                    cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, 
+                    cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                    std::ostringstream path;
+                    path << pathToImgs << i << "/img_" << frame << ".png";
+                    cv::imwrite(path.str(), newimg);
+                    frame+=1;
+                }
             }
         }
-        else if (speed < 0)
+        else if (sign < 0)
         {
-            int x = m_network.getNetworkConfig().getVfWidth()-1;
-            while(shift > -(m_network.getNetworkConfig().getVfWidth()+5))  {
-                image_matrix img(m_network.getNetworkConfig().getVfHeight(), m_network.getNetworkConfig().getVfWidth(), CV_8UC3,cv::Scalar(128, 128, 128));
-                shift = int(frame * float(float(speed)/framerate));
-                cv::Point p1(x+shift, yPositionStart.at(i));
-                cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
-                cv::line(img, p1, p2, cv::Scalar(255, 255, 255),thickness, cv::LINE_8);
-                cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
-                image_matrix rot = getRotationMatrix2D(center, angle, 1.0);      //Mat object for storing after rotation
-                image_matrix newimg;
-                cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
-                std::ostringstream path;
-                path << pathToImgs << i << "/img_" << frame << ".png";
-                cv::imwrite(path.str(), newimg);
-                frame+=1;
-             }
+            if(mode=="eval") {
+                for(int trial = 0; trial < 3; trial++) {
+                    shift = 0;
+                    frame_ref = 0;
+                    if(trial == 0) {
+                        speed = sign * 100;
+                    }
+                    else if(trial == 1) {
+                        speed = sign * 299;
+                    }
+                    else {
+                        speed = sign * 499;
+                    }
+
+                    if(distribution_color(generator)==0) {
+                        if(color_counter_black!=2) {
+                            color = black;
+                            color_counter_black+=1;
+                        }
+                        else {
+                            color = white;
+                        }
+                    }
+                    else {
+                        if(color_counter_white !=2) {
+                            color = white;
+                            color_counter_white+=1;
+                        }
+                        else {
+                            color = black;
+                        }
+                    }
+                    int x = width_-1;
+                    while(shift > -(width_+5))  {
+                        image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                        shift = int(frame_ref * float(float(speed)/framerate));
+                        cv::Point p1(x+shift, yPositionStart.at(i));
+                        cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                        cv::line(img, p1, p2, color, thickness, cv::LINE_8);
+                        cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                        image_matrix rot = getRotationMatrix2D(center, angle, 1.0);      
+                        image_matrix newimg;
+                        cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, 
+                        cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                        std::ostringstream path;
+                        path << pathToImgs << i << "/img_" << frame << ".png";
+                        cv::imwrite(path.str(), newimg);
+                        frame+=1;
+                        frame_ref+=1;
+                    }
+                }
+            }
+            else {
+                int x = width_-1;
+                while(shift > -(width_+5))  {
+                    image_matrix img(height_, width_, CV_8UC3,cv::Scalar(128, 128, 128));
+                    shift = int(frame * float(float(speed)/framerate));
+                    cv::Point p1(x+shift, yPositionStart.at(i));
+                    cv::Point p2(x+shift, yPositionStart.at(i)+lengthsOfBars.at(i));
+                    cv::line(img, p1, p2, color, thickness, cv::LINE_8);
+                    cv::Point center((img.cols - 1) / 2.0, (img.rows - 1) / 2.0);
+                    image_matrix rot = getRotationMatrix2D(center, angle, 1.0);
+                    image_matrix newimg;
+                    cv::warpAffine(img, newimg, rot, cv::Size(img.cols, img.rows), cv::INTER_LINEAR, 
+                    cv::BORDER_TRANSPARENT,cv::Scalar(0,0,0));
+                    std::ostringstream path;
+                    path << pathToImgs << i << "/img_" << frame << ".png";
+                    cv::imwrite(path.str(), newimg);
+                    frame+=1;
+                 }
+            }
         }
         std::string new_path = pathToImgs + std::to_string(i) + "/";
         std::cout << new_path << std::endl;
@@ -285,13 +408,16 @@ void SurroundSuppression::oneBarMultiLengths(events_sequences &ev, const std::ve
  * @param speed 
  * @param nbPass 
  */
-void SurroundSuppression::generateBars(events_sequences &ev,  int numberOfTypesOfBars, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass) {
-        if(std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i>=0; }) && std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [this](int i){ return i<m_network.getNetworkConfig().getVfHeight(); })){
+void SurroundSuppression::generateBars(events_sequences &ev,  int numberOfTypesOfBars, const std::vector<int> &lengthsOfBars, const std::vector<int> &yPositionStart, int angle, int speed, int nbPass, int thickness, std::string mode) {
+        if(std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [](int i){ return i>=0; }) && std::all_of(yPositionStart.cbegin(), yPositionStart.cend(), [this](int i){ return i<height_; })){
             int num_disparities = numberOfTypesOfBars;
-            int thickness =1;
             std::string choice;
-            std::cout << "Do you want to enter the mode to generate multiple bars of the same length in the same frame?" << std::endl;
-            std::cin >> choice;
+            static bool entered = false;
+            if(!entered) {
+                std::cout << "Do you want to enter the mode to generate multiple bars of the same length in the same frame?" << std::endl;
+                std::cin >> choice;
+                entered = true;
+            }
             std::string path = m_network.getNetworkConfig().getNetworkPath() + "generateSequences/";
             fs::file_status s = fs::file_status{};
             if(fs::status_known(s) ? fs::exists(s) : fs::exists(path)) {
@@ -305,7 +431,7 @@ void SurroundSuppression::generateBars(events_sequences &ev,  int numberOfTypesO
                 multiBars1Length(ev, yPositionStart, lengthsOfBars, speed, num_disparities, nbPass, path, thickness, angle);
             }
             else {
-                oneBarMultiLengths(ev, lengthsOfBars, yPositionStart, angle, speed, nbPass, path, thickness);
+                oneBarMultiLengths(ev, lengthsOfBars, yPositionStart, angle, speed, nbPass, path, thickness, mode);
             }
         }
 }
@@ -323,8 +449,20 @@ void SurroundSuppression::findCenteredBarsPosition(int middle, int value, std::v
     int offset;
     int n_ = numberOfBars;
     int border;
+    bool checkLimit = true;
+    int stop;
+    int to_add = 3;
+    int iterator = 1;
     for(int i=0; i<n_; i++) { 
         offset = value * (i+1); 
+        if(offset > 45) {
+            if(checkLimit) {
+                stop = value * (i-1);
+                checkLimit = false;
+            }
+            offset = stop + to_add * iterator;
+            iterator += 1;
+        }
         border = middle-int(offset/2)+ m_network.getNetworkConfig().getLayerConnectivity()[0].patches[1][0];
         if(i>=0 && border>=0) {
             start = border;  
@@ -332,7 +470,7 @@ void SurroundSuppression::findCenteredBarsPosition(int middle, int value, std::v
         else {
             start = 0;
         }
-        if(start>=0 && start+offset<m_network.getNetworkConfig().getVfHeight()) {
+        if(start>=0 && start+offset<height_) {
             listOfLengths.emplace_back(offset);
             positionStart.emplace_back(start);
         }
@@ -353,8 +491,8 @@ void SurroundSuppression::findMiddlePointOrdinate(int &middle, int angle) {
             m_network.getNetworkConfig().getLayerConnectivity()[0].patches[1][0];
     double sin_rad = sin(angle*M_PI/180);
     double cos_rad = cos(angle*M_PI/180);
-    double center_x = m_network.getNetworkConfig().getVfWidth()/2;
-    double center_y = m_network.getNetworkConfig().getVfHeight()/2;
+    double center_x = width_/2;
+    double center_y = height_/2;
     double num = to_track_y + (sin_rad/cos_rad)*to_track_x - (sin_rad/cos_rad)*(1-cos_rad)*center_x + (sin_rad/cos_rad)*(sin_rad*center_y)-(sin_rad*center_x)-(1-cos_rad)*center_y;
     double den = sin_rad*sin_rad/cos_rad + cos_rad;
     middle = int(floor(num/den)) - m_network.getNetworkConfig().getLayerConnectivity()[0].patches[1][0];
@@ -388,6 +526,101 @@ bool SurroundSuppression::verifyIfSafe() {
     }
 }
 
+bool SurroundSuppression::verifyIfSafe(const std::string &path, int n_thickness, int n_angles, int n_directions, int n_bars, int n_simulations, bool separate_speed, int n_speeds) {
+    if(verifyIfSafe()) {
+        int cter_thickness = 0;
+        int cter_angles = 0;
+        int cter_directions = 0;
+        int cter_bars = 0;
+        int cter_simulations = 0;
+        for (const auto & thickness : fs::directory_iterator{path}) {
+            cter_thickness +=1;
+            std::string thickness_path = thickness.path().string();
+            for(const auto & angles : fs::directory_iterator(thickness_path)) {
+                cter_angles+=1;
+                std::string angles_path = angles.path().string();
+                for(const auto & directions : fs::directory_iterator(angles_path)) {
+                    cter_directions+=1;
+                    std::string directions_path = directions.path().string();
+                    for(const auto &bars : fs::directory_iterator(directions_path)) {
+                        cter_bars += 1;
+                        std::string bars_path = bars.path().string();
+                        if(!separate_speed) {
+                            for(const auto & simulations : fs::directory_iterator(bars_path)) {
+                                cter_simulations +=1;
+                            }
+                            if(cter_simulations < n_simulations) {
+                                
+                                std::cout << "Number of simulation selected doesn't correlate with number of files in the testing dataset." << std::endl;
+                                return false;
+                            }
+                            else {
+                                cter_simulations = 0;
+                            }
+                        }
+                        else {
+                            int cter_speeds = 0;
+                            for(const auto & speeds : fs::directory_iterator(bars_path)) {
+                                cter_speeds +=1;
+                                std::string speeds_path = speeds.path().string();
+                                for(const auto & simulations : fs::directory_iterator(speeds_path)) {
+                                    cter_simulations +=1;
+                                }
+                                if(cter_simulations < n_simulations) {
+                                    std::cout << "Number of simulation selected doesn't correlate with number of files in the testing dataset." << std::endl;
+                                    return false;
+                                }
+                                else {
+                                    cter_simulations = 0;
+                                }
+                            }
+                            if(cter_speeds < n_speeds) {
+                                std::cout << "Number of speeds selected doesn't correlate with number of files in the testing dataset." << std::endl;
+                                return false;
+                            }
+                            else {
+                                cter_speeds = 0;
+                            }
+                        }
+                    }
+                    if(cter_bars < n_bars) {
+                        std::cout << "Number of bars selected doesn't correlate with number of bars folder in the testing dataset." << std::endl;
+                        return false;
+                    }
+                    else {
+                        cter_bars = 0;
+                    }
+                }
+                if(cter_directions < n_directions) {
+                    std::cout << "Number of directions selected doesn't correlate with number of directions folder in the testing dataset." << std::endl;
+                    return false;
+                }
+                else {
+                    cter_directions = 0;
+                }
+            }
+            if(cter_angles < n_angles) {
+                std::cout << "Number of angles selected doesn't correlate with number of angles folder in the testing dataset." << std::endl;
+                return false;
+            }
+            else {
+                cter_angles = 0;
+            }
+        }
+        if(cter_thickness < n_thickness) {
+            std::cout << "Number of thicknesses selected doesn't correlated with number of thicknesses folder in the testing dataset." << std::endl;
+            return false;
+        }
+        else {
+            std::cout << "All parameters are correct. The evaluation on the testing dataset can start." << std::endl;
+            return true;
+        }
+    }
+    else {
+        return false;
+    }
+}
+
 /**
  * Specifies the simulation choices for the evaluation of Surround Suppression.
  * @param choice 
@@ -397,15 +630,23 @@ bool SurroundSuppression::verifyIfSafe() {
 void SurroundSuppression::simulationChoices(std::string &choice, int &simulation, int &n_) {
     std::string str_n;
     int max_n_ = 150;
-    std::cout << "Type the number of bars that will be generated." << std::endl;
-    std::cin >> str_n;
+    std::cout << "Do you want to evaluate the suppression?" << std::endl;
+    std::cin >> choice;
+    if(choice!="yes" && choice !="y" && choice !="eval") {
+        std::cout << "The program will find the preferred orientation of each cells, then." << std::endl;
+        str_n = "1";
+    }
+    else {
+        std::cout << "Type the number of bars that will be generated." << std::endl;
+        std::cin >> str_n;
+    }
+    
     while(std::stoi(str_n)<=0 || std::stoi(str_n)>=max_n_) {
         std::cout << "Please, type a number of bar that is comprised between 1 and " << max_n_ << "." << std::endl;
         std::cin >> str_n;
     }
     n_ = std::stoi(str_n);
-    std::cout << "Do you want the bar to be centered, or not?" << std::endl;
-    std::cin >> choice;
+    
     std::cout << "How many simulations do you want to run ?" << std::endl;
     std::cin >> simulation;
 }
@@ -416,16 +657,18 @@ void SurroundSuppression::simulationChoices(std::string &choice, int &simulation
 void SurroundSuppression::evaluateResponsesOnStimuli() {
     bool ok = verifyIfSafe();
     if(ok) {
-        int value = 1;
         int nbPass = 1;
-        int speedValue = 150;
+        int speedValue = 299;
         int n_;
         int middle;
         std::string choice;
         int simulation;
         simulationChoices(choice, simulation, n_);
+        int value;
+        int thickness = 3;
         if(choice=="yes" || choice=="y") {
-            int angle = 0; // {0, 23, 45, 68, 90, 113, 135, 158, 180, 203, 225, 248, 270, 293, 315, 338};
+            value = 1;
+            int angle =0; // {0, 23, 45, 68, 90, 113, 135, 158, 180, 203, 225, 248, 270, 293, 315, 338};
             findMiddlePointOrdinate(middle, angle);
             std::vector<int> listOfLengths;
             std::vector<int>positionStart;
@@ -433,7 +676,7 @@ void SurroundSuppression::evaluateResponsesOnStimuli() {
             for(int sim=0; sim < simulation; sim++) {
                 std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
                 events_sequences ev;
-                generateBars(ev, n_, listOfLengths, positionStart, angle, speedValue, nbPass);
+                generateBars(ev, n_, listOfLengths, positionStart, angle, speedValue, nbPass, thickness);
                 for(int i=0; i< ev.size(); i++)
                 {
                     if(listOfLengths.size() != 1 ) {
@@ -443,44 +686,264 @@ void SurroundSuppression::evaluateResponsesOnStimuli() {
                         std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(0) << " and goes from ordinate " << positionStart.at(0) << " to " << positionStart.at(0) + listOfLengths.at(0) << std::endl;
                     }
                     m_network.feedEvents(ev.at(i)); 
-                    m_network.saveStatistics(sim, i);
+                    m_network.saveStatistics(sim, i, std::to_string(3) + "/");
+                }
+            }
+        }
+        else if (choice=="eval") {
+
+            //Thicknesses folder ( [1, ... , n_thickness] ) must be created manually before launching the code, for now.
+
+            value = 1;
+            int num_angles = 8;
+            int angles[num_angles] = {0, 23, 45, 68, 90, 113, 135, 158};
+            int angle;
+            for(thickness = 0; thickness < 3; thickness++) {
+                std::cout << "thickness = " << thickness+1 << std::endl;
+                for(int val=0; val<num_angles*2; val++) {
+                    if(val%2 == 0) {
+                        angle = angles[val/2];
+                        speedValue = abs(speedValue);
+                        std::cout << "Angle = " << angle << std::endl;
+                    }
+                    else {
+                        angle = angles[int(val/2)];
+                        speedValue = -abs(speedValue);
+                        std::cout << "Opposite direction !" << std::endl;
+                    }
+                    findMiddlePointOrdinate(middle, angle);
+                    std::vector<int> listOfLengths;
+                    std::vector<int> positionStart;
+                    findCenteredBarsPosition(middle, value, positionStart, listOfLengths, n_);
+                    for(int sim=0; sim < simulation; sim++) {
+                        std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
+                        events_sequences ev;
+                        generateBars(ev,n_,listOfLengths,positionStart,angle, speedValue, nbPass, thickness+1, choice);
+                        for(int i=0; i< ev.size(); i++) {
+                            std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                            m_network.feedEvents(ev.at(i)); 
+                            if(speedValue > 0 ) {
+                                m_network.saveStatistics(sim, i, std::to_string(thickness+1) + "/" + std::to_string(angle) + "/");
+                            }
+                            else {
+                                m_network.saveStatistics(sim, i, std::to_string(thickness+1) + "/-" + std::to_string(angle) + "/");
+                            }
+                        }
+                    }
                 }
             }
         }
         else {
+            value = 10;
             int index_neur = m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[0] * m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[1] * m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[2] + m_network.getSimpleNeuronConfig().POTENTIAL_TRACK[1] * m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[2];
             int depth = m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[2];
+            int complex_number = m_network.getNetworkConfig().getLayerConnectivity()[1].patches[0].size() * m_network.getNetworkConfig().getLayerConnectivity()[1].sizes[0] * m_network.getNetworkConfig().getLayerConnectivity()[1].patches[1].size() * m_network.getNetworkConfig().getLayerConnectivity()[1].sizes[1] * m_network.getNetworkConfig().getLayerConnectivity()[1].patches[2].size() * m_network.getNetworkConfig().getLayerConnectivity()[1].sizes[2];
             int num_angles = 8;
-            std::vector<std::vector<int>> vec(depth, std::vector<int> (num_angles, 0));
-            int angles[8] = {0, 23, 45, 68, 90, 113, 135, 158};
-            for(int val=0; val<8; val++) {
-                int angle = angles[val];
-                std::cout << "Angle = " << angle << std::endl;
-                findMiddlePointOrdinate(middle, angle);
-                std::vector<int> listOfLengths;
-                std::vector<int> positionStart;
-                findCenteredBarsPosition(middle, value, positionStart, listOfLengths, n_);
-                for(int sim=0; sim < simulation; sim++) {
-                    std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
-                    events_sequences ev;
-                    generateBars(ev,n_,listOfLengths,positionStart,angle, speedValue, nbPass);
-                    for(int i=0; i< ev.size(); i++) {
-                        std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
-                        m_network.feedEvents(ev.at(i)); 
-                        m_network.saveStatistics(sim, i);
+            speedValue = 100;
+            std::vector<std::vector<std::vector<float>>> vec(depth, std::vector<std::vector<float>> (2,std::vector<float>(num_angles*2,0)));
+            std::vector<std::vector<std::vector<float>>> vec_complex(complex_number, std::vector<std::vector<float>> (1,std::vector<float>(num_angles*2,0)));
+            std::vector<std::vector<std::vector<float>>> vec_mean_spikes(depth, std::vector<std::vector<float>> (1,std::vector<float>(num_angles*2,0)));
+            std::vector<std::vector<std::vector<float>>> vec_complex_mean_spikes(complex_number, std::vector<std::vector<float>> (1,std::vector<float>(num_angles*2,0)));
+
+            int angles[num_angles] = {0, 23, 45, 68, 90, 113, 135, 158}; 
+            int double_angles[num_angles*2] = {0, 180, 23, -23, 45, -45, 68, -68, 90, -90, 113, -113, 135, -135, 158, -158};
+            int angle;
+            for(int sim=0; sim < simulation; sim++) {
+                for(thickness = 0; thickness < 3; thickness++) {
+                    for(int val=0; val<num_angles*2; val++) {
+                        if(val%2 == 0) {
+                            angle = angles[val/2];
+                            speedValue = abs(speedValue);
+                            std::cout << "Angle = " << angle << std::endl;
+                        }
+                        else {
+                            angle = angles[int(val/2)];
+                            speedValue = -abs(speedValue);
+                            std::cout << "Opposite direction !" << std::endl;
+                        }
+                        findMiddlePointOrdinate(middle, angle);
+                        std::vector<int> listOfLengths;
+                        std::vector<int> positionStart;
+                        findCenteredBarsPosition(middle, value, positionStart, listOfLengths, n_);
+                        std::cout << "Running simulation " << sim+1 << "/" << simulation << "." << std::endl;
+                        events_sequences ev;
+                        generateBars(ev,n_,listOfLengths,positionStart,angle, speedValue, nbPass, thickness+1, "eval");
+                        for(int i=0; i< ev.size(); i++) {
+                            std::cout << "Evaluating bar number " << i << " that has a length of " << listOfLengths.at(i) << " and goes from ordinate " << positionStart.at(i) << " to " << positionStart.at(i) + listOfLengths.at(i) << std::endl;
+                            m_network.feedEvents(ev.at(i)); 
+                            m_network.saveStatistics(sim, -1, "");
+                        }
+                        for(int neur = 0; neur < depth; neur++) {
+                            vec.at(neur).at(0).at(val)+=m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().size();
+                            int den = 1;
+                            if((m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().size()) != 0) {
+                                den = (m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().size());
+                            }
+                            vec_mean_spikes.at(neur).at(0).at(val) += std::accumulate(m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().begin(), m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().end(), 0.0) / den;
+                        }
+                        for(int neur = 0; neur < complex_number; neur++) {
+                            vec_complex.at(neur).at(0).at(val)+=m_network.getNeuron(neur,1).get().getTrackingSpikeTrain().size();
+                            int den = 1;
+                            if((m_network.getNeuron(neur,1).get().getTrackingSpikeTrain().size()) != 0) {
+                                den = (m_network.getNeuron(neur,1).get().getTrackingSpikeTrain().size());
+                            }
+                            vec_complex_mean_spikes.at(neur).at(0).at(val)+=std::accumulate(m_network.getNeuron(neur,1).get().getTrackingSpikeTrain().begin(), m_network.getNeuron(neur,1).get().getTrackingSpikeTrain().end(), 0.0) /den;
+                        }
+                        m_network.saveStatistics(0, -1, "", true);
                     }
                 }
-                for(int neur = 0; neur < m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[2]; neur++) {
-                    vec.at(neur).at(val)=m_network.getNeuron(index_neur+neur,0).get().getTrackingSpikeTrain().size();
+            }
+            for(int neur = 0; neur < depth; neur++) {
+                        float spike_value = *std::max_element(vec.at(neur).at(0).begin(),vec.at(neur).at(0).end());
+                        if(spike_value==0) {
+                            m_network.assignOrientation(neur, -1, 0);
+                        }
+                        else {
+                            auto it = vec.at(neur).at(0).begin();
+                            std::vector<int> angles_index; 
+                            while ((it = std::find_if(it, vec.at(neur).at(0).end(), [&spike_value](float x){return x == spike_value; })) != vec.at(neur).at(0).end()) {   
+                                int index = std::distance(vec.at(neur).at(0).begin(), it);
+                                angles_index.push_back(index);
+                                it++;
+                            }
+                            if(angles_index.size()> 1) {
+                                float max_elem = -1;
+                                int max_elem_index =0;
+                                for(int i; i<angles_index.size(); i++) {
+                                    if(vec_mean_spikes.at(neur).at(0).at(angles_index.at(i)) > max_elem) {
+                                        max_elem = vec_mean_spikes.at(neur).at(0).at(angles_index.at(i));
+                                        max_elem_index = angles_index.at(i);
+                                    }
+                                }
+                                m_network.assignOrientation(neur, double_angles[max_elem_index], 0);
+                            }
+                            else if(angles_index.size() ==1) {
+                                m_network.assignOrientation(neur, double_angles[angles_index.at(0)], 0);
+                            }
+                        }
+                    }
+                    for(int neur = 0; neur < complex_number; neur++) {
+                        float spike_value = *std::max_element(vec_complex.at(neur).at(0).begin(),vec_complex.at(neur).at(0).end());
+                        if(spike_value==0) {
+                            m_network.assignComplexOrientation(neur, -1, 0);
+                        }
+                        else {
+                            auto it = vec_complex.at(neur).at(0).begin();
+                            std::vector<int> angles_index; 
+                            while ((it = std::find_if(it, vec_complex.at(neur).at(0).end(), [&spike_value](float x){return x == spike_value; })) != vec_complex.at(neur).at(0).end()) {   
+                                int index = std::distance(vec_complex.at(neur).at(0).begin(), it);
+                                angles_index.push_back(index);
+                                it++;
+                            }
+                            if(angles_index.size()>1) {
+                                float max_elem = -1;
+                                int max_elem_index;
+                                for(int i; i<angles_index.size(); i++) {
+                                    if(vec_complex_mean_spikes.at(neur).at(0).at(angles_index.at(i)) > max_elem) {
+                                        max_elem = vec_complex_mean_spikes.at(neur).at(0).at(angles_index.at(i));
+                                        max_elem_index = angles_index.at(i);
+                                    }
+                                }
+                                m_network.assignComplexOrientation(neur, double_angles[max_elem_index], 0);
+                            }
+                            else if(angles_index.size()==1){
+                                m_network.assignComplexOrientation(neur, double_angles[angles_index.at(0)], 0);
+                            }
+                        }
+                    }
+                    m_network.saveStatistics(simulation, -1, "", true);
+        } 
+    }
+}
+
+/**
+ * Evaluates neurons with already existing testing dataset.
+ * @param eventsPath 
+ */
+void SurroundSuppression::evaluateResponsesOnStimuli(const std::string &eventsPath) {
+    //Thicknesses folder ( [1, ... , n_thickness] ) must be created manually before launching the code, for now.
+    //Same for speeds folder ([0, ..., n_speed-1]), they must be created manually.
+
+    int num_thicknesses = 2;
+    int num_angles = 8;
+    int num_directions = 2;
+    int num_bars = 55;
+    int num_simulations = 4;
+    int num_speeds = 2;
+    int angles[num_angles] = {0, 23, 45, 68, 90, 113, 135, 158};
+    int direction;
+    int angle;
+    bool sep_speed = true;
+    bool ok = verifyIfSafe(eventsPath, num_thicknesses, num_angles, num_directions, num_bars, num_simulations, sep_speed, num_speeds);
+    if(ok) {
+        for(int thickness = 1; thickness < num_thicknesses+1; thickness++) {
+            std::cout << "Thickness = " << thickness << std::endl;
+            for(int val = 0; val < num_angles *2; val++) {
+                if(val%2 == 0) {
+                angle = angles[val/2];
+                direction = 0;
+                std::cout << "Angle = " << angle << std::endl;
+                }
+                else {
+                    angle = angles[int(val/2)];
+                    direction = 1;
+                    std::cout << "Opposite direction !" << std::endl;
+                }
+                for(int sim=0; sim < num_simulations; sim++) {
+                    std::cout << "Running simulation " << sim+1 << "/" << num_simulations << "." << std::endl;
+                    for(int i=0; i< num_bars; i++) {
+                        std::cout << "Evaluating bar number " << i << " ! " << std::endl;
+                        if(!sep_speed) {
+                            m_network.setEventPath(eventsPath + std::to_string(thickness) + "/" + std::to_string(angle) + "/" + std::to_string(direction) + "/" + std::to_string(i) + "/" + std::to_string(sim) + ".npz");
+                            Events events;
+                            size_t numberOfTimes = 1;
+                            while (m_network.loadEvents(events, numberOfTimes)) {
+                                m_network.feedEvents(events);
+                            }
+                            events.clear();
+                            if(direction == 0 ) {
+                                m_network.saveStatistics(sim, i, std::to_string(thickness) + "/" + std::to_string(angle) + "/");
+                            }
+                            else {
+                                m_network.saveStatistics(sim, i, std::to_string(thickness) + "/-" + std::to_string(angle) + "/");
+                            }
+                        }
+                        else {
+                            for (int j=0; j< num_speeds; j++) {
+                                if(num_speeds==3) {
+                                    if(j==0) {
+                                        std::cout << "Evaluating low speed." << std::endl;
+                                    }
+                                    else if(j==1) {
+                                        std::cout << "Evaluating medium speed." << std::endl;
+                                    }
+                                    else if(j==2) {
+                                        std::cout << "Evaluating high speed." << std::endl;
+                                    }
+                                }
+                                else {
+                                    std::cout << "Evaluating speed number " << j << std::endl;
+                                }
+                                m_network.setEventPath(eventsPath + std::to_string(thickness) + "/" + std::to_string(angle) + "/" + std::to_string(direction) + "/" + std::to_string(i) + "/" + std::to_string(j) + "/" + std::to_string(sim) + ".npz");
+                                Events events;
+                                size_t numberOfTimes = 1;
+                                while (m_network.loadEvents(events, numberOfTimes)) {
+                                    m_network.feedEvents(events);
+                                }
+                                events.clear();
+                                if(direction == 0 ) {
+                                    m_network.saveStatistics(sim, i, std::to_string(thickness) + "/speeds/" + std::to_string(j) + "/" + std::to_string(angle) + "/", false, sep_speed, num_speeds);
+                                }
+                                else {
+                                    m_network.saveStatistics(sim, i, std::to_string(thickness) + "/speeds/" + std::to_string(j) + "/-" + std::to_string(angle) + "/", false, sep_speed, num_speeds);
+                                }
+                            }
+                        }
+                    }
                 }
             }
-            for(int neur = 0; neur < m_network.getNetworkConfig().getLayerConnectivity()[0].sizes[2]; neur++) {
-                int angle_index = std::max_element(vec.at(neur).begin(),vec.at(neur).end()) - vec.at(neur).begin();
-                m_network.assignOrientation(neur,angles[angle_index]);
-            }
-            m_network.saveStatistics(simulation, 0, true);
         }
-    } 
+    }
 }
 
 /**
@@ -491,8 +954,8 @@ void SurroundSuppression::evaluateResponsesOnStimuli() {
 void SurroundSuppression::convertFrame(image_matrix frame, image_matrix& new_frame) {
     image_matrix channels[3];
     cv::split(frame,channels);    
-    for(int i=0; i<m_network.getNetworkConfig().getVfWidth(); i++) {
-        for(int j=0; j<m_network.getNetworkConfig().getVfHeight(); j++) {
+    for(int i=0; i<width_; i++) {
+        for(int j=0; j<height_; j++) {
             new_frame.at<double>(cv::Point(i, j)) = (int)channels[0].at<uchar>(cv::Point(i, j))*0.299 + (int)channels[1].at<uchar>(cv::Point(i, j))*0.587 + (int)channels[2].at<uchar>(cv::Point(i, j))*0.114;
             if(new_frame.at<double>(cv::Point(i, j)) > m_log_threshold) {
                 new_frame.at<double>(cv::Point(i, j)) = log(new_frame.at<double>(cv::Point(i, j)));
@@ -500,6 +963,7 @@ void SurroundSuppression::convertFrame(image_matrix frame, image_matrix& new_fra
         }
     }
 }
+
 /**
  * Generates events.
  * @param events 
@@ -544,8 +1008,8 @@ void SurroundSuppression::writeEvents(events_list &events, float delta_b, float 
  */
 void SurroundSuppression::frameToEvents(int frame_id, image_matrix frame, image_matrix reference, image_matrix &threshold_map, events_list &events) {
     image_matrix delta = frame - reference;
-    for(int i=0; i<m_network.getNetworkConfig().getVfWidth(); i++) {
-        for(int j=0; j<m_network.getNetworkConfig().getVfHeight(); j++) {
+    for(int i=0; i<width_; i++) {
+        for(int j=0; j<height_; j++) {
             if(delta.at<double>(cv::Point(i,j)) > threshold_map.at<double>(cv::Point(i,j))) {
                 writeEvents(events, delta.at<double>(cv::Point(i,j)), threshold_map.at<double>(cv::Point(i,j)), frame_id, i, j, 1);
                 threshold_map.at<double>(cv::Point(i,j)) *= (1+m_adapt_thresh_coef_shift);
@@ -568,7 +1032,7 @@ void SurroundSuppression::frameToEvents(int frame_id, image_matrix frame, image_
  * @param nbPass 
  */
 void SurroundSuppression::createEvents(const std::string &pathToFrames, events_list &events, int nbPass) {
-    image_matrix threshold_map(cv::Size(m_network.getNetworkConfig().getVfWidth(), m_network.getNetworkConfig().getVfHeight()), CV_64FC1, cv::Scalar(m_map_threshold));
+    image_matrix threshold_map(cv::Size(width_, height_), CV_64FC1, cv::Scalar(m_map_threshold));
     paths_container frames;
     for (const auto & frame : fs::directory_iterator{pathToFrames}) {
         frames.emplace_back(frame.path().filename().stem().string());
@@ -576,7 +1040,7 @@ void SurroundSuppression::createEvents(const std::string &pathToFrames, events_l
     std::sort(frames.begin(), frames.end(), compareImgName);
     std::string extension = ".png";
     image_matrix init = cv::imread(pathToFrames + frames[0] + extension);
-    image_matrix reference(cv::Size(m_network.getNetworkConfig().getVfWidth(), m_network.getNetworkConfig().getVfHeight()), CV_64FC1);
+    image_matrix reference(cv::Size(width_, height_), CV_64FC1);
     convertFrame(init,reference);
     int sze = frames.size();
     int i =1;
@@ -586,12 +1050,12 @@ void SurroundSuppression::createEvents(const std::string &pathToFrames, events_l
         if (!init.data) {
             std::cout << "Could not open or find" << " the image" << std::endl;
         }
-        image_matrix frame(cv::Size(m_network.getNetworkConfig().getVfWidth(), m_network.getNetworkConfig().getVfHeight()), CV_64FC1, cv::Scalar(0));
+        image_matrix frame(cv::Size(width_, height_), CV_64FC1, cv::Scalar(0));
         convertFrame(init,frame);
         
         frameToEvents(i,frame,reference,threshold_map,events);
-        for(int v=0; v<m_network.getNetworkConfig().getVfWidth(); v++) {
-            for(int w = 0; w<m_network.getNetworkConfig().getVfHeight(); w++) {
+        for(int v=0; v<width_; v++) {
+            for(int w = 0; w<height_; w++) {
                 reference.at<double>(cv::Point(v,w)) = frame.at<double>(cv::Point(v,w));
             }
         }

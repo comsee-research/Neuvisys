@@ -97,7 +97,7 @@ public:
 
     void save(const std::string &eventFileName, size_t nbRun);
 
-    void saveStatistics(size_t simulation, size_t sequence, bool reset=false);
+    void saveStatistics(size_t simulation, size_t sequence, const std::string& folderName, bool reset=false, bool sep_speed = false, int n_speed = 2);
 
     void trackNeuron(long time, size_t id = 0, size_t layer = 0);
 
@@ -147,9 +147,9 @@ public:
 
     void inhibitionShuffle(int case_);
 
-    void assignOrientation(int z, int ori);
+    void assignOrientation(int z, int ori, int thickness = 1);
 
-    void assignComplexOrientation(int neur, int ori);
+    void assignComplexOrientation(int neur, int ori, int thickness = 1);
 
 private:
     void load();

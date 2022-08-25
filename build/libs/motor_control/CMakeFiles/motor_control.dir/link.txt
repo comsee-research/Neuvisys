@@ -1,0 +1,2 @@
+/usr/bin/ar qc libmotor_control.a  CMakeFiles/motor_control.dir/src/BrushlessMotor.cpp.o CMakeFiles/motor_control.dir/src/MotorRos.cpp.o
+/usr/bin/ranlib libmotor_control.a

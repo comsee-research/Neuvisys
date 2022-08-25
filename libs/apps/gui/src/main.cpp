@@ -7,8 +7,8 @@
 int main(int argc, char *argv[]) {
     QApplication app(argc, argv);
     NeuvisysGUI w(argc, argv,
-                  "/home/thomas/Videos/natural/shapes/shapes.h5",
-                  "/home/thomas/Networks/network/");
+                  "/home/comsee/Internship_Antony/neuvisys/Events/rotated_new_bars8/events/0.npz",
+                  "/home/comsee/Internship_Antony/neuvisys/neuvisys-analysis/configuration/other_dataset_training/lateral_topdown/shared/vertical/");
     w.setFixedSize(0.8 * QDesktopWidget().availableGeometry().size());
     w.show();
     return app.exec();

@@ -35,6 +35,9 @@ inline bool ComplexNeuron::newEvent(NeuronEvent event) {
  * @return
  */
 inline bool ComplexNeuron::membraneUpdate(NeuronEvent event) {
+    if(m_firstInput == 0) {
+        m_firstInput = event.timestamp();
+    }
     potentialDecay(event.timestamp());
     m_potential += m_weights.at(event.id())
                    - refractoryPotential(event.timestamp());
@@ -62,7 +65,8 @@ inline void ComplexNeuron::spike(const size_t time) {
 
     spikeRateAdaptation();
     if (m_conf.TRACKING == "partial") {
-        m_trackingSpikeTrain.push_back(time);
+        m_trackingSpikeTrain.push_back(time - m_firstInput);
+        m_firstInput = 0;
     }
 }
 

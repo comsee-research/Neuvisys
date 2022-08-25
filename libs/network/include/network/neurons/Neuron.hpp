@@ -52,13 +52,14 @@ protected:
     std::vector<std::pair<double, uint64_t>> m_trackingPotentialTrain;
     std::vector<double> m_potentialThreshold;
     std::vector<size_t> m_amount_of_events;
-    std::vector<std::vector<double>> m_sumOfInhibWeights;
+    std::vector<std::vector<std::vector<double>>> m_sumOfInhibWeights;
     std::vector<std::vector<double>> m_sumOfTopDownWeights;
     std::vector<std::tuple<double, uint64_t>> m_excitatoryEvents;
     std::vector<std::vector<std::tuple<double, double, uint64_t>>> m_timingOfInhibition;
     double m_spikingPotential{};
     double m_beforeInhibitionPotential{};
     int m_negativeLimits;
+    size_t m_firstInput{};
 
     void writeJson(nlohmann::json &state);
 
@@ -112,11 +113,19 @@ public:
 
     virtual double getTopDownInhibitionWeights(size_t neuronId) { return m_topDownInhibitionWeights.at(neuronId); }
 
+    virtual double getNormTopDownInhibitionWeights() { return m_topDownInhibitionWeights.getL1Norm(); }
+
     virtual double getlateralInhibitionWeights(size_t neuronId) { return m_lateralInhibitionWeights.at(neuronId); }
+
+    virtual double getNormLateralInhibitionWeights() { return m_lateralInhibitionWeights.getL1Norm(); }
 
     [[nodiscard]] virtual WeightMap &getWeightsMap() { return m_weights; }
 
+    [[nodiscard]] virtual double getWeightsMapNorm() { return m_weights.getNorm(); }
+
     virtual WeightMatrix &getWeightsMatrix() {};
+
+    virtual double getWeightsMatrixNorm() {};
 
     virtual std::vector<size_t> getWeightsDimension() { return m_weights.getDimensions(); }
 
@@ -171,8 +180,6 @@ public:
 
     virtual void loadTopDownInhibitionWeights(std::string &filePath) {};
 
-    virtual void saveWeights(std::string &filePath) {};
-
     virtual void saveTopDownInhibitionWeights(std::string &filePath) {};
 
     virtual void saveLateralInhibitionWeights(std::string &filePath) {};
@@ -183,9 +190,9 @@ public:
 
     virtual void assignToAmountOfEvents(int type);
 
-    virtual void assignToSumLateralWeights(int type, Position pos, double wi);
+    virtual void assignToSumLateralWeights(int type, Position pos, double wi, size_t depth);
 
-    virtual void assignToSumTopDownWeights(int index, double wi, int depth);
+    virtual void assignToSumTopDownWeights(int index, double wi, size_t depth);
 
     virtual void assignToTimingOfInhibition(int type, std::tuple<double, double, uint64_t> variation);
 
@@ -197,7 +204,7 @@ public:
 
     virtual std::vector<size_t> getAmountOfEvents();
 
-    virtual std::vector<std::vector<double>> getSumLateralWeights();
+    virtual std::vector<std::vector<std::vector<double>>> getSumLateralWeights();
 
     virtual std::vector<std::vector<double>> getSumTopDownWeights();
 

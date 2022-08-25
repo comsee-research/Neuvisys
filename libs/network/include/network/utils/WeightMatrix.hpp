@@ -53,8 +53,9 @@ public:
 
     void saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName);
 
-private:
     double getNorm();
+
+private:
 
     static void mapToWeights(const std::vector<double> &map, std::vector<double> &data);
 

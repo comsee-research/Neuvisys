@@ -93,6 +93,9 @@ bool SimpleNeuron::update() {
  * @return
  */
 inline bool SimpleNeuron::membraneUpdate(Event event) {
+    if(m_firstInput==0) {
+        m_firstInput = event.timestamp();
+    }
     potentialDecay(event.timestamp());
     adaptationPotentialDecay(event.timestamp());
     m_potential += m_sharedWeights.get(event.polarity(), event.camera(), event.synapse(), event.x(), event.y())
@@ -124,7 +127,8 @@ inline void SimpleNeuron::spike(const size_t time) {
     spikeRateAdaptation();
 
     if (m_conf.TRACKING == "partial") {
-        m_trackingSpikeTrain.push_back(time);
+        m_trackingSpikeTrain.push_back(time - m_firstInput);
+        m_firstInput = 0;
     }
 }
 
@@ -149,14 +153,14 @@ inline void SimpleNeuron::weightUpdate() {
     if (m_conf.STDP_LEARNING == "inhibitory" || m_conf.STDP_LEARNING == "all") {
         for (NeuronEvent &event: m_topDownInhibitionEvents) {
             m_topDownInhibitionWeights.at(event.id()) +=
-                    m_conf.ETA_ILTP * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
+                    m_conf.ETA_ILTP * 5 * exp(-static_cast<double>(m_spikingTime - event.timestamp()) / m_conf.TAU_LTP);
             m_topDownInhibitionWeights.at(event.id()) +=
-                    m_conf.ETA_ILTD * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
+                    m_conf.ETA_ILTD * 5 * exp(-static_cast<double>(event.timestamp() - m_lastSpikingTime) / m_conf.TAU_LTD);
         /*    if (static_cast<double>(m_spikingTime - event.timestamp()) < m_conf.TAU_LTP) {
-                m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP;
+                m_topDownInhibitionWeights.at(event.id()) += m_conf.ETA_ILTP * 5;
             }
             if (static_cast<double>(event.timestamp() - m_lastSpikingTime) < m_conf.TAU_LTD) {
-                m_topDownInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD;
+                m_topDownInhibitionWeights.at(event.id()) += -m_conf.ETA_ILTD * 5;
             }*/
             if (m_topDownInhibitionWeights.at(event.id()) < 0) {
                 m_topDownInhibitionWeights.at(event.id()) = 0;
@@ -273,6 +277,10 @@ void SimpleNeuron::loadTopDownInhibitionWeights(std::string &filePath) {
  */
 WeightMatrix &SimpleNeuron::getWeightsMatrix() {
     return m_sharedWeights;
+}
+
+double SimpleNeuron::getWeightsMatrixNorm() {
+    return m_sharedWeights.getNorm();
 }
 
 /**

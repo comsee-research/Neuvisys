@@ -14,6 +14,7 @@
 
 class WeightMap {
     std::unordered_map<size_t, double> m_data;
+    size_t m_size;
     std::vector<size_t> m_dimensions;
 
     static std::random_device m_rd;
@@ -31,9 +32,11 @@ public:
 
     void normalize(double normFactor);
 
-    std::vector<size_t> getDimensions() const { return m_dimensions; }
+    void normalizeL1Norm(const double normFactor);
 
-    size_t getSize() const { return m_data.size(); }
+    std::vector<size_t> getDimensions() { return m_dimensions; }
+
+    size_t getSize() const { return m_size; }
 
     double &at(size_t id);
 
@@ -45,13 +48,18 @@ public:
 
     void saveWeightsToNumpyFile(const std::string &filePath, const std::string &arrayName);
 
-private:
+    std::vector<size_t> getKeys();
+
     double getNorm();
+
+    double getL1Norm();
+
+
+private:
 
     static void mapToWeights(const std::unordered_map<size_t, double> &map, std::vector<double> &data);
 
     static void weightsToMap(std::unordered_map<size_t, double> &map, const double *weights);
-
 };
 
 

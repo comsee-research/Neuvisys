@@ -1,0 +1,40 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+../libs/camera/include/camera/EventCamera.hpp
+atomic
+-
+libcaercpp/devices/davis.hpp
+-
+csignal
+-
+
+../libs/camera/include/camera/Ynoise.hpp
+cstdint
+-
+vector
+-
+libcaercpp/events/polarity.hpp
+-
+network/Event.hpp
+-
+
+../libs/network/include/network/Event.hpp
+cstdint
+-
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/camera/src/EventCamera.cpp
+iostream
+-
+camera/EventCamera.hpp
+-
+
+/home/comsee/Internship_Antony/neuvisys/neuvisys-cpp/libs/camera/src/Ynoise.cpp
+camera/Ynoise.hpp
+-
+

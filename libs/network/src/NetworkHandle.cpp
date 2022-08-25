@@ -113,6 +113,7 @@ bool NetworkHandle::loadEvents(std::vector<Event> &events, size_t nbPass) {
  */
 void NetworkHandle::feedEvents(const std::vector<Event> &events) {
     m_nbEvents = events.size();
+    m_endTime = (events.at(m_nbEvents-1).timestamp() - events.at(0).timestamp());
     int counter = 0;
     for (const auto &event: events) {
         ++counter;
@@ -247,10 +248,15 @@ void NetworkHandle::save(const std::string &eventFileName = "", const size_t nbR
  *
  * @param sequence
  */
-void NetworkHandle::saveStatistics(size_t simulation, size_t sequence, bool reset) {
+void NetworkHandle::saveStatistics(size_t simulation, size_t sequence, const std::string& folderName, bool reset, bool sep_speed, int n_speed) {
     std::cout << "Starting saving the statistics..." << std::endl;
-    m_spinet.saveStatistics(simulation, sequence);
-//    m_spinet.saveOrientations();
+    if(sequence==-1) {
+        m_spinet.saveOrientations();
+    }
+    else {
+        m_iteration = 0;
+        m_spinet.saveStatistics(simulation, sequence, folderName, sep_speed, n_speed);
+    }
     resetAllNeurons();
     if(reset) {
         m_spinet.resetSTrain();
@@ -592,7 +598,10 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     cnpy::NpyArray x_array = cnpy::npz_load(m_eventsPath, "arr_1");
     cnpy::NpyArray y_array = cnpy::npz_load(m_eventsPath, "arr_2");
     cnpy::NpyArray polarities_array = cnpy::npz_load(m_eventsPath, "arr_3");
+    
     size_t sizeArray = timestamps_array.shape[0];
+
+
 
     auto *ptr_timestamps = timestamps_array.data<long>();
     std::vector<long> timestamps(ptr_timestamps, ptr_timestamps + sizeArray);
@@ -615,7 +624,6 @@ void NetworkHandle::loadNpzEvents(std::vector<Event> &events, size_t nbPass) {
     long firstTimestamp = timestamps[0];
     long lastTimestamp = static_cast<long>(timestamps[sizeArray - 1]);
     Event event{};
-
     for (pass = 0; pass < static_cast<size_t>(nbPass); ++pass) {
         for (count = 0; count < sizeArray; ++count) {
             event = Event(timestamps[count] + static_cast<long>(pass) * (lastTimestamp - firstTimestamp),
@@ -706,10 +714,10 @@ void NetworkHandle::inhibitionShuffle(int case_) {
     m_spinet.shuffleInhibition(case_);
 }
 
-void NetworkHandle::assignOrientation(int z, int ori) {
-    m_spinet.assignOrientations(z, ori);
+void NetworkHandle::assignOrientation(int z, int ori, int thickness) {
+    m_spinet.assignOrientations(z, ori, thickness);
 }
 
-void NetworkHandle::assignComplexOrientation(int neur, int ori) {
-    m_spinet.assignComplexOrientations(neur, ori);
+void NetworkHandle::assignComplexOrientation(int neur, int ori, int thickness) {
+    m_spinet.assignComplexOrientations(neur, ori, thickness);
 }

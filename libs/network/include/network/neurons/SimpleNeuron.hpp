@@ -35,6 +35,8 @@ public:
 
     WeightMatrix &getWeightsMatrix() override;
 
+    double getWeightsMatrixNorm() override;
+
     std::vector<size_t> getWeightsDimension() override;
 
     void saveWeights(const std::string &filePath) override;

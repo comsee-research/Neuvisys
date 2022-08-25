@@ -19,7 +19,14 @@ SpikingNetwork::SpikingNetwork(const std::string &networkPath) : m_networkConf(N
                                                                  m_actorNeuronConf(networkPath + "configs/actor_cell_config.json", 3),
                                                                  m_pixelMapping(std::vector<std::vector<uint64_t>>(
                                                                          m_networkConf.getVfWidth() * m_networkConf.getVfHeight(),
-                                                                         std::vector<uint64_t>(0))) {
+                                                                         std::vector<uint64_t>(0))),
+                                                                 m_trainingWeightsChanges(4, std::vector<double>(0)),        
+                                                                 m_simpleWeightsOrientations(m_networkConf.getLayerConnectivity()[0].sizes[2], 
+                                                                 std::vector<std::vector<int>>(3, std::vector<int>(0))),
+                                                                 m_previousNorms(4, 0),
+                                                                 m_complexCellsOrientations(m_networkConf.getLayerConnectivity()[1].sizes[0]
+                                                                 *m_networkConf.getLayerConnectivity()[1].sizes[1]
+                                                                 *m_networkConf.getLayerConnectivity()[1].sizes[2], std::vector<std::vector<int>>(3, std::vector<int>(0))) {
     for (size_t i = 0; i < m_networkConf.getLayerConnectivity().size(); ++i) {
         addLayer(m_networkConf.getSharingType(), m_networkConf.getLayerConnectivity()[i]);
     }
@@ -142,7 +149,8 @@ void SpikingNetwork::topDownDynamicInhibition(Neuron &neuron) {
     for (auto &previousNeuron: neuron.getTopDownDynamicInhibitionConnections()) {
         auto event = NeuronEvent(neuron.getSpikingTime(), neuron.getIndex(), neuron.getLayer());
         previousNeuron.get().newTopDownInhibitoryEvent(event);
-        neuronsStatistics(event.timestamp(), 3, neuron.getPos(), previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
+        Position pos(neuron.getPos().x(), neuron.getPos().y(),neuron.getIndex());
+        neuronsStatistics(event.timestamp(), 3, pos, previousNeuron.get(), previousNeuron.get().getTopDownInhibitionWeights(event.id()));
     }
 }
 
@@ -279,6 +287,7 @@ void SpikingNetwork::addLayer(const std::string &sharingType, const LayerConnect
                             if (connections.neuronType == "SimpleCell") {
                                 m_simpleNeurons.emplace_back(SimpleNeuron(neuronIndex, layer, m_simpleNeuronConf, pos, offset,
                                                                           m_sharedWeightsSimple[weightIndex], m_networkConf.getNeuron1Synapses()));
+                                m_simpleNeurons.at(m_simpleNeurons.size()-1).setInhibitionRange(m_networkConf.getNeuronInhibitionRange());
                             } else if (connections.neuronType == "ComplexCell") {
                                 // TODO: same for neuron sizes
                                 m_complexNeurons.emplace_back(ComplexNeuron(neuronIndex, layer, m_complexNeuronConf, pos, offset, connections.neuronSizes[0]));
@@ -466,6 +475,7 @@ void SpikingNetwork::updateNeuronsStates(long timeInterval) {
  *
  */
 void SpikingNetwork::saveNetwork() {
+    saveWeightsChanges();
     saveNeuronsStates();
     saveNetworkLayout();
 }
@@ -543,6 +553,7 @@ void SpikingNetwork::saveNeuronsStates() {
                 for (size_t i = 0; i < m_networkConf.getLayerConnectivity()[layer].sizes[2]; ++i) {
                     fileName = m_networkConf.getNetworkPath() + "weights/" + std::to_string(layer) + "/";
                     neurons[patch * step + i].get().saveWeights(fileName);
+                //    std::cout << "yo?" << std::endl;
                 }
             }
         } else if (layer == 0 && m_networkConf.getSharingType() == "full") {
@@ -628,6 +639,7 @@ void SpikingNetwork::loadWeights() {
         }
         ++layer;
     }
+    assignLayerNorm();
 }
 
 /**
@@ -654,25 +666,30 @@ std::reference_wrapper<Neuron> &SpikingNetwork::getNeuron(const size_t index, co
  * @param wi 
  * @param spike 
  */
-void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike) {
+void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, Neuron &neuron, double wi, bool spike, bool recordAllPotentials) {
     if (neuron.getConf().POTENTIAL_TRACK[0] == neuron.getPos().x() && neuron.getConf().POTENTIAL_TRACK[1] == neuron.getPos().y()) {
         neuron.assignToAmountOfEvents(type_);
         if(spike) {
             neuron.assignToPotentialTrain(std::make_pair(neuron.getSpikingPotential(), time));
             neuron.assignToPotentialThreshold();
         }
-        neuron.assignToPotentialThreshold();
-        neuron.assignToPotentialTrain(std::make_pair(neuron.getPotential(time), time));
+        if(recordAllPotentials) {
+            neuron.assignToPotentialThreshold();
+            neuron.assignToPotentialTrain(std::make_pair(neuron.getPotential(time), time));
+        }
         if (type_ != 0) {
             type_ -= 1;
+            // to change at some point so that the depth is automatically given
             if (type_ != 2) {
-                neuron.assignToSumLateralWeights(type_, pos, wi);
+                neuron.assignToSumLateralWeights(type_, pos, wi, 64);
             }
             if(type_ == 2) {
-                neuron.assignToSumTopDownWeights(pos.z(),wi,16);
+                neuron.assignToSumTopDownWeights(pos.z(),wi, 16);
             }
-            std::tuple<double, double, uint64_t> var = {neuron.getBeforeInhibitionPotential(), neuron.getPotential(time), time};
-            neuron.assignToTimingOfInhibition(type_, var);
+            if(recordAllPotentials) {
+                std::tuple<double, double, uint64_t> var = {neuron.getBeforeInhibitionPotential(), neuron.getPotential(time), time};
+                neuron.assignToTimingOfInhibition(type_, var);
+            }
         }
         else {
             std::tuple<double,uint64_t> ev = {neuron.getPotential(time), time};
@@ -686,30 +703,63 @@ void SpikingNetwork::neuronsStatistics(uint64_t time, int type_, Position pos, N
  * @param simulation 
  * @param sequence 
  */
-void SpikingNetwork::saveStatistics(int simulation, int sequence) {
+void SpikingNetwork::saveStatistics(int simulation, int sequence, const std::string& folderName, bool sep_speed, int max_speed) {
     std::string fileName;
     size_t layer = 0;
     fs::file_status s = fs::file_status{};
     static bool entered = false;
+    static std::string rememberFolderName;
+    std::string newName = folderName;
+    static int it = 0;
+    if(sep_speed) {
+        newName.erase(newName.begin()+8);
+        newName.erase(newName.begin()+8);
+        if(rememberFolderName!= newName && it==max_speed) {
+            it = 0;
+        }
+    }
+    
+    if(!sep_speed) {
+        if((!rememberFolderName.empty() && rememberFolderName != newName)) {
+            entered = false;
+        }
+    }
+
+    else {
+        if((!rememberFolderName.empty() && rememberFolderName != newName) || it<max_speed) {
+            it+=1;
+            entered = false;
+        }
+    }
+
     for (auto &neurons: m_neurons) {
         if(!entered) {
-        fs::remove_all(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/");
-        fs::create_directory(
-                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/");
-        entered = true;
+            fs::remove_all(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + folderName);
+            fs::create_directory(
+                        m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + folderName);
+            
+            fs::remove_all(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer+1) + "/" + folderName);
+            fs::create_directory(
+                        m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer+1) + "/" + folderName);
+            entered = true;
+            rememberFolderName = folderName;
+            if(sep_speed) {
+                rememberFolderName.erase(rememberFolderName.begin()+8);
+                rememberFolderName.erase(rememberFolderName.begin()+8);
+            }
         }
         std::string path(m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer));
         if (fs::status_known(s) ? fs::exists(s) : fs::exists(path)) {
             fs::create_directory(
-                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation));
+                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/"  + folderName + std::to_string(simulation));
             fs::create_directory(
-                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation) + "/" + std::to_string(sequence));
+                    m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + folderName + std::to_string(simulation) + "/" + std::to_string(sequence));
 
 
             for (auto &neuron: neurons) {
                 if (neuron.get().getConf().POTENTIAL_TRACK[0] == neuron.get().getPos().x() &&
                     neuron.get().getConf().POTENTIAL_TRACK[1] == neuron.get().getPos().y()) {
-                    fileName = m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + std::to_string(simulation) + "/" + std::to_string(sequence) + "/";
+                    fileName = m_networkConf.getNetworkPath() + "statistics/" + std::to_string(layer) + "/" + folderName + std::to_string(simulation) + "/" + std::to_string(sequence) + "/";
                     saveStatesStatistics(fileName, neuron.get());
                 }
             }
@@ -745,6 +795,19 @@ void SpikingNetwork::saveStatesStatistics(std::string &fileName, Neuron &neuron)
     ofs.close();
 }
 
+void SpikingNetwork::saveWeightsChanges() {
+    updateWeightsChanges();
+    nlohmann::json state;
+    state["weights_changes"] = m_trainingWeightsChanges;
+    std::ofstream ofs(m_networkConf.getNetworkPath() + "weights/weightsChanges" + ".json");
+    if (ofs.is_open()) {
+        ofs << std::setw(4) << state << std::endl;
+    } else {
+        std::cout << "cannot save neuron state weights changes file" << std::endl;
+    }
+    ofs.close();
+    assignLayerNorm();
+}
 /**
  * Change the coordinates of the neuron to track regardless of what is in the config file.
  * @param n_x 
@@ -808,8 +871,8 @@ void SpikingNetwork::shuffleInhibition(int cases) {
  * @param index_z 
  * @param orientation 
  */
-void SpikingNetwork::assignOrientations(int index_z, int orientation) {
-    m_simpleWeightsOrientations.at(index_z).push_back(orientation);
+void SpikingNetwork::assignOrientations(int index_z, int orientation, int thickness) {
+    m_simpleWeightsOrientations.at(index_z).at(thickness).push_back(orientation);
 }
 
 /**
@@ -817,8 +880,8 @@ void SpikingNetwork::assignOrientations(int index_z, int orientation) {
  * @param id 
  * @param orientation 
  */
-void SpikingNetwork::assignComplexOrientations(int id, int orientation) {
-    m_complexCellsOrientations.at(id).push_back(orientation);
+void SpikingNetwork::assignComplexOrientations(int id, int orientation, int thickness) {
+    m_complexCellsOrientations.at(id).at(thickness).push_back(orientation);
 }
 
 /**
@@ -857,4 +920,64 @@ void SpikingNetwork::resetSTrain() {
             }
             ++layer;
     }
+}
+
+double SpikingNetwork::layerWeightNorm(int layer, int type) {
+    double mean;
+    int depth = m_networkConf.getLayerConnectivity()[0].sizes[2];
+    int it = 0;
+    int numberOfNeuronsInLayer = m_networkConf.getLayerConnectivity()[layer].patches[0].size()
+                        * m_networkConf.getLayerConnectivity()[layer].sizes[0]
+                        * m_networkConf.getLayerConnectivity()[layer].patches[1].size()
+                        * m_networkConf.getLayerConnectivity()[layer].sizes[1]
+                        * m_networkConf.getLayerConnectivity()[layer].patches[2].size()
+                        * m_networkConf.getLayerConnectivity()[layer].sizes[2];
+    switch (type) {
+        case 0:
+            for (auto &neurons: m_neurons[layer]) {
+                mean += neurons.get().getWeightsMatrixNorm();
+                it++;
+                if(it==depth) {
+                    break;
+                }
+            }
+            return mean/depth;
+            break;
+        case 1:
+            for (auto &neurons: m_neurons[layer]) {
+                mean += neurons.get().getWeightsMapNorm();
+            }
+            return mean/numberOfNeuronsInLayer;
+            break;
+        case 2:
+            for (auto &neurons: m_neurons[layer]) {
+                mean += neurons.get().getNormLateralInhibitionWeights();
+            }
+            return mean/numberOfNeuronsInLayer;
+            break;
+        case 3:
+            for (auto &neurons: m_neurons[layer]) {
+                mean += neurons.get().getNormTopDownInhibitionWeights();
+            }
+            return mean/numberOfNeuronsInLayer;
+            break;
+
+        default:
+            return 0;
+            break;
+    }
+}
+
+void SpikingNetwork::assignLayerNorm() {
+    m_previousNorms[0] = layerWeightNorm(0, 0);
+    m_previousNorms[1] = layerWeightNorm(1, 1);
+    m_previousNorms[2] = layerWeightNorm(0, 2);
+    m_previousNorms[3] = layerWeightNorm(0, 3);
+}
+
+void SpikingNetwork::updateWeightsChanges() {
+    m_trainingWeightsChanges[0].push_back(abs(m_previousNorms[0]- layerWeightNorm(0, 0)));
+    m_trainingWeightsChanges[1].push_back(abs(m_previousNorms[1] - layerWeightNorm(1,1)));
+    m_trainingWeightsChanges[2].push_back(abs(m_previousNorms[2] - layerWeightNorm(0,2)));
+    m_trainingWeightsChanges[3].push_back(abs(m_previousNorms[3] - layerWeightNorm(0,3)));
 }
