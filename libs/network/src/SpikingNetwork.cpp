@@ -172,14 +172,6 @@ void SpikingNetwork::lateralStaticInhibition(Neuron &neuron) {
     }
 }
 
-/**
- * @brief Stores a neuromodulator for subsequent computation.
- * @param neuromodulator - The neuromodulator to be stored.
- */
-void SpikingNetwork::transmitNeuromodulator(double neuromodulator) {
-    m_neuromodulator = neuromodulator;
-}
-
 
 /**
  * @brief Update function used with synaptic delays.
