@@ -18,12 +18,14 @@ set(NEUVISYS_SIMU_SOURCES
 		${SRC_BASE_PATH}/SimulationInterface.cpp
         ${SRC_BASE_PATH}/Motor.cpp
         ${SRC_BASE_PATH}/FrameToEvents.cpp
+		${SRC_BASE_PATH}/Launcher.cpp
 )
 
 set(NEUVISYS_SIMU_HEADERS       
 		${HDRS_BASE_PATH}/SimulationInterface.hpp
 		${HDRS_BASE_PATH}/Motor.hpp
 		${HDRS_BASE_PATH}/FrameToEvents.hpp
+		${HDRS_BASE_PATH}/Launcher.hpp
 )
 
 set(NEUVISYS_SIMU_LIBS

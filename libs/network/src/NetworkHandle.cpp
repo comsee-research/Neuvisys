@@ -148,7 +148,9 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
-            m_reward = 100 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate;
+//            m_reward = 100 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate; // orientation
+//            m_reward = E6 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate; // tracking
+            m_reward = 5 * (90 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate));
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         for (size_t i = 0; i < m_spinet.getNetworkStructure().size(); ++i) {

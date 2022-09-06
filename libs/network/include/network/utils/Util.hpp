@@ -29,6 +29,8 @@ namespace Util {
     double ornsteinUhlenbeckProcess(double pos, double dt, double theta, double mu, double sigma);
 
     void saveEventFile(std::vector<Event> &events, std::string &filePath);
+
+    double gaussian(double x, double a, double mu, double sigma);
 }
 
 class Position {

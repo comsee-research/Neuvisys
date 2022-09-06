@@ -86,4 +86,8 @@ namespace Util {
         double noise = normalDistr(generator) * std::sqrt(dt);
         return theta * (mu - pos) * dt + sigma * noise;
     }
+
+    double gaussian(double x, double a, double mu, double sigma) {
+        return a * exp(-0.5 * pow(x - mu, 2) / pow(sigma, 2));
+    }
 }

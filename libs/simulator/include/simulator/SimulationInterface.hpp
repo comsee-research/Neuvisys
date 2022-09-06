@@ -40,6 +40,7 @@ class SimulationInterface {
     bool m_saveEvents = false;
 
     size_t count = 0;
+    std::vector<double> m_distanceError;
 
     double m_rewardStored{};
     FrameToEvents frameConverter;

@@ -52,7 +52,8 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
 }
 
 void SimulationInterface::jointAngleCallBack(const ros::MessageEvent<std_msgs::Float32> &jointAngle) {
-//    m_rewardStored = jointAngle.getMessage()->data; // Tracking
+    m_distanceError.push_back(jointAngle.getMessage()->data);
+    m_rewardStored = Util::gaussian(80, 0, 0.4, 4 * jointAngle.getMessage()->data); // Tracking
 //    m_rewardStored = 50 * std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2)); // Vertical
     m_rewardStored = 50 * ((M_PI / 2) - std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2))); // Horizontal
 }
@@ -123,6 +124,7 @@ void SimulationInterface::stopSimulation() {
     m_stopSimulation.publish(msg);
     std::cout << "Stopping simulation" << std::endl;
 
+    cnpy::npy_save("/home/thomas/distance.npy", &m_distanceError[0], {m_distanceError.size()});
     if (m_saveEvents) {
         frameConverter.saveEventsAsFile("/home/thomas/Desktop/events");
     }
