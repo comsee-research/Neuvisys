@@ -148,9 +148,8 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
-//            m_reward = 100 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate; // orientation
-//            m_reward = E6 * (2 - m_spinet.getAverageActivity(0)) / m_averageEventRate; // tracking
-            m_reward = 5 * (90 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate));
+            m_reward = 10 * (20 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)) ; // orientation
+//            m_reward = 5 * (90 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)); // tracking
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         for (size_t i = 0; i < m_spinet.getNetworkStructure().size(); ++i) {
@@ -281,7 +280,8 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-        if (m_action != -1 && m_decayCritic < 0.5) {
+//        if (m_action != -1 && m_decayCritic < 0.5) {
+        if (m_action != -1) {
             updateActor();
         }
         actionSelection(resolveMotor(), getRLConfig().getExplorationFactor());
@@ -328,7 +328,6 @@ void NetworkHandle::actionSelection(const std::vector<uint64_t> &actionsActivati
         m_action = distInt(gen);
         m_exploration = true;
     }
-//    std::cout << "Select new action: " << m_action << " exploration: " << m_exploration << std::endl;
 }
 
 /**
