@@ -10,7 +10,7 @@ Motor::Motor(ros::NodeHandle &n, const std::string &topic) {
 }
 
 void Motor::jitter(double dt) {
-    auto jitter = static_cast<float>(Util::ornsteinUhlenbeckProcess(m_position.data, dt, 25, 0., 2));
+    auto jitter = static_cast<float>(Util::ornsteinUhlenbeckProcess(m_position.data, dt, 10, 0., 0.5));
     changePosition(jitter);
 }
 

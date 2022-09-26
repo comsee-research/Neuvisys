@@ -14,10 +14,10 @@ int main(int argc, char **argv) {
         type = argv[1];
     }
 
-//    auto networkPath = std::string("/home/thomas/Networks/simulation/rl_inhibition/tracking_task/validation/");
-//    launchNetworkSimulation(networkPath, false, 4.5);
+    auto networkPath = std::string("/home/thomas/Networks/simulation/rl/tracking_task/3actions/network_learning/");
+    launchNetworkSimulation(networkPath, true, 10);
 
-    launchValidationMultiWeights();
+//    launchValidationMultiWeights();
 
 //    if (type == "multi") {
 //        for (const auto &entry : std::filesystem::directory_iterator(argv[1])) {

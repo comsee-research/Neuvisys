@@ -127,7 +127,7 @@ void NetworkHandle::feedEvents(const std::vector<Event> &events) {
             updateNeurons(event.timestamp());
         }
 
-        if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(5 * E6)) {
+        if (static_cast<double>(event.timestamp()) - m_saveTime.display > static_cast<size_t>(2 * E6)) {
             m_saveTime.display = static_cast<double>(event.timestamp());
             std::cout << static_cast<int>(static_cast<double>(100 * event.timestamp()) / m_endTime) << "%" << std::endl;
 //            m_spinet.intermediateSave(m_saveCount);
@@ -280,7 +280,6 @@ int NetworkHandle::learningLoop(long lastTimestamp, double time, size_t nbEvents
     if (time - m_saveTime.action > static_cast<double>(getRLConfig().getActionRate())) {
         m_saveTime.action = time;
 
-//        if (m_action != -1 && m_decayCritic < 0.5) {
         if (m_action != -1) {
             updateActor();
         }
@@ -530,9 +529,7 @@ void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
 
     m_decayCritic *= 1 - decay;
-    if (m_decayCritic < 0.5) {
-        m_decayActor *= 1 - decay;
-    }
+    m_decayActor *= 1 - decay;
 
     m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
     if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {

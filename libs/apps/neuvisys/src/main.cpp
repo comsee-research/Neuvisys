@@ -25,7 +25,7 @@ int main(int argc, char *argv[]) {
         NetworkConfig::createNetwork(argv[1], PredefinedConfigurations::twoLayerOnePatchWeightSharingCenteredConfig);
     } else {
         std::cout << "too few arguments, entering debug mode" << std::endl;
-        std::string networkPath = "/home/thomas/Networks/simulation/rl/tracking_task/tracking_2D/network/";
+        std::string networkPath = "/home/thomas/Networks/natural/intermediate_weights/network/";
         std::string eventsPath = "/home/thomas/Videos/natural/shapes/shapes.h5";
 
 //        NetworkConfig::createNetwork(networkPath, PredefinedConfigurations::fourLayerRLOnePatchCenteredConfig);
@@ -34,7 +34,7 @@ int main(int argc, char *argv[]) {
         NetworkHandle network(networkPath, eventsPath);
         Events events;
         std::cout << "Feeding network... " << std::endl;
-        size_t nbPass = 1;
+        size_t nbPass = 20;
 
         while (network.loadEvents(events, nbPass)) {
             network.feedEvents(events);

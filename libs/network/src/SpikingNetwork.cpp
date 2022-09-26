@@ -477,12 +477,12 @@ void SpikingNetwork::intermediateSave(size_t saveCount) {
 
     size_t layer = 0;
     for (auto &neurons: m_neurons) {
-        if (layer > 1) {
+//        if (layer > 1) {
             for (auto &neuron: neurons) {
                 fileName = m_networkConf.getNetworkPath() + "weights/intermediate_" + std::to_string(saveCount) + "/" + std::to_string(layer) + "/";
                 neuron.get().saveWeights(fileName);
             }
-        }
+//        }
         ++layer;
     }
 }
