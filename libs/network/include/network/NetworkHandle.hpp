@@ -52,6 +52,7 @@ class NetworkHandle {
 
     std::map<std::string, std::vector<double>> m_saveData;
     double m_reward{};
+    double m_error{};
     double m_neuromodulator{};
     std::string m_eventsPath;
     size_t m_nbEvents{};

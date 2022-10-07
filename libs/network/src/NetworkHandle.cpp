@@ -423,6 +423,8 @@ std::vector<uint64_t> NetworkHandle::resolveMotor() {
 void NetworkHandle::saveValueMetrics(long time, size_t nbEvents) {
     m_saveData["nbEvents"].push_back(static_cast<double>(nbEvents));
     m_saveData["reward"].push_back(m_reward);
+    m_saveData["error"].push_back(m_error);
+    m_saveData["time"].push_back(static_cast<double>(time));
 
     auto V = valueFunction(time);
     m_saveData["value"].push_back(V);
@@ -509,7 +511,10 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
  * @param reward
  */
 void NetworkHandle::transmitReward(const double reward) {
-    m_reward = reward;
+    m_error = reward;
+//    m_reward = Util::gaussian(4 * reward, 80, 0, 0.4); // Tracking
+    m_reward = 50 * std::abs(std::abs(reward) - (M_PI / 2)); // Horizontal
+//    m_reward = 50 * ((M_PI / 2) - std::abs(std::abs(reward) - (M_PI / 2))); // Vertical
 }
 
 /**
@@ -529,7 +534,7 @@ void NetworkHandle::learningDecay(double time) {
     double decay = time * getRLConfig().getDecayRate() / 100;
 
     m_decayCritic *= 1 - decay;
-    m_decayActor *= 1 - decay;
+    m_decayActor *= 1 - (decay / 3);
 
     m_rlConf.setExplorationFactor(getRLConfig().getExplorationFactor() * (1 - decay));
     if (getRLConfig().getActionRate() > getRLConfig().getMinActionRate()) {

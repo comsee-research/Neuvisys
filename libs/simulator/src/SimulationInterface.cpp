@@ -53,9 +53,7 @@ void SimulationInterface::visionCallBack(const ros::MessageEvent<sensor_msgs::Im
 
 void SimulationInterface::jointAngleCallBack(const ros::MessageEvent<std_msgs::Float32> &jointAngle) {
     m_distanceError.push_back(jointAngle.getMessage()->data);
-//    m_rewardStored = Util::gaussian(4 * jointAngle.getMessage()->data, 80, 0, 0.4); // Tracking
-    m_rewardStored = 50 * std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2)); // Horizontal
-//    m_rewardStored = 50 * ((M_PI / 2) - std::abs(std::abs(jointAngle.getMessage()->data) - (M_PI / 2))); // Vertical
+    m_rewardStored = jointAngle.getMessage()->data;
 }
 
 void SimulationInterface::timeCallBack(const ros::MessageEvent<std_msgs::Float32> &time) {
@@ -76,7 +74,7 @@ void SimulationInterface::update() {
     m_lastImageTime = m_imageTime;
 
     if (dt != 0) {
-        motorsJitter(dt);
+//        motorsJitter(dt);
     }
 }
 
