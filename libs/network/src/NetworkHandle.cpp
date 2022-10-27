@@ -148,8 +148,8 @@ void NetworkHandle::updateNeurons(size_t time) {
         m_averageEventRate = (alpha * static_cast<double>(m_countEvents)) + (1.0 - alpha) * m_averageEventRate;
         m_countEvents = 0;
         if (getRLConfig().getIntrinsicReward()) {
-            m_reward = 10 * (20 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)) ; // orientation
-//            m_reward = 5 * (90 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)); // tracking
+//            m_reward = 10 * (20 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)) ; // orientation
+            m_reward = 5 * (90 - (E6 * m_spinet.getAverageActivity(0) / m_averageEventRate)); // tracking
         }
         m_saveData["eventRate"].push_back(m_averageEventRate);
         for (size_t i = 0; i < m_spinet.getNetworkStructure().size(); ++i) {
@@ -512,8 +512,8 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
  */
 void NetworkHandle::transmitReward(const double reward) {
     m_error = reward;
-//    m_reward = Util::gaussian(4 * reward, 80, 0, 0.4); // Tracking
-    m_reward = 50 * std::abs(std::abs(reward) - (M_PI / 2)); // Horizontal
+    m_reward = Util::gaussian(4 * reward, 80, 0, 0.4); // Tracking
+//    m_reward = 50 * std::abs(std::abs(reward) - (M_PI / 2)); // Horizontal
 //    m_reward = 50 * ((M_PI / 2) - std::abs(std::abs(reward) - (M_PI / 2))); // Vertical
 }
 

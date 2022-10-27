@@ -95,7 +95,7 @@ void NeuvisysThreadSimulation::launchSimulation(NetworkHandle &network) {
             m_motorDisplay[m_action] = true;
         }
 
-        if (sim.getSimulationTime() > 500) {
+        if (sim.getSimulationTime() > 35) {
             m_stop = true;
         }
     }
@@ -220,7 +220,7 @@ void NeuvisysThreadSimulation::eventLoop(NetworkHandle &network, const std::vect
         }
         network.updateNeurons(static_cast<size_t>(time));
 
-        if (network.getRLConfig().getRLTraining() && m_iterations > 100000) {
+        if (network.getRLConfig().getRLTraining() && m_iterations > 11000) {
             m_action = network.learningLoop(events.back().timestamp(), time, events.size(), m_msg);
         }
     }

@@ -9,6 +9,7 @@ int main(int argc, char *argv[]) {
     NeuvisysGUISimulation w(argc, argv,
                   "",
                   "/home/thomas/Networks/simulation/rl/orientation_task/3actions/network/");
+    WeightMatrix::setSeed(456412);
     w.setFixedSize(0.9 * QDesktopWidget().availableGeometry().size());
     w.show();
     return app.exec();
