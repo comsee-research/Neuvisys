@@ -513,7 +513,8 @@ double NetworkHandle::valueDerivative(const std::vector<double> &value) {
 void NetworkHandle::transmitReward(const double reward) {
     m_error = reward;
     m_reward = Util::gaussian(4 * reward, 80, 0, 0.4); // Tracking
-//    m_reward = 50 * std::abs(std::abs(reward) - (M_PI / 2)); // Horizontal
+
+//    m_reward = 50 * std::abs((M_PI / 2) - std::abs(reward)); // Horizontal
 //    m_reward = 50 * ((M_PI / 2) - std::abs(std::abs(reward) - (M_PI / 2))); // Vertical
 }
 
